@@ -4,6 +4,13 @@ arXiv Search
 Context
 =======
 
+.. _figure-ng-search-context:
+
+.. figure:: _static/diagrams/ng-search-context.png
+   :target: _static/diagrams/ng-search-context.png
+
+   System context for arXiv search.
+
 The arXiv search system provides a faceted search experience to arXiv readers,
 as a part of the core arXiv website. Readers can search by specific metadata
 fields, and by full-text content. The search system also supports future
@@ -29,6 +36,13 @@ updates the search index.
 Subsystems
 ==========
 
+.. _figure-ng-search-subsystems:
+
+.. figure:: _static/diagrams/ng-search-subsystems.png
+   :target: _static/diagrams/ng-search-subsystems.png
+
+   Subsystem view of arXiv search.
+
 The core of the search system is an ElasticSearch index, provided by the `AWS
 Elasticsearch Service <https://aws.amazon.com/elasticsearch-service/>`.
 
@@ -36,11 +50,61 @@ The search application, implemented in Flask and deployed on EC2, provides
 both the user-facing interface and REST API. The search application is only
 responsible for reading from ES. The REST API routes are proxied by the API
 Gateway; those routes use client certificate validation to limit requests to
-the gateway only. See also :ref:`web-application-architecture`.
+the gateway only.
 
 An agent application is responsible for coordinating updates to the ES index.
 The agent subscribes to notifications about the availability of plain text for
 new publications delivered by the Kinesis broker. The agent makes requests
 to the metadata repository and the plain text store, transforms those data
 into a search document, and sends that document to ES. The agent is deployed
-in a private subnet, on a small dedicated EC2 instance.
+in a private subnet.
+
+Components
+==========
+
+Search agent
+------------
+
+.. _figure-ng-search-agent-components:
+
+.. figure:: _static/diagrams/ng-search-agent-components.png
+   :target: _static/diagrams/ng-search-agent-components.png
+
+   Components view of the search agent.
+
+The search agent implements the :ref:`agent role <agents>` in the generic
+architecture.
+
+Notification handling is provided by two components: a notification consumer
+provided by Amazon, implemented using the Java-based Kinesis Consumer
+Library, and a record processor component implemented in Python that
+processes new notifications received by the consumer. A so-called
+MultiLangDaemon, a stand-alone Java process, provides the glue between the
+KCL and our record processor. When new notifications are received by the
+consumer, the MultiLangDaemon invokes the record processor, which in turn
+starts the processing pipeline.
+
+The :class:`search.agent.RecordProcessor` implements a method called for each
+notification. That method coordinates retrieval of metadata and text content
+from their respective data stores, transformation of those content into a
+search document, and updating ElasticSearch. Integration with external services
+are provided by service components. A transformation component encapsulates
+the production of the search document from input metadata and full text.
+
+Search application + API
+------------------------
+
+The search application provides browser-based access to readers, and also
+provides a REST API for programmatic access via the API Gateway. This
+application is implemented in Flask.
+
+Browser-based and API-based requests are handled by separate routes
+
+See the :ref:`web-application-architecture` documentation for details.
+
+.. _figure-ng-search-application-components:
+
+.. figure:: _static/diagrams/ng-search-application-components.png
+   :target: _static/diagrams/ng-search-application-components.png
+
+   Components view of the search agent.
