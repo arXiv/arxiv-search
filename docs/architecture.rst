@@ -1,6 +1,39 @@
 arXiv Search
 ************
 
+Key Requirements
+================
+
+- Readers should be able to search for arXiv publications via a modern, fast,
+  faceted search interface.
+- Searches should make use of full text content to increase the relevance of
+  results.
+- External API consumers should be able to perform searches RESTfully
+  via the arXiv API gateway.
+- The search index should be updated automatically in response to system
+  notifications about new content.
+- Maintain look-and-feel of classic arXiv system.
+
+Quality Goals
+=============
+
+- 99% of search requests (browser and API) serviced in 100 milliseconds or
+  less.
+- 90% unit test coverage on Python components that we develop/control.
+- API documentation to include:
+
+  - Request/response parameters for all available methods;
+  - Examples for all available methods;
+  
+
+Constraints
+===========
+
+- Browser-facing and API applications must be implemented in Python/Flask, and
+  be deployable in AWS ElasticBeanstalk as a Python/WSGI application.
+- Notifications about new content are delivered via the Kinesis notification
+  broker.
+
 Context
 =======
 
@@ -94,17 +127,24 @@ the production of the search document from input metadata and full text.
 Search application + API
 ------------------------
 
-The search application provides browser-based access to readers, and also
-provides a REST API for programmatic access via the API Gateway. This
-application is implemented in Flask.
-
-Browser-based and API-based requests are handled by separate routes
-
-See the :ref:`web-application-architecture` documentation for details.
-
 .. _figure-ng-search-application-components:
 
 .. figure:: _static/diagrams/ng-search-application-components.png
    :target: _static/diagrams/ng-search-application-components.png
 
    Components view of the search agent.
+
+The search application provides browser-based access to readers, and also
+provides a REST API for programmatic access via the API Gateway. This
+application is implemented in Flask.
+
+Browser-based and API-based requests are handled by separate routes. API-based
+routes should validate client certificates to limit traffic to the API
+gateway only.
+
+.. note:
+   It may be acceptable to use a lightweight client-side application for the
+   faceted search interface, if it would substantially enhance user
+   experience.
+
+See the :ref:`web-application-architecture` documentation for details.
