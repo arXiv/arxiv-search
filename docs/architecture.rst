@@ -24,7 +24,6 @@ Quality Goals
 
   - Request/response parameters for all available methods;
   - Examples for all available methods;
-  
 
 Constraints
 ===========
@@ -60,11 +59,11 @@ Finally, the search system acts as a secondary data store for some other arXiv
 subsystems within the :ref:`enhancement & discovery area of concern
 <enhancement-and-discovery>`. For example, the RSS feed API.
 
-The search system subscribes to notifications about new publications and
-full text content brokered by AWS Kinesis. When the full text content is
-available, the search system retrieves the relevant metadata and content from
-the :ref:`publication-metadata-store` and plain text store, respectively, and
-updates the search index.
+The search system subscribes to notifications about new publications and full
+text content brokered by AWS Kinesis. When metadata and/or the full text
+content is available, the search system retrieves the relevant metadata and
+content from the :ref:`publication-metadata-store` and plain text store,
+respectively, and updates the search index.
 
 Subsystems
 ==========
@@ -86,11 +85,11 @@ Gateway; those routes use client certificate validation to limit requests to
 the gateway only.
 
 An agent application is responsible for coordinating updates to the ES index.
-The agent subscribes to notifications about the availability of plain text for
-new publications delivered by the Kinesis broker. The agent makes requests
-to the metadata repository and the plain text store, transforms those data
-into a search document, and sends that document to ES. The agent is deployed
-in a private subnet.
+The agent subscribes to notifications about the availability of metadata and/or
+plain text for new publications delivered by the Kinesis broker. The agent
+makes requests to the metadata repository and the plain text store, transforms
+those data into a search document, and sends that document to ES. The agent is
+deployed in a private subnet.
 
 Components
 ==========
