@@ -1,0 +1,192 @@
+{
+  "mappings": {
+    "arxiv": {
+      "_all": {
+        "enabled": false
+      },
+      "dynamic": "strict",
+      "properties": {
+        "abs_categories": {
+          "type": "keyword"
+        },
+        "abstract": {
+          "type": "text"
+        },
+        "acm_class": {
+          "type": "keyword"
+        },
+        "authors": {
+          "type": "nested",
+          "properties": {
+            "first_name": {
+              "type": "keyword"
+            },
+            "last_name": {
+              "type": "keyword"
+            },
+            "affiliation": {
+              "type": "keyword"
+            }
+          }
+        },
+        "comments": {
+          "type": "text"
+        },
+        "date_created": {
+          "type": "date",
+          "format": "date_time_no_millis"
+        },
+        "date_modified": {
+          "type": "date",
+          "format": "date_time_no_millis"
+        },
+        "date_updated": {
+          "type": "date",
+          "format": "date_time_no_millis"
+        },
+        "doi": {
+          "type": "keyword"
+        },
+        "document_id": {
+          "type": "integer"
+        },
+        "is_current": {
+          "type": "boolean"
+        },
+        "is_withdrawn": {
+          "type": "boolean"
+        },
+        "journal_ref": {
+          "type": "text"
+        },
+        "license": {
+          "properties": {
+            "uri": {
+              "type": "keyword"
+            },
+            "label": {
+              "type": "keyword"
+            }
+          }
+        },
+        "metadata_id": {
+          "type": "keyword"
+        },
+        "msc_class": {
+          "type": "keyword"
+        },
+        "paper_id": {
+          "type": "keyword"
+        },
+        "paper_id_v": {
+          "type": "keyword"
+        },
+        "primary_category": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            }
+          }
+        },
+        "primary_archive": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            }
+          }
+        },
+        "primary_group": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            }
+          }
+        },
+        "secondary_categories": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            }
+          }
+        },
+        "secondary_archives": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            }
+          }
+        },
+        "secondary_groups": {
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            }
+          }
+        },
+        "proxy": {
+          "type": "keyword"
+        },
+        "source": {
+          "properties": {
+            "flags": {
+              "type": "keyword"
+            },
+            "format": {
+              "type": "keyword"
+            },
+            "size_bytes": {
+              "type": "integer"
+            }
+          }
+        },
+        "submitter": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            },
+            "submitter_id": {
+              "type": "integer"
+            },
+            "is_author": {
+              "type": "boolean"
+            },
+            "author_id": {
+              "type": "keyword"
+            },
+            "orcid": {
+              "type": "keyword"
+            }
+          }
+        },
+        "title": {
+          "type": "text"
+        },
+        "version": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}
