@@ -10,7 +10,7 @@
         },
         "name": {
           "type": "string"
-        },
+        }
       },
       "required": ["id", "name"]
     },
@@ -22,7 +22,7 @@
         },
         "name": {
           "type": "string"
-        },
+        }
       },
       "required": ["id", "name"]
     },
@@ -34,7 +34,7 @@
         },
         "name": {
           "type": "string"
-        },
+        }
       },
       "required": ["id", "name"]
     }
@@ -189,11 +189,7 @@
       "required": ["size_bytes"]
     },
     "submitter": {
-      "description": "Submitter data. Name and email may not match those
-      associated with user account,
-      since user data is copied to submission
-      data at the time of submission creation.
-      "
+      "description": "Submitter data. Name and email may not match those associated with user account, since user data is copied to submission data at the time of submission creation.",
       "type": "object",
       "properties": {
         "email": {
@@ -214,15 +210,14 @@
       },
       "required": ["email", "name"]
     },
+    "title": {
+      "type": "string"
+    },
+    "version": {
+      "minimum": 1,
+      "type": "integer"
+    }
   },
-  "title": {
-    "type": "string"
-  },
-  "version": {
-    "minimum": 1,
-    "type": "integer"
-  },
-
   "required": [
     "abstract",
     "authors",
@@ -239,6 +234,6 @@
     "primary_group",
     "title",
     "source",
-    "version",
+    "version"
   ]
 }
