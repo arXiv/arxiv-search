@@ -185,6 +185,9 @@
         },
         "version": {
           "type": "integer"
+        },
+        "fulltext": {
+          "type": "text"
         }
       }
     }

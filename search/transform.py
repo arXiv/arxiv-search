@@ -128,7 +128,6 @@ def to_search_document(metadata: dict, fulltext: dict=None) -> dict:
             value = metadata.get(source)
         elif hasattr(source, '__call__'):
             value = source(metadata)
-        print(key, source, value)
         if not value and key not in _required:
             continue
         document[key] = value
