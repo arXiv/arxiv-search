@@ -42,7 +42,7 @@
   "type": "object",
   "properties": {
     "abs_categories": {
-      "description": "Categories as they would appear on the /abs page"
+      "description": "Categories as they would appear on the /abs page",
       "type": "string"
     },
     "abstract": {
@@ -91,7 +91,7 @@
       "type": "string"
     },
     "document_id": {
-      "description": "Internal, version-independent document identifier"
+      "description": "Internal, version-independent document identifier",
       "type": "integer"
     },
     "doi": {

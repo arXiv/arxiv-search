@@ -1,4 +1,5 @@
-"""Retrieve fulltext content for arXiv papers."""
+"""Retrieval of metadata from the core arXiv repository."""
+
 
 from search import status
 import requests
@@ -6,36 +7,29 @@ import os
 from urllib.parse import urljoin
 import json
 
-FULLTEXT_ENDPOINT = os.environ.get('FULLTEXT_ENDPOINT',
-                                   'https://fulltext.arxiv.org/fulltext/')
+METADATA_ENDPOINT = os.environ.get('METADATA_ENDPOINT',
+                                   'https://arxiv.org/docmeta/')
 
 
 # TODO: this doesn't implement the usual Flask service pattern, but it seems
 #  like overkill in this case. Depending on how this is used, we can revisit
 #  whether it should be Flask-ified.
-def retrieve(document_id: str, endpoint: str=FULLTEXT_ENDPOINT) -> dict:
+def retrieve(document_id: str, endpoint: str=METADATA_ENDPOINT) -> dict:
     """
-    Retrieve fulltext content for an arXiv paper.
+    Retrieve metadata for an arXiv paper.
 
     Parameters
     ----------
     document_id : str
-        arXiv identifier, including version tag. E.g. ``"1234.56787v3"``.
-    endpoint : str
-        Base URL for fulltext endpoint.
 
     Returns
     -------
     dict
-        Includes the content itself, creation (extraction) date, and extractor
-        version.
 
     Raises
     ------
-    ValueError
-        Raised when ``document_id`` is not a valid arXiv paper identifier.
     IOError
-        Raised when unable to retrieve fulltext content.
+    ValueError
     """
     if not document_id:    # This could use further elaboration.
         raise ValueError('Invalid value for document_id')
@@ -48,8 +42,9 @@ def retrieve(document_id: str, endpoint: str=FULLTEXT_ENDPOINT) -> dict:
     except requests.exceptions.SSLError as e:
         raise IOError('SSL failed: %s' % e)
 
-    if response.status_code != status.HTTP_200_OK:
-        raise IOError('%s: could not retrieve fulltext: %i' %
+    if response.status_code not in \
+            [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]:
+        raise IOError('%s: could not retrieve metadata: %i' %
                       (document_id, response.status_code))
     try:
         data = response.json()
