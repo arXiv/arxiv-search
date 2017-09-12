@@ -8,32 +8,6 @@ def _constructPaperVersion(meta: dict) -> str:
     return '%sv%i' % (meta['paper_id'], meta.get('version', 1))
 
 
-def _constructSource(meta: dict) -> dict:
-    """Extract metadata about paper source."""
-    source_flags = meta.get('source_flags', None)
-    if not source_flags:    # Might be blank, or something else falsey.
-        source_flags = None
-    source_format = meta.get('source_format', None)
-    if not source_format:    # Might be blank, or something else falsey.
-        source_format = None
-    return {
-        'flags': source_flags,
-        'format': source_format,
-        'size_bytes': meta.get('source_size_bytes', 0)
-    }
-
-
-def _constructSubmitter(meta: dict) -> dict:
-    """Extract metadata about the submitter of the paper."""
-    return {
-        'email': meta.get('submitter_email'),
-        'name': meta.get('submitter_name'),
-        'is_author': meta['proxy'] is None,    # TODO: is that correct?
-        'author_id': '',   # TODO: ML will add this to docmeta.
-        'orcid': ''   # TODO: ML will add this to docmeta.
-    }
-
-
 def _constructMSCClass(meta: dict) -> dict:
     """Extract ``msc_class`` field as an array."""
     raw = meta.get('msc_class')
@@ -52,22 +26,23 @@ def _constructACMClass(meta: dict) -> dict:
 
 _transformations = [
     ('abstract', 'abstract'),
-    ('authors', lambda meta:[{'last_name': 'foo'}]),   # TODO: ML to implement.
+    ('authors', "authors_parsed"),
+    ('authors', "author_owners"),
     ("date_created", 'created'),
     ("date_modified", 'modtime'),
     ("date_updated", "updated"),
     ("is_current", "is_current"),
     ("is_withdrawn", "is_withdrawn"),
-    ("license", lambda meta: {"uri": meta['license']}),
+    ("license", "license"),
     ('paper_id', 'paper_id'),
     ('paper_id_v', _constructPaperVersion),
-    ("primary_category", lambda meta: {'id': 'foo', 'name': 'bar'}),
-    ("primary_archive", lambda meta: {'id': 'foo', 'name': 'bar'}),
-    ("primary_group", lambda meta: {'id': 'foo', 'name': 'bar'}),
+    ("primary_category", "primary_category"),
+    ("primary_archive", "primary_archive"),
+    ("primary_group", "primary_group"),
     ("title", "title"),
-    ("source", _constructSource),
+    ("source", "source"),
     ("version", "version"),
-    ("submitter", _constructSubmitter),
+    ("submitter", "submitter"),
     ("report_num", "report_num"),
     ("proxy", "proxy"),
     ("msc_class", _constructMSCClass),

@@ -56,6 +56,29 @@
       },
       "uniqueItems": true
     },
+    "owners": {
+        "items": {
+          "type": "object",
+          "properties": {
+            "first_name": {
+              "type": "string"
+            },
+            "last_name": {
+              "type": "string"
+            },
+            "suffix": {
+              "type": "string"
+            },
+            "affiliation": {
+              "type": "array",
+              "items": {
+                  "type": "string"
+              },
+              "minItems": 0
+            }
+          },
+          "required": ["last_name"]
+    },
     "authors": {
       "items": {
         "type": "object",
@@ -66,8 +89,18 @@
           "last_name": {
             "type": "string"
           },
-          "affiliation": {
+          "suffix": {
             "type": "string"
+          },
+          "author_id": {
+            "type": "string"
+          },
+          "affiliation": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 0
           }
         },
         "required": ["last_name"]
