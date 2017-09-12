@@ -11,6 +11,9 @@ import shlex
 import subprocess
 import requests
 from datetime import datetime
+import logging
+
+logging.getLogger('elasticsearch').setLevel(40)
 
 DOCKER_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:5.5.3"
 
@@ -69,7 +72,7 @@ class IntegrationWithElasticsearch(unittest.TestCase):
         except IOError as e:
             self.fail('Failed to initialize SearchSession: %s' % e)
 
-        with open('tests/data/docmeta.json') as f:
+        with open('tests/data/1106.1238v2.json') as f:
             self.metadata = json.load(f)
         with open('tests/data/fulltext.json') as f:
             self.fulltext = json.load(f)
@@ -93,7 +96,7 @@ class IntegrationWithElasticsearch(unittest.TestCase):
         except IOError as e:
             self.fail('Failed to initialize SearchSession: %s' % e)
 
-        with open('tests/data/docmeta.json') as f:
+        with open('tests/data/1106.1238v2.json') as f:
             self.metadata = json.load(f)
         with open('tests/data/fulltext.json') as f:
             self.fulltext = json.load(f)
@@ -115,7 +118,7 @@ class IntegrationWithElasticsearch(unittest.TestCase):
         except IOError as e:
             self.fail('Failed to initialize SearchSession: %s' % e)
 
-        with open('tests/data/docmeta.json') as f:
+        with open('tests/data/1106.1238v2.json') as f:
             self.metadata = json.load(f)
         with open('tests/data/fulltext.json') as f:
             self.fulltext = json.load(f)
@@ -124,11 +127,11 @@ class IntegrationWithElasticsearch(unittest.TestCase):
 
         time.sleep(1)    # Search results are not immediately available!
 
-        results = search.search(msc_class='41A25')
+        results = search.search(**{'primary_archive.id': 'physics'})
         self.assertEqual(len(results['results']), 1)
         self.assertEqual(results['results'][0]['title'], document['title'])
 
-        results = search.search(msc_class='41A2')
+        results = search.search(**{'primary_archive.id': 'foo'})
         self.assertEqual(len(results['results']), 0)
 
     def tearDown(self):

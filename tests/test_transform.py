@@ -13,7 +13,7 @@ class TestMetadataAreAvailable(unittest.TestCase):
         """Load document schema and sample metadata."""
         with open('schema/Document.json') as f:
             self.schema = json.load(f)
-        with open('tests/data/docmeta.json') as f:
+        with open('tests/data/1106.1238v2.json') as f:
             self.metadata = json.load(f)
 
     def test_returns_valid_document(self):
@@ -37,7 +37,7 @@ class TestFulltextAvailable(unittest.TestCase):
         """Load document schema, fulltext, and sample metadata."""
         with open('schema/Document.json') as f:
             self.schema = json.load(f)
-        with open('tests/data/docmeta.json') as f:
+        with open('tests/data/1106.1238v2.json') as f:
             self.metadata = json.load(f)
         with open('tests/data/fulltext.json') as f:
             self.fulltext = json.load(f)

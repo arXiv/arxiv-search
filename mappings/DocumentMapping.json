@@ -24,6 +24,38 @@
             "last_name": {
               "type": "keyword"
             },
+            "suffix": {
+              "type": "keyword"
+            },
+            "author_id": {
+              "type": "keyword"
+            },
+            "orcid": {
+              "type": "keyword"
+            },
+            "affiliation": {
+              "type": "keyword"
+            }
+          }
+        },
+        "owners": {
+          "type": "nested",
+          "properties": {
+            "first_name": {
+              "type": "keyword"
+            },
+            "last_name": {
+              "type": "keyword"
+            },
+            "suffix": {
+              "type": "keyword"
+            },
+            "author_id": {
+              "type": "keyword"
+            },
+            "orcid": {
+              "type": "keyword"
+            },
             "affiliation": {
               "type": "keyword"
             }
