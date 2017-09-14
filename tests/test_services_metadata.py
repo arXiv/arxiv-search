@@ -1,81 +1,87 @@
-"""Tests for :mod:`search.services.fulltext`."""
+"""Tests for :mod:`search.services.metadata`."""
 
 import unittest
 from unittest import mock
-from search.services import fulltext
+from search.services import metadata
+import json
 
 
-class TestRetrieveExistantContent(unittest.TestCase):
-    """Fulltext content is available for a paper."""
+class TestRetrieveExistantMetadata(unittest.TestCase):
+    """Metadata is available for a paper."""
 
-    @mock.patch('search.services.fulltext.requests.get')
+    @mock.patch('search.services.metadata.requests.get')
     def test_calls_fulltext_endpoint(self, mock_get):
-        """:func:`.fulltext.retrieve` calls passed endpoint with GET."""
+        """:func:`.metadata.retrieve` calls passed endpoint with GET."""
         base = 'https://asdf.com/'
+
         response = mock.MagicMock()
-        type(response).json = mock.MagicMock(return_value={
-            'content': 'The whole story',
-            'version': 0.1,
-            'created': '2017-08-30T08:24:58.525923'
-        })
+        with open('tests/data/docmeta.json') as f:
+            mock_content = json.load(f)
+
+        type(response).json = mock.MagicMock(return_value=mock_content)
         response.status_code = 200
         mock_get.return_value = response
+
         try:
-            fulltext.retrieve('1234.5678v3', base)
+            metadata.retrieve('1602.00123', base)
         except Exception as e:
             self.fail('Choked on valid response: %s' % e)
-        args, _ = mock_get.call_args
+        try:
+            args, _ = mock_get.call_args
+        except Exception as e:
+            self.fail('Did not call requests.get as expected: %s' % e)
+
         self.assertTrue(args[0].startswith(base))
 
-    @mock.patch('search.services.fulltext.requests.get')
+    @mock.patch('search.services.metadata.requests.get')
     def test_returns_dict(self, mock_get):
-        """:func:`.fulltext.retrieve` returns a ``dict``."""
+        """:func:`.metadata.retrieve` returns a ``dict``."""
         response = mock.MagicMock()
-        type(response).json = mock.MagicMock(return_value={
-            'content': 'The whole story',
-            'version': 0.1,
-            'created': '2017-08-30T08:24:58.525923'
-        })
+        with open('tests/data/docmeta.json') as f:
+            mock_content = json.load(f)
+
+        type(response).json = mock.MagicMock(return_value=mock_content)
         response.status_code = 200
         mock_get.return_value = response
+
         try:
-            data = fulltext.retrieve('1234.5678v3')
+            data = metadata.retrieve('1602.00123')
         except Exception as e:
             self.fail('Choked on valid response: %s' % e)
         self.assertIsInstance(data, dict)
 
 
 class TestRetrieveNonexistantRecord(unittest.TestCase):
-    """Fulltext content is not available for a paper."""
+    """Metadata is not available for a paper."""
 
-    @mock.patch('search.services.fulltext.requests.get')
+    @mock.patch('search.services.metadata.requests.get')
     def test_raise_ioerror_on_404(self, mock_get):
-        """:func:`.fulltext.retrieve` raises IOError when text unvailable."""
+        """:func:`.metadata.retrieve` raises IOError when unvailable."""
         response = mock.MagicMock()
         type(response).json = mock.MagicMock(return_value=None)
         response.status_code = 404
         mock_get.return_value = response
         with self.assertRaises(IOError):
-            fulltext.retrieve('1234.5678v3')
+            metadata.retrieve('1234.5678v3')
 
-    @mock.patch('search.services.fulltext.requests.get')
+    @mock.patch('search.services.metadata.requests.get')
     def test_raise_ioerror_on_503(self, mock_get):
-        """:func:`.fulltext.retrieve` raises IOError when text unvailable."""
+        """:func:`.metadata.retrieve` raises IOError when unvailable."""
         response = mock.MagicMock()
         type(response).json = mock.MagicMock(return_value=None)
         response.status_code = 503
         mock_get.return_value = response
         with self.assertRaises(IOError):
-            fulltext.retrieve('1234.5678v3')
+            metadata.retrieve('1234.5678v3')
 
-    @mock.patch('search.services.fulltext.requests.get')
+    @mock.patch('search.services.metadata.requests.get')
     def test_raise_ioerror_on_sslerror(self, mock_get):
-        """:func:`.fulltext.retrieve` raises IOError when SSL fails."""
+        """:func:`.metadata.retrieve` raises IOError when SSL fails."""
         from requests.exceptions import SSLError
         mock_get.side_effect = SSLError
         with self.assertRaises(IOError):
             try:
-                fulltext.retrieve('1234.5678v3')
+                metadata.retrieve('1234.5678v3')
             except Exception as e:
                 if type(e) is SSLError:
                     self.fail('Should not return dependency exception')
@@ -83,11 +89,11 @@ class TestRetrieveNonexistantRecord(unittest.TestCase):
 
 
 class TestRetrieveMalformedRecord(unittest.TestCase):
-    """Fulltext endpoint returns non-JSON response."""
+    """Metadata endpoint returns non-JSON response."""
 
-    @mock.patch('search.services.fulltext.requests.get')
+    @mock.patch('search.services.metadata.requests.get')
     def test_response_is_not_json(self, mock_get):
-        """:func:`.fulltext.retrieve` raises IOError when not valid JSON."""
+        """:func:`.metadata.retrieve` raises IOError when not valid JSON."""
         from json.decoder import JSONDecodeError
         response = mock.MagicMock()
 
@@ -100,4 +106,4 @@ class TestRetrieveMalformedRecord(unittest.TestCase):
         response.status_code = 200
         mock_get.return_value = response
         with self.assertRaises(IOError):
-            fulltext.retrieve('1234.5678v3')
+            metadata.retrieve('1234.5678v3')
