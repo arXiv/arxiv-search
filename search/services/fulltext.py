@@ -10,9 +10,6 @@ FULLTEXT_ENDPOINT = os.environ.get('FULLTEXT_ENDPOINT',
                                    'https://fulltext.arxiv.org/fulltext/')
 
 
-# TODO: this doesn't implement the usual Flask service pattern, but it seems
-#  like overkill in this case. Depending on how this is used, we can revisit
-#  whether it should be Flask-ified.
 def retrieve(document_id: str, endpoint: str=FULLTEXT_ENDPOINT) -> dict:
     """
     Retrieve fulltext content for an arXiv paper.
@@ -57,3 +54,12 @@ def retrieve(document_id: str, endpoint: str=FULLTEXT_ENDPOINT) -> dict:
         raise IOError('%s: could not decode response: %s' %
                       (document_id, e)) from e
     return data
+
+
+def ok() -> bool:
+    """Health check."""
+    try:
+        return requests.head(FULLTEXT_ENDPOINT).ok
+    except IOError:
+        pass
+    return False
