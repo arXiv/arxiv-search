@@ -6,9 +6,6 @@ services:
     container_name: search-elasticsearch
     networks:
       - search-test
-    ports:
-      - 9200:9200
-      - 9300:9300
     environment:
       http.host: 0.0.0.0
       transport.host: 127.0.0.1
@@ -19,6 +16,8 @@ services:
       context: ./
       dockerfile: Dockerfile-dev
     container_name: arxiv-search
+    ports:
+      - 5000:5000
     networks:
       - search-test
     environment:

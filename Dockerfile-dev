@@ -26,21 +26,19 @@ RUN pip install -r /opt/arxiv/requirements.txt
 
 ENV PATH "/opt/arxiv:${PATH}"
 
-# If not set, secrets will not be retrieved.
-ENV LOGLEVEL 10
-ENV FLASK_DEBUG 1
-ENV FLASK_APP app.py
+ADD schema /opt/arxiv/schema
+ADD mappings /opt/arxiv/mappings
+ADD search /opt/arxiv/search
+ADD tests /opt/arxiv/tests
 
 WORKDIR /opt/arxiv/
-RUN create_index.py
-RUN populate_test_metadata.py
 
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
+ENV LOGLEVEL 10
+ENV FLASK_DEBUG 1
+ENV FLASK_APP /opt/arxiv/app.py
 
-VOLUME /opt/arxiv/search
-VOLUME /opt/arxiv/tests
-VOLUME /opt/arxiv/schema
-VOLUME /opt/arxiv/mappings
-
-
-ENTRYPOINT ["flask"]
-CMD ["run"]
+ENTRYPOINT ["python3.6", "-m", "flask"]
+CMD ["run", "-h", "0.0.0.0"]
+#CMD /bin/bash
