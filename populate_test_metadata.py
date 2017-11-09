@@ -1,3 +1,5 @@
+"""Use this to populate a search index for testing."""
+
 import json
 import click
 from search.factory import create_web_app

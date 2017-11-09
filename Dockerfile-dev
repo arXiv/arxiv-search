@@ -1,0 +1,46 @@
+# Run the Flask development server
+
+FROM ubuntu:zesty
+
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    wget \
+    gcc \
+    g++ \
+    libpython3.6 \
+    python3.6 \
+    python3.6-dev \
+    python3.6-venv \
+    git \
+ && rm -rf /var/lib/apt/lists/*
+
+# Install Python 3.6 and friends.
+RUN wget https://bootstrap.pypa.io/get-pip.py
+RUN python3.6 get-pip.py
+
+# Add Python consumer and configuration.
+ADD requirements.txt /opt/arxiv/
+ADD app.py /opt/arxiv/
+RUN pip install -U pip
+RUN pip install -r /opt/arxiv/requirements.txt
+
+ENV PATH "/opt/arxiv:${PATH}"
+
+# If not set, secrets will not be retrieved.
+ENV LOGLEVEL 10
+ENV FLASK_DEBUG 1
+ENV FLASK_APP app.py
+
+WORKDIR /opt/arxiv/
+RUN create_index.py
+RUN populate_test_metadata.py
+
+
+VOLUME /opt/arxiv/search
+VOLUME /opt/arxiv/tests
+VOLUME /opt/arxiv/schema
+VOLUME /opt/arxiv/mappings
+
+
+ENTRYPOINT ["flask"]
+CMD ["run"]
