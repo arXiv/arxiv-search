@@ -10,7 +10,7 @@ from elasticsearch.connection import Urllib3HttpConnection
 import shlex
 import subprocess
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 
 logging.getLogger('elasticsearch').setLevel(40)
@@ -41,7 +41,7 @@ class IntegrationWithElasticsearch(unittest.TestCase):
             if r.status_code == 401:
                 break
             # Try for a minute, then bail.
-            if datetime.now() - start_time > datetime.timedelta(seconds=60):
+            if datetime.now() - start_time > timedelta(seconds=60):
                 raise RuntimeError('Failed to start ES in reasonable time')
 
 
@@ -51,24 +51,23 @@ class IntegrationWithElasticsearch(unittest.TestCase):
         self.es = Elasticsearch(connection_class=Urllib3HttpConnection,
                                 http_auth='elastic:changeme')
         self.es.indices.delete('test_arxiv', ignore=404)
+        with open('mappings/DocumentMapping.json') as f:
+            self.mappings = json.load(f)
 
     def test_can_connect(self):
         """The SearchSession can create a connection to Elasticsearch."""
-        with open('mappings/DocumentMapping.json') as f:
-            mappings = json.load(f)
         try:
-            index.SearchSession('127.0.0.1', 'test_arxiv', mappings,
+            index.SearchSession('127.0.0.1', 'test_arxiv',
                                 http_auth='elastic:changeme')
         except IOError as e:
             self.fail('Failed to initialize SearchSession: %s' % e)
 
     def test_can_index(self):
         """The SearchSession can add a document to the index."""
-        with open('mappings/DocumentMapping.json') as f:
-            mappings = json.load(f)
         try:
-            search = index.SearchSession('127.0.0.1', 'test_arxiv', mappings,
+            search = index.SearchSession('127.0.0.1', 'test_arxiv',
                                          http_auth='elastic:changeme')
+            search.create_index(self.mappings)
         except IOError as e:
             self.fail('Failed to initialize SearchSession: %s' % e)
 
@@ -88,11 +87,10 @@ class IntegrationWithElasticsearch(unittest.TestCase):
 
     def test_can_retrieve(self):
         """The SearchSession can retrieve a document from the index."""
-        with open('mappings/DocumentMapping.json') as f:
-            mappings = json.load(f)
         try:
-            search = index.SearchSession('127.0.0.1', 'test_arxiv', mappings,
+            search = index.SearchSession('127.0.0.1', 'test_arxiv',
                                          http_auth='elastic:changeme')
+            search.create_index(self.mappings)
         except IOError as e:
             self.fail('Failed to initialize SearchSession: %s' % e)
 
@@ -110,11 +108,10 @@ class IntegrationWithElasticsearch(unittest.TestCase):
 
     def test_can_search(self):
         """The SearchSession can perform a query."""
-        with open('mappings/DocumentMapping.json') as f:
-            mappings = json.load(f)
         try:
-            search = index.SearchSession('127.0.0.1', 'test_arxiv', mappings,
+            search = index.SearchSession('127.0.0.1', 'test_arxiv',
                                          http_auth='elastic:changeme')
+            search.create_index(self.mappings)
         except IOError as e:
             self.fail('Failed to initialize SearchSession: %s' % e)
 

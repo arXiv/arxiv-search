@@ -1,19 +1,20 @@
 """Retrieval of metadata from the core arXiv repository."""
 
-
-from search import status
-import requests
 import os
 from urllib.parse import urljoin
 import json
+
+import requests
+
+from search import status
+from search import logging
+
+logger = logging.getLogger(__name__)
 
 METADATA_ENDPOINT = os.environ.get('METADATA_ENDPOINT',
                                    'https://arxiv.org/docmeta/')
 
 
-# TODO: this doesn't implement the usual Flask service pattern, but it seems
-#  like overkill in this case. Depending on how this is used, we can revisit
-#  whether it should be Flask-ified.
 def retrieve(document_id: str, endpoint: str=METADATA_ENDPOINT) -> dict:
     """
     Retrieve metadata for an arXiv paper.
@@ -52,3 +53,16 @@ def retrieve(document_id: str, endpoint: str=METADATA_ENDPOINT) -> dict:
         raise IOError('%s: could not decode response: %s' %
                       (document_id, e)) from e
     return data
+
+
+def ok() -> bool:
+    """Health check."""
+    logger.debug('check health of metadata service at %s', METADATA_ENDPOINT)
+    try:
+        r = requests.head(METADATA_ENDPOINT)
+        logger.debug('response from metadata endpoint:  %i: %s',
+                     r.status_code, r.content)
+        return r.ok
+    except IOError as e:
+        logger.debug('connection to metadata endpoint failed with %s', e)
+    return False
