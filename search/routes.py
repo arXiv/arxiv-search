@@ -8,6 +8,13 @@ from search import controllers
 blueprint = Blueprint('search', __name__, url_prefix='')
 
 
+# TODO: remove this before first release.
+@blueprint.route('/ack', methods=['GET'])
+def ack():
+    """This is an example of template rendering."""
+    return render_template("ack.html")
+
+
 @blueprint.route('/status', methods=['GET'])
 def ok():
     """Health check endpoint."""

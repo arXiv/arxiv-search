@@ -4,3 +4,4 @@ idna==2.6
 requests==2.18.4
 urllib3==1.22
 jsonschema>=2.6.0
+-e git+ssh://git@github.com/cul-it/arxiv-base-ui.git@develop#egg=arxiv-base-ui
