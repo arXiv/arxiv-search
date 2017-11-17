@@ -1,0 +1,10 @@
+{%- extends "baseui/base.html" %}
+
+{% block content %}
+  <h1 class="title">Title for Search</h1>
+  <p>Total results: </p>
+  <p>Query: </p>
+  {% block within_content %}
+    Specific results here
+  {% endblock within_content %}
+{% endblock content %}

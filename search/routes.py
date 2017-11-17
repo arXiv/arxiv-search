@@ -15,6 +15,13 @@ def ack():
     return render_template("ack.html")
 
 
+@blueprint.route('/searchresults', methods=['GET'])
+def searchresults():
+    """First pass at a search results page."""
+    results = controllers.search(**request.args.to_dict())
+    return render_template("search/search-results.html", results=results)
+
+
 @blueprint.route('/status', methods=['GET'])
 def ok():
     """Health check endpoint."""

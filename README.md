@@ -15,7 +15,7 @@ The build step will take a little while to complete the first time around.
 
 Unfortunately, file monitoring is somewhat broken on OSX/Docker, so you'll have
 to stop (CTRL-C) and re-start (``docker-compose up``) for changes to be
-reflected.
+reflected. Note that if you change template files you'll need to run ``docker-compose build`` as well.
 
 ## Alternatively
 

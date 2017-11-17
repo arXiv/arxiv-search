@@ -1,0 +1,14 @@
+{%- extends "search/base.html" %}
+
+{% block within_content %}
+  <ol>
+  {% for result in results %}
+    <li>
+    <a href="">{{ result.paper_id }}</a> <span class="tag is-small is-dark">{{ result.primary_category }}</span> <span class="tag is-small is-grey">{{ result.secondary_categories }}</span>
+    <h2>Title: {{ result.title }}</h2>
+    <p class="authors">Authors: {{ result.authors }}</p>
+    <p class="comments">Comments: {{ result.comments }}</p>
+    </li>
+  {% endfor %}
+  </ol>
+{% endblock within_content %}
