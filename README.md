@@ -2,33 +2,29 @@
 
 ## Development quickstart
 
-A ``docker-compose.yml`` configuration is included in the root of this
-repository. It will start elasticsearch, using data in ``tests/data/es``,
-and the search application.
+### Running Elasticsearch
 
 ```bash
-docker-compose build
-docker-compose up
+$ docker pull docker.elastic.co/elasticsearch/elasticsearch:5.5.3
+$ docker run -it -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" \
+>   -p 9200:9200 -p 9300:9300  \
+>   docker.elastic.co/elasticsearch/elasticsearch:5.5.3
 ```
 
-The build step will take a little while to complete the first time around.
+### Create & populate the index
 
-Unfortunately, file monitoring is somewhat broken on OSX/Docker, so you'll have
-to stop (CTRL-C) and re-start (``docker-compose up``) for changes to be
-reflected.
-
-## Alternatively
-
-If you want to start up ES outside of the compose context, you can
-use:
+There are two helper scripts to create and populate the index:
 
 ```bash
-docker run -p 9200:9200 \
-    -e "http.host=0.0.0.0" \
-    -e "transport.host=127.0.0.1" \
-    -v "$PWD/tests/data/es:/usr/share/elasticsearch/data" \
-    docker.elastic.co/elasticsearch/elasticsearch:5.5.3
+$ FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python create_index.py
+$ FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python populate_test_metadata.py
 ```
+
+``populate_test_metadata.py`` takes several minutes to run.
+
+You'll need to do this any time you restart ES.
+
+### Flask dev server
 
 You can run the search app directly. Using virtualenv:
 
@@ -37,7 +33,7 @@ virtualenv ~/.venv/arxiv-search
 source ~/.venv/arxiv-search/bin/activate
 cd /wherever/you/put/arxiv-search
 pip install -r requirements.txt
-FLASK_APP=app.py FLASK_DEBUG=1 flask run
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 flask run
 ```
 
 This will monitor any of the Python bits for changes and restart the server.
