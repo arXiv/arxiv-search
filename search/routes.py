@@ -18,8 +18,8 @@ def ack():
 @blueprint.route('/searchresults', methods=['GET'])
 def searchresults():
     """First pass at a search results page."""
-    results = controllers.search(**request.args.to_dict())
-    return render_template("search/search-results.html", results=results)
+    response, code, headers = controllers.search(**request.args.to_dict())
+    return render_template("search/search-results.html", **response['results'])
 
 
 @blueprint.route('/status', methods=['GET'])

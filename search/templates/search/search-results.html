@@ -3,10 +3,20 @@
 {% block within_content %}
   <ol>
   {% for result in results %}
-    <li>
-    <a href="">{{ result.paper_id }}</a> <span class="tag is-small is-dark">{{ result.primary_category }}</span> <span class="tag is-small is-grey">{{ result.secondary_categories }}</span>
-    <h2>Title: {{ result.title }}</h2>
-    <p class="authors">Authors: {{ result.authors }}</p>
+    <li class="arxiv-result">
+      <p class="list-title"><a href="">{{ result.paper_id }}</a> <span class="tag is-small is-primary">{{ result.primary_category.id }}</span>
+     {% if result.secondary_categories %}
+       {% for secondary in result.secondary_categories %}
+          <span class="tag is-small is-grey">{{ result.secondary_categories.secondary }}</span>
+       {% endfor %}
+     {% endif -%}
+     </p>
+    <p class="title is-5">{{ result.title }}</p>
+    <p class="authors">Authors:
+      {% for author in result.authors %}
+        <a href="">{{ author.last_name }}, {{ author.first_name }}</a>
+      {% endfor -%}
+    </p>
     <p class="comments">Comments: {{ result.comments }}</p>
     </li>
   {% endfor %}
