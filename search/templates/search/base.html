@@ -1,9 +1,7 @@
 {%- extends "baseui/base.html" %}
 
 {% block content %}
-  <h1 class="title">Title for Search</h1>
-  <p>Total results: {{ count }}</p>
-  <p>Query: </p>
+  <h1 class="title">{% block title %}Search{% endblock title %}</h1>
   {% block within_content %}
     Specific results here
   {% endblock within_content %}

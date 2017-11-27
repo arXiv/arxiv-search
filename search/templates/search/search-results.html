@@ -1,24 +1,47 @@
 {%- extends "search/base.html" %}
 
+{% block title %}Showing {{ count }} results for QUERY{% endblock title %}
+
 {% block within_content %}
   <ol>
   {% for result in results %}
     <li class="arxiv-result">
-      <p class="list-title"><a href="">{{ result.paper_id }}</a> <span class="tag is-small is-primary">{{ result.primary_category.id }}</span>
-     {% if result.secondary_categories %}
-       {% for secondary in result.secondary_categories %}
+      <p class="list-title"><a href="">arXiv: {{ result.paper_id }}</a> <span class="tag is-small is-primary">{{ result.primary_category.id }}</span>
+      {% if result.secondary_categories %}
+        {% for secondary in result.secondary_categories %}
           <span class="tag is-small is-grey">{{ result.secondary_categories.secondary }}</span>
-       {% endfor %}
-     {% endif -%}
-     </p>
-    <p class="title is-5">{{ result.title }}</p>
-    <p class="authors">Authors:
-      {% for author in result.authors %}
-        <a href="">{{ author.last_name }}, {{ author.first_name }}</a>
-      {% endfor -%}
-    </p>
-    <p class="comments">Comments: {{ result.comments }}</p>
+        {% endfor %}
+      {% endif -%}
+      </p>
+      <p class="title is-5">{{ result.title }}</p>
+      <p class="authors">Authors:
+        {% for author in result.authors %}
+          <a href="">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>
+          {%- if author.affiliation %}
+           ( {{ author.affiliation|join(', ') }} )
+          {% endif -%}
+          {{ ", " if not loop.last }}
+        {% endfor -%}
+      </p>
+      <p class="comments">Comments: {{ result.comments }}</p>
+      {% if result.journal_ref %}
+        <p class="comments">Journal Reference: {{ result.journal_ref }}</p>
+      {% endif %}
     </li>
   {% endfor %}
   </ol>
+
+  <nav class="pagination is-small is-centered" role="navigation" aria-label="pagination">
+  <a class="pagination-previous">Previous</a>
+  <a class="pagination-next">Next page</a>
+  <ul class="pagination-list">
+    <li><a class="pagination-link" aria-label="Goto page 1">1</a></li>
+    <li><span class="pagination-ellipsis">&hellip;</span></li>
+    <li><a class="pagination-link" aria-label="Goto page b">b</a></li>
+    <li><a class="pagination-link is-current" aria-label="Page c" aria-current="page">c</a></li>
+    <li><a class="pagination-link" aria-label="Goto page d">d</a></li>
+    <li><span class="pagination-ellipsis">&hellip;</span></li>
+    <li><a class="pagination-link" aria-label="Goto page n">n</a></li>
+  </ul>
+</nav>
 {% endblock within_content %}
