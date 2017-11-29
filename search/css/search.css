@@ -2,7 +2,11 @@
   margin-bottom: 1.25em; }
   .arxiv-result p {
     margin-bottom: 0.25em; }
+  .arxiv-result li {
+    margin: 0 3em; }
   .arxiv-result span.tag {
-    vertical-align: text-bottom; }
+    height: 1.65em; }
+  .arxiv-result .list-title {
+    font-size: 1.05em; }
 
 /*# sourceMappingURL=search.css.map */
