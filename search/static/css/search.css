@@ -3,7 +3,8 @@
   .arxiv-result p {
     margin-bottom: 0.25em; }
   .arxiv-result li {
-    margin: 0 3em; }
+    margin: 0 3em;
+    list-style: none; }
   .arxiv-result span.tag {
     height: 1.65em; }
   .arxiv-result .list-title {
