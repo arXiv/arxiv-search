@@ -1,13 +1,13 @@
-.arxiv-result {
+.content .arxiv-result {
   margin-bottom: 1.25em; }
-  .arxiv-result p {
+  .content .arxiv-result p {
     margin-bottom: 0.25em; }
-  .arxiv-result li {
-    margin: 0 3em;
-    list-style: none; }
-  .arxiv-result span.tag {
+  .content .arxiv-result span.tag {
     height: 1.65em; }
-  .arxiv-result .list-title {
+  .content .arxiv-result .list-title {
     font-size: 1.05em; }
+
+.pagination-list li {
+  list-style: none; }
 
 /*# sourceMappingURL=search.css.map */
