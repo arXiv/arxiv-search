@@ -3,6 +3,33 @@
 {% block title %}Showing {{ count }} results for QUERY{% endblock title %}
 
 {% block within_content %}
+  <!-- number of items per page -->
+  <div class="field is-horizontal">
+    <div class="control">
+      <label class="label is-small">Results per page:</label>
+      <div class="select is-small">
+        <select>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+    </div>
+  </div> <!-- end number per page -->
+  
+  <!-- sort select -->
+  <div class="field is-horizontal">
+    <div class="control">
+      <label class="label is-small">Sort results by:</label>
+      <div class="select is-small">
+        <select>
+          <option>All fields</option>
+          <option>Author</option>
+          <option>Date</option>
+        </select>
+      </div>
+    </div>
+  </div> <!-- endsort -->
   <ol>
   {% for result in results %}
     <li class="arxiv-result">

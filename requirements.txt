@@ -6,4 +6,4 @@ urllib3==1.22
 jsonschema>=2.6.0
 flask==0.12.2
 elasticsearch==5.4.0
--e git+git://github.com/cul-it/arxiv-base-ui.git@task/ARXIVNG-159#egg=arxiv-base-ui
+-e git+git://github.com/cul-it/arxiv-base-ui.git@develop#egg=arxiv-base-ui
