@@ -13,8 +13,6 @@ $ docker run -it -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" \
 
 ### Create & populate the index
 
-There are two helper scripts to create and populate the index:
-
 ```bash
 $ FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python create_index.py
 $ FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python populate_test_metadata.py

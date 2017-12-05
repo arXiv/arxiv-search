@@ -1,0 +1,13 @@
+.content .arxiv-result {
+  margin-bottom: 1.25em; }
+  .content .arxiv-result p {
+    margin-bottom: 0.25em; }
+  .content .arxiv-result span.tag {
+    height: 1.65em; }
+  .content .arxiv-result .list-title {
+    font-size: 1.05em; }
+
+.pagination-list li {
+  list-style: none; }
+
+/*# sourceMappingURL=search.css.map */

@@ -1,0 +1,12 @@
+{%- extends "baseui/base.html" %}
+
+{% block addl_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css')}}" />
+{% endblock addl_head %}
+
+{% block content %}
+  <h1 class="title">{% block title %}Search{% endblock title %}</h1>
+  {% block within_content %}
+    Specific results here
+  {% endblock within_content %}
+{% endblock content %}
