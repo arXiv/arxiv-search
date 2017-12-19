@@ -79,6 +79,9 @@
         "doi": {
           "type": "keyword"
         },
+        "formats": {
+          "type": "keyword"
+        },
         "document_id": {
           "type": "integer"
         },

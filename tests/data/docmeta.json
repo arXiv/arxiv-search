@@ -1,28 +1,62 @@
 {
-    "abs_categories":"math.NA",
-    "comments":"18 pages, 5 figures. I have completely rewritten this paper because after uploading the previous version I realised that there is a much better approach. Note the change to the title. Have included minor corrections following review",
-    "is_current":true,
-    "updated":"2017-06-07T20:03:19-0400",
-    "submitter_email":"w.mclean@unsw.edu.au",
-    "source_size_bytes":78752,
-    "doi":null,
-    "acm_class":null,
-    "metadata_id":1948698,
-    "authors":"William McLean",
-    "report_num":null,
-    "modtime":"2017-06-07T20:03:19-0400",
-    "version":3,
-    "document_id":1166310,
-    "source_flags":"",
-    "source_format":"pdftex",
-    "msc_class":"41A25, 65D32, 65Y20",
-    "license":"http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
-    "submitter_name":"William McLean",
-    "created":"2017-06-06T22:07:47-0400",
-    "is_withdrawn":false,
-    "abstract":"Given $\\beta>0$ and $\\delta>0$, the function $t^{-\\beta}$ may be approximated for $t$ in a compact interval $[\\delta,T]$ by a sum of terms of the form $we^{-at}$, with parameters $w>0$ and $a>0$. One such an approximation, studied by Beylkin and Monz\\'on, is obtained by applying the trapezoidal rule to an integral representation of $t^{-\\beta}$, after which Prony's method is applied to reduce the number of terms in the sum with essentially no loss of accuracy. We review this method, and then describe a similar approach based on an alternative integral representation. The main difference is that the new approach achieves much better results before the application of Prony's method; after applying Prony's method the performance of both is much the same.",
-    "title":"Exponential sum approximations for $t^{-\\beta}$",
-    "journal_ref":null,
-    "proxy":null,
-    "paper_id":"1606.00123"
+  "source": {
+    "flags": "",
+    "format": "pdftex",
+    "size_bytes": 78752
+  },
+  "primary_archive": {
+    "name": "Mathematics",
+    "id": "math"
+  },
+  "primary_category": {
+    "name": "Numerical Analysis",
+    "id": "math.NA"
+  },
+  "abs_categories": "math.NA",
+  "comments": "18 pages, 5 figures. I have completely rewritten this paper because after uploading the previous version I realised that there is a much better approach. Note the change to the title. Have included minor corrections following review",
+  "formats": ["pdf", "other"],
+  "secondary_archives": [],
+  "is_current": true,
+  "author_owners": [{
+    "orcid": "0000-0002-7133-2884",
+    "last_name": "McLean",
+    "first_name": "William"
+  }],
+  "secondary_groups": [],
+  "updated": "2017-06-07T20:03:19-0400",
+  "doi": null,
+  "acm_class": null,
+  "metadata_id": 1948698,
+  "authors": "William McLean",
+  "primary_group": {
+    "name": "Mathematics",
+    "id": "math"
+  },
+  "report_num": null,
+  "modtime": "2017-06-07T20:03:19-0400",
+  "version": 3,
+  "document_id": 1166310,
+  "secondary_categories": [],
+  "msc_class": "41A25, 65D32, 65Y20",
+  "license": {
+    "label": "arXiv.org perpetual, non-exclusive license to distribute this article",
+    "uri": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+  },
+  "created": "2017-06-06T22:07:47-0400",
+  "authors_parsed": [{
+    "last_name": "McLean",
+    "first_name": "William"
+  }],
+  "is_withdrawn": false,
+  "abstract": "Given $\\beta>0$ and $\\delta>0$, the function $t^{-\\beta}$ may be approximated for $t$ in a compact interval $[\\delta,T]$ by a sum of terms of the form $we^{-at}$, with parameters $w>0$ and $a>0$. One such an approximation, studied by Beylkin and Monz\\'on, is obtained by applying the trapezoidal rule to an integral representation of $t^{-\\beta}$, after which Prony's method is applied to reduce the number of terms in the sum with essentially no loss of accuracy. We review this method, and then describe a similar approach based on an alternative integral representation. The main difference is that the new approach achieves much better results before the application of Prony's method; after applying Prony's method the performance of both is much the same.",
+  "title": "Exponential sum approximations for $t^{-\\beta}$",
+  "proxy": null,
+  "journal_ref": null,
+  "submitter": {
+    "is_author": true,
+    "email": "w.mclean@unsw.edu.au",
+    "orcid": "0000-0002-7133-2884",
+    "name": "William McLean"
+  },
+  "paper_id": "1606.00123"
 }
