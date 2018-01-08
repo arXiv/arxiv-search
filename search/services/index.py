@@ -1,11 +1,13 @@
 """Integration with search index."""
 
+from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError
 from elasticsearch.connection import Urllib3HttpConnection
 
 from search.context import get_application_config, get_application_global
 from search import logging
+from search.domain import Document, DocumentSet, Query
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +56,7 @@ class SearchSession(object):
         logger.debug('create ES index "%s"', self.index)
         self.es.indices.create(self.index, mappings, ignore=400)
 
-    def add_document(self, document: dict) -> None:
+    def add_document(self, document: Document) -> None:
         """
         Add a document to the search index.
 
@@ -63,7 +65,7 @@ class SearchSession(object):
 
         Paramters
         ---------
-        document : dict
+        document : :class:`.Document`
             Must be a valid search document, per ``schema/Document.json``.
 
         Raises
@@ -75,13 +77,13 @@ class SearchSession(object):
         """
         try:
             self.es.index(index=self.index, doc_type='arxiv',
-                          id=document['metadata_id'], body=document)
+                          id=document['paper_id'], body=document)
         except SerializationError as e:
             raise ValueError('Problem serializing document: %s' % e) from e
         except TransportError as e:
             raise IOError('Problem communicating with ES: %s' % e) from e
 
-    def get_document(self, document_id: int) -> dict:
+    def get_document(self, document_id: int) -> Document:
         """
         Retrieve a document from the index by ID.
 
@@ -94,7 +96,7 @@ class SearchSession(object):
 
         Returns
         -------
-        dict
+        :class:`.Document`
 
         Raises
         ------
@@ -109,23 +111,21 @@ class SearchSession(object):
             raise IOError('Problem communicating with ES: %s' % e) from e
         if not record:
             return
-        return record['_source']
+        return Document(record['_source'])
 
     # TODO: this needs some work. We need to think more about how we want to
     # structure our queries.
-    def search(self, **query) -> dict:
+    def search(self, query: Query) -> DocumentSet:
         """
         Perform a search.
 
         Parameters
         ----------
-        query : kwargs
-            Fields and values to use for the search.
+        query : :class:`.Query`
 
         Returns
         -------
-        dict
-            Includes metadata about the query.
+        :class:`.DocumentSet`
 
         Raises
         ------
@@ -137,22 +137,29 @@ class SearchSession(object):
         logger.debug('got search request for %s', str(query))
         try:
             results = self.es.search(index=self.index, doc_type='arxiv',
-                                     body={'query': {'term': query}})
+                                     body=self._prepare(query))
         except TransportError as e:
             if e.error == 'parsing_exception':
                 raise ValueError(e.info) from e
             raise IOError('Problem communicating with ES: %s' % e) from e
-        return {
-            'count': results['hits']['total'],
+        return DocumentSet({
+            'metadata': {
+                'total': results['hits']['total'],
+            },
             'results': list(map(self._transform, results['hits']['hits']))
-        }
+        })
 
-    def _transform(self, raw: dict) -> dict:
-        """Transform an ES search result back into a familiar struct."""
+    # TODO: implement this.
+    def _prepare(self, query: Query) -> dict:
+        """Build an Elasticearch query from a :class:`.Query`."""
+        return {'query': {'term': query}}
+
+    def _transform(self, raw: dict) -> Document:
+        """Transform an ES search result back into a :class:`.Document`."""
         result = raw['_source']
         result['score'] = raw['_score']
         result['type'] = raw['_type']
-        return result
+        return Document(result)
 
 
 def init_app(app: object = None) -> None:
@@ -187,9 +194,19 @@ def current_session():
     return g.search
 
 
-def search(**query) -> dict:
-    """"""
-    return current_session().search(**query)
+@wraps(SearchSession.search)
+def search(query: Query) -> DocumentSet:
+    return current_session().search(query)
+
+
+@wraps(SearchSession.add_document)
+def add_document(document: Document) -> None:
+    return current_session().add_document(document)
+
+
+@wraps(SearchSession.get_document)
+def get_document(document_id: int) -> Document:
+    return current_session().get_document(document_id)
 
 
 def ok() -> bool:

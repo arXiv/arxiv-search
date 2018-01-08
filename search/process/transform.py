@@ -1,14 +1,21 @@
-"""Responsible for transforming metadata/fulltext into a search document."""
+"""Responsible for transforming metadata & fulltext into a search document."""
+
+from typing import Optional
+from search.domain import Document, DocMeta, Fulltext
 
 
-def _constructPaperVersion(meta: dict) -> str:
+def _prepareSubmitter(meta: DocMeta) -> dict:
+    return {"name": meta['submitter']['name']}
+
+
+def _constructPaperVersion(meta: DocMeta) -> str:
     """Generate a version-qualified paper ID."""
     if 'v' in meta['paper_id']:
         return meta['paper_id']
     return '%sv%i' % (meta['paper_id'], meta.get('version', 1))
 
 
-def _constructMSCClass(meta: dict) -> dict:
+def _constructMSCClass(meta: DocMeta) -> dict:
     """Extract ``msc_class`` field as an array."""
     raw = meta.get('msc_class')
     if not raw:
@@ -16,7 +23,7 @@ def _constructMSCClass(meta: dict) -> dict:
     return [obj.strip() for obj in raw.split(',')]
 
 
-def _constructACMClass(meta: dict) -> dict:
+def _constructACMClass(meta: DocMeta) -> dict:
     """Extract ``acm_class`` field as an array."""
     raw = meta.get('acm_class')
     if not raw:
@@ -46,7 +53,7 @@ _transformations = [
     ("title", "title"),
     ("source", "source"),
     ("version", "version"),
-    ("submitter", "submitter"),
+    ("submitter", _prepareSubmitter),
     ("report_num", "report_num"),
     ("proxy", "proxy"),
     ("msc_class", _constructMSCClass),
@@ -61,6 +68,7 @@ _transformations = [
     ("formats", "formats")
 ]
 
+# TODO: it would be nice if we didn't need this.
 _required = [
     "abstract",
     "authors",
@@ -81,28 +89,25 @@ _required = [
 ]
 
 
-def to_search_document(metadata: dict, fulltext: dict=None) -> dict:
+def to_search_document(metadata: DocMeta, fulltext: Optional[Fulltext] = None)\
+        -> Document:
     """
     Transform metadata (and fulltext) into a valid search document.
 
     Parameters
     ----------
-    metadata : dict
-        See :mod:`search.services.metadata`.
-    fulltext : dict
-        Includes extraction version and creation timestamp.
-        See :mod:`search.services.fulltext`.
+    metadata : :class:`.DocMeta`
+    fulltext : :class:`.Fulltext`
 
     Returns
     -------
-    dict
-        Conforms to schema ``schema/Document.json``.
+    :class:`.Document`
 
     Raises
     ------
     ValueError
     """
-    document = {}
+    document = Document()
     for key, source in _transformations:
         if isinstance(source, str):
             value = metadata.get(source)

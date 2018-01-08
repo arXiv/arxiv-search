@@ -1,9 +1,10 @@
 """Tests for :mod:`search.transform`."""
 
 import unittest
-from search import transform
 import json
 import jsonschema
+from search.process import transform
+from search.domain import Document
 
 
 class TestMetadataAreAvailable(unittest.TestCase):
@@ -23,11 +24,15 @@ class TestMetadataAreAvailable(unittest.TestCase):
             jsonschema.validate(document, self.schema)
         except jsonschema.ValidationError as e:
             self.fail('Not a valid document: %s' % e)
+        self.assertIsInstance(document, Document)
+        self.assertTrue(document.valid)
 
     def test_fulltext_not_included(self):
         """The key ``fulltext`` is excluded from the document."""
         document = transform.to_search_document(self.metadata)
         self.assertFalse('fulltext' in document)
+        self.assertIsInstance(document, Document)
+        self.assertTrue(document.valid)
 
 
 class TestFulltextAvailable(unittest.TestCase):
@@ -49,12 +54,16 @@ class TestFulltextAvailable(unittest.TestCase):
             jsonschema.validate(document, self.schema)
         except jsonschema.ValidationError as e:
             self.fail('Not a valid document: %s' % e)
+        self.assertIsInstance(document, Document)
+        self.assertTrue(document.valid)
 
     def test_fulltext_is_included(self):
         """The key ``fulltext`` is included in the document."""
         document = transform.to_search_document(self.metadata, self.fulltext)
         self.assertTrue('fulltext' in document)
         self.assertIsInstance(document['fulltext'], str)
+        self.assertIsInstance(document, Document)
+        self.assertTrue(document.valid)
 
 
 class TestPaperVersion(unittest.TestCase):

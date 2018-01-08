@@ -1,5 +1,6 @@
 {
     "$schema": "http://json-schema.org/schema#",
+    "title": "Document",
     "description": "Prototype schema for arXiv documents",
     "definitions": {
         "category": {
@@ -237,9 +238,6 @@
             "description": "Submitter data. Name and email may not match those associated with user account, since user data is copied to submission data at the time of submission creation.",
             "type": "object",
             "properties": {
-                "email": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
                 },

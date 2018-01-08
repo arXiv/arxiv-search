@@ -222,3 +222,10 @@ ELASTICSEARCH_PORT = os.environ.get('ELASTICSEARCH_PORT', '9200')
 ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'arxiv')
 ELASTICSEARCH_USER = os.environ.get('ELASTICSEARCH_USER', 'elastic')
 ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD', 'changeme')
+
+
+METADATA_ENDPOINT = os.environ.get('METADATA_ENDPOINT',
+                                   'https://arxiv.org/docmeta/')
+
+FULLTEXT_ENDPOINT = os.environ.get('FULLTEXT_ENDPOINT',
+                                   'https://fulltext.arxiv.org/fulltext/')
