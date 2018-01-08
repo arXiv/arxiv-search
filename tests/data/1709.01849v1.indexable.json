@@ -21,6 +21,7 @@
   "date_updated": "2017-09-06T20:11:01-0400",
   "document_id": 1314995,
   "doi": "10.1016/j.ic.2017.08.011",
+  "formats": ["pdf", "ps", "other"],
   "is_current": true,
   "is_withdrawn": false,
   "journal_ref": "Information and Computation, 2017",

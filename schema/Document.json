@@ -137,6 +137,11 @@
         "doi": {
             "type": "string"
         },
+        "formats": {
+            "description": "Derivative paper formats available to users",
+            "type": "array",
+            "minItems": 0
+        },
         "fulltext": {
             "type": "string"
         },

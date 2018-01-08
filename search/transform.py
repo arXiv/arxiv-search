@@ -57,7 +57,8 @@ _transformations = [
     ("doi", "doi"),
     ("comments", "comments"),
     ("acm_class", _constructACMClass),
-    ("abs_categories", "abs_categories")
+    ("abs_categories", "abs_categories"),
+    ("formats", "formats")
 ]
 
 _required = [
