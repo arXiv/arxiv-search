@@ -30,13 +30,16 @@ def search(request_params: dict) -> Response:
     dict
         Headers to add to the response.
     """
-    try:
-        results = index.search(query.prepare(request_params))
-    except ValueError as e:    #
-        results = None   # TODO: handle this
-    except IOError as e:
-        results = None   # TODO: handle this
-    return results, status.HTTP_200_OK, {}
+    response_data = {}
+    if 'query' in request_params:
+        response_data['query'] = request_params.pop('query')
+        try:
+            response_data['results'] = index.search(query.prepare(request_params))
+        except ValueError as e:    #
+            response_data['results'] = None   # TODO: handle this
+        except IOError as e:
+            response_data['results'] = None   # TODO: handle this
+    return response_data, status.HTTP_200_OK, {}
 
 
 def retrieve_document(document_id: str) -> Response:

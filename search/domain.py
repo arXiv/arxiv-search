@@ -5,6 +5,57 @@ from typing import Optional, Type, Any
 import jsonschema
 
 
+class Property(object):
+    """Describes a named, typed property on a data structure."""
+
+    def __init__(self, name: str, klass: Optional[Type] = None,
+                 default: Any = None) -> None:
+        """Set the name, type, and default value for the property."""
+        self._name = name
+        self.klass = klass
+        self.default = default
+
+    def __get__(self, instance: Any, owner: Optional[Type] = None) -> Any:
+        """
+        Retrieve the value of property from the data instance.
+        Parameters
+        ----------
+        instance : object
+            The data structure instance on which the property is set.
+        owner : type
+            The class/type of ``instance``.
+        Returns
+        -------
+        object
+            If the data structure is instantiated, returns the value of this
+            property. Otherwise returns this :class:`.Property` instance.
+        """
+        if instance:
+            if self._name not in instance:
+                instance[self._name] = self.default
+            return instance[self._name]
+        return self
+
+    def __set__(self, instance: Any, value: Any) -> None:
+        """
+        Set the value of the property on the data instance.
+        Parameters
+        ----------
+        instance : object
+            The data structure instance on which the property is set.
+        value : object
+            The value to which the property should be set.
+        Raises
+        ------
+        TypeError
+            Raised when ``value`` is not an instance of the specified type
+            for the property.
+        """
+        if self.klass is not None and not isinstance(value, self.klass):
+            raise TypeError('Must be an %s' % self.klass.__name__)
+        instance[self._name] = value
+
+
 class SchemaBase(dict):
     """Base for domain classes with schema validation."""
 
@@ -38,8 +89,9 @@ class Fulltext(SchemaBase):
 
 class Query(SchemaBase):
     """Represents a search query originating from the UI or API."""
-
-    __schema__ = 'schema/Query.json'
+#
+#     q = ''
+#     fields = [('operator', 'field', 'value')]
 
 
 class Document(SchemaBase):

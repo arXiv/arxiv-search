@@ -1,0 +1,23 @@
+{%- extends "search/base.html" %}
+
+{% import "search/search-macros.html" as search_macros %}
+
+{% block title %}
+    {% if query and results %}
+        Showing {{ metadata.total }} results for QUERY
+    {% else %}
+        Advanced Search
+    {% endif %}
+{% endblock title %}
+
+{% block within_content %}
+
+{% if not query %}
+    {{ search_macros.advanced_query(data) }}
+{% endif %}
+
+{% if query and results %}
+    {{ search_macros.search_results(results) }}
+{% endif %}
+
+{% endblock %}

@@ -14,7 +14,7 @@ blueprint = Blueprint('ui', __name__, url_prefix='/search')
 def search():
     """First pass at a search results page."""
     response, code, headers = controllers.search(request.args.to_dict())
-    return render_template("search/search-results.html", **response)
+    return render_template("search/search.html", **response)
 
 
 # TODO: we need something more robust here; this is just to get us rolling.
