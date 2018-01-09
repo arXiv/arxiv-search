@@ -13,7 +13,7 @@ blueprint = Blueprint('ui', __name__, url_prefix='/search')
 @blueprint.route('/', methods=['GET'])
 def search():
     """First pass at a search results page."""
-    response, code, headers = controllers.search(request.args.to_dict())
+    response, code, headers = controllers.search(request.args)
     return render_template("search/search.html", **response)
 
 

@@ -13,7 +13,7 @@
 {% block within_content %}
 
 {% if not query %}
-    {{ search_macros.advanced_query(data) }}
+    {{ search_macros.advanced_query(form) }}
 {% endif %}
 
 {% if query and results %}

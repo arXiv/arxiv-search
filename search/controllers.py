@@ -4,6 +4,7 @@ from typing import Tuple, Dict, Any
 from search.services import index, fulltext, metadata
 from search.process import query
 from search import status
+from search import forms
 
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
@@ -31,10 +32,26 @@ def search(request_params: dict) -> Response:
         Headers to add to the response.
     """
     response_data = {}
-    if 'query' in request_params:
-        response_data['query'] = request_params.pop('query')
+    if request_params.get('advanced', 'false') == 'true':
+        form = forms.AdvancedSearchForm(request_params)
+        print(form)
+        if form.validate():
+            print('!', form.data)
+            q = query.from_form(form.data)
+        else:
+            print(form.errors)
+            q = None
+        response_data['form'] = form
+    elif 'q' in request_params:
+        q = query.prepare(request_params)
+        response_data['query'] = request_params['q']
+        response_data['form'] = forms.AdvancedSearchForm()
+    else:
+        q = None
+        response_data['form'] = forms.AdvancedSearchForm()
+    if q is not None:
         try:
-            response_data['results'] = index.search(query.prepare(request_params))
+            response_data['results'] = index.search(q)
         except ValueError as e:    #
             response_data['results'] = None   # TODO: handle this
         except IOError as e:

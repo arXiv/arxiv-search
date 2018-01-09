@@ -14,12 +14,12 @@
   </nav>
 {%- endmacro %}
 
-{% macro advanced_query(data) %}
+{% macro advanced_query(form) %}
 
 <div class="columns">
   <div class="column">
     <div class="box">
-      <form>
+      <form method="GET" action=".">
         <section>
           <div class="field has-addons">
             <div class="control">
@@ -97,33 +97,26 @@
           </fieldset>
           <fieldset>
             <legend>Date</legend>
-            <input id="alldates" type="checkbox" name="daterange" value="alldates">
-            <label for="alldates">all dates</label>
-            <input id="past12" type="checkbox" name="daterange" value="past12">
-            <label for="past12">past 12 months</label>
-            <input id="pickyear" type="checkbox" name="daterange" value="pickyear">
-            <label for="pickyear">specific year</label>
-            <span class="select">
-              <select>
-                <option>2018</option>
-              </select>
-            </span>
-            <input id="pickdate" type="checkbox" name="daterange" value="pickdate">
-            <label for="pickstart">From</label>
-            <input id="pickstart" type="text" name="daterange" placeholder="YYYY-MM-DD">
-            <label for="pickend">to</label>
-            <input id="pickend" type="text" name="daterange" placeholder="YYYY-MM-DD">
+            {{ form.date.all_dates|safe }}
+            <label for="all_dates">{{ form.date.all_dates.label }}</label>
+            {{ form.date.past_12|safe }}
+            <label for="past_12">{{ form.date.past_12.label }}</label>
+            {{ form.date.specific_year|safe }}
+            <label for="specific_year">{{ form.date.specific_year.label }}</label>
+
+            {{ form.date.year|safe }}
+            {{ form.date.date_range|safe }}
+
+            <label for="from_date">{{ form.date.from_date.label }}</label> {{ form.date.from_date|safe }}
+            <label for="to_date">{{ form.date.to_date.label }}</label> {{ form.date.to_date|safe }}
+
           </fieldset>
         </section>
         <section>
           <span class="select">
-            <select id="perpage">
-              <option>25</option>
-              <option>50</option>
-              <option>100</option>
-            </select>
+            {{ form.results_per_page|safe }}
           </span>
-          <label for="perpage">results per page</label>
+          <label for="perpage">{{ form.results_per_page.label }}</label>
 
           <button class="button is-info is-large">Search</button>
         </form>
