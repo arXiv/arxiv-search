@@ -1,14 +1,21 @@
 # arxiv-search
 
+## Documentation
+
+- OpenAPI Documentation: [``api/search.yaml``](api/search.yaml)
+- JSON Schema: [``schema/``](schema)
+- Elasticsearch mappings: [``mappings/``](mappings)
+
+
 ## Development quickstart
 
 ### Running Elasticsearch
 
 ```bash
-$ docker pull docker.elastic.co/elasticsearch/elasticsearch:5.5.3
+$ docker pull docker.elastic.co/elasticsearch/elasticsearch:6.1.1
 $ docker run -it -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" \
 >   -p 9200:9200 -p 9300:9300  \
->   docker.elastic.co/elasticsearch/elasticsearch:5.5.3
+>   docker.elastic.co/elasticsearch/elasticsearch:6.1.1
 ```
 
 ### Create & populate the index

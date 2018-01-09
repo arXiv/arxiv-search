@@ -1,9 +1,6 @@
 {
   "mappings": {
     "arxiv": {
-      "_all": {
-        "enabled": false
-      },
       "dynamic": "false",
       "properties": {
         "abs_categories": {

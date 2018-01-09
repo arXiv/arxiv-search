@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "title": "DocumentSet",
+    "description": "Prototype schema for arXiv documents",
+    "type": "object",
+    "required": ["metadata", "results"],
+    "properties": {
+        "metadata": {
+            "type": "object",
+            "query": {
+                "description": "The request query from which the document set is derived",
+                "type": "string"
+            },
+            "total": {
+                "description": "Total number of results that respond to the query.",
+                "type": "integer",
+                "minimum": 0
+            },
+            "pagination": {
+                "description": "Pagination details",
+                "type": "object",
+                "properties": {
+                    "next": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "URI for the next page of results"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "URI for the previous page of results"
+                    }
+                }
+            }
+        },
+        "results": {
+            "type": "object",
+            "$ref": "Document.json#Document"
+        }
+    }
+}

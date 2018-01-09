@@ -2,8 +2,9 @@
 
 import logging
 from flask import Flask
-from search import routes
+from search.routes import ui, external_api
 from search.services import index
+from search.converter import ArXivConverter
 from baseui import BaseUI
 
 
@@ -15,8 +16,11 @@ def create_web_app() -> Flask:
 
     app = Flask('search')
     app.config.from_pyfile('config.py')
+    app.url_map.converters['arxiv'] = ArXivConverter
+
     index.init_app(app)
 
     BaseUI(app)
-    app.register_blueprint(routes.blueprint)
+    app.register_blueprint(ui.blueprint)
+    app.register_blueprint(external_api.blueprint)
     return app

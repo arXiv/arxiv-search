@@ -22,15 +22,17 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
         response.status_code = 200
         mock_get.return_value = response
 
+        docmeta_session = metadata.current_session()
+        docmeta_session.endpoint = base
+
         try:
-            metadata.retrieve('1602.00123', base)
+            docmeta_session.retrieve('1602.00123')
         except Exception as e:
             self.fail('Choked on valid response: %s' % e)
         try:
             args, _ = mock_get.call_args
         except Exception as e:
             self.fail('Did not call requests.get as expected: %s' % e)
-
         self.assertTrue(args[0].startswith(base))
 
     @mock.patch('search.services.metadata.requests.get')

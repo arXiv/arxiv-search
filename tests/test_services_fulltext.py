@@ -20,8 +20,12 @@ class TestRetrieveExistantContent(unittest.TestCase):
         })
         response.status_code = 200
         mock_get.return_value = response
+
+        fulltext_session = fulltext.current_session()
+        fulltext_session.endpoint = base
+
         try:
-            fulltext.retrieve('1234.5678v3', base)
+            fulltext_session.retrieve('1234.5678v3')
         except Exception as e:
             self.fail('Choked on valid response: %s' % e)
         args, _ = mock_get.call_args
