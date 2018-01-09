@@ -1,0 +1,124 @@
+{%- extends "search/base.html" %}
+
+{% block title %}Advanced Search{% endblock title %}
+
+{% block within_content %}
+<section>
+  <div class="columns">
+    <div class="column">
+    <div class="box">
+    <form>
+      <div class="field has-addons">
+        <div class="control">
+          <input class="input" type="text" placeholder="Search term...">
+        </div>
+        <div class="control">
+          <span class="select">
+            <select>
+              <option>Title</option>
+              <option>Author(s)</option>
+              <option>Abstract</option>
+            </select>
+          </span>
+        </div>
+      </div> <!-- end first fieldset -->
+      <div class="field has-addons">
+        <div class="control">
+          <span class="select">
+            <select>
+              <option>AND</option>
+              <option>OR</option>
+              <option>NOT</option>
+            </select>
+          </span>
+        </div>
+        <div class="control">
+          <input class="input" type="text" placeholder="Search term...">
+        </div>
+        <div class="control">
+          <span class="select">
+            <select>
+              <option>Title</option>
+              <option>Author(s)</option>
+              <option>Abstract</option>
+            </select>
+          </span>
+        </div>
+      </div> <!-- end second fieldset -->
+      <button class="button is-info is-outlined">Add Term</button>
+    </form>
+    </div>
+  </div>
+    <div class="column">
+      <div class="box">
+        <h3 class="title is-5">Tips</h3>
+        <p>Text object here for search tips and help? Or just hardcode it?</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section>
+  <fieldset>
+    <legend>Subject</legend>
+    <input id="all" type="checkbox" name="subject" value="all">
+    <label for="all">all subjects</label>
+    <div class="columns">
+      <div class="column">
+        <input id="cs" type="checkbox" name="subject" value="cs">
+        <label for="cs">Computer Science (cs)</label>
+        <input id="econ" type="checkbox" name="subject" value="econ">
+        <label for="econ">Economics (econ)</label>
+        <input id="eess" type="checkbox" name="subject" value="eess">
+        <label for="eess">Electrical Engineering and Systems Science</label>
+        <input id="math" type="checkbox" name="subject" value="math">
+        <label for="math">Mathematics (math)</label>
+      </div>
+      <div class="column">
+        <input id="physics" type="checkbox" name="subject" value="physics">
+        <label for="physics">Physics</label>
+          <span class="select">
+            <select>
+              <option>all</option>
+            </select>
+          </span>
+        <input id="q-bio" type="checkbox" name="subject" value="q-bio">
+        <label for="q-bio">Quantitative Biology (q-bio)</label>
+        <input id="q-fin" type="checkbox" name="subject" value="q-fin">
+        <label for="q-fin">Quantitative Finance (q-fin)</label>
+        <input id="stat" type="checkbox" name="subject" value="stat">
+        <label for="stat">Statistics (stat)</label>
+      </div>
+    </div>
+  <fieldset>
+  <fieldset>
+    <legend>Date</legend>
+    <input id="alldates" type="checkbox" name="daterange" value="alldates">
+    <label for="alldates">all dates</label>
+    <input id="past12" type="checkbox" name="daterange" value="past12">
+    <label for="past12">past 12 months</label>
+    <input id="pickyear" type="checkbox" name="daterange" value="pickyear">
+    <label for="pickyear">specific year</label>
+      <span class="select">
+        <select>
+          <option>2018</option>
+        </select>
+      </span>
+    <input id="pickdate" type="checkbox" name="daterange" value="pickdate">
+      <label for="pickstart">From</label>
+      <input id="pickstart" type="text" name="daterange" placeholder="YYYY-MM-DD">
+      <label for="pickend">to</label>
+      <input id="pickend" type="text" name="daterange" placeholder="YYYY-MM-DD">
+  </fieldset>
+</section>
+<section>
+  <span class="select">
+    <select id="perpage">
+      <option>25</option>
+      <option>50</option>
+      <option>100</option>
+    </select>
+  </span>
+    <label for="perpage">results per page</label>
+
+  <button class="button is-info is-large">Search</button>
+{% endblock within_content %}
