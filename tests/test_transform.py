@@ -3,8 +3,9 @@
 import unittest
 import json
 import jsonschema
+from datetime import datetime, date
 from search.process import transform
-from search.domain import Document
+from search.domain import Document, DocMeta
 
 
 class TestMetadataAreAvailable(unittest.TestCase):
@@ -86,3 +87,67 @@ class TestPaperVersion(unittest.TestCase):
         meta = {'paper_id': '1234.5678'}
         self.assertEqual(transform._constructPaperVersion(meta),
                          '1234.5678v1')
+
+
+class TestPublidationDates(unittest.TestCase):
+    """:func:`.transform._constructPubDate` generates a list of datetimes."""
+
+    def test_old_versions_are_available(self):
+        """Publication dates from all versions are included."""
+        meta = DocMeta({
+            'paper_id': '1234.56789',
+            'modtime': '2012-08-27T14:28:42-0400',
+            'version': 3,
+            'previous_versions': [
+                DocMeta({
+                    'version': 1,
+                    'modtime': '2012-09-27T14:28:42-0400',
+                }),
+                DocMeta({
+                    'version': 2,
+                    'modtime': '2012-10-27T14:28:42-0400',
+                })
+            ]
+        })
+        pubdates = transform._constructPubDate(meta)
+
+        self.assertIsInstance(pubdates, list)
+        self.assertEqual(len(pubdates), 3)
+        for pubdate in pubdates:
+            self.assertIsInstance(pubdate, str)
+            try:
+                asdate = datetime.strptime(pubdate, '%Y%m%d').date()
+            except ValueError:
+                self.fail('Expected only year, month, and day: %s' % pubdate)
+
+    def test_old_versions_not_available(self):
+        """Only the current publication date is included."""
+        meta = DocMeta({
+            'paper_id': '1234.56789',
+            'modtime': '2012-08-27T14:28:42-0400',
+            'version': 3
+        })
+        pubdates = transform._constructPubDate(meta)
+        self.assertEqual(len(pubdates), 1)
+        asdate = datetime.strptime(pubdates[0], '%Y%m%d').date()
+        self.assertEqual(asdate, date(year=2012, month=8, day=27))
+
+    def test_old_versions_have_malformed_pubdate(self):
+        """Versions with bad pubdates are excluded."""
+        meta = DocMeta({
+            'paper_id': '1234.56789',
+            'modtime': '2012-08-27T14:28:42-0400',
+            'version': 3,
+            'previous_versions': [
+                DocMeta({
+                    'version': 1,
+                    'modtime': '2000012-09-27T14:28:42-0400',
+                }),
+                DocMeta({
+                    'version': 2,
+                    'modtime': '2012-10-27T14:28:42-0400',
+                })
+            ]
+        })
+        pubdates = transform._constructPubDate(meta)
+        self.assertEqual(len(pubdates), 2)

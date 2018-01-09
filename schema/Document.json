@@ -119,15 +119,23 @@
         "comments": {
             "type": ["string"]
         },
-        "date_created": {
-            "description": "Date this version of paper was submitted",
+        "publication_date_latest": {
+            "description": "Date this version of paper was announced",
             "type": "string"
         },
-        "date_modified": {
-            "description": "Date this version of paper became public on arXiv",
+        "publication_date_first": {
+            "description": "Date the first version of the paper was announced",
             "type": "string"
         },
-        "date_updated": {
+        "publication_date": {
+            "description": "Publication dates of all of the versions of this paper",
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "minItems": 0
+        },
+        "updated_date": {
             "description": "Date this version of paper was last touched",
             "type": "string"
         },
@@ -264,9 +272,10 @@
     "required": [
         "abstract",
         "authors",
-        "date_created",
-        "date_modified",
-        "date_updated",
+        "publication_date",
+        "publication_date_latest",
+        "publication_date_first",
+        "updated_date",
         "is_current",
         "is_withdrawn",
         "license",

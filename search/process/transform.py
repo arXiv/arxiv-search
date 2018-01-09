@@ -1,11 +1,29 @@
 """Responsible for transforming metadata & fulltext into a search document."""
 
+from datetime import datetime
 from typing import Optional
 from search.domain import Document, DocMeta, Fulltext
 
 
+def _reformatDate(datestring: str) -> str:
+    """Recast DocMeta date format to ES date format."""
+    try:
+        asdate = datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%S%z').date()
+    except ValueError:
+        return
+    return asdate.strftime('%Y%m%d')
+
+
 def _prepareSubmitter(meta: DocMeta) -> dict:
-    return {"name": meta['submitter']['name']}
+    return meta['submitter']
+
+
+def _constructPubDate(meta: DocMeta) -> list:
+    previous_versions = meta.get('previous_versions', [])
+    current = _reformatDate(meta['modtime'])
+    previous = [_reformatDate(v['modtime']) for v in previous_versions]
+    previous = list(filter(lambda o: o is not None, previous))
+    return list(sorted([current] + previous))[::-1]
 
 
 def _constructPaperVersion(meta: DocMeta) -> str:
@@ -37,8 +55,10 @@ _transformations = [
     ('authors_freeform', "authors"),
     ("author_owners", "author_owners"),
     ("date_created", 'created'),
-    ("date_modified", 'modtime'),
-    ("date_updated", "updated"),
+    ("publication_date", _constructPubDate),
+    ("publication_date_first", lambda meta: _constructPubDate(meta)[0]),
+    ("publication_date_latest", 'modtime'),
+    ("updated_date", "updated"),
     ("is_current", "is_current"),
     ("is_withdrawn", "is_withdrawn"),
     ("license", "license"),
