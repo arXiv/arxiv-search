@@ -1,9 +1,11 @@
 """Search controllers."""
 
 from typing import Tuple, Dict, Any
-from search.services import index, fulltext, metadata
-from search.process import query
 from search import status, forms, logging
+from search.converter import ArXivConverter
+from search.process import query
+from search.services import index, fulltext, metadata
+import search.util as util
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +47,14 @@ def search(request_params: dict) -> Response:
             q = None
         response_data['form'] = form
     elif 'q' in request_params:
+        try:
+            # first check if the URL includes an arXiv ID
+            arxiv_id = util.parse_arxiv_id(request_params['q'])
+            # If so, redirect.
+            return {}, status.HTTP_301_MOVED_PERMANENTLY,
+                {'Location': util.external_url_for('browse', 'abstract', arxiv_id=arxiv_id)}
+        except ValidationError:
+            pass
         q = query.prepare(request_params)
         response_data['query'] = request_params['q']
         response_data['form'] = forms.AdvancedSearchForm()
