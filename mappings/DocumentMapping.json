@@ -61,17 +61,21 @@
         "comments": {
           "type": "text"
         },
-        "date_created": {
+        "publication_date": {
           "type": "date",
-          "format": "date_time_no_millis"
+          "format": "basic_date"
         },
-        "date_modified": {
+        "publication_date_latest": {
           "type": "date",
-          "format": "date_time_no_millis"
+          "format": "basic_date"
         },
-        "date_updated": {
+        "publication_date_first": {
           "type": "date",
-          "format": "date_time_no_millis"
+          "format": "basic_date"
+        },
+        "updated_date": {
+          "type": "date",
+          "format": "basic_date"
         },
         "doi": {
           "type": "keyword"
