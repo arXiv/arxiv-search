@@ -4,6 +4,7 @@ from wtforms import Form, BooleanField, StringField, SelectField, validators, \
     FormField, SelectMultipleField, DateField, ValidationError
 
 from wtforms.fields import HiddenField
+from wtforms import widgets
 
 # Special characters?
 
@@ -33,7 +34,7 @@ class SubjectForm(Form):
         ('hep-ph', 'hep-ph'), ('hep-th', 'hep-th'), ('math-ph', 'math-ph'), \
         ('nlin', 'nlin'), ('nucl-ex', 'nucl-ex'), ('nucl-th', 'nucl-th'), \
         ('physics', 'physics'), ('quant-ph', 'quant-ph')
-    ])
+    ], widget=widgets.Select(multiple=True))
     q_biology = BooleanField('Quantitative Biology (q-bio)')
     q_finance = BooleanField('Quantitative Finance (q-fin)')
     statistics = BooleanField('Statistics (stat)')

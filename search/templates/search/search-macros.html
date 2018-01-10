@@ -111,7 +111,7 @@
                 <div class="field">
                   {{ form.subjects.physics|safe }}
                   <label for="physics">{{ form.subjects.physics.label }}</label>
-                  {{ form.subjects.physics_archives|safe }}
+                  {{ form.subjects.physics_archives(size=2)|safe }}
                 </div>
                 <div class="field">
                   {{ form.subjects.q_biology|safe }}
