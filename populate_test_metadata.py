@@ -36,6 +36,7 @@ def populate():
                 json.dump(docmeta, f)
         document = transform.to_search_document(docmeta)
         index.add_document(document)
+
         click.echo(doc['id'])
 
 

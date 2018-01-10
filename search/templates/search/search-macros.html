@@ -1,0 +1,224 @@
+{% macro pagination(current_page) -%}
+  <nav class="pagination is-small is-centered" role="navigation" aria-label="pagination">
+    <a class="pagination-previous">Previous</a>
+    <a class="pagination-next">Next page</a>
+    <ul class="pagination-list">
+      <li><a class="pagination-link" aria-label="Goto page 1">1</a></li>
+      <li><span class="pagination-ellipsis">&hellip;</span></li>
+      <li><a class="pagination-link" aria-label="Goto page b">b</a></li>
+      <li><a class="pagination-link is-current" aria-label="Page c" aria-current="page">{{ current_page }}</a></li>
+      <li><a class="pagination-link" aria-label="Goto page d">d</a></li>
+      <li><span class="pagination-ellipsis">&hellip;</span></li>
+      <li><a class="pagination-link" aria-label="Goto page n">n</a></li>
+    </ul>
+  </nav>
+{%- endmacro %}
+
+{% macro advanced_query(form) %}
+
+<div class="columns">
+  <div class="column">
+    <div class="box">
+      <form method="GET" action=".">
+        <section>
+          <div class="field has-addons">
+            <div class="control">
+              <input class="input" type="text" placeholder="Search term...">
+            </div>
+            <div class="control">
+              <span class="select">
+                <select>
+                  <option>Title</option>
+                  <option>Author(s)</option>
+                  <option>Abstract</option>
+                </select>
+              </span>
+            </div>
+          </div> <!-- end first fieldset -->
+          <div class="field has-addons">
+            <div class="control">
+              <span class="select">
+                <select>
+                  <option>AND</option>
+                  <option>OR</option>
+                  <option>NOT</option>
+                </select>
+              </span>
+            </div>
+            <div class="control">
+              <input class="input" type="text" placeholder="Search term...">
+            </div>
+            <div class="control">
+              <span class="select">
+                <select>
+                  <option>Title</option>
+                  <option>Author(s)</option>
+                  <option>Abstract</option>
+                </select>
+              </span>
+            </div>
+          </div> <!-- end second fieldset -->
+          <div class="field has-addons">
+            <div class="control">
+              <span class="select">
+                <select>
+                  <option>AND</option>
+                  <option>OR</option>
+                  <option>NOT</option>
+                </select>
+              </span>
+            </div>
+            <div class="control">
+              <input class="input" type="text" placeholder="Search term...">
+            </div>
+            <div class="control">
+              <span class="select">
+                <select>
+                  <option>Title</option>
+                  <option>Author(s)</option>
+                  <option>Abstract</option>
+                </select>
+              </span>
+            </div>
+          </div> <!-- end third fieldset -->
+        </section>
+
+        <section>
+          <fieldset>
+            <legend>Subject</legend>
+            {{ form.subjects.all_subjects|safe }}
+            <label for="all_subjects">{{ form.subjects.all_subjects.label }}</label>
+            <div class="columns">
+              <div class="column">
+                <div class="field">
+                  {{ form.subjects.computer_science|safe }}
+                  <label for="computer_science">{{ form.subjects.computer_science.label }}</label>
+                </div>
+                <div class="field">
+                  {{ form.subjects.economics|safe }}
+                  <label for="economics">{{ form.subjects.economics.label }}</label>
+                </div>
+                <div class="field">
+                  {{ form.subjects.eess|safe }}
+                  <label for="eess">{{ form.subjects.eess.label }}</label>
+                </div>
+                <div class="field">
+                  {{ form.subjects.mathematics|safe }}
+                  <label for="mathematics">{{ form.subjects.mathematics.label }}</label>
+                </div>
+              </div>
+              <div class="column">
+                <div class="field">
+                  {{ form.subjects.physics|safe }}
+                  <label for="physics">{{ form.subjects.physics.label }}</label>
+                  {{ form.subjects.physics_archives|safe }}
+                </div>
+                <div class="field">
+                  {{ form.subjects.q_biology|safe }}
+                  <label for="q_biology">{{ form.subjects.q_biology.label }}</label>
+                </div>
+                <div class="field">
+                  {{ form.subjects.q_finance|safe }}
+                  <label for="q_finance">{{ form.subjects.q_finance.label }}</label>
+                </div>
+                <div class="field">
+                  {{ form.subjects.statistics|safe }}
+                  <label for="statistics">{{ form.subjects.statistics.label }}</label>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Date</legend>
+            <div class="field">
+              {{ form.date.all_dates|safe }}
+              <label for="all_dates">{{ form.date.all_dates.label }}</label>
+            </div>
+            <div class="field">
+              {{ form.date.past_12|safe }}
+              <label for="past_12">{{ form.date.past_12.label }}</label>
+            </div>
+            <div class="field">
+              {{ form.date.specific_year|safe }}
+              <label for="specific_year">{{ form.date.specific_year.label }}</label>
+              {{ form.date.year|safe }}
+            </div>
+            <div class="field">
+              {{ form.date.date_range|safe }}
+              <label for="from_date">{{ form.date.from_date.label }}</label> {{ form.date.from_date|safe }}
+              <label for="to_date">{{ form.date.to_date.label }}</label> {{ form.date.to_date|safe }}
+            </div>
+          </fieldset>
+        </section>
+        <section>
+          <span class="select is-small">
+            {{ form.results_per_page|safe }}
+          </span>
+          <label for="perpage">{{ form.results_per_page.label }}</label>
+
+          <button class="button is-info is-large">Search</button>
+        </form>
+      </div>
+    </div>
+    <div class="column">
+      <div class="box">
+        <h3 class="title is-5">Tips</h3>
+        <p>Text object here for search tips and help? Or just hardcode it?</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{%- endmacro -%}
+
+{% macro search_results(results) %}
+<span class="select is-small">
+  {{ form.results_per_page|safe }}
+</span>
+<label for="perpage">{{ form.results_per_page.label }}</label>
+
+<!-- sort select -->
+<div class="field is-horizontal">
+  <div class="control">
+    <label class="label is-small">Sort results by:</label>
+    <div class="select is-small">
+      <select>
+        <option>All fields</option>
+        <option>Author</option>
+        <option>Date</option>
+      </select>
+    </div>
+  </div>
+</div> <!-- endsort -->
+<ol>
+{% for result in results %}
+  <li class="arxiv-result">
+    <p class="list-title"><a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id) }}">arXiv: {{ result.paper_id }}</a> [<a href="{{ external_url('browse', 'pdf', paper_id=result.paper_id) }}">pdf</a>] <span class="tag is-small is-link">{{ result.primary_category.id }}</span>
+    {% if result.secondary_categories %}
+      {% for secondary in result.secondary_categories %}
+        <span class="tag is-small is-grey">{{ result.secondary_categories.secondary }}</span>
+      {% endfor %}
+    {% endif -%}
+    </p>
+    <p class="title is-5">{{ result.title }}</p>
+    <p class="authors">Authors:
+      {% for author in result.authors %}
+        <a href="">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>
+        {%- if author.affiliation %}
+         ( {{ author.affiliation|join(', ') }} )
+        {% endif -%}
+        {{ ", " if not loop.last }}
+      {% endfor -%}
+    </p>
+    <p class="comments">Comments: {{ result.comments }}</p>
+    {% if result.journal_ref %}
+      <p class="comments">Journal Reference: {{ result.journal_ref }}</p>
+    {% endif %}
+  </li>
+{% endfor %}
+</ol>
+
+{{ pagination(current_page='3') }}
+
+{%- endmacro -%}
