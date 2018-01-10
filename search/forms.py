@@ -25,15 +25,18 @@ class SubjectForm(Form):
     computer_science = BooleanField('Computer science (cs)')
     economics = BooleanField('Economics (econ)')
     eess = BooleanField('Electrical Engineering and Systems Science (eess)')
-    economics = BooleanField('Economics (econ)')
     mathematics = BooleanField('Mathematics (math)')
     physics = BooleanField('Physics')
     physics_archives = SelectMultipleField(choices=[
-        ('all', 'all'),
-        # 'astro-ph', 'cond-mat', 'gr-qc', 'hep-ex', 'hep-lat', 'hep-ph',
-        # 'hep-th', 'math-ph', 'nlin', 'nucl-ex', 'nucl-th', 'physics',
-        # 'quant-ph'
+        ('all', 'all'), ('astro-ph', 'astro-ph'), ('cond-mat', 'cond-mat'), \
+        ('gr-qc', 'gr-qc'), ('hep-ex', 'hep-ex'), ('hep-lat', 'hep-lat'), \
+        ('hep-ph', 'hep-ph'), ('hep-th', 'hep-th'), ('math-ph', 'math-ph'), \
+        ('nlin', 'nlin'), ('nucl-ex', 'nucl-ex'), ('nucl-th', 'nucl-th'), \
+        ('physics', 'physics'), ('quant-ph', 'quant-ph')
     ])
+    q_biology = BooleanField('Quantitative Biology (q-bio)')
+    q_finance = BooleanField('Quantitative Finance (q-fin)')
+    statistics = BooleanField('Statistics (stat)')
 
 
 class DateForm(Form):
@@ -61,7 +64,7 @@ class DateForm(Form):
 class AdvancedSearchForm(Form):
     advanced = HiddenField('true')
     # text_terms = FormField(FieldForm)
-    # subjects = FormField(SubjectForm)
+    subjects = FormField(SubjectForm)
     date = FormField(DateForm)
     results_per_page = SelectField('results per page', choices=[
         ('25', '25'),
