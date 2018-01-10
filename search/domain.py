@@ -2,6 +2,7 @@
 
 import json
 from typing import Optional, Type, Any
+from datetime import date
 import jsonschema
 
 
@@ -31,10 +32,10 @@ class Property(object):
             property. Otherwise returns this :class:`.Property` instance.
         """
         if instance:
-            if self._name not in instance:
+            if self._name not in instance.keys():
                 instance[self._name] = self.default
             return instance[self._name]
-        return self
+        return self.default
 
     def __set__(self, instance: Any, value: Any) -> None:
         """
@@ -87,11 +88,32 @@ class Fulltext(SchemaBase):
     """Fulltext content for an arXiv paper, including extraction metadata."""
 
 
+class DateRange(dict):
+    """Represents an open or closed date range."""
+
+    start_date = Property('start_date', date)
+    """The day on which the range begins."""
+
+    end_date = Property('end_date', date)
+    """The day at (just before) which the range ends."""
+
+
+class FieldedSearchTerm(dict):
+    """Represents a fielded search term."""
+
+    operator = Property('operator', str)
+    field = Property('field', str)
+    term = Property('term', str)
+
+
 class Query(SchemaBase):
     """Represents a search query originating from the UI or API."""
-#
-#     q = ''
-#     fields = [('operator', 'field', 'value')]
+
+    raw_query = Property('raw_query', str)
+    date_range = Property('date_range', DateRange)
+    subjects = Property('subjects', list)
+    terms = Property('terms', list, [])
+    order = Property('order', str)
 
 
 class Document(SchemaBase):

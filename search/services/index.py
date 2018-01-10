@@ -5,6 +5,8 @@ from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError
 from elasticsearch.connection import Urllib3HttpConnection
 
+from elasticsearch_dsl import Search, Q
+
 from search.context import get_application_config, get_application_global
 from search import logging
 from search.domain import Document, DocumentSet, Query
@@ -42,6 +44,62 @@ class SearchSession(object):
                                     **extra)
         except ElasticsearchException as e:
             raise IOError('Could not initialize ES session: %s' % e) from e
+
+    @staticmethod
+    def _get_operator(obj):
+        if type(obj) is tuple:
+            return SearchSession._get_operator(obj[0])
+        return obj.operator
+
+    @staticmethod
+    def _group_terms(query: Query) -> tuple:
+        """Group fielded search terms into a set of nested tuples."""
+        terms = query.terms[:]
+        for operator in ['NOT', 'AND', 'OR']:
+            for i in range(len(terms)):
+                if i > len(terms) - 2:
+                    break
+                if SearchSession._get_operator(terms[i+1]) == operator:
+                    terms[i] = (terms[i], operator, terms[i+1])
+                    terms.pop(i+1)
+        assert len(terms) == 1
+        return terms[0]
+
+    @staticmethod
+    def _grouped_terms_to_q(term_pair: tuple):
+        """Generate a :class:`.Q` from grouped terms."""
+        term_a, operator, term_b = term_pair
+        if type(term_a) is tuple:
+            term_a = SearchSession._grouped_terms_to_q(term_a)
+        else:
+            term_a = Q("match", **{term_a.field: term_a.term})
+        if type(term_b) is tuple:
+            term_b = SearchSession._grouped_terms_to_q(term_b)
+        else:
+            term_b = Q("match", **{term_b.field: term_b.term})
+        if operator == 'OR':
+            return term_a | term_b
+        elif operator == 'AND':
+            return term_a & term_b
+        elif operator == 'NOT':
+            return term_a & ~term_b
+
+    @staticmethod
+    def _update_search_with_fielded_terms(search: Search, query: Query):
+        if len(query.terms) == 1:
+            q = Q("match", **{query.terms[0].field: query.terms[0].term})
+        elif len(query.terms) > 1:
+            terms = SearchSession._group_terms(query)
+            q = SearchSession._grouped_terms_to_q(terms)
+        else:
+            return search
+        return search.query(q)
+
+    def _to_es_dsl(self, query: Query) -> Search:
+        """Generate a :class:`.Search` from a :class:`.Query`."""
+        search = Search(using=self.es, index=self.index)
+        search = self._update_search_with_fielded_terms(search, query)
+        return search
 
     def create_index(self, mappings: dict) -> None:
         """
