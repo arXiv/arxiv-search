@@ -6,7 +6,9 @@
 
 {% block content %}
   <h1 class="title">{% block title %}Search{% endblock title %}</h1>
-  {% block within_content %}
-    Specific results here
-  {% endblock within_content %}
+    <content>
+      {% block within_content %}
+        Specific results here
+      {% endblock within_content %}
+    </content>
 {% endblock content %}

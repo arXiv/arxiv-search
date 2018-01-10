@@ -7,7 +7,23 @@
   .content .arxiv-result .list-title {
     font-size: 1.05em; }
 
+/* may want to move this section up to baseui */
 .pagination-list li {
   list-style: none; }
+
+.fieldset {
+  border: 1px solid #DBDBDB;
+  border-radius: 2px;
+  padding: 0.5em 1em 1em 1em;
+  margin: 1em 0; }
+
+.legend {
+  font-weight: 600;
+  background-color: inherit;
+  padding: 0 0.5em;
+  margin-left: -0.5em; }
+
+.is-baseline {
+  align-items: baseline; }
 
 /*# sourceMappingURL=search.css.map */

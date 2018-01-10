@@ -22,7 +22,7 @@
       <form method="GET" action=".">
         <section>
           <div class="field has-addons">
-            <div class="control">
+            <div class="control is-expanded">
               <input class="input" type="text" placeholder="Search term...">
             </div>
             <div class="control">
@@ -45,7 +45,7 @@
                 </select>
               </span>
             </div>
-            <div class="control">
+            <div class="control is-expanded">
               <input class="input" type="text" placeholder="Search term...">
             </div>
             <div class="control">
@@ -68,7 +68,7 @@
                 </select>
               </span>
             </div>
-            <div class="control">
+            <div class="control is-expanded">
               <input class="input" type="text" placeholder="Search term...">
             </div>
             <div class="control">
@@ -84,11 +84,11 @@
         </section>
 
         <section>
-          <fieldset>
-            <legend>Subject</legend>
+          <fieldset class="fieldset">
+            <legend class="legend">Subject</legend>
             {{ form.subjects.all_subjects|safe }}
             <label for="all_subjects">{{ form.subjects.all_subjects.label }}</label>
-            <div class="columns">
+            <div class="columns is-baseline">
               <div class="column">
                 <div class="field">
                   {{ form.subjects.computer_science|safe }}
@@ -128,8 +128,8 @@
               </div>
             </div>
           </fieldset>
-          <fieldset>
-            <legend>Date</legend>
+          <fieldset class="fieldset">
+            <legend class="legend">Date</legend>
             <div class="field">
               {{ form.date.all_dates|safe }}
               <label for="all_dates">{{ form.date.all_dates.label }}</label>
@@ -151,12 +151,18 @@
           </fieldset>
         </section>
         <section>
-          <span class="select is-small">
-            {{ form.results_per_page|safe }}
-          </span>
-          <label for="perpage">{{ form.results_per_page.label }}</label>
-
-          <button class="button is-info is-large">Search</button>
+          <div class="level">
+            <div class="level-left">
+              <span class="select is-small">
+                {{ form.results_per_page|safe }}
+              </span>
+              <label for="perpage">{{ form.results_per_page.label }}</label>
+            </div>
+            <div class="level-right">
+              <button class="button is-info is-large">Search</button>
+            </div>
+          </div>
+        </section>
         </form>
       </div>
     </div>
@@ -167,8 +173,6 @@
       </div>
     </div>
   </div>
-</section>
-
 
 {%- endmacro -%}
 
