@@ -28,13 +28,13 @@ class SubjectForm(Form):
     eess = BooleanField('Electrical Engineering and Systems Science (eess)')
     mathematics = BooleanField('Mathematics (math)')
     physics = BooleanField('Physics')
-    physics_archives = SelectMultipleField(choices=[
-        ('all', 'all'), ('astro-ph', 'astro-ph'), ('cond-mat', 'cond-mat'), \
-        ('gr-qc', 'gr-qc'), ('hep-ex', 'hep-ex'), ('hep-lat', 'hep-lat'), \
-        ('hep-ph', 'hep-ph'), ('hep-th', 'hep-th'), ('math-ph', 'math-ph'), \
-        ('nlin', 'nlin'), ('nucl-ex', 'nucl-ex'), ('nucl-th', 'nucl-th'), \
+    physics_archives = SelectField(choices=[
+        ('all', 'all'), ('astro-ph', 'astro-ph'), ('cond-mat', 'cond-mat'),
+        ('gr-qc', 'gr-qc'), ('hep-ex', 'hep-ex'), ('hep-lat', 'hep-lat'),
+        ('hep-ph', 'hep-ph'), ('hep-th', 'hep-th'), ('math-ph', 'math-ph'),
+        ('nlin', 'nlin'), ('nucl-ex', 'nucl-ex'), ('nucl-th', 'nucl-th'),
         ('physics', 'physics'), ('quant-ph', 'quant-ph')
-    ], widget=widgets.Select(multiple=True))
+    ])
     q_biology = BooleanField('Quantitative Biology (q-bio)')
     q_finance = BooleanField('Quantitative Finance (q-fin)')
     statistics = BooleanField('Statistics (stat)')
