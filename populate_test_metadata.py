@@ -17,13 +17,20 @@ with open('tests/data/sample.json') as f:
 @app.cli.command()
 def populate():
     """Populate the search index with some test data."""
+    # Create cache directory if it doesn't exist
+    cache_path_tmpl = 'tests/data/temp/%s.json'
+    cache_dir = os.path.dirname(cache_path_tmpl)
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+
     for doc in TO_INDEX:
         # Look for a local copy first.
-        cache_path = 'tests/data/temp/%s.json' % doc['id'].replace('/', '_')
+        cache_path = cache_path_tmpl.format(doc['id'].replace('/', '_'))
         if os.path.exists(cache_path):
             with open(cache_path) as f:
                 docmeta = json.load(f)
         else:
+            # retrieve the metadata for the document
             docmeta = metadata.retrieve(doc['id'])
             with open(cache_path, 'w') as f:
                 json.dump(docmeta, f)

@@ -148,6 +148,7 @@
           }
         },
         "secondary_categories": {
+          "type": "nested",
           "properties": {
             "id": {
               "type": "keyword"
@@ -158,6 +159,7 @@
           }
         },
         "secondary_archives": {
+          "type": "nested",
           "properties": {
             "id": {
               "type": "keyword"
@@ -168,6 +170,7 @@
           }
         },
         "secondary_groups": {
+          "type": "nested",
           "properties": {
             "id": {
               "type": "keyword"
