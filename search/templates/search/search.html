@@ -16,8 +16,8 @@
     {{ search_macros.advanced_query(form) }}
 {% endif %}
 
-{% if query and results %}
-    {{ search_macros.search_results(results) }}
+{% if results %}
+    {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
 {% endif %}
 
 {% endblock %}

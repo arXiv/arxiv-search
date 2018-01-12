@@ -1,15 +1,56 @@
-{% macro pagination(current_page) -%}
+{% macro pagination(metadata, url_for_page) -%}
   <nav class="pagination is-small is-centered" role="navigation" aria-label="pagination">
-    <a class="pagination-previous">Previous</a>
-    <a class="pagination-next">Next page</a>
+    {% if metadata.current_page > 1 %}
+    <a href="{{ url_for_page(metadata.current_page - 1, metadata.page_size) }}"
+      class="pagination-previous">Previous
+    </a>
+    {% endif %}
+    {% if metadata.current_page < metadata.total_pages %}
+    <a  href="{{ url_for_page(metadata.current_page + 1, metadata.page_size) }}"
+      class="pagination-next">Next page</a>
+    {% endif %}
     <ul class="pagination-list">
-      <li><a class="pagination-link" aria-label="Goto page 1">1</a></li>
-      <li><span class="pagination-ellipsis">&hellip;</span></li>
-      <li><a class="pagination-link" aria-label="Goto page b">b</a></li>
-      <li><a class="pagination-link is-current" aria-label="Page c" aria-current="page">{{ current_page }}</a></li>
-      <li><a class="pagination-link" aria-label="Goto page d">d</a></li>
-      <li><span class="pagination-ellipsis">&hellip;</span></li>
-      <li><a class="pagination-link" aria-label="Goto page n">n</a></li>
+      {% if metadata.current_page > 1 %}
+        <li>
+          <a href="{{ url_for_page(1, metadata.page_size) }}"
+            class="pagination-link"
+            aria-label="Goto page 1">1
+          </a>
+        </li>
+      {% endif %}
+      {% if metadata.current_page > 2 %}
+        <li><span class="pagination-ellipsis">&hellip;</span></li>
+        <li>
+          <a href="{{ url_for_page(metadata.current_page - 1, metadata.page_size) }}"
+            class="pagination-link"
+            aria-label="Goto page {{ metadata.current_page - 1}}">{{ metadata.current_page - 1}}
+          </a>
+        </li>
+      {% endif %}
+      <li>
+        <a href="{{ url_for_page(metadata.current_page, metadata.page_size) }}"
+          class="pagination-link is-current"
+          aria-label="Page {{ metadata.current_page }}"
+          aria-current="page">{{ metadata.current_page }}
+        </a>
+      </li>
+      {% if metadata.current_page < metadata.total_pages %}
+        <li>
+          <a href="{{ url_for_page(metadata.current_page + 1, metadata.page_size) }}"
+            class="pagination-link"
+            aria-label="Goto page {{ metadata.current_page + 1 }}">{{ metadata.current_page + 1}}
+          </a>
+        </li>
+      {% endif %}
+      {% if metadata.current_page < metadata.total_pages - 1 %}
+        <li><span class="pagination-ellipsis">&hellip;</span></li>
+        <li>
+          <a href="{{ url_for_page(metadata.total_pages, metadata.page_size) }}"
+            class="pagination-link"
+            aria-label="Goto page {{ metadata.total_pages }}">{{ metadata.total_pages }}
+          </a>
+        </li>
+      {% endif %}
     </ul>
   </nav>
 {%- endmacro %}
@@ -20,116 +61,79 @@
   <div class="column">
     <div class="box">
       <form method="GET" action=".">
-        <section>
-          <div class="field has-addons">
-            <div class="control">
-              <input class="input" type="text" placeholder="Search term...">
+        {{ form.advanced|safe }}
+        <section data-toggle="fieldset" id="terms-fieldset">
+          {% for entry in form.terms.entries %}
+          <div class="field has-addons" data-toggle="fieldset-entry">
+
+            <div class="control is-expanded fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility: hidden;"{% endif %}>
+              <span class="select">
+                {{ entry.operator(default='AND')|safe }}
+              </span>
+            </div>
+
+            <div class="control  is-expanded">
+              {{ entry.term(class='input', placeholder="Search term...")|safe }}
             </div>
             <div class="control">
               <span class="select">
-                <select>
-                  <option>Title</option>
-                  <option>Author(s)</option>
-                  <option>Abstract</option>
-                </select>
+                {{ entry.field(default='title')|safe }}
               </span>
             </div>
-          </div> <!-- end first fieldset -->
-          <div class="field has-addons">
-            <div class="control">
-              <span class="select">
-                <select>
-                  <option>AND</option>
-                  <option>OR</option>
-                  <option>NOT</option>
-                </select>
-              </span>
-            </div>
-            <div class="control">
-              <input class="input" type="text" placeholder="Search term...">
-            </div>
-            <div class="control">
-              <span class="select">
-                <select>
-                  <option>Title</option>
-                  <option>Author(s)</option>
-                  <option>Abstract</option>
-                </select>
-              </span>
-            </div>
-          </div> <!-- end second fieldset -->
-          <div class="field has-addons">
-            <div class="control">
-              <span class="select">
-                <select>
-                  <option>AND</option>
-                  <option>OR</option>
-                  <option>NOT</option>
-                </select>
-              </span>
-            </div>
-            <div class="control">
-              <input class="input" type="text" placeholder="Search term...">
-            </div>
-            <div class="control">
-              <span class="select">
-                <select>
-                  <option>Title</option>
-                  <option>Author(s)</option>
-                  <option>Abstract</option>
-                </select>
-              </span>
-            </div>
-          </div> <!-- end third fieldset -->
+            <button type="button" data-toggle="fieldset-remove-row" id="term-{{loop.index0}}-remove" class="fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility: hidden;"{% endif %}>-</button>
+          </div>
+
+          {% endfor %}
+          <button type="button" data-toggle="fieldset-add-row" data-target="#terms-fieldset">+</button>
         </section>
 
         <section>
-          <fieldset>
-            <legend>Subject</legend>
-            {{ form.subjects.all_subjects|safe }}
-            <label for="all_subjects">{{ form.subjects.all_subjects.label }}</label>
-            <div class="columns">
+          <fieldset class="fieldset">
+            <legend class="legend">Subject</legend>
+            {{ form.classification.all_subjects|safe }}
+            <label for="all_subjects">{{ form.classification.all_subjects.label }}</label>
+            <div class="columns is-baseline">
               <div class="column">
                 <div class="field">
-                  {{ form.subjects.computer_science|safe }}
-                  <label for="computer_science">{{ form.subjects.computer_science.label }}</label>
+                  {{ form.classification.computer_science|safe }}
+                  <label for="computer_science">{{ form.classification.computer_science.label }}</label>
                 </div>
                 <div class="field">
-                  {{ form.subjects.economics|safe }}
-                  <label for="economics">{{ form.subjects.economics.label }}</label>
+                  {{ form.classification.economics|safe }}
+                  <label for="economics">{{ form.classification.economics.label }}</label>
                 </div>
                 <div class="field">
-                  {{ form.subjects.eess|safe }}
-                  <label for="eess">{{ form.subjects.eess.label }}</label>
+                  {{ form.classification.eess|safe }}
+                  <label for="eess">{{ form.classification.eess.label }}</label>
                 </div>
                 <div class="field">
-                  {{ form.subjects.mathematics|safe }}
-                  <label for="mathematics">{{ form.subjects.mathematics.label }}</label>
+                  {{ form.classification.mathematics|safe }}
+                  <label for="mathematics">{{ form.classification.mathematics.label }}</label>
                 </div>
               </div>
               <div class="column">
                 <div class="field">
-                  {{ form.subjects.physics|safe }}
-                  <label for="physics">{{ form.subjects.physics.label }}</label>
-                  {{ form.subjects.physics_archives|safe }}
+                  {{ form.classification.physics|safe }}
+                  <label for="physics">{{ form.classification.physics.label }}</label>
+                  {{ form.classification.physics_archives|safe }}
                 </div>
                 <div class="field">
-                  {{ form.subjects.q_biology|safe }}
-                  <label for="q_biology">{{ form.subjects.q_biology.label }}</label>
+                  {{ form.classification.q_biology|safe }}
+                  <label for="q_biology">{{ form.classification.q_biology.label }}</label>
                 </div>
                 <div class="field">
-                  {{ form.subjects.q_finance|safe }}
-                  <label for="q_finance">{{ form.subjects.q_finance.label }}</label>
+                  {{ form.classification.q_finance|safe }}
+                  <label for="q_finance">{{ form.classification.q_finance.label }}</label>
                 </div>
                 <div class="field">
-                  {{ form.subjects.statistics|safe }}
-                  <label for="statistics">{{ form.subjects.statistics.label }}</label>
+                  {{ form.classification.statistics|safe }}
+                  <label for="statistics">{{ form.classification.statistics.label }}</label>
                 </div>
               </div>
             </div>
           </fieldset>
-          <fieldset>
-            <legend>Date</legend>
+          <fieldset class="fieldset">
+            <legend class="legend">Date</legend>
             <div class="field">
               {{ form.date.all_dates|safe }}
               <label for="all_dates">{{ form.date.all_dates.label }}</label>
@@ -151,12 +155,18 @@
           </fieldset>
         </section>
         <section>
-          <span class="select is-small">
-            {{ form.results_per_page|safe }}
-          </span>
-          <label for="perpage">{{ form.results_per_page.label }}</label>
-
-          <button class="button is-info is-large">Search</button>
+          <div class="level">
+            <div class="level-left">
+              <span class="select is-small">
+                {{ form.results_per_page|safe }}
+              </span>
+              <label for="perpage">{{ form.results_per_page.label }}</label>
+            </div>
+            <div class="level-right">
+              <button class="button is-info is-large">Search</button>
+            </div>
+          </div>
+        </section>
         </form>
       </div>
     </div>
@@ -167,12 +177,10 @@
       </div>
     </div>
   </div>
-</section>
-
 
 {%- endmacro -%}
 
-{% macro search_results(results) %}
+{% macro search_results(form, results, metadata, external_url, url_for_page) %}
 <span class="select is-small">
   {{ form.results_per_page|safe }}
 </span>
@@ -194,10 +202,10 @@
 <ol>
 {% for result in results %}
   <li class="arxiv-result">
-    <p class="list-title"><a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id) }}">arXiv: {{ result.paper_id }}</a> [<a href="{{ external_url('browse', 'pdf', paper_id=result.paper_id) }}">pdf</a>] <span class="tag is-small is-link">{{ result.primary_category.id }}</span>
-    {% if result.secondary_categories %}
-      {% for secondary in result.secondary_categories %}
-        <span class="tag is-small is-grey">{{ result.secondary_categories.secondary }}</span>
+    <p class="list-title"><a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id) }}">arXiv: {{ result.paper_id }}</a> [<a href="{{ external_url('browse', 'pdf', paper_id=result.paper_id) }}">pdf</a>] <span class="tag is-small is-link">{{ result.primary_classification.category.id }}</span>
+    {% if result.secondary_category %}
+      {% for secondary in result.secondary_category %}
+        <span class="tag is-small is-grey">{{ secondary.archive }} {{ secondary.category }}</span>
       {% endfor %}
     {% endif -%}
     </p>
@@ -219,6 +227,6 @@
 {% endfor %}
 </ol>
 
-{{ pagination(current_page='3') }}
+{{ pagination(metadata, url_for_page) }}
 
 {%- endmacro -%}

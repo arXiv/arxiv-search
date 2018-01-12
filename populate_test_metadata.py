@@ -25,7 +25,7 @@ def populate():
 
     for doc in TO_INDEX:
         # Look for a local copy first.
-        cache_path = cache_path_tmpl.format(doc['id'].replace('/', '_'))
+        cache_path = cache_path_tmpl % doc['id'].replace('/', '_')
         if os.path.exists(cache_path):
             with open(cache_path) as f:
                 docmeta = json.load(f)

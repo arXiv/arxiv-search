@@ -117,68 +117,57 @@
         "paper_id_v": {
           "type": "keyword"
         },
-        "primary_category": {
-          "properties": {
-            "id": {
-              "type": "keyword"
-            },
-            "name": {
-              "type": "keyword"
+        "primary_classification": {
+            "type": "nested",
+            "properties": {
+                "group": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "keyword"},
+                        "name": {"type": "keyword"}
+                    }
+                },
+                "archive": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "keyword"},
+                        "name": {"type": "keyword"}
+                    }
+                },
+                "category": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "keyword"},
+                        "name": {"type": "keyword"}
+                    }
+                }
             }
-          }
         },
-        "primary_archive": {
-          "properties": {
-            "id": {
-              "type": "keyword"
-            },
-            "name": {
-              "type": "keyword"
+        "secondary_classification": {
+            "type": "nested",
+            "properties": {
+                "group": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "keyword"},
+                        "name": {"type": "keyword"}
+                    }
+                },
+                "archive": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "keyword"},
+                        "name": {"type": "keyword"}
+                    }
+                },
+                "category": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "keyword"},
+                        "name": {"type": "keyword"}
+                    }
+                }
             }
-          }
-        },
-        "primary_group": {
-          "properties": {
-            "id": {
-              "type": "keyword"
-            },
-            "name": {
-              "type": "keyword"
-            }
-          }
-        },
-        "secondary_categories": {
-          "type": "nested",
-          "properties": {
-            "id": {
-              "type": "keyword"
-            },
-            "name": {
-              "type": "keyword"
-            }
-          }
-        },
-        "secondary_archives": {
-          "type": "nested",
-          "properties": {
-            "id": {
-              "type": "keyword"
-            },
-            "name": {
-              "type": "keyword"
-            }
-          }
-        },
-        "secondary_groups": {
-          "type": "nested",
-          "properties": {
-            "id": {
-              "type": "keyword"
-            },
-            "name": {
-              "type": "keyword"
-            }
-          }
         },
         "proxy": {
           "type": "keyword"

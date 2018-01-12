@@ -2,6 +2,7 @@
 
 import json
 from typing import Optional, Type, Any
+from datetime import date
 import jsonschema
 
 
@@ -31,10 +32,10 @@ class Property(object):
             property. Otherwise returns this :class:`.Property` instance.
         """
         if instance:
-            if self._name not in instance:
+            if self._name not in instance.keys():
                 instance[self._name] = self.default
             return instance[self._name]
-        return self
+        return self.default
 
     def __set__(self, instance: Any, value: Any) -> None:
         """
@@ -87,12 +88,53 @@ class Fulltext(SchemaBase):
     """Fulltext content for an arXiv paper, including extraction metadata."""
 
 
+class DateRange(dict):
+    """Represents an open or closed date range."""
+
+    start_date = Property('start_date', date)
+    """The day on which the range begins."""
+
+    end_date = Property('end_date', date)
+    """The day at (just before) which the range ends."""
+
+    # on_version = Property('field', str)
+    # """The date field on which to filter
+
+
+class Classification(dict):
+    group = Property('group', str)
+    archive = Property('archive', str)
+    category = Property('category', str)
+
+
+class FieldedSearchTerm(dict):
+    """Represents a fielded search term."""
+
+    operator = Property('operator', str)
+    field = Property('field', str)
+    term = Property('term', str)
+
+
 class Query(SchemaBase):
     """Represents a search query originating from the UI or API."""
-#
-#     q = ''
-#     fields = [('operator', 'field', 'value')]
 
+    raw_query = Property('raw_query', str)
+    date_range = Property('date_range', DateRange)
+    primary_classification = Property('primary_classification', list)
+    terms = Property('terms', list, [])
+    order = Property('order', str)
+    page_size = Property('page_size', int)
+    page_start = Property('page_start', int, 0)
+
+    @property
+    def page_end(self):
+        """Get the index/offset of the end of the page."""
+        return self.page_start + self.page_size
+
+    @property
+    def page(self):
+        """Get the approximate page number."""
+        return 1 + int(round(self.page_start/self.page_size))
 
 class Document(SchemaBase):
     """A single search document, representing an arXiv paper."""

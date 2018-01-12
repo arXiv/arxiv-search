@@ -3,8 +3,9 @@
 from typing import Tuple, Dict, Any
 from search.services import index, fulltext, metadata
 from search.process import query
-from search import status
-from search import forms
+from search import status, forms, logging
+
+logger = logging.getLogger(__name__)
 
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
@@ -31,15 +32,16 @@ def search(request_params: dict) -> Response:
     dict
         Headers to add to the response.
     """
+
     response_data = {}
     if request_params.get('advanced', 'false') == 'true':
+        logger.debug('search request from advanced form')
         form = forms.AdvancedSearchForm(request_params)
-        print(form)
         if form.validate():
-            print('!', form.data)
-            q = query.from_form(form.data)
+            logger.debug('form is valid')
+            q = query.from_form(form)
         else:
-            print(form.errors)
+            logger.debug('form is invalid: %s' % str(form.errors))
             q = None
         response_data['form'] = form
     elif 'q' in request_params:
@@ -50,12 +52,8 @@ def search(request_params: dict) -> Response:
         q = None
         response_data['form'] = forms.AdvancedSearchForm()
     if q is not None:
-        try:
-            response_data['results'] = index.search(q)
-        except ValueError as e:    #
-            response_data['results'] = None   # TODO: handle this
-        except IOError as e:
-            response_data['results'] = None   # TODO: handle this
+        q = query.paginate(q, request_params)
+        response_data.update(index.search(q))
     return response_data, status.HTTP_200_OK, {}
 
 
