@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 
 from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, url_for
-
+from werkzeug.urls import Href
 from search import controllers
 
 blueprint = Blueprint('ui', __name__, url_prefix='/search')
@@ -39,3 +39,15 @@ def external_url_builder():
             return _browse_url(name, **parameters)
         return
     return dict(external_url=external_url)
+
+
+@blueprint.context_processor
+def url_for_page_builder():
+    """Add a page URL builder function to the template context."""
+    def url_for_page(page: int, page_size: int) -> str:
+        """Build an URL to for a search result page."""
+        href = Href('/')
+        args = request.args.copy()
+        args['start'] = (page - 1) * page_size
+        return href('search', args)
+    return dict(url_for_page=url_for_page)

@@ -84,7 +84,7 @@ $(function() {
 {% endif %}
 
 {% if results %}
-    {{ search_macros.search_results(form, results, external_url) }}
+    {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
 {% endif %}
 
 {% endblock %}

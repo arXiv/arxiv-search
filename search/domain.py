@@ -128,8 +128,13 @@ class Query(SchemaBase):
 
     @property
     def page_end(self):
+        """Get the index/offset of the end of the page."""
         return self.page_start + self.page_size
 
+    @property
+    def page(self):
+        """Get the approximate page number."""
+        return 1 + int(round(self.page_start/self.page_size))
 
 class Document(SchemaBase):
     """A single search document, representing an arXiv paper."""

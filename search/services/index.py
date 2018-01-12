@@ -246,14 +246,20 @@ class SearchSession(object):
         try:
             search = self._prepare(query)
             results = search[query.page_start:query.page_end].execute()
-
         except TransportError as e:
             if e.error == 'parsing_exception':
                 raise ValueError(e.info) from e
             raise IOError('Problem communicating with ES: %s' % e) from e
+
+        N_pages_raw = results['hits']['total']/query.page_size
+        N_pages = int(round(N_pages_raw)) + int(N_pages_raw % 1 > 0)
+
         return DocumentSet({
             'metadata': {
                 'total': results['hits']['total'],
+                'current_page': query.page,
+                'total_pages': N_pages,
+                'page_size': query.page_size
             },
             'results': list(map(self._transform, results))
         })

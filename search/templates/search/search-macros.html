@@ -1,15 +1,56 @@
-{% macro pagination(current_page) -%}
+{% macro pagination(metadata, url_for_page) -%}
   <nav class="pagination is-small is-centered" role="navigation" aria-label="pagination">
-    <a class="pagination-previous">Previous</a>
-    <a class="pagination-next">Next page</a>
+    {% if metadata.current_page > 1 %}
+    <a href="{{ url_for_page(metadata.current_page - 1, metadata.page_size) }}"
+      class="pagination-previous">Previous
+    </a>
+    {% endif %}
+    {% if metadata.current_page < metadata.total_pages %}
+    <a  href="{{ url_for_page(metadata.current_page + 1, metadata.page_size) }}"
+      class="pagination-next">Next page</a>
+    {% endif %}
     <ul class="pagination-list">
-      <li><a class="pagination-link" aria-label="Goto page 1">1</a></li>
-      <li><span class="pagination-ellipsis">&hellip;</span></li>
-      <li><a class="pagination-link" aria-label="Goto page b">b</a></li>
-      <li><a class="pagination-link is-current" aria-label="Page c" aria-current="page">{{ current_page }}</a></li>
-      <li><a class="pagination-link" aria-label="Goto page d">d</a></li>
-      <li><span class="pagination-ellipsis">&hellip;</span></li>
-      <li><a class="pagination-link" aria-label="Goto page n">n</a></li>
+      {% if metadata.current_page > 1 %}
+        <li>
+          <a href="{{ url_for_page(1, metadata.page_size) }}"
+            class="pagination-link"
+            aria-label="Goto page 1">1
+          </a>
+        </li>
+      {% endif %}
+      {% if metadata.current_page > 2 %}
+        <li><span class="pagination-ellipsis">&hellip;</span></li>
+        <li>
+          <a href="{{ url_for_page(metadata.current_page - 1, metadata.page_size) }}"
+            class="pagination-link"
+            aria-label="Goto page {{ metadata.current_page - 1}}">{{ metadata.current_page - 1}}
+          </a>
+        </li>
+      {% endif %}
+      <li>
+        <a href="{{ url_for_page(metadata.current_page, metadata.page_size) }}"
+          class="pagination-link is-current"
+          aria-label="Page {{ metadata.current_page }}"
+          aria-current="page">{{ metadata.current_page }}
+        </a>
+      </li>
+      {% if metadata.current_page < metadata.total_pages %}
+        <li>
+          <a href="{{ url_for_page(metadata.current_page + 1, metadata.page_size) }}"
+            class="pagination-link"
+            aria-label="Goto page {{ metadata.current_page + 1 }}">{{ metadata.current_page + 1}}
+          </a>
+        </li>
+      {% endif %}
+      {% if metadata.current_page < metadata.total_pages - 1 %}
+        <li><span class="pagination-ellipsis">&hellip;</span></li>
+        <li>
+          <a href="{{ url_for_page(metadata.total_pages, metadata.page_size) }}"
+            class="pagination-link"
+            aria-label="Goto page {{ metadata.total_pages }}">{{ metadata.total_pages }}
+          </a>
+        </li>
+      {% endif %}
     </ul>
   </nav>
 {%- endmacro %}
@@ -135,7 +176,7 @@
 
 {%- endmacro -%}
 
-{% macro search_results(form, results, external_url) %}
+{% macro search_results(form, results, metadata, external_url, url_for_page) %}
 <span class="select is-small">
   {{ form.results_per_page|safe }}
 </span>
@@ -182,6 +223,6 @@
 {% endfor %}
 </ol>
 
-{{ pagination(current_page='3') }}
+{{ pagination(metadata, url_for_page) }}
 
 {%- endmacro -%}
