@@ -1,15 +1,18 @@
 """Integration with search index."""
 
+import json
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError
 from elasticsearch.connection import Urllib3HttpConnection
 
 from elasticsearch_dsl import Search, Q
+from elasticsearch_dsl.query import Range, Match, Bool
 
 from search.context import get_application_config, get_application_global
 from search import logging
-from search.domain import Document, DocumentSet, Query
+from search.domain import Document, DocumentSet, Query, DateRange, \
+    Classification
 
 logger = logging.getLogger(__name__)
 
@@ -56,17 +59,18 @@ class SearchSession(object):
         """Group fielded search terms into a set of nested tuples."""
         terms = query.terms[:]
         for operator in ['NOT', 'AND', 'OR']:
-            for i in range(len(terms)):
-                if i > len(terms) - 2:
-                    break
+            i = 0
+            while i < len(terms) - 1:
                 if SearchSession._get_operator(terms[i+1]) == operator:
                     terms[i] = (terms[i], operator, terms[i+1])
                     terms.pop(i+1)
+                    i -= 1
+                i += 1
         assert len(terms) == 1
         return terms[0]
 
     @staticmethod
-    def _grouped_terms_to_q(term_pair: tuple):
+    def _grouped_terms_to_q(term_pair: tuple) -> Bool:
         """Generate a :class:`.Q` from grouped terms."""
         term_a, operator, term_b = term_pair
         if type(term_a) is tuple:
@@ -85,20 +89,68 @@ class SearchSession(object):
             return term_a & ~term_b
 
     @staticmethod
-    def _update_search_with_fielded_terms(search: Search, query: Query):
-        if len(query.terms) == 1:
-            q = Q("match", **{query.terms[0].field: query.terms[0].term})
-        elif len(query.terms) > 1:
-            terms = SearchSession._group_terms(query)
-            q = SearchSession._grouped_terms_to_q(terms)
-        else:
-            return search
-        return search.query(q)
+    def _daterange_to_q(query: Query) -> Range:
+        if not query.date_range:
+            return Q()
+        params = {}
+        if query.date_range.start_date:
+            params["gte"] = query.date_range.start_date.strftime('%Y%m%d')
+        if query.date_range.end_date:
+            params["lt"] = query.date_range.end_date.strftime('%Y%m%d')
+        return Q('range', publication_date=params)
 
-    def _to_es_dsl(self, query: Query) -> Search:
-        """Generate a :class:`.Search` from a :class:`.Query`."""
+    @staticmethod
+    def _class_to_q(field: str, classification: Classification) \
+            -> Match:
+        q = Q()
+        if classification.group:
+            field_name = '%s__group__id' % field
+            q &= Q('match', **{field_name: classification.group})
+        if classification.archive:
+            field_name = '%s__archive__id' % field
+            q &= Q('match', **{field_name: classification.archive})
+        if classification.category:
+            field_name = '%s__category__id' % field
+            q &= Q('match', **{field_name: classification.category})
+        return Q('nested', path=field, query=q)
+
+    @classmethod
+    def _fielded_terms_to_q(cls, query: Query) -> Match:
+        if len(query.terms) == 1:
+            return Q("match", **{query.terms[0].field: query.terms[0].term})
+        elif len(query.terms) > 1:
+            terms = cls._group_terms(query)
+            return cls._grouped_terms_to_q(terms)
+        return Q()
+
+    @classmethod
+    def _classifications_to_q(cls, query: Query) -> Match:
+        if not query.primary_classification:
+            return Q()
+        q = cls._class_to_q('primary_classification',
+                            query.primary_classification[0])
+        if len(query.primary_classification) > 1:
+            for classification in query.primary_classification[1:]:
+                q |= cls._class_to_q('primary_classification', classification)
+        return q
+
+    @classmethod
+    def _get_sort_parameters(cls, query: Query) -> list:
+        if not query.order:
+            return
+        return [query.order]
+
+    def _prepare(self, query: Query) -> Search:
+        """Generate an ES :class:`.Search` from a :class:`.Query`."""
         search = Search(using=self.es, index=self.index)
-        search = self._update_search_with_fielded_terms(search, query)
+        search = search.query(
+            self._fielded_terms_to_q(query)
+            & self._daterange_to_q(query)
+            & self._classifications_to_q(query)
+        )
+        sort_params = self._get_sort_parameters(query)
+        if sort_params:
+            search = search.sort(*sort_params)
         return search
 
     def create_index(self, mappings: dict) -> None:
@@ -171,8 +223,6 @@ class SearchSession(object):
             return
         return Document(record['_source'])
 
-    # TODO: this needs some work. We need to think more about how we want to
-    # structure our queries.
     def search(self, query: Query) -> DocumentSet:
         """
         Perform a search.
@@ -192,10 +242,11 @@ class SearchSession(object):
         ValueError
             Invalid query parameters.
         """
-        logger.debug('got search request for %s', str(query))
+        logger.debug('got search request %s', str(query))
         try:
-            results = self.es.search(index=self.index, doc_type='arxiv',
-                                     body=self._prepare(query))
+            search = self._prepare(query)
+            results = search[query.page_start:query.page_end].execute()
+
         except TransportError as e:
             if e.error == 'parsing_exception':
                 raise ValueError(e.info) from e
@@ -204,19 +255,16 @@ class SearchSession(object):
             'metadata': {
                 'total': results['hits']['total'],
             },
-            'results': list(map(self._transform, results['hits']['hits']))
+            'results': list(map(self._transform, results))
         })
-
-    # TODO: implement this.
-    def _prepare(self, query: Query) -> dict:
-        """Build an Elasticearch query from a :class:`.Query`."""
-        return {'query': {'term': query}}
 
     def _transform(self, raw: dict) -> Document:
         """Transform an ES search result back into a :class:`.Document`."""
-        result = raw['_source']
-        result['score'] = raw['_score']
-        result['type'] = raw['_type']
+        result = {}
+        for key in dir(raw):
+            result[key] = getattr(raw, key)
+        # result = raw['_source']
+        result['score'] = raw.meta.score
         return Document(result)
 
 

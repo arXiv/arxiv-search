@@ -38,6 +38,14 @@
                 }
             },
             "required": ["id", "name"]
+        },
+        "classification": {
+            "type": "object",
+            "properties": {
+                "archive": {"$ref": "#/definitions/archive"},
+                "group": {"$ref": "#/definitions/group"},
+                "category": {"$ref": "#/definitions/category"}
+            }
         }
     },
     "type": "object",
@@ -192,40 +200,18 @@
             "description": "Paper ID with version suffix",
             "type": "string"
         },
-        "primary_category": {
-            "$ref": "#/definitions/category"
+        "primary_classification": {
+            "$ref": "#/definitions/classification"
         },
-        "primary_archive": {
-            "$ref": "#/definitions/archive"
-        },
-        "primary_group": {
-            "$ref": "#/definitions/group"
+        "secondary_classification": {
+            "type": "array",
+            "items": {"$ref": "#/definitions/classification"}
         },
         "proxy": {
             "type": "string"
         },
         "report_num": {
             "type": "string"
-        },
-        "secondary_categories": {
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/category"
-            }
-        },
-        "secondary_archives": {
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/archive"
-            },
-            "uniqueItems": true
-        },
-        "secondary_groups": {
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/archive"
-            },
-            "uniqueItems": true
         },
         "source": {
             "properties": {
@@ -281,9 +267,7 @@
         "license",
         "paper_id",
         "paper_id_v",
-        "primary_category",
-        "primary_archive",
-        "primary_group",
+        "primary_classification",
         "title",
         "source",
         "version"

@@ -97,6 +97,15 @@ class DateRange(dict):
     end_date = Property('end_date', date)
     """The day at (just before) which the range ends."""
 
+    # on_version = Property('field', str)
+    # """The date field on which to filter
+
+
+class Classification(dict):
+    group = Property('group', str)
+    archive = Property('archive', str)
+    category = Property('category', str)
+
 
 class FieldedSearchTerm(dict):
     """Represents a fielded search term."""
@@ -111,9 +120,15 @@ class Query(SchemaBase):
 
     raw_query = Property('raw_query', str)
     date_range = Property('date_range', DateRange)
-    subjects = Property('subjects', list)
+    primary_classification = Property('primary_classification', list)
     terms = Property('terms', list, [])
     order = Property('order', str)
+    page_size = Property('page_size', int)
+    page_start = Property('page_start', int, 0)
+
+    @property
+    def page_end(self):
+        return self.page_start + self.page_size
 
 
 class Document(SchemaBase):
