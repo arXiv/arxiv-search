@@ -4,6 +4,7 @@ from wtforms import Form, BooleanField, StringField, SelectField, validators, \
     FormField, SelectMultipleField, DateField, ValidationError, FieldList
 
 from wtforms.fields import HiddenField
+from wtforms import widgets
 
 # Special characters?
 
