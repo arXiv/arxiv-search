@@ -49,24 +49,6 @@ def _constructACMClass(meta: DocMeta) -> dict:
     return [obj.strip() for obj in raw.split(';')]
 
 
-# def _constructPrimaryClassification(meta: DocMeta) -> dict:
-#     return {
-#         "category": meta.get('primary_category'),
-#         "archive": meta.get('primary_archive'),
-#         "group": meta.get('primary_group'),
-#     }
-
-
-def _constructSecondaryClassification(meta: DocMeta) -> list:
-    _zipped = zip(
-        meta.get('secondary_categories'),
-        meta.get('secondary_archives'),
-        meta.get('secondary_groups'),
-    )
-    return [{'category': category, 'archive': archive, 'group': group}
-            for category, archive, group in _zipped]
-
-
 _transformations = [
     ('abstract', 'abstract'),
     ('authors', "authors_parsed"),
