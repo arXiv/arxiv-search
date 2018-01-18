@@ -51,8 +51,9 @@ def _constructACMClass(meta: DocMeta) -> dict:
 
 _transformations = [
     ('abstract', 'abstract'),
+    ('abstract_utf8', 'abstract_utf8'),
     ('authors', "authors_parsed"),
-    ('authors_freeform', "authors"),
+    ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
     ("date_created", 'created'),
     ("publication_date", _constructPubDate),
@@ -67,6 +68,7 @@ _transformations = [
     ("primary_classification", "primary_classification"),
     ("secondary_classification", "secondary_classification"),
     ("title", "title"),
+    ("title_utf8", "title_utf8"),
     ("source", "source"),
     ("version", "version"),
     ("submitter", _prepareSubmitter),
@@ -74,11 +76,11 @@ _transformations = [
     ("proxy", "proxy"),
     ("msc_class", _constructMSCClass),
     ("metadata_id", "metadata_id"),
-    ("journal_ref", "journal_ref"),
+    ("journal_ref", "journal_ref_utf8"),
     ("is_withdrawn", "is_withdrawn"),
     ("is_current", "is_current"),
     ("doi", "doi"),
-    ("comments", "comments"),
+    ("comments", "comments_utf8"),
     ("acm_class", _constructACMClass),
     ("abs_categories", "abs_categories"),
     ("formats", "formats")

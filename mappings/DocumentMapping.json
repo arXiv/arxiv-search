@@ -9,6 +9,9 @@
         "abstract": {
           "type": "text"
         },
+        "abstract_utf8": {
+          "type": "text"
+        },
         "acm_class": {
           "type": "keyword"
         },
@@ -209,6 +212,9 @@
           }
         },
         "title": {
+          "type": "text"
+        },
+        "title_utf8": {
           "type": "text"
         },
         "version": {

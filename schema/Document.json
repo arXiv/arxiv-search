@@ -57,6 +57,10 @@
         "abstract": {
             "type": "string"
         },
+        "abstract_utf8": {
+            "description": "abstract field with texisms converted to utf-8 equivalents",
+            "type": "string"
+        },
         "acm_class": {
             "description": "Classifications from ACM Computing Classification System",
             "type": "array",
@@ -127,6 +131,10 @@
         "comments": {
             "type": ["string"]
         },
+        "comments_utf8": {
+            "description": "comments field with texisms converted to utf-8 equivalents",
+            "type": ["string"]
+        },
         "publication_date_latest": {
             "description": "Date this version of paper was announced",
             "type": "string"
@@ -169,6 +177,10 @@
             "type": "boolean"
         },
         "journal_ref": {
+            "type": ["string"]
+        },
+        "journal_ref_utf8": {
+            "description": "journal_ref field with texisms converted to utf-8 equivalents",
             "type": ["string"]
         },
         "license": {
@@ -248,6 +260,10 @@
             "required": ["email", "name"]
         },
         "title": {
+            "type": "string"
+        },
+        "title_utf8": {
+            "description": "title field with texisms converted to utf-8 equivalents",
             "type": "string"
         },
         "version": {
