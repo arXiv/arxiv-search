@@ -48,6 +48,9 @@ manually restart to see those changes take effect.
 
 ## If all goes well...
 
+http://127.0.0.1:5000/search/ should render the basic search page.
+
+**NOTE:** not yet implemented!
 http://127.0.0.1:5000/find?primary_archive.id=physics
 
 ```
