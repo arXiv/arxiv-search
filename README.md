@@ -12,17 +12,18 @@
 ### Running Elasticsearch
 
 ```bash
-$ docker pull docker.elastic.co/elasticsearch/elasticsearch:6.1.1
-$ docker run -it -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" \
->   -p 9200:9200 -p 9300:9300  \
->   docker.elastic.co/elasticsearch/elasticsearch:6.1.1
+docker pull docker.elastic.co/elasticsearch/elasticsearch:6.1.1
+docker run -it -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" \
+  -p 9200:9200 -p 9300:9300  \
+  docker.elastic.co/elasticsearch/elasticsearch:6.1.1
 ```
 
 ### Create & populate the index
 
 ```bash
-$ FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python create_index.py
-$ FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python populate_test_metadata.py
+pip install -r requirements.txt
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python create_index.py
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python populate_test_metadata.py
 ```
 
 ``populate_test_metadata.py`` takes several minutes to run.
