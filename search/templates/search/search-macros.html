@@ -71,11 +71,11 @@
               </span>
             </div>
             <div class="control is-expanded">
-              <label for="terms-{{loop.index0}}-term" class="hiddenlabel">Search term</label>
+              <label for="terms-{{loop.index0}}-term" class="hidden-label">Search term</label>
               {{ entry.term(class='input', placeholder="Search term...")|safe }}
             </div>
             <div class="control">
-              <label for="terms-{{loop.index0}}-field" class="hiddenlabel">Field to search</label>
+              <label for="terms-{{loop.index0}}-field" class="hidden-label">Field to search</label>
               <span class="select">
                 {{ entry.field(default='title')|safe }}
               </span>
@@ -120,7 +120,7 @@
                 <div class="field">
                   {{ form.classification.physics|safe }}
                   {{ form.classification.physics.label }}
-                  <label for="classification-physics_archives" class="hiddenlabel">Subtopic within physics</label>
+                  <label for="classification-physics_archives" class="hidden-label">Subtopic within physics</label>
                   {{ form.classification.physics_archives|safe }}
                 </div>
                 <div class="field">
@@ -151,7 +151,7 @@
             <div class="field">
               {{ form.date.specific_year|safe }}
               {{ form.date.specific_year.label }}
-              <label for="date-year" class="hiddenlabel">Enter four digit year</label>
+              <label for="date-year" class="hidden-label">Enter four digit year</label>
               {{ form.date.year(placeholder="YYYY or YYYY-MM-DD")|safe }}
             </div>
             <div class="field">
