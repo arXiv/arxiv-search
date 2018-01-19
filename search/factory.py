@@ -5,7 +5,7 @@ from flask import Flask
 from search.routes import ui, external_api
 from search.services import index
 from search.converter import ArXivConverter
-from baseui import BaseUI
+from arxiv.base import Base
 
 
 def create_web_app() -> Flask:
@@ -20,7 +20,7 @@ def create_web_app() -> Flask:
 
     index.init_app(app)
 
-    BaseUI(app)
+    Base(app)
     app.register_blueprint(ui.blueprint)
     app.register_blueprint(external_api.blueprint)
     return app
