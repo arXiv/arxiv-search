@@ -51,7 +51,6 @@ def _constructACMClass(meta: DocMeta) -> dict:
 
 _transformations = [
     ('abstract', 'abstract'),
-    ('abstract_utf8', 'abstract_utf8'),
     ('authors', "authors_parsed"),
     ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
@@ -68,7 +67,6 @@ _transformations = [
     ("primary_classification", "primary_classification"),
     ("secondary_classification", "secondary_classification"),
     ("title", "title"),
-    ("title_utf8", "title_utf8"),
     ("source", "source"),
     ("version", "version"),
     ("submitter", _prepareSubmitter),
