@@ -14,9 +14,16 @@
 ```bash
 docker pull docker.elastic.co/elasticsearch/elasticsearch:6.1.1
 docker run -it -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" \
-  -p 9200:9200 -p 9300:9300  \
+  -p 9200:9200 -p 9300:9300 \
   docker.elastic.co/elasticsearch/elasticsearch:6.1.1
 ```
+
+### Alternatively: Running Elasticsearch with Kibana
+**TODO::** docker-compose version
+```bash
+docker-compose up
+```
+Kibana will be available at http://127.0.0.1.5601/
 
 ### Create & populate the index
 
@@ -26,7 +33,7 @@ FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python create_index.
 FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python populate_test_metadata.py
 ```
 
-``populate_test_metadata.py`` takes several minutes to run.
+``populate_test_metadata.py`` may take several minutes to run.
 
 You'll need to do this any time you restart ES.
 

@@ -1,0 +1,25 @@
+# arxiv-search
+---
+version:            '3'
+services:
+  elasticsearch:
+    build:
+      context: .
+      dockerfile: Dockerfile-elasticsearch
+    container_name: elasticsearch
+    # environment:  ['http.host=0.0.0.0', 'transport.host=127.0.0.1', 'ELASTIC_PASSWORD=${ELASTIC_PASSWORD}']
+    environment:    ['http.host=0.0.0.0', 'transport.host=127.0.0.1']
+    ports:          ['127.0.0.1:9200:9200', '127.0.0.1:9300:9300']
+    networks:       ['es_stack']
+
+  kibana:
+    image:          docker.elastic.co/kibana/kibana:6.1.2
+    container_name: kibana
+    # environment:
+    #   - ELASTICSEARCH_USERNAME=kibana
+    #   - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+    ports:          ['127.0.0.1:5601:5601']
+    networks:       ['es_stack']
+    depends_on:     ['elasticsearch']
+
+networks: {es_stack: {}}
