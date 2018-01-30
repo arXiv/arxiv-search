@@ -15,7 +15,11 @@ with open('tests/data/sample.json') as f:
 
 
 @app.cli.command()
-def populate():
+@click.option('--print_indexable', '-i', is_flag=True,
+              help='Print the indexable JSON to stdout.')
+@click.option('--paper_id', '-p',
+              help='Index specified paper id')
+def populate(print_indexable, paper_id):
     """Populate the search index with some test data."""
     # Create cache directory if it doesn't exist
     cache_path_tmpl = 'tests/data/temp/%s.json'
@@ -23,6 +27,8 @@ def populate():
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
 
+    if paper_id:
+        TO_INDEX = [{'id': paper_id}]
     for doc in TO_INDEX:
         # Look for a local copy first.
         cache_path = cache_path_tmpl % doc['id'].replace('/', '_')
@@ -35,6 +41,8 @@ def populate():
             with open(cache_path, 'w') as f:
                 json.dump(docmeta, f)
         document = transform.to_search_document(docmeta)
+        if print_indexable:
+            print(document)
         index.add_document(document)
 
         click.echo(doc['id'])
