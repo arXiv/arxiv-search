@@ -34,7 +34,7 @@ FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python populate_test
 ```
 
 ``populate_test_metadata.py`` without parameters populate the index with the
-list of papers defined in ```tests/data/sample.json``. It take several minutes
+list of papers defined in ``tests/data/sample.json``. It take several minutes
 to run. Individual paper IDs may be specified with the ``--paper_id``
 parameter.
 
