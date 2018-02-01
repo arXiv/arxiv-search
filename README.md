@@ -12,10 +12,10 @@
 ### Running Elasticsearch
 
 ```bash
-docker pull docker.elastic.co/elasticsearch/elasticsearch:6.1.1
+docker build -t "arxivsearch_elasticsearch" -f ./Dockerfile-elasticsearch .
 docker run -it -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" \
   -p 9200:9200 -p 9300:9300 \
-  docker.elastic.co/elasticsearch/elasticsearch:6.1.1
+  arxivsearch_elasticsearch
 ```
 
 ### Alternatively: Running Elasticsearch with Kibana
@@ -33,7 +33,10 @@ FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python create_index.
 FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python populate_test_metadata.py
 ```
 
-``populate_test_metadata.py`` may take several minutes to run.
+``populate_test_metadata.py`` without parameters populate the index with the
+list of papers defined in ```tests/data/sample.json``. It take several minutes
+to run. Individual paper IDs may be specified with the ``--paper_id``
+parameter.
 
 You'll need to do this any time you restart ES.
 

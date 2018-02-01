@@ -1,60 +1,67 @@
 {
-  "abs_categories": "cs.LO",
-  "abstract": "Model checking allows one to automatically verify a specification of the expected properties of a system against a formal model of its behaviour (generally, a Kripke structure). Point-based temporal logics, such as LTL, CTL, and CTL*, that describe how the system evolves state-by-state, are commonly used as specification languages. They proved themselves quite successful in a variety of application domains. However, properties constraining the temporal ordering of temporally extended events as well as properties involving temporal aggregations, which are inherently interval-based, can not be properly dealt with by them. Interval temporal logics (ITLs), that take intervals as their primitive temporal entities, turn out to be well-suited for the specification and verification of interval properties of computations (we interpret all the tracks of a Kripke structure as computation intervals).\r\n  We study the model checking problem for some fragments of Halpern and Shoham's modal logic of time intervals (HS). HS features one modality for each possible ordering relation between pairs of intervals (the so-called Allen's relations). First, we describe an EXPSPACE model checking algorithm for the HS fragment of Allen's relations meets, met-by, starts, started-by, and finishes, which exploits the possibility of finding, for each track (of unbounded length), an equivalent bounded-length track representative. While checking a property, it only needs to consider tracks whose length does not exceed the given bound. We prove the model checking problem for such a fragment to be PSPACE-hard. Finally, we identify other well-behaved HS fragments which are expressive enough to capture meaningful interval properties of systems, such as mutual exclusion, state reachability, and non-starvation, and whose complexity is less than or equal to that of LTL.",
-  "acm_class": ["F.4.1", "D.2.4"],
+  "abstract": "Model checking allows one to automatically verify a specification of the expected properties of a system against a formal model of its behaviour (generally, a Kripke structure). Point-based temporal logics, such as LTL, CTL, and CTL*, that describe how the system evolves state-by-state, are commonly used as specification languages. They proved themselves quite successful in a variety of application domains. However, properties constraining the temporal ordering of temporally extended events as well as properties involving temporal aggregations, which are inherently interval-based, can not be properly dealt with by them. Interval temporal logics (ITLs), that take intervals as their primitive temporal entities, turn out to be well-suited for the specification and verification of interval properties of computations (we interpret all the tracks of a Kripke structure as computation intervals).\n  We study the model checking problem for some fragments of Halpern and Shoham's modal logic of time intervals (HS). HS features one modality for each possible ordering relation between pairs of intervals (the so-called Allen's relations). First, we describe an EXPSPACE model checking algorithm for the HS fragment of Allen's relations meets, met-by, starts, started-by, and finishes, which exploits the possibility of finding, for each track (of unbounded length), an equivalent bounded-length track representative. While checking a property, it only needs to consider tracks whose length does not exceed the given bound. We prove the model checking problem for such a fragment to be PSPACE-hard. Finally, we identify other well-behaved HS fragments which are expressive enough to capture meaningful interval properties of systems, such as mutual exclusion, state reachability, and non-starvation, and whose complexity is less than or equal to that of LTL.",
   "authors": [{
-      "first_name": "Alberto",
-      "last_name": "Molinari"
-    },
-    {
-      "first_name": "Angelo",
-      "last_name": "Montanari"
-    },
-    {
-      "first_name": "Adriano",
-      "last_name": "Peron"
-    }
-  ],
-
-  "date_created": "2017-09-06T10:52:10-0400",
-  "date_modified": "2017-09-06T20:11:01-0400",
-  "date_updated": "2017-09-06T20:11:01-0400",
-  "document_id": 1314995,
-  "doi": "10.1016/j.ic.2017.08.011",
-  "formats": ["pdf", "ps", "other"],
+    "last_name": "Molinari",
+    "first_name": "Alberto"
+  }, {
+    "last_name": "Montanari",
+    "first_name": "Angelo"
+  }, {
+    "last_name": "Peron",
+    "first_name": "Adriano"
+  }],
+  "authors_freeform": "Alberto Molinari, Angelo Montanari, Adriano Peron",
+  "author_owners": [{
+    "orcid": "0000-0002-7792-2105",
+    "last_name": "Molinari",
+    "first_name": "Alberto"
+  }],
+  "created_date": "2017-09-06T10:52:10-0400",
+  "publication_date": ["2017-09-06T20:11:01-0400"],
+  "publication_date_first": "2017-09-06T20:11:01-0400",
+  "publication_date_latest": "2017-09-06T20:11:01-0400",
+  "updated_date": "2017-09-06T20:11:01-0400",
   "is_current": true,
   "is_withdrawn": false,
-  "journal_ref": "Information and Computation, 2017",
   "license": {
-    "uri": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
-    "label": "arXiv.org perpetual, non-exclusive license to distribute this article"
+    "label": "arXiv.org perpetual, non-exclusive license to distribute this article",
+    "uri": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
   },
-  "metadata_id": 1997481,
-  "msc_class": ["03B70", "68Q60"],
   "paper_id": "1709.01849",
   "paper_id_v": "1709.01849v1",
-  "primary_category": {
-    "id": "cs.LO",
-    "name": "Logic in Computer Science"
+  "primary_classification": {
+    "group": {
+      "name": "Computer Science",
+      "id": "cs"
+    },
+    "archive": {
+      "name": "Computer Science",
+      "id": "cs"
+    },
+    "category": {
+      "name": "Logic in Computer Science",
+      "id": "cs.LO"
+    }
   },
-  "primary_archive": {
-    "id": "cs",
-    "name": "Computer Science"
-  },
-  "primary_group": {
-    "id": "cs",
-    "name": "Computer Science"
-  },
+  "title": "Model Checking for Fragments of Halpern and Shoham's Interval Temporal Logic Based on Track Representatives",
   "source": {
     "flags": "",
     "format": "tex",
     "size_bytes": 67498
   },
+  "version": 1,
   "submitter": {
+    "is_author": true,
     "email": "molinari.alberto@spes.uniud.it",
+    "orcid": "0000-0002-7792-2105",
     "name": "Alberto Molinari",
-    "submitter_id":
+    "name_utf8": "Alberto Molinari"
   },
-  "title": "Model Checking for Fragments of Halpern and Shoham's Interval Temporal Logic Based on Track Representatives",
-  "version": 1
+  "msc_class": ["03B70", "68Q60"],
+  "metadata_id": 1997481,
+  "journal_ref": "Information and Computation, 2017",
+  "doi": "10.1016/j.ic.2017.08.011",
+  "acm_class": ["F.4.1", "D.2.4"],
+  "abs_categories": "cs.LO",
+  "formats": ["pdf", "ps", "other"]
 }

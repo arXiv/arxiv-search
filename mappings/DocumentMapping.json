@@ -1,16 +1,61 @@
 {
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "simple": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase"
+          ]
+        },
+        "tex_analyzer": {
+          "type": "custom",
+          "tokenizer": "tex_tokenizer"
+        }
+      },
+      "tokenizer": {
+        "tex_tokenizer": {
+          "type": "pattern",
+          "pattern": "\\$([^\\$]+)\\$",
+          "group": 1
+        }
+      },
+      "normalizer": {
+        "simple": {
+          "filter": [
+            "lowercase"
+          ]
+        },
+        "folding": {
+          "filter": [
+            "icu_folding",
+            "lowercase"
+          ]
+        }
+      }
+    }
+  },
   "mappings": {
-    "arxiv": {
+    "document": {
       "dynamic": "false",
       "properties": {
         "abs_categories": {
           "type": "keyword"
         },
         "abstract": {
-          "type": "text"
-        },
-        "abstract_utf8": {
-          "type": "text"
+          "type": "text",
+          "analyzer": "standard",
+          "fields": {
+            "english": {
+              "type": "text",
+              "analyzer": "english"
+            },
+            "tex": {
+              "type": "text",
+              "analyzer": "tex_analyzer"
+            }
+          }
         },
         "acm_class": {
           "type": "keyword"
@@ -19,10 +64,29 @@
           "type": "nested",
           "properties": {
             "first_name": {
-              "type": "keyword"
+              "type": "keyword",
+              "normalizer": "simple",
+              "copy_to": "full_name",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
             },
             "last_name": {
-              "type": "keyword"
+              "type": "keyword",
+              "normalizer": "simple",
+              "copy_to": "full_name",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
+            },
+            "full_name": {
+              "type": "text"
             },
             "suffix": {
               "type": "keyword"
@@ -34,7 +98,7 @@
               "type": "keyword"
             },
             "affiliation": {
-              "type": "keyword"
+              "type": "text"
             }
           }
         },
@@ -42,10 +106,24 @@
           "type": "nested",
           "properties": {
             "first_name": {
-              "type": "keyword"
+              "type": "keyword",
+              "normalizer": "simple",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
             },
             "last_name": {
-              "type": "keyword"
+              "type": "keyword",
+              "normalizer": "simple",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
             },
             "suffix": {
               "type": "keyword"
@@ -57,7 +135,7 @@
               "type": "keyword"
             },
             "affiliation": {
-              "type": "keyword"
+              "type": "text"
             }
           }
         },
@@ -66,19 +144,23 @@
         },
         "publication_date": {
           "type": "date",
-          "format": "basic_date"
+          "format": "strict_date_time_no_millis"
         },
         "publication_date_latest": {
           "type": "date",
-          "format": "basic_date"
+          "format": "strict_date_time_no_millis"
         },
         "publication_date_first": {
           "type": "date",
-          "format": "basic_date"
+          "format": "strict_date_time_no_millis"
         },
         "updated_date": {
           "type": "date",
-          "format": "basic_date"
+          "format": "strict_date_time_no_millis"
+        },
+        "created_date": {
+          "type": "date",
+          "format": "strict_date_time_no_millis"
         },
         "doi": {
           "type": "keyword"
@@ -121,56 +203,80 @@
           "type": "keyword"
         },
         "primary_classification": {
-            "type": "nested",
-            "properties": {
-                "group": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "keyword"},
-                        "name": {"type": "keyword"}
-                    }
+          "type": "nested",
+          "properties": {
+            "group": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
                 },
-                "archive": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "keyword"},
-                        "name": {"type": "keyword"}
-                    }
-                },
-                "category": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "keyword"},
-                        "name": {"type": "keyword"}
-                    }
+                "name": {
+                  "type": "keyword"
                 }
+              }
+            },
+            "archive": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "category": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                }
+              }
             }
+          }
         },
         "secondary_classification": {
-            "type": "nested",
-            "properties": {
-                "group": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "keyword"},
-                        "name": {"type": "keyword"}
-                    }
+          "type": "nested",
+          "properties": {
+            "group": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
                 },
-                "archive": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "keyword"},
-                        "name": {"type": "keyword"}
-                    }
-                },
-                "category": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "keyword"},
-                        "name": {"type": "keyword"}
-                    }
+                "name": {
+                  "type": "keyword"
                 }
+              }
+            },
+            "archive": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "category": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                }
+              }
             }
+          }
         },
         "proxy": {
           "type": "keyword"
@@ -195,7 +301,14 @@
               "type": "keyword"
             },
             "name": {
-              "type": "keyword"
+              "type": "keyword",
+              "normalizer": "simple",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
             },
             "submitter_id": {
               "type": "integer"
@@ -212,10 +325,20 @@
           }
         },
         "title": {
-          "type": "text"
-        },
-        "title_utf8": {
-          "type": "text"
+          "type": "text",
+          "analyzer": "simple",
+          "search_analyzer": "standard",
+          "search_quote_analyzer": "simple",
+          "fields": {
+            "english": {
+              "type": "text",
+              "analyzer": "english"
+            },
+            "tex": {
+              "type": "text",
+              "analyzer": "tex_analyzer"
+            }
+          }
         },
         "version": {
           "type": "integer"

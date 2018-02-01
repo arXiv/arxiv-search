@@ -5,13 +5,14 @@ from typing import Optional
 from search.domain import Document, DocMeta, Fulltext
 
 
-def _reformatDate(datestring: str) -> str:
+def _reformatDate(datestring: str,
+                  output_format: str = '%Y-%m-%dT%H:%M:%S%z') -> str:
     """Recast DocMeta date format to ES date format."""
     try:
-        asdate = datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%S%z').date()
+        asdate = datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%S%z')
     except ValueError:
         return
-    return asdate.strftime('%Y%m%d')
+    return asdate.strftime(output_format)
 
 
 def _prepareSubmitter(meta: DocMeta) -> dict:
@@ -22,6 +23,8 @@ def _constructPubDate(meta: DocMeta) -> list:
     previous_versions = meta.get('previous_versions', [])
     current = _reformatDate(meta['modtime'])
     previous = [_reformatDate(v['modtime']) for v in previous_versions]
+    # TODO: comparison should probably be done on datetime objects, not strings
+    # now that dates are no longer YYMMDD
     previous = list(filter(lambda o: o is not None, previous))
     return list(sorted([current] + previous))[::-1]
 
@@ -54,7 +57,7 @@ _transformations = [
     ('authors', "authors_parsed"),
     ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
-    ("date_created", 'created'),
+    ("created_date", lambda meta: _reformatDate(meta['created'])),
     ("publication_date", _constructPubDate),
     ("publication_date_first", lambda meta: _constructPubDate(meta)[-1]),
     ("publication_date_latest", lambda meta: _reformatDate(meta['modtime'])),

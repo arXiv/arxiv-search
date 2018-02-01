@@ -79,6 +79,10 @@ class SchemaBase(dict):
             return False
         return True
 
+    def __str__(self):
+        """Return the string representation of the instance in JSON."""
+        return json.dumps(self, default=lambda o: o.__dict__)
+
 
 class DocMeta(SchemaBase):
     """Metadata for an arXiv paper, retrieved from the core repository."""
