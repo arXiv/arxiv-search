@@ -14,6 +14,7 @@ CATEGORIES = [
 
 ARXIV_REGEX = ("^(ar[xX]iv:)?((?:(?:(?:%s)(?:[.][A-Z]{2})?/[0-9]{2}(?:0[1-9]|1[0-2])"
          "\\d{3}(?:[vV]\\d+)?))|(?:(?:[0-9]{2}(?:0[1-9]|1[0-2])[.]"
+         "\\d{4,5}(?:[vV]\\d+)?)))$" % '|'.join(CATEGORIES))
 
 def parse_arxiv_id(value: str) -> str:
     """
