@@ -12,9 +12,20 @@
 
 {% block within_content %}
 
-{% if not query %}
-  
-{% endif %}
+<form method="GET" action="{{ url_for('ui.search') }}">
+    <div class="field has-addons">
+      <div class="control">
+        {{ form.value(class="input is-expanded is-large")|safe }}
+      </div>
+      <div class="control">
+        {{ form.field(class="input is-large")|safe }}
+      </div>
+      <div class="control">
+          <button class="button is-link is-large">Search</button>
+      </div>
+    </div>
+  </div>
+</form>
 
 {% if results %}
     {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
