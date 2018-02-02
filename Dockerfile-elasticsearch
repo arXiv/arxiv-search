@@ -1,0 +1,6 @@
+# Run Elasticsearch 6.1.x with additional plugins
+
+FROM docker.elastic.co/elasticsearch/elasticsearch:6.1.1
+
+# install plugins
+RUN /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-icu

@@ -186,7 +186,7 @@ class SearchSession(object):
             Problem serializing ``document`` for indexing.
         """
         try:
-            self.es.index(index=self.index, doc_type='arxiv',
+            self.es.index(index=self.index, doc_type='document',
                           id=document['paper_id'], body=document)
         except SerializationError as e:
             raise ValueError('Problem serializing document: %s' % e) from e
@@ -213,7 +213,7 @@ class SearchSession(object):
         IOError
         """
         try:
-            record = self.es.get(index=self.index, doc_type='arxiv',
+            record = self.es.get(index=self.index, doc_type='document',
                                  id=document_id)
         except SerializationError as e:
             raise ValueError('Problem serializing document: %s' % e) from e

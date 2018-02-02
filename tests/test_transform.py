@@ -116,7 +116,7 @@ class TestPublidationDates(unittest.TestCase):
         for pubdate in pubdates:
             self.assertIsInstance(pubdate, str)
             try:
-                asdate = datetime.strptime(pubdate, '%Y%m%d').date()
+                asdate = datetime.strptime(pubdate, '%Y-%m-%dT%H:%M:%S%z').date()
             except ValueError:
                 self.fail('Expected only year, month, and day: %s' % pubdate)
 
@@ -129,7 +129,7 @@ class TestPublidationDates(unittest.TestCase):
         })
         pubdates = transform._constructPubDate(meta)
         self.assertEqual(len(pubdates), 1)
-        asdate = datetime.strptime(pubdates[0], '%Y%m%d').date()
+        asdate = datetime.strptime(pubdates[0], '%Y-%m-%dT%H:%M:%S%z').date()
         self.assertEqual(asdate, date(year=2012, month=8, day=27))
 
     def test_old_versions_have_malformed_pubdate(self):
