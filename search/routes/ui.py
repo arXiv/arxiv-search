@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, url_for
 from werkzeug.urls import Href
-from search import controllers
+from search.controllers import simple, advanced
 
 blueprint = Blueprint('ui', __name__, url_prefix='/search')
 
@@ -13,8 +13,15 @@ blueprint = Blueprint('ui', __name__, url_prefix='/search')
 @blueprint.route('/', methods=['GET'])
 def search():
     """First pass at a search results page."""
-    response, code, headers = controllers.search(request.args)
+    response, code, headers = simple.search(request.args)
     return render_template("search/search.html", **response)
+
+
+@blueprint.route('/advanced', methods=['GET'])
+def advanced_search():
+    """Advanced search interface."""
+    response, code, headers = advanced.search(request.args)
+    return render_template("search/advanced_search.html", **response)
 
 
 # TODO: we need something more robust here; this is just to get us rolling.
@@ -49,5 +56,5 @@ def url_for_page_builder():
         href = Href('/')
         args = request.args.copy()
         args['start'] = (page - 1) * page_size
-        return href('search', args)
+        return href(request.path, args)
     return dict(url_for_page=url_for_page)

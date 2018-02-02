@@ -1,0 +1,158 @@
+{%- extends "search/base.html" %}
+
+{% import "search/search-macros.html" as search_macros %}
+
+{% macro advanced_query(form) %}
+
+<div class="columns">
+  <div class="column is-three-fifths">
+    <div class="box">
+      <form method="GET" action="{{ url_for('ui.advanced_search') }}">
+        {{ form.advanced|safe }}
+        <section data-toggle="fieldset" id="terms-fieldset">
+          {% for entry in form.terms.entries %}
+          <div class="field has-addons" data-toggle="fieldset-entry">
+            <div class="control fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>
+              <span class="select" aria-label="Boolean operator">
+                {{ entry.operator(default='AND')|safe }}
+              </span>
+            </div>
+            <div class="control is-expanded">
+              <label for="terms-{{loop.index0}}-term" class="hidden-label">Search term</label>
+              {{ entry.term(class='input', placeholder="Search term...")|safe }}
+            </div>
+            <div class="control">
+              <label for="terms-{{loop.index0}}-field" class="hidden-label">Field to search</label>
+              <span class="select">
+                {{ entry.field(default='title')|safe }}
+              </span>
+            </div>
+            <div class="control">
+              <button type="button" data-toggle="fieldset-remove-row" id="term-{{loop.index0}}-remove" class="button fieldset-hidden-on-first-row" aria-label="Remove this search term" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>-</button>
+            </div>
+          </div>
+          {% endfor %}
+          <div class="control is-clearfix">
+            <button type="button" class="button is-pulled-right" data-toggle="fieldset-add-row" data-target="#terms-fieldset" aria-label="Add another term">+</button>
+          </div>
+        </section>
+
+        <section>
+          <fieldset class="fieldset">
+            <legend class="legend">Subject</legend>
+            <div class="field">
+              {{ form.classification.all_subjects|safe }}
+              {{ form.classification.all_subjects.label }}
+            </div>
+            <div class="columns is-baseline">
+              <div class="column">
+                <div class="field">
+                  {{ form.classification.computer_science|safe }}
+                  {{ form.classification.computer_science.label }}
+                </div>
+                <div class="field">
+                  {{ form.classification.economics|safe }}
+                  {{ form.classification.economics.label }}
+                </div>
+                <div class="field">
+                  {{ form.classification.eess|safe }}
+                  {{ form.classification.eess.label }}
+                </div>
+                <div class="field">
+                  {{ form.classification.mathematics|safe }}
+                  {{ form.classification.mathematics.label }}
+                </div>
+              </div>
+              <div class="column">
+                <div class="field">
+                  {{ form.classification.physics|safe }}
+                  {{ form.classification.physics.label }}
+                  <label for="classification-physics_archives" class="hidden-label">Subtopic within physics</label>
+                  {{ form.classification.physics_archives|safe }}
+                </div>
+                <div class="field">
+                  {{ form.classification.q_biology|safe }}
+                  {{ form.classification.q_biology.label }}
+                </div>
+                <div class="field">
+                  {{ form.classification.q_finance|safe }}
+                  {{ form.classification.q_finance.label }}
+                </div>
+                <div class="field">
+                  {{ form.classification.statistics|safe }}
+                  {{ form.classification.statistics.label }}
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset class="fieldset">
+            <legend class="legend">Date</legend>
+            <div class="field">
+              {{ form.date.all_dates|safe }}
+              {{ form.date.all_dates.label }}
+            </div>
+            <div class="field">
+              {{ form.date.past_12|safe }}
+              {{ form.date.past_12.label }}
+            </div>
+            <div class="field">
+              {{ form.date.specific_year|safe }}
+              {{ form.date.specific_year.label }}
+              <label for="date-year" class="hidden-label">Enter four digit year</label>
+              {{ form.date.year(placeholder="YYYY or YYYY-MM-DD")|safe }}
+            </div>
+            <div class="field">
+              {{ form.date.date_range|safe }}
+              {{ form.date.date_range.label }}
+              {{ form.date.from_date.label }} {{ form.date.from_date(placeholder="YYYY-MM-DD")|safe }}
+              {{ form.date.to_date.label }} {{ form.date.to_date(placeholder="YYYY-MM-DD")|safe }}
+            </div>
+          </fieldset>
+        </section>
+        <section>
+          <div class="level">
+            <div class="level-left">
+              <span class="select is-small">
+                {{ form.results_per_page|safe }}
+              </span>
+               {{ form.results_per_page.label }}
+            </div>
+            <div class="level-right">
+              <button class="button is-link is-large">Search</button>
+            </div>
+          </div>
+        </section>
+        </form>
+      </div>
+    </div>
+    <div class="column">
+      <div class="box">
+        <h2 class="title is-5">Tips</h2>
+        <p>Text object here for search tips and help? Or just hardcode it?</p>
+      </div>
+    </div>
+  </div>
+
+{%- endmacro -%}
+
+{% block title %}
+    {% if query and results %}
+        Showing {{ metadata.total }} results for QUERY
+    {% else %}
+        Advanced Search
+    {% endif %}
+{% endblock title %}
+
+{% block within_content %}
+
+{% if show_form %}
+{{ advanced_query(form) }}
+{% else %}
+
+{% endif %}
+
+{% if results %}
+    {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
+{% endif %}
+
+{% endblock %}

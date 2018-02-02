@@ -86,7 +86,7 @@ class DateForm(Form):
 
 
 class AdvancedSearchForm(Form):
-    advanced = HiddenField('Advanced', default='true')
+    advanced = HiddenField('Advanced', default=1)
     terms = FieldList(FormField(FieldForm), min_entries=1)
     classification = FormField(ClassificationForm)
     date = FormField(DateForm)
