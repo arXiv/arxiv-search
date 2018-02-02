@@ -89,11 +89,11 @@ class TestPaperVersion(unittest.TestCase):
                          '1234.5678v1')
 
 
-class TestPublidationDates(unittest.TestCase):
-    """:func:`.transform._constructPubDate` generates a list of datetimes."""
+class TestSubmittedDates(unittest.TestCase):
+    """:func:`.transform._constructSubDate` generates a list of datetimes."""
 
     def test_old_versions_are_available(self):
-        """Publication dates from all versions are included."""
+        """Submitted dates from all versions are included."""
         meta = DocMeta({
             'paper_id': '1234.56789',
             'modtime': '2012-08-27T14:28:42-0400',
@@ -101,35 +101,35 @@ class TestPublidationDates(unittest.TestCase):
             'previous_versions': [
                 DocMeta({
                     'version': 1,
-                    'modtime': '2012-09-27T14:28:42-0400',
+                    'created': '2012-09-27T14:28:42-0400',
                 }),
                 DocMeta({
                     'version': 2,
-                    'modtime': '2012-10-27T14:28:42-0400',
+                    'created': '2012-10-27T14:28:42-0400',
                 })
             ]
         })
-        pubdates = transform._constructPubDate(meta)
+        subdates = transform._constructSubDate(meta)
 
-        self.assertIsInstance(pubdates, list)
-        self.assertEqual(len(pubdates), 3)
-        for pubdate in pubdates:
-            self.assertIsInstance(pubdate, str)
+        self.assertIsInstance(subdates, list)
+        self.assertEqual(len(subdates), 3)
+        for subdate in subdates:
+            self.assertIsInstance(subdate, str)
             try:
-                asdate = datetime.strptime(pubdate, '%Y-%m-%dT%H:%M:%S%z').date()
+                asdate = datetime.strptime(subdate, '%Y-%m-%dT%H:%M:%S%z').date()
             except ValueError:
-                self.fail('Expected only year, month, and day: %s' % pubdate)
+                self.fail('Expected only year, month, and day: %s' % subdate)
 
     def test_old_versions_not_available(self):
         """Only the current publication date is included."""
         meta = DocMeta({
             'paper_id': '1234.56789',
-            'modtime': '2012-08-27T14:28:42-0400',
+            'created': '2012-08-27T14:28:42-0400',
             'version': 3
         })
-        pubdates = transform._constructPubDate(meta)
-        self.assertEqual(len(pubdates), 1)
-        asdate = datetime.strptime(pubdates[0], '%Y-%m-%dT%H:%M:%S%z').date()
+        subdates = transform._constructSubDate(meta)
+        self.assertEqual(len(subdates), 1)
+        asdate = datetime.strptime(subdates[0], '%Y-%m-%dT%H:%M:%S%z').date()
         self.assertEqual(asdate, date(year=2012, month=8, day=27))
 
     def test_old_versions_have_malformed_pubdate(self):
@@ -149,5 +149,5 @@ class TestPublidationDates(unittest.TestCase):
                 })
             ]
         })
-        pubdates = transform._constructPubDate(meta)
+        pubdates = transform._constructSubDate(meta)
         self.assertEqual(len(pubdates), 2)
