@@ -9,7 +9,7 @@ import requests
 
 from search.context import get_application_config, get_application_global
 from search.domain import Fulltext
-from search import status
+from arxiv import status
 
 
 class FulltextSession(object):

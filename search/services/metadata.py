@@ -7,8 +7,9 @@ from functools import wraps
 
 import requests
 
+from arxiv import status
 from search.context import get_application_config, get_application_global
-from search import status, logging
+from search import logging
 from search.domain import DocMeta
 
 

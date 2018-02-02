@@ -8,4 +8,4 @@ flask==0.12.2
 elasticsearch==6.1.1
 elasticsearch-dsl==6.1.0
 wtforms==2.1
--e git+git://github.com/cul-it/arxiv-base.git@develop#egg=arxiv-base
+arxiv-base>=0.1

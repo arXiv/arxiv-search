@@ -1,11 +1,13 @@
 """Search controllers."""
 
 from typing import Tuple, Dict, Any
-from search import status, forms, logging
+from arxiv import status
+from search import logging
 from search.converter import ArXivConverter
 from search.process import query
 from search.services import index, fulltext, metadata
 import search.util as util
+from search.controllers.advanced import forms
 # from search.routes.ui import external_url_builder
 
 logger = logging.getLogger(__name__)
@@ -35,7 +37,7 @@ def search(request_params: dict) -> Response:
     dict
         Headers to add to the response.
     """
-
+    logger.debug('search request')
     response_data = {}
     if request_params.get('advanced', 'false') == 'true':
         logger.debug('search request from advanced form')
@@ -71,6 +73,8 @@ def search(request_params: dict) -> Response:
     if q is not None:
         q = query.paginate(q, request_params)
         response_data.update(index.search(q))
+    else:
+        q = None
     return response_data, status.HTTP_200_OK, {}
 
 
