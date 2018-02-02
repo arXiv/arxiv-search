@@ -19,10 +19,10 @@ def _prepareSubmitter(meta: DocMeta) -> dict:
     return meta['submitter']
 
 
-def _constructPubDate(meta: DocMeta) -> list:
+def _constructSubDate(meta: DocMeta) -> list:
     previous_versions = meta.get('previous_versions', [])
-    current = _reformatDate(meta['modtime'])
-    previous = [_reformatDate(v['modtime']) for v in previous_versions]
+    current = _reformatDate(meta['created'])
+    previous = [_reformatDate(v['created']) for v in previous_versions]
     # TODO: comparison should probably be done on datetime objects, not strings
     # now that dates are no longer YYMMDD
     previous = list(filter(lambda o: o is not None, previous))
@@ -57,10 +57,11 @@ _transformations = [
     ('authors', "authors_parsed"),
     ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
-    ("created_date", lambda meta: _reformatDate(meta['created'])),
-    ("publication_date", _constructPubDate),
-    ("publication_date_first", lambda meta: _constructPubDate(meta)[-1]),
-    ("publication_date_latest", lambda meta: _reformatDate(meta['modtime'])),
+
+    ("submitted_date", _constructSubDate),
+    ("submitted_date_first", lambda meta: _constructSubDate(meta)[-1]),
+    ("submitted_date_latest", lambda meta: _reformatDate(meta['created'])),
+    ("modified_date", lambda meta: _reformatDate(meta['modtime'])),
     ("updated_date", lambda meta: _reformatDate(meta['updated'])),
     ("is_current", "is_current"),
     ("is_withdrawn", "is_withdrawn"),

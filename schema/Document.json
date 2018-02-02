@@ -135,16 +135,16 @@
             "description": "comments field with texisms converted to utf-8 equivalents",
             "type": ["string"]
         },
-        "publication_date_latest": {
-            "description": "Date this version of paper was announced",
+        "submitted_date_latest": {
+            "description": "Date this version of paper was submitted",
             "type": "string"
         },
-        "publication_date_first": {
-            "description": "Date the first version of the paper was announced",
+        "submitted_date_first": {
+            "description": "Date the first version of the paper was submitted",
             "type": "string"
         },
-        "publication_date": {
-            "description": "Publication dates of all of the versions of this paper",
+        "submitted_date": {
+            "description": "Submitted dates of all of the versions of this paper",
             "type": "array",
             "items": {
                 "type": "string"
@@ -274,9 +274,9 @@
     "required": [
         "abstract",
         "authors",
-        "publication_date",
-        "publication_date_latest",
-        "publication_date_first",
+        "submitted_date",
+        "submitted_date_latest",
+        "submitted_date_first",
         "updated_date",
         "is_current",
         "is_withdrawn",
