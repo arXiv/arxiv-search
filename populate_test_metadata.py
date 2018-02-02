@@ -10,9 +10,6 @@ from search.process import transform
 app = create_web_app()
 app.app_context().push()
 
-with open('tests/data/sample.json') as f:
-    TO_INDEX = json.load(f).get('sample')
-
 
 @app.cli.command()
 @click.option('--print_indexable', '-i', is_flag=True,
@@ -26,6 +23,9 @@ def populate(print_indexable, paper_id):
     cache_dir = os.path.dirname(cache_path_tmpl)
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
+
+    with open('tests/data/sample.json') as f:
+        TO_INDEX = json.load(f).get('sample')
 
     if paper_id:
         TO_INDEX = [{'id': paper_id}]
