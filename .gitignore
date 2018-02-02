@@ -102,3 +102,4 @@ ENV/
 
 src/
 temp/
+.DS_Store

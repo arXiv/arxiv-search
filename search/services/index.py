@@ -253,7 +253,7 @@ class SearchSession(object):
 
         N_pages_raw = results['hits']['total']/query.page_size
         N_pages = int(round(N_pages_raw)) + int(N_pages_raw % 1 > 0)
-
+        logger.debug('got %i results', results['hits']['total'])
         return DocumentSet({
             'metadata': {
                 'total': results['hits']['total'],

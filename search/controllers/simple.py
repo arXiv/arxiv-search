@@ -3,7 +3,8 @@
 from typing import Tuple, Dict, Any
 from search.services import index, fulltext, metadata
 from search.process import query
-from search import status, forms, logging
+from arxiv import status
+from search import logging
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,7 @@ Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 def health() -> Response:
     """Check integrations."""
     return {'index': index.ok()}, status.HTTP_200_OK, {}
+
 
 
 def search(request_params: dict) -> Response:
@@ -32,28 +34,15 @@ def search(request_params: dict) -> Response:
     dict
         Headers to add to the response.
     """
-
+    logger.debug('search request')
     response_data = {}
-    if request_params.get('advanced', 'false') == 'true':
-        logger.debug('search request from advanced form')
-        form = forms.AdvancedSearchForm(request_params)
-        if form.validate():
-            logger.debug('form is valid')
-            q = query.from_form(form)
-        else:
-            logger.debug('form is invalid: %s' % str(form.errors))
-            q = None
-        response_data['form'] = form
-    elif 'q' in request_params:
+    if 'q' in request_params:
         q = query.prepare(request_params)
         response_data['query'] = request_params['q']
-        response_data['form'] = forms.AdvancedSearchForm()
-    else:
-        q = None
-        response_data['form'] = forms.AdvancedSearchForm()
-    if q is not None:
         q = query.paginate(q, request_params)
         response_data.update(index.search(q))
+    else:
+        q = None
     return response_data, status.HTTP_200_OK, {}
 
 
