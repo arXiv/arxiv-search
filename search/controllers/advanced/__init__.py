@@ -9,7 +9,8 @@ from arxiv import status
 
 from search.services import index, fulltext, metadata
 from search.process import query
-from search.domain import Query, FieldedSearchTerm, DateRange, Classification
+from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
+    Classification, FieldedSearchList, ClassificationList
 from search import logging
 from . import forms
 
@@ -32,17 +33,19 @@ def search(request_params: dict) -> Response:
         q = _query_from_form(form)
         q = query.paginate(q, request_params)
         response_data.update(index.search(q))
+        response_data['query'] = q
     else:
         logger.debug('form is invalid: %s' % str(form.errors))
         response_data['show_form'] = True
         q = None
+        response_data['query'] = q
     response_data['form'] = form
     return response_data, status.HTTP_200_OK, {}
 
 
-def _query_from_form(form: forms.AdvancedSearchForm) -> Query:
+def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     """
-    Generate a :class:`.Query` from a valid :class:`.AdvancedSearchForm`.
+    Generate a :class:`.AdvancedQuery` from valid :class:`.AdvancedSearchForm`.
 
     Parameters
     ----------
@@ -51,17 +54,18 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> Query:
 
     Returns
     -------
-    :class:`.Query`
+    :class:`.AdvancedQuery`
     """
-    query = Query()
+    query = AdvancedQuery()
     query = _update_query_with_dates(query, form.date.data)
     query = _update_query_with_terms(query, form.terms.data)
     query = _update_query_with_classification(query, form.classification.data)
     return query
 
 
-def _update_query_with_classification(query: Query, data: dict) -> Query:
-    query.primary_classification = []
+def _update_query_with_classification(query: AdvancedQuery, data: dict) \
+        -> AdvancedQuery:
+    query.primary_classification = ClassificationList()
     groups = [
         ('computer_science', 'cs'), ('economics', 'econ'), ('eess', 'eess'),
         ('mathematics', 'math'), ('q_biology', 'q-bio'),
@@ -85,14 +89,16 @@ def _update_query_with_classification(query: Query, data: dict) -> Query:
     return query
 
 
-def _update_query_with_terms(query: Query, terms_data: list) -> Query:
-    query.terms = [
+def _update_query_with_terms(query: AdvancedQuery, terms_data: list) \
+        -> AdvancedQuery:
+    query.terms = FieldedSearchList([
         FieldedSearchTerm(**term) for term in terms_data if term['term']
-    ]
+    ])
     return query
 
 
-def _update_query_with_dates(query: Query, date_data: dict) -> Query:
+def _update_query_with_dates(query: AdvancedQuery, date_data: dict) \
+        -> AdvancedQuery:
     if date_data.get('all_dates'):    # Nothing to do; all dates by default.
         return query
     elif date_data.get('past_12'):

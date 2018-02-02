@@ -69,7 +69,9 @@
     <!-- sort select -->
     <div class="field is-horizontal level-item">
       <div class="control">
-        <label class="label is-small">Sort results by:</label>
+        <div class="field-label">
+          <label class="label is-small">Sort results by:</label>
+        </div>
         <div class="select is-small">
           <select>
             <option>All fields</option>
@@ -83,7 +85,9 @@
 </div>
 <ol>
 
-{{ pagination(metadata, url_for_page) }}
+{% if metadata.total_pages > 1 %}
+  {{ pagination(metadata, url_for_page) }}
+{% endif %}
 
 {% for result in results %}
   <li class="arxiv-result">
@@ -112,6 +116,8 @@
 {% endfor %}
 </ol>
 
-{{ pagination(metadata, url_for_page) }}
+{% if metadata.total_pages > 1 %}
+  {{ pagination(metadata, url_for_page) }}
+{% endif %}
 
 {%- endmacro -%}

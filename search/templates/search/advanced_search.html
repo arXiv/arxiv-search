@@ -136,8 +136,8 @@
 {%- endmacro -%}
 
 {% block title %}
-    {% if query and results %}
-        Showing {{ metadata.total }} results for QUERY
+    {% if not show_form and results %}
+        Showing {{ metadata.total }} results
     {% else %}
         Advanced Search
     {% endif %}
@@ -146,13 +146,14 @@
 {% block within_content %}
 
 {% if show_form %}
-{{ advanced_query(form) }}
+  {{ advanced_query(form) }}
 {% else %}
-
+  Query: <a href="{{ current_url_sans_parameter('advanced') }}">{{ query }}</a>
+  {% if results %}
+      {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
+  {% endif %}
 {% endif %}
 
-{% if results %}
-    {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
-{% endif %}
+
 
 {% endblock %}

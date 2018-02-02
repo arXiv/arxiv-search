@@ -79,9 +79,14 @@ class SchemaBase(dict):
             return False
         return True
 
-    def __str__(self):
+    def json(self):
         """Return the string representation of the instance in JSON."""
         return json.dumps(self, default=lambda o: o.__dict__)
+
+    def __str__(self):
+        """Build a string representation, for use in rendering."""
+        return '; '.join(['%s: %s' % (k, str(v))
+                          for k, v in self.items() if v])
 
 
 class DocMeta(SchemaBase):
@@ -110,22 +115,26 @@ class Classification(dict):
     archive = Property('archive', str)
     category = Property('category', str)
 
+    def __str__(self):
+        """Build a string representation, for use in rendering."""
+        rep = f'{self.group}'
+        if self.archive:
+            rep += f':{self.archive}'
+            if self.category:
+                rep += f':{self.category}'
+        return rep
 
-class FieldedSearchTerm(dict):
-    """Represents a fielded search term."""
 
-    operator = Property('operator', str)
-    field = Property('field', str)
-    term = Property('term', str)
+class ClassificationList(list):
+    def __str__(self):
+        """Build a string representation, for use in rendering."""
+        return ', '.join([str(item) for item in self])
 
 
 class Query(SchemaBase):
     """Represents a search query originating from the UI or API."""
 
     raw_query = Property('raw_query', str)
-    date_range = Property('date_range', DateRange)
-    primary_classification = Property('primary_classification', list)
-    terms = Property('terms', list, [])
     order = Property('order', str)
     page_size = Property('page_size', int)
     page_start = Property('page_start', int, 0)
@@ -139,6 +148,7 @@ class Query(SchemaBase):
     def page(self):
         """Get the approximate page number."""
         return 1 + int(round(self.page_start/self.page_size))
+
 
 class Document(SchemaBase):
     """A single search document, representing an arXiv paper."""
