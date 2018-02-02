@@ -23,7 +23,7 @@ docker run -it -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" \
 ```bash
 docker-compose up
 ```
-Kibana will be available at http://127.0.0.1.5601/
+Kibana will be available at http://127.0.0.1:5601/
 
 ### Create & populate the index
 

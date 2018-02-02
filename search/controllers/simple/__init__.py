@@ -1,13 +1,16 @@
 """Search controllers."""
 
 from typing import Tuple, Dict, Any
-from search.services import index, fulltext, metadata
-from search.process import query
 from arxiv import status
 from search import logging
+
+from search.process import query
+from search.services import index, fulltext, metadata
+from search.util import parse_arxiv_id
 from search.domain import SimpleQuery
 
 from .forms import SimpleSearchForm
+# from search.routes.ui import external_url_builder
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +41,30 @@ def search(request_params: dict) -> Response:
     """
     logger.debug('simple search form')
     response_data = {}
+
+    logger.debug('simple search request')
+    if 'value' in request_params:
+        try:
+            # first check if the URL includes an arXiv ID
+            logger.debug('!! %s', request_params['value'])
+            arxiv_id = parse_arxiv_id(request_params['value'])
+            logger.debug('foo')
+            # If so, redirect.
+            logger.debug(arxiv_id)
+        except ValueError as e:
+            logger.debug('No arXiv ID detected; fall back to form')
+            arxiv_id = None
+    else:
+        arxiv_id = None
+
+    if arxiv_id:
+        return {}, status.HTTP_301_MOVED_PERMANENTLY,\
+            {'Location': f'https://arxiv.org/abs/{arxiv_id}'}
+        logger.debug("WHY AM I HERE")
+        # TODO: use URL constructor to generate URL
+        #{'Location': external_url_builder('browse', 'abstract', arxiv_id=arxiv_id)}
+
+    # Fall back to form-based search.
     form = SimpleSearchForm(request_params)
     if form.validate():
         logger.debug('form is valid')
@@ -96,6 +123,6 @@ def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:
     :class:`.SimpleQuery`
     """
     query = SimpleQuery()
-    query.field = form.field.data
-    query.value = form.field.value
+    query.field = form.searchtype.data
+    query.value = form.query.data
     return query

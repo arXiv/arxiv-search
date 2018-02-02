@@ -36,7 +36,6 @@ def search(request_params: dict) -> Response:
         response_data['query'] = q
     else:
         logger.debug('form is invalid: %s' % str(form.errors))
-        response_data['show_form'] = True
         q = None
         response_data['query'] = q
     response_data['form'] = form

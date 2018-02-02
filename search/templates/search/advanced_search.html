@@ -138,8 +138,10 @@
 {% block title %}
     {% if not show_form and results %}
         Showing {{ metadata.total }} results
-    {% else %}
+    {% elif show_form %}
         Advanced Search
+    {% else %}
+        Sorry, your query returned no results
     {% endif %}
 {% endblock title %}
 

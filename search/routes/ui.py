@@ -7,6 +7,11 @@ from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, url_for
 from werkzeug.urls import Href, url_encode
 from search.controllers import simple, advanced
+from arxiv import status
+
+from search import logging
+
+logger = logging.getLogger(__name__)
 
 blueprint = Blueprint('ui', __name__, url_prefix='/search')
 
@@ -15,7 +20,12 @@ blueprint = Blueprint('ui', __name__, url_prefix='/search')
 def search():
     """First pass at a search results page."""
     response, code, headers = simple.search(request.args)
-    return render_template("search/search.html", **response)
+    logger.debug(code)
+    if code == status.HTTP_200_OK:
+        return render_template("search/search.html", **response)
+    elif (code == status.HTTP_301_MOVED_PERMANENTLY
+          or code == status.HTTP_303_SEE_OTHER):
+        return redirect(headers['Location'], code=code)
 
 
 @blueprint.route('/advanced', methods=['GET'])
