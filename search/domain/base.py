@@ -150,6 +150,12 @@ class Query(SchemaBase):
         return 1 + int(round(self.page_start/self.page_size))
 
 
+class SimpleQuery(Query):
+    """A query on a single field with a single value."""
+    field = Property('field', str)
+    value = Property('value', str)
+
+
 class Document(SchemaBase):
     """A single search document, representing an arXiv paper."""
 

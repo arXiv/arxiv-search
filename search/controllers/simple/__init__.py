@@ -16,7 +16,6 @@ def health() -> Response:
     return {'index': index.ok()}, status.HTTP_200_OK, {}
 
 
-
 def search(request_params: dict) -> Response:
     """
     Perform a search with the provided parameters.

@@ -6,8 +6,6 @@ from wtforms import Form, BooleanField, StringField, SelectField, validators, \
 from wtforms.fields import HiddenField
 from wtforms import widgets
 
-# Special characters?
-
 
 class FieldForm(Form):
     term = StringField("Search term...")
