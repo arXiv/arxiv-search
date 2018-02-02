@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, url_for
 from werkzeug.urls import Href
-from search import controllers
+from search import controllers, status
 
 blueprint = Blueprint('ui', __name__, url_prefix='/search')
 
@@ -14,7 +14,11 @@ blueprint = Blueprint('ui', __name__, url_prefix='/search')
 def search():
     """First pass at a search results page."""
     response, code, headers = controllers.search(request.args)
-    return render_template("search/search.html", **response)
+    if code == status.HTTP_200_OK:
+        return render_template("search/search.html", **response)
+    elif (code == status.HTTP_301_MOVED_PERMANENTLY 
+          or code == status.HTTP_303_SEE_OTHER):
+        return redirect(headers['Location'], code=code)
 
 
 # TODO: we need something more robust here; this is just to get us rolling.

@@ -6,6 +6,7 @@ from search.converter import ArXivConverter
 from search.process import query
 from search.services import index, fulltext, metadata
 import search.util as util
+# from search.routes.ui import external_url_builder
 
 logger = logging.getLogger(__name__)
 
@@ -46,18 +47,24 @@ def search(request_params: dict) -> Response:
             logger.debug('form is invalid: %s' % str(form.errors))
             q = None
         response_data['form'] = form
-    elif 'q' in request_params:
+    elif 'query' in request_params:
         try:
             # first check if the URL includes an arXiv ID
-            arxiv_id = util.parse_arxiv_id(request_params['q'])
+            logger.debug(request_params['query'])
+            arxiv_id = util.parse_arxiv_id(request_params['query'])
             # If so, redirect.
-            return {}, status.HTTP_301_MOVED_PERMANENTLY,
-                {'Location': util.external_url_for('browse', 'abstract', arxiv_id=arxiv_id)}
-        except ValidationError:
-            pass
-        q = query.prepare(request_params)
-        response_data['query'] = request_params['q']
-        response_data['form'] = forms.AdvancedSearchForm()
+            logger.debug(arxiv_id)
+            return {}, status.HTTP_301_MOVED_PERMANENTLY,\
+                {'Location': f'https://arxiv.org/abs/{arxiv_id}'}
+            logger.debug("WHY AM I HERE")
+                # TODO: use URL constructor to generate URL
+                #{'Location': external_url_builder('browse', 'abstract', arxiv_id=arxiv_id)}
+
+        except ValueError as e:
+            # If it does not contain an arxiv ID, then parse the query as usual
+            q = query.prepare(request_params)
+            response_data['query'] = request_params['query']
+            response_data['form'] = forms.AdvancedSearchForm()
     else:
         q = None
         response_data['form'] = forms.AdvancedSearchForm()
