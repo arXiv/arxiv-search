@@ -42,7 +42,7 @@ def populate(print_indexable, paper_id):
                 json.dump(docmeta, f)
         document = transform.to_search_document(docmeta)
         if print_indexable:
-            print(document)
+            print(document.json())
         index.add_document(document)
 
         click.echo(doc['id'])
