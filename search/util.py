@@ -1,4 +1,5 @@
 """ Utility functions for arxiv.search """
+# pylint: disable=C0330
 import re
 
 __all__ = ['parse_arxiv_id']
@@ -18,12 +19,11 @@ ARXIV_REGEX = ("^(ar[xX]iv:)?((?:(?:(?:%s)(?:[.][A-Z]{2})?/[0-9]{2}(?:0[1-9]|1[0
 
 def parse_arxiv_id(value: str) -> str:
     """
-    Parse arxiv id from string. 
-    
+    Parse arxiv id from string.
+
     Raises `ValidationError` if no arXiv ID.
     """
     m = re.search(ARXIV_REGEX, value)
     if not m:
         raise ValueError('Not a valid arXiv ID')
     return m.group(2)
-
