@@ -2,6 +2,8 @@
 
 import re
 
+import search.util as util
+
 from werkzeug.routing import BaseConverter, ValidationError
 
 CATEGORIES = [
@@ -23,10 +25,7 @@ class ArXivConverter(BaseConverter):
 
     def to_python(self, value: str) -> str:
         """Parse URL path part to Python rep (str)."""
-        m = re.match(self.regex, value)
-        if not m:
-            raise ValidationError('Not a valid arXiv ID')
-        return m.group(1)
+        return util.parse_arxiv_id(value)
 
     def to_url(self, value: str) -> str:
         """Cast Python rep (str) to URL path part."""
