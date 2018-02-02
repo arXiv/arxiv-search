@@ -112,7 +112,7 @@ class SearchSession(object):
             params["gte"] = query.date_range.start_date.strftime('%Y%m%d')
         if query.date_range.end_date:
             params["lt"] = query.date_range.end_date.strftime('%Y%m%d')
-        return Q('range', publication_date=params)
+        return Q('range', submitted_date=params)
 
     @staticmethod
     def _class_to_q(field: str, classification: Classification) \

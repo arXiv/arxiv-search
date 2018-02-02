@@ -140,15 +140,15 @@
         "comments": {
           "type": "text"
         },
-        "publication_date": {
+        "submitted_date": {
           "type": "date",
           "format": "strict_date_time_no_millis"
         },
-        "publication_date_latest": {
+        "submitted_date_latest": {
           "type": "date",
           "format": "strict_date_time_no_millis"
         },
-        "publication_date_first": {
+        "submitted_date_first": {
           "type": "date",
           "format": "strict_date_time_no_millis"
         },
@@ -156,7 +156,7 @@
           "type": "date",
           "format": "strict_date_time_no_millis"
         },
-        "created_date": {
+        "modified_date": {
           "type": "date",
           "format": "strict_date_time_no_millis"
         },

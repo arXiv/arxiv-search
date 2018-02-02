@@ -101,7 +101,7 @@ class TestPrepare(TestCase):
         q = self.session._daterange_to_q(query)
         self.assertIsInstance(q, Range)
         expected = Range(
-            publication_date={
+            submitted_date={
                 'gte': date(1996, 2, 5).strftime('%Y%m%d'),
                 'lt': date(1996, 3, 5).strftime('%Y%m%d')
             }
@@ -160,7 +160,7 @@ class TestPrepare(TestCase):
                  'must': [
                     {
                        'range': {
-                          'publication_date': {
+                          'submitted_date': {
                              'gte': '20060205',
                              'lt': '20070325'
                           }
