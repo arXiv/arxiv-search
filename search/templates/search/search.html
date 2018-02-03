@@ -4,7 +4,7 @@
 
 {% block title %}
     {% if query and results %}
-        Showing {{ metadata.total }} results for {{ query }}
+        Showing {{ metadata.total }} results for {{ query.field }}: {{ query.value }}
     {% elif query and not results %}
         Sorry, your query for <span class="is-warning">{{ query.field }}: {{ query.value }}</span> produced no results
     {% else %}
@@ -16,11 +16,11 @@
 
 <form method="GET" action="{{ url_for('ui.search') }}">
     <div class="field has-addons">
-      <div class="control">
-        {{ form.query(class="input is-expanded is-large")|safe }}
+      <div class="control is-expanded">
+        {{ form.query(class="input is-large")|safe }}
       </div>
-      <div class="control">
-        {{ form.searchtype(class="input is-large")|safe }}
+      <div class="select control is-large">
+        {{ form.searchtype(class="is-large")|safe }}
       </div>
       <div class="control">
           <button class="button is-link is-large">Search</button>
