@@ -2,8 +2,9 @@
 
 from typing import Tuple, Dict, Any
 
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
+from pytz import timezone
 
 from arxiv import status
 
@@ -17,6 +18,8 @@ from . import forms
 logger = logging.getLogger(__name__)
 
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
+
+EASTERN = timezone('US/Eastern')
 
 
 def search(request_params: dict) -> Response:
@@ -38,6 +41,7 @@ def search(request_params: dict) -> Response:
         logger.debug('form is invalid: %s' % str(form.errors))
         q = None
         response_data['query'] = q
+        response_data['show_form'] = True
     response_data['form'] = form
     return response_data, status.HTTP_200_OK, {}
 
@@ -103,14 +107,17 @@ def _update_query_with_dates(query: AdvancedQuery, date_data: dict) \
     elif date_data.get('past_12'):
         one_year_ago = date.today() - relativedelta(months=12)
         query.date_range = DateRange(
-            start_date=date(year=one_year_ago.year,
-                            month=one_year_ago.month,
-                            day=1)
+            start_date=datetime(year=one_year_ago.year,
+                                month=one_year_ago.month,
+                                day=1, hour=0, minute=0, second=0,
+                                tzinfo=EASTERN)
         )
     elif date_data.get('specific_year'):
         query.date_range = DateRange(
-            start_date=date(year=date_data['year'], month=1, day=1),
-            end_date=date(year=date_data['year'] + 1, month=1, day=1),
+            start_date=datetime(year=date_data['year'].year, month=1, day=1,
+                                hour=0, minute=0, second=0, tzinfo=EASTERN),
+            end_date=datetime(year=date_data['year'].year + 1, month=1, day=1,
+                              hour=0, minute=0, second=0, tzinfo=EASTERN),
         )
     elif date_data.get('date_range'):
         query.date_range = DateRange(

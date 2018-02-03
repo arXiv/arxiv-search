@@ -79,7 +79,7 @@ class DateForm(Form):
         if field.data is None:
             return
         start_of_time = date(year=1991, month=1, day=1)
-        if field.data < start_of_time or field.data > date.today().year:
+        if field.data < start_of_time or field.data > date.today():
             raise ValidationError('Not a valid publication year')
 
 

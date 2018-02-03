@@ -94,8 +94,10 @@ class TestPrepare(TestCase):
         """:meth:`._daterange_to_q` builds a Range from :class:`.DateRange`."""
         query = Query({
             'date_range': DateRange({
-                'start_date': date(year=1996, month=2, day=5),
-                'end_date': date(year=1996, month=3, day=5),
+                'start_date': date(year=1996, month=2, day=5,
+                                   hour=0, minute=0, second=0),
+                'end_date': date(year=1996, month=3, day=5,
+                                 hour=0, minute=0, second=0),
             })
         })
         q = self.session._daterange_to_q(query)

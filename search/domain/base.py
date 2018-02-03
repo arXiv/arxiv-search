@@ -2,7 +2,7 @@
 
 import json
 from typing import Optional, Type, Any
-from datetime import date
+from datetime import date, datetime
 import jsonschema
 
 
@@ -100,14 +100,25 @@ class Fulltext(SchemaBase):
 class DateRange(dict):
     """Represents an open or closed date range."""
 
-    start_date = Property('start_date', date)
-    """The day on which the range begins."""
+    start_date = Property('start_date', datetime)
+    """The day/time on which the range begins."""
 
-    end_date = Property('end_date', date)
-    """The day at (just before) which the range ends."""
+    end_date = Property('end_date', datetime)
+    """The day/time at (just before) which the range ends."""
 
     # on_version = Property('field', str)
     # """The date field on which to filter
+
+    def __str__(self):
+        """Build a string representation, for use in rendering."""
+        _str = ''
+        if self.start_date:
+            start_date = self.start_date.strftime('%Y-%m-%dT%H:%M:%S%z')
+            _str += f'from {start_date} '
+        if self.end_date:
+            end_date = self.end_date.strftime('%Y-%m-%dT%H:%M:%S%z')
+            _str += f'to {end_date}'
+        return _str
 
 
 class Classification(dict):

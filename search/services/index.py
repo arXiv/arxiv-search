@@ -109,9 +109,11 @@ class SearchSession(object):
             return Q()
         params = {}
         if query.date_range.start_date:
-            params["gte"] = query.date_range.start_date.strftime('%Y%m%d')
+            params["gte"] = query.date_range.start_date \
+                .strftime('%Y-%m-%dT%H:%M:%S%z')
         if query.date_range.end_date:
-            params["lt"] = query.date_range.end_date.strftime('%Y%m%d')
+            params["lt"] = query.date_range.end_date\
+                .strftime('%Y-%m-%dT%H:%M:%S%z')
         return Q('range', submitted_date=params)
 
     @staticmethod
@@ -137,7 +139,7 @@ class SearchSession(object):
         elif len(query.terms) > 1:
             terms = cls._group_terms(query)
             return cls._grouped_terms_to_q(terms)
-        return Q()
+        return Q('match_all')
 
     @classmethod
     def _classifications_to_q(cls, query: Query) -> Match:

@@ -6,31 +6,41 @@
 
 <div class="columns">
   <div class="column is-three-fifths">
+    {% if form.errors %}
+    <div class="notification is-warning">
+      Whoops! Something went wrong. Please correct errors in the form below.
+    </div>
+    {% endif %}
     <div class="box">
       <form method="GET" action="{{ url_for('ui.advanced_search') }}">
         {{ form.advanced|safe }}
         <section data-toggle="fieldset" id="terms-fieldset">
           {% for entry in form.terms.entries %}
-          <div class="field has-addons" data-toggle="fieldset-entry">
-            <div class="control fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>
-              <span class="select" aria-label="Boolean operator">
-                {{ entry.operator(default='AND')|safe }}
-              </span>
+            {% if entry.errors %}
+              <div class="notification is-warning">
+                {{ entry.errors }}
+              </div>
+            {% endif %}
+            <div class="field has-addons" data-toggle="fieldset-entry">
+              <div class="control fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>
+                <span class="select" aria-label="Boolean operator">
+                  {{ entry.operator(default='AND')|safe }}
+                </span>
+              </div>
+              <div class="control is-expanded">
+                <label for="terms-{{loop.index0}}-term" class="hidden-label">Search term</label>
+                {{ entry.term(class='input', placeholder="Search term...")|safe }}
+              </div>
+              <div class="control">
+                <label for="terms-{{loop.index0}}-field" class="hidden-label">Field to search</label>
+                <span class="select">
+                  {{ entry.field(default='title')|safe }}
+                </span>
+              </div>
+              <div class="control">
+                <button type="button" data-toggle="fieldset-remove-row" id="term-{{loop.index0}}-remove" class="button fieldset-hidden-on-first-row" aria-label="Remove this search term" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>-</button>
+              </div>
             </div>
-            <div class="control is-expanded">
-              <label for="terms-{{loop.index0}}-term" class="hidden-label">Search term</label>
-              {{ entry.term(class='input', placeholder="Search term...")|safe }}
-            </div>
-            <div class="control">
-              <label for="terms-{{loop.index0}}-field" class="hidden-label">Field to search</label>
-              <span class="select">
-                {{ entry.field(default='title')|safe }}
-              </span>
-            </div>
-            <div class="control">
-              <button type="button" data-toggle="fieldset-remove-row" id="term-{{loop.index0}}-remove" class="button fieldset-hidden-on-first-row" aria-label="Remove this search term" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>-</button>
-            </div>
-          </div>
           {% endfor %}
           <div class="control is-clearfix">
             <button type="button" class="button is-pulled-right" data-toggle="fieldset-add-row" data-target="#terms-fieldset" aria-label="Add another term">+</button>
@@ -40,72 +50,126 @@
         <section>
           <fieldset class="fieldset">
             <legend class="legend">Subject</legend>
+            {% if form.classification.errors %}
+              {% for field_name, field_errors in form.classification.errors|dictsort %}
+                {% for error in field_errors %}
+                  <div class="notification is-warning">
+                    {{ error }}
+                  </div>
+                {% endfor %}
+              {% endfor %}
+            {% endif %}
             <div class="field">
-              {{ form.classification.all_subjects|safe }}
+              {% if form.classification.all_subjects.errors %}
+                {{ form.classification.all_subjects(class="is-danger")|safe }}
+              {% else %}
+                {{ form.classification.all_subjects|safe }}
+              {% endif %}
               {{ form.classification.all_subjects.label }}
             </div>
             <div class="columns is-baseline">
               <div class="column">
-                <div class="field">
-                  {{ form.classification.computer_science|safe }}
-                  {{ form.classification.computer_science.label }}
+                <div class="field is-horizontal">
+                  <label class="checkbox">
+                    {{ form.classification.computer_science|safe }}
+                    {{ form.classification.computer_science.label }}
+                  </label>
                 </div>
-                <div class="field">
-                  {{ form.classification.economics|safe }}
-                  {{ form.classification.economics.label }}
+                <div class="field is-horizontal">
+                  <label class="checkbox">
+                    {{ form.classification.economics|safe }}
+                    {{ form.classification.economics.label }}
+                  </label>
                 </div>
-                <div class="field">
-                  {{ form.classification.eess|safe }}
-                  {{ form.classification.eess.label }}
+                <div class="field is-horizontal">
+                  <label class="checkbox">
+                    {{ form.classification.eess|safe }}
+                    {{ form.classification.eess.label }}
+                  </label>
                 </div>
-                <div class="field">
-                  {{ form.classification.mathematics|safe }}
-                  {{ form.classification.mathematics.label }}
+                <div class="field is-horizontal">
+                  <label class="checkbox">
+                    {{ form.classification.mathematics|safe }}
+                    {{ form.classification.mathematics.label }}
+                  </label>
                 </div>
               </div>
               <div class="column">
-                <div class="field">
-                  {{ form.classification.physics|safe }}
-                  {{ form.classification.physics.label }}
-                  <label for="classification-physics_archives" class="hidden-label">Subtopic within physics</label>
-                  {{ form.classification.physics_archives|safe }}
+                <div class="field is-horizontal">
+                  <label class="checkbox">
+                    {{ form.classification.physics|safe }}
+                    {{ form.classification.physics.label }}
+                  </label>
+                  <div class="control">
+                    <div class="select is-primary is-small">
+                      <label for="classification-physics_archives" class="hidden-label">Subtopic within physics</label>
+                      {{ form.classification.physics_archives|safe }}
+                    </div>
+                  </div>
+
                 </div>
-                <div class="field">
-                  {{ form.classification.q_biology|safe }}
-                  {{ form.classification.q_biology.label }}
+                <div class="field is-horizontal">
+                  <label class="checkbox">
+                    {{ form.classification.q_biology|safe }}
+                    {{ form.classification.q_biology.label }}
+                  </label>
                 </div>
-                <div class="field">
-                  {{ form.classification.q_finance|safe }}
-                  {{ form.classification.q_finance.label }}
+                <div class="field is-horizontal">
+                  <label class="checkbox">
+                    {{ form.classification.q_finance|safe }}
+                    {{ form.classification.q_finance.label }}
+                  </label>
                 </div>
-                <div class="field">
-                  {{ form.classification.statistics|safe }}
-                  {{ form.classification.statistics.label }}
+                <div class="field is-horizontal">
+                  <label class="checkbox">
+                    {{ form.classification.statistics|safe }}
+                    {{ form.classification.statistics.label }}
+                  </label>
                 </div>
               </div>
             </div>
           </fieldset>
           <fieldset class="fieldset">
             <legend class="legend">Date</legend>
-            <div class="field">
-              {{ form.date.all_dates|safe }}
-              {{ form.date.all_dates.label }}
+            {% if form.date.errors %}
+              {% for field_name, field_errors in form.date.errors|dictsort %}
+              <div class="notification is-warning">
+                {{ field_name }}:
+                {% for error in field_errors %}
+                    {{ error }}
+                {% endfor %}
+                </div>
+              {% endfor %}
+            {% endif %}
+            <div class="field is-horizontal">
+              <label class="checkbox">
+                {{ form.date.all_dates|safe }}
+                {{ form.date.all_dates.label }}
+              </label>
             </div>
-            <div class="field">
-              {{ form.date.past_12|safe }}
-              {{ form.date.past_12.label }}
+            <div class="field is-horizontal">
+              <label class="checkbox">
+                {{ form.date.past_12|safe }}
+                {{ form.date.past_12.label }}
+              </label>
             </div>
-            <div class="field">
-              {{ form.date.specific_year|safe }}
-              {{ form.date.specific_year.label }}
+            <div class="field is-horizontal">
+              <label class="checkbox">
+                {{ form.date.specific_year|safe }}
+                {{ form.date.specific_year.label }}
+              </label>
               <label for="date-year" class="hidden-label">Enter four digit year</label>
-              {{ form.date.year(placeholder="YYYY or YYYY-MM-DD")|safe }}
+              {% if form.date.year.errors %}{{ form.date.year(placeholder="YYYY or YYYY-MM-DD", class="input is-small is-danger")|safe }}{% else %}{{ form.date.year(placeholder="YYYY or YYYY-MM-DD", class="input is-small")|safe }}{% endif %}
             </div>
-            <div class="field">
-              {{ form.date.date_range|safe }}
-              {{ form.date.date_range.label }}
-              {{ form.date.from_date.label }} {{ form.date.from_date(placeholder="YYYY-MM-DD")|safe }}
-              {{ form.date.to_date.label }} {{ form.date.to_date(placeholder="YYYY-MM-DD")|safe }}
+            <div class="field is-horizontal">
+              <label class="checkbox">
+                {{ form.date.date_range|safe }}
+                {{ form.date.date_range.label }}
+              </label>
+            </div>
+            <div class="field is-horizontal">
+              {{ form.date.from_date.label }} {% if form.date.from_date.errors %}{{ form.date.from_date(placeholder="YYYY-MM-DD", class="input is-small is-danger")|safe }}{% else %}{{ form.date.from_date(placeholder="YYYY-MM-DD", class="input is-small")|safe }}{% endif %}
+              &nbsp;{{ form.date.to_date.label }}&nbsp; {% if form.date.to_date.errors %}{{ form.date.to_date(placeholder="YYYY-MM-DD", class="input is-small is-danger")|safe }}{% else %}{{ form.date.to_date(placeholder="YYYY-MM-DD", class="input is-small")|safe }}{% endif %}
             </div>
           </fieldset>
         </section>
