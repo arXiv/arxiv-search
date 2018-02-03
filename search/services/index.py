@@ -175,21 +175,33 @@ class SearchSession(object):
         if query.field == 'all':
             search = search.query(
                 Q('nested', path='authors', query=(
-                    Q('match', **{'authors__first_name__folded': query.value}) |
+                    Q('match', **{'authors__first_name__folded': query.value})
+                    |
                     Q('match', **{'authors__last_name__folded': query.value})
-                )) |
-                Q('match', **{'title': query.value}) |
-                Q('match', **{'abstract': query.value})
+                ))
+                |
+                Q('match', **{'title__english': query.value})
+                |
+                Q('match', **{'title__tex': query.value})
+                |
+                Q('match', **{'abstract__english': query.value})
+                |
+                Q('match', **{'abstract__tex': query.value})
             )
         elif query.field == 'author':
             search = search.query(
                 Q('nested', path='authors', query=(
-                    Q('match', **{'authors__first_name__folded': query.value}) |
+                    Q('match', **{'authors__first_name__folded': query.value})
+                    |
                     Q('match', **{'authors__last_name__folded': query.value})
                 ))
             )
         else:
-            search = search.query(Q('match', **{query.field: query.value}))
+            search = search.query(
+                Q('match', **{f'{query.field}__english': query.value})
+                |
+                Q('match', **{f'{query.field}__tex': query.value})
+            )
         return search
 
     def create_index(self, mappings: dict) -> None:
