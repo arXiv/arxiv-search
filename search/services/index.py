@@ -31,6 +31,10 @@ class QueryError(ValueError):
     """
 
 
+class DocumentNotFound(RuntimeError):
+    """Could not find a requested document in the search index."""
+
+
 class SearchSession(object):
     """Encapsulates session with Elasticsearch host."""
 
@@ -320,7 +324,7 @@ class SearchSession(object):
                 'Problem communicating with ES: %s' % e
             ) from e
         if not record:
-            return
+            raise DocumentNotFound('No such document')
         return Document(record['_source'])
 
     def search(self, query: Query) -> DocumentSet:
