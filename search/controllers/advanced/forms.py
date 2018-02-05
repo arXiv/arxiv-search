@@ -85,6 +85,8 @@ class DateForm(Form):
 
 class AdvancedSearchForm(Form):
     advanced = HiddenField('Advanced', default=1)
+    """Used to indicate whether the form should be shown."""
+
     terms = FieldList(FormField(FieldForm), min_entries=1)
     classification = FormField(ClassificationForm)
     date = FormField(DateForm)

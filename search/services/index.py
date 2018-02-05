@@ -13,7 +13,7 @@ from elasticsearch_dsl.query import Range, Match, Bool
 from search.context import get_application_config, get_application_global
 from search import logging
 from search.domain import Document, DocumentSet, Query, DateRange, \
-    Classification, AdvancedQuery, SimpleQuery
+    Classification, AdvancedQuery, SimpleQuery, AuthorQuery
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +158,12 @@ class SearchSession(object):
             return
         return [query.order]
 
+    def _apply_sort(self, query: Query, search: Search) -> Search:
+        sort_params = self._get_sort_parameters(query)
+        if sort_params is not None:
+            search = search.sort(*sort_params)
+        return search
+
     def _prepare(self, query: AdvancedQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
         search = Search(using=self.es, index=self.index)
@@ -166,9 +172,7 @@ class SearchSession(object):
             & self._daterange_to_q(query)
             & self._classifications_to_q(query)
         )
-        sort_params = self._get_sort_parameters(query)
-        if sort_params is not None:
-            search = search.sort(*sort_params)
+        search = self._apply_sort(query, search)
         return search
 
     def _prepare_simple(self, query: SimpleQuery) -> Search:
@@ -204,10 +208,28 @@ class SearchSession(object):
                 |
                 Q('match', **{f'{query.field}__tex': query.value})
             )
-        sort_params = self._get_sort_parameters(query)
-        if sort_params is not None:
-            search = search.sort(*sort_params)
+        search = self._apply_sort(query, search)
         return search
+
+    def _prepare_author(self, query: AuthorQuery) -> Search:
+        search = Search(using=self.es, index=self.index)
+        q = Q()
+        for au in query.authors:
+            _q = Q('match', **{'authors__last_name__folded': au.surname})
+
+            if au.forename:    # Try as both forename and initials.
+                _q_init = Q()
+                for i in au.forename.replace('.', ' ').split():
+                    _q_init &= Q('match', **{'authors__initials__folded': i})
+                _q &= (
+                    Q('match', **{'authors__first_name__folded': au.forename})
+                    |
+                    _q_init
+                )
+
+            q &= Q('nested', path='authors', query=_q)
+        search = self._apply_sort(query, search)
+        return search.query(q)
 
     def create_index(self, mappings: dict) -> None:
         """
@@ -303,6 +325,8 @@ class SearchSession(object):
             search = self._prepare(query)
         elif isinstance(query, SimpleQuery):
             search = self._prepare_simple(query)
+        elif isinstance(query, AuthorQuery):
+            search = self._prepare_author(query)
         logger.debug(str(search.to_dict()))
 
         try:

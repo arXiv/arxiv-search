@@ -1,7 +1,7 @@
 """Core data structures internal to the search service."""
 
 import json
-from typing import Optional, Type, Any
+from typing import Optional, Type, Any, Iterable
 from datetime import date, datetime
 import jsonschema
 
@@ -57,7 +57,17 @@ class Property(object):
         instance[self._name] = value
 
 
-class SchemaBase(dict):
+class Base(dict):
+    def __init__(self, from_iter: Optional[Iterable] = None, **kwargs):
+        if from_iter is not None:
+            super(Base, self).__init__(from_iter)
+        else:
+            super(Base, self).__init__()
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+class SchemaBase(Base):
     """Base for domain classes with schema validation."""
 
     __schema__ = None
@@ -97,7 +107,7 @@ class Fulltext(SchemaBase):
     """Fulltext content for an arXiv paper, including extraction metadata."""
 
 
-class DateRange(dict):
+class DateRange(Base):
     """Represents an open or closed date range."""
 
     start_date = Property('start_date', datetime)
@@ -121,7 +131,7 @@ class DateRange(dict):
         return _str
 
 
-class Classification(dict):
+class Classification(Base):
     group = Property('group', str)
     archive = Property('archive', str)
     category = Property('category', str)

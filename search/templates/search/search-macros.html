@@ -105,7 +105,7 @@
     <p class="title is-5">{{ result.title }}</p>
     <p class="authors">Authors:
       {% for author in result.authors %}
-        <a href="">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>
+        <a href="{{ url_for('ui.author_search') }}?surname={{ author.last_name }}&forename={{ author.first_name }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>
         {%- if author.affiliation %}
          ( {{ author.affiliation|join(', ') }} )
         {% endif -%}

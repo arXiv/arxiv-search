@@ -6,7 +6,7 @@ from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
 from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, url_for
 from werkzeug.urls import Href, url_encode
-from search.controllers import simple, advanced
+from search.controllers import simple, advanced, authors
 from arxiv import status
 
 from search import logging
@@ -33,6 +33,13 @@ def advanced_search():
     """Advanced search interface."""
     response, code, headers = advanced.search(request.args)
     return render_template("search/advanced_search.html", **response)
+
+
+@blueprint.route('/authors', methods=['GET'])
+def author_search():
+    """Author search interface."""
+    response, code, headers = authors.search(request.args.copy())
+    return render_template("search/author_search.html", **response)
 
 
 # TODO: we need something more robust here; this is just to get us rolling.

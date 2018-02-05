@@ -325,6 +325,10 @@
 
 {% block within_content %}
 
+<div class="level-right">
+  <a href="{{ url_for('ui.search') }}">Simple</a> | <a href="{{ url_for('ui.author_search') }}">Authors</a>
+</div>
+
 {% if show_form %}
   {{ advanced_query(form) }}
 {% else %}

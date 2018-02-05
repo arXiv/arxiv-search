@@ -52,9 +52,19 @@ def _constructACMClass(meta: DocMeta) -> dict:
     return [obj.strip() for obj in raw.split(';')]
 
 
+def _update_with_initials(author: dict) -> dict:
+    author['initials'] = [pt[0] for pt in author['first_name'].split() if pt]
+    return author
+
+
+def _constructAuthors(meta: DocMeta) -> dict:
+    return [_update_with_initials(author)
+            for author in meta.get("authors_parsed", [])]
+
+
 _transformations = [
     ('abstract', 'abstract'),
-    ('authors', "authors_parsed"),
+    ('authors', _constructAuthors),
     ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
 

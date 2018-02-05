@@ -83,6 +83,16 @@
                 }
               }
             },
+            "initials": {
+              "type": "keyword",
+              "normalizer": "simple",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
+            },
             "full_name": {
               "type": "text"
             },

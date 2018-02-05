@@ -24,7 +24,13 @@ def health() -> Response:
 
 def search(request_params: dict) -> Response:
     """
-    Perform a search with the provided parameters.
+    Perform a simple search using a single parameter.
+
+    This supports requests from both the form-based view (provided here) AND
+    from the mini search widget displayed on all arXiv.org pages.
+
+    At a minimum, expects the parameter ``value`` in the GET request. This may
+    be a match value for a search query, or an arXiv ID.
 
     Parameters
     ----------
@@ -46,9 +52,7 @@ def search(request_params: dict) -> Response:
     if 'value' in request_params:
         try:
             # first check if the URL includes an arXiv ID
-            logger.debug('!! %s', request_params['value'])
             arxiv_id = parse_arxiv_id(request_params['value'])
-            logger.debug('foo')
             # If so, redirect.
             logger.debug(arxiv_id)
         except ValueError as e:

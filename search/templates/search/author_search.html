@@ -1,0 +1,171 @@
+{%- extends "search/base.html" %}
+
+{% import "search/search-macros.html" as search_macros %}
+
+{% macro select_field(field) %}
+<div class="field is-horizontal">
+  <div class="control">
+    <label class="checkbox">
+      {{ field|safe }}
+      {{ field.label }}
+    </label>
+    {% if field.errors %}
+      <div class="help is-warning">
+        {% for error in field.errors %}
+            {{ error }}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro advanced_query(form) %}
+
+<div class="columns">
+  <div class="column is-three-fifths">
+    {% if form.errors %}
+    <div class="notification is-warning">
+      Whoops! Something went wrong. Please correct errors in the form below.
+    </div>
+    {% endif %}
+    <div class="box">
+      <form method="GET" action="{{ url_for('ui.author_search') }}">
+
+        {# Author search term fieldset. #}
+        <section data-toggle="fieldset" id="authors-fieldset" class="section">
+          {% for entry in form.authors.entries %}
+            <div class="field has-addons" data-toggle="fieldset-entry">
+              <div class="control is-expanded">
+                <label for="authors-{{loop.index0}}-forename" class="hidden-label">{{ entry.forename.label }}</label>
+                {{ entry.forename(class='input', placeholder="Forename or initial(s)")|safe }}
+                {% if entry.forename.errors %}
+                  <div class="help is-warning">
+                    {% for error in entry.forename.errors %}{{ error }}{% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              <div class="control is-expanded">
+                <label for="authors-{{loop.index0}}-surname" class="hidden-label">{{ entry.surname.label }}</label>
+                {{ entry.surname(class='input', placeholder="Surname")|safe }}
+                {% if entry.surname.errors %}
+                  <div class="help is-warning">
+                    {% for error in entry.surname.errors %}{{ error }}{% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              <div class="control">
+                <button type="button"
+                  data-toggle="fieldset-remove-row"
+                  id="authors-{{loop.index0}}-remove"
+                  class="button fieldset-hidden-on-first-row"
+                  aria-label="Remove this search term"
+                  {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}
+                  >
+                    {# TODO: need something less hacky to get add/remove buttons the same width. #}
+                    <span style="width: 8.016px;">–</span>
+                </button>
+              </div>
+            </div>
+          {% endfor %}
+          <div class="control is-clearfix">
+            <button type="button"
+              class="button is-pulled-right"
+              data-toggle="fieldset-add-row"
+              data-target="#authors-fieldset"
+              aria-label="Add another author">+
+            </button>
+          </div>
+        </section>
+        <section>
+          <div class="level">
+            <div class="level-left">
+              <div class="field is-horizontal is-grouped">
+                <div class="control">
+                  <span class="select is-small">
+                    {{ form.size|safe }}
+                  </span>
+                </div>
+                <div class="control">
+                 {{ form.size.label }}
+                </div>
+              </div>
+            </div>
+            <div class="level-right">
+              <button class="button is-link is-medium">Search</button>
+            </div>
+          </div>
+        </section>
+        </form>
+      </div>
+    </div>
+    <div class="column">
+      <div class="box">
+        <h2 class="title is-5">Tips</h2>
+        <p>Text object here for search tips and help? Or just hardcode it?</p>
+      </div>
+    </div>
+  </div>
+
+{%- endmacro -%}
+
+{% macro size_and_order(form) %}
+<div class="level">
+  <div class="level-left">
+    <form method="GET" action="{{ url_for('ui.advanced_search') }}">
+      <div style="display: none;">
+        {% for field in form %}
+          {% if field != form.size and field != form.order %}
+            {{ field }}
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="field is-horizontal is-grouped level-item">
+        <div class="control">
+          <span class="select is-small">
+            {{ form.size|safe }}
+          </span>
+          {{ form.size.label }}.
+        </div>
+        <div class="control">
+          {{ form.order.label }}
+          <span class="select is-small">
+            {{ form.order|safe }}
+          </span>
+        </div>
+        <div class="control">
+          <button class="button is-small is-link">Go</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{%- endmacro -%}
+
+{% block title %}
+    {% if not show_form and results %}
+        Showing {{ metadata.total }} results
+    {% elif show_form %}
+        Author Search
+    {% else %}
+        Sorry, your query returned no results
+    {% endif %}
+{% endblock title %}
+
+{% block within_content %}
+<div class="level-right">
+  <a href="{{ url_for('ui.search') }}">Simple</a> | <a href="{{ url_for('ui.advanced_search') }}">Advanced</a>
+</div>
+{% if show_form %}
+  {{ advanced_query(form) }}
+{% else %}
+  Query: <a href="{{ current_url_sans_parameters() }}&show_form=true">{{ query }}</a>
+  {% if results %}
+      {{ size_and_order(form) }}
+      {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
+  {% endif %}
+{% endif %}
+
+
+
+{% endblock %}

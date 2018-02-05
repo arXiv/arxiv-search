@@ -25,12 +25,32 @@ EASTERN = timezone('US/Eastern')
 def search(request_params: dict) -> Response:
     """
     Perform a search from the advanced search interface.
+
+    This is intended to support ONLY form-based search, to replace the classic
+    advanced search view.
+
+    Parameters
+    ----------
+    request_params : dict
+
+    Returns
+    -------
+    dict
+        Response content.
+    int
+        HTTP status code.
+    dict
+        Extra headers to add to the response.
     """
     logger.debug('search request from advanced form')
     response_data = {}
     response_data['show_form'] = ('advanced' not in request_params)
     logger.debug('show_form: %s', str(response_data['show_form']))
     form = forms.AdvancedSearchForm(request_params)
+
+    # We want to avoid attempting to validate if no query has been entered.
+    #  If a query was actually submitted via the form, 'advanced' will be
+    #  present in the request parameters.
     if 'advanced' in request_params:
         if form.validate():
             logger.debug('form is valid')
