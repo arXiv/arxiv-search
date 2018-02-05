@@ -1,6 +1,7 @@
 """Integration with search index."""
 
 import json
+from math import floor
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError
@@ -12,7 +13,7 @@ from elasticsearch_dsl.query import Range, Match, Bool
 from search.context import get_application_config, get_application_global
 from search import logging
 from search.domain import Document, DocumentSet, Query, DateRange, \
-    Classification
+    Classification, AdvancedQuery, SimpleQuery, AuthorQuery
 
 logger = logging.getLogger(__name__)
 
@@ -70,17 +71,31 @@ class SearchSession(object):
         return terms[0]
 
     @staticmethod
+    def _field_term_to_q(term) -> Q:
+        if term.field in ['title', 'abstract']:
+            return (
+                Q("match", **{f'{term.field}__tex': term.term})
+                | Q("match", **{f'{term.field}__english': term.term})
+            )
+        elif term.field == 'author':
+            return Q('nested', path='authors', query=(
+                Q('match', **{'authors__first_name__folded': term.term}) |
+                Q('match', **{'authors__last_name__folded': term.term})
+            ))
+        return Q("match", **{term.field: term.term})
+
+    @staticmethod
     def _grouped_terms_to_q(term_pair: tuple) -> Bool:
         """Generate a :class:`.Q` from grouped terms."""
         term_a, operator, term_b = term_pair
         if type(term_a) is tuple:
             term_a = SearchSession._grouped_terms_to_q(term_a)
         else:
-            term_a = Q("match", **{term_a.field: term_a.term})
+            term_a = SearchSession._field_term_to_q(term_a)
         if type(term_b) is tuple:
             term_b = SearchSession._grouped_terms_to_q(term_b)
         else:
-            term_b = Q("match", **{term_b.field: term_b.term})
+            term_b = SearchSession._grouped_terms_to_q(term_b)
         if operator == 'OR':
             return term_a | term_b
         elif operator == 'AND':
@@ -94,9 +109,11 @@ class SearchSession(object):
             return Q()
         params = {}
         if query.date_range.start_date:
-            params["gte"] = query.date_range.start_date.strftime('%Y%m%d')
+            params["gte"] = query.date_range.start_date \
+                .strftime('%Y-%m-%dT%H:%M:%S%z')
         if query.date_range.end_date:
-            params["lt"] = query.date_range.end_date.strftime('%Y%m%d')
+            params["lt"] = query.date_range.end_date\
+                .strftime('%Y-%m-%dT%H:%M:%S%z')
         return Q('range', submitted_date=params)
 
     @staticmethod
@@ -117,11 +134,12 @@ class SearchSession(object):
     @classmethod
     def _fielded_terms_to_q(cls, query: Query) -> Match:
         if len(query.terms) == 1:
-            return Q("match", **{query.terms[0].field: query.terms[0].term})
+            return SearchSession._field_term_to_q(query.terms[0])
+            # return Q("match", **{query.terms[0].field: query.terms[0].term})
         elif len(query.terms) > 1:
             terms = cls._group_terms(query)
             return cls._grouped_terms_to_q(terms)
-        return Q()
+        return Q('match_all')
 
     @classmethod
     def _classifications_to_q(cls, query: Query) -> Match:
@@ -136,22 +154,82 @@ class SearchSession(object):
 
     @classmethod
     def _get_sort_parameters(cls, query: Query) -> list:
-        if not query.order:
+        if query.order is None:
             return
         return [query.order]
 
-    def _prepare(self, query: Query) -> Search:
-        """Generate an ES :class:`.Search` from a :class:`.Query`."""
+    def _apply_sort(self, query: Query, search: Search) -> Search:
+        sort_params = self._get_sort_parameters(query)
+        if sort_params is not None:
+            search = search.sort(*sort_params)
+        return search
+
+    def _prepare(self, query: AdvancedQuery) -> Search:
+        """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
         search = Search(using=self.es, index=self.index)
         search = search.query(
             self._fielded_terms_to_q(query)
             & self._daterange_to_q(query)
             & self._classifications_to_q(query)
         )
-        sort_params = self._get_sort_parameters(query)
-        if sort_params:
-            search = search.sort(*sort_params)
+        search = self._apply_sort(query, search)
         return search
+
+    def _prepare_simple(self, query: SimpleQuery) -> Search:
+        """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
+        search = Search(using=self.es, index=self.index)
+        if query.field == 'all':
+            search = search.query(
+                Q('nested', path='authors', query=(
+                    Q('match', **{'authors__first_name__folded': query.value})
+                    |
+                    Q('match', **{'authors__last_name__folded': query.value})
+                ))
+                |
+                Q('match', **{'title__english': query.value})
+                |
+                Q('match', **{'title__tex': query.value})
+                |
+                Q('match', **{'abstract__english': query.value})
+                |
+                Q('match', **{'abstract__tex': query.value})
+            )
+        elif query.field == 'author':
+            search = search.query(
+                Q('nested', path='authors', query=(
+                    Q('match', **{'authors__first_name__folded': query.value})
+                    |
+                    Q('match', **{'authors__last_name__folded': query.value})
+                ))
+            )
+        else:
+            search = search.query(
+                Q('match', **{f'{query.field}__english': query.value})
+                |
+                Q('match', **{f'{query.field}__tex': query.value})
+            )
+        search = self._apply_sort(query, search)
+        return search
+
+    def _prepare_author(self, query: AuthorQuery) -> Search:
+        search = Search(using=self.es, index=self.index)
+        q = Q()
+        for au in query.authors:
+            _q = Q('match', **{'authors__last_name__folded': au.surname})
+
+            if au.forename:    # Try as both forename and initials.
+                _q_init = Q()
+                for i in au.forename.replace('.', ' ').split():
+                    _q_init &= Q('match', **{'authors__initials__folded': i})
+                _q &= (
+                    Q('match', **{'authors__first_name__folded': au.forename})
+                    |
+                    _q_init
+                )
+
+            q &= Q('nested', path='authors', query=_q)
+        search = self._apply_sort(query, search)
+        return search.query(q)
 
     def create_index(self, mappings: dict) -> None:
         """
@@ -243,8 +321,15 @@ class SearchSession(object):
             Invalid query parameters.
         """
         logger.debug('got search request %s', str(query))
-        try:
+        if isinstance(query, AdvancedQuery):
             search = self._prepare(query)
+        elif isinstance(query, SimpleQuery):
+            search = self._prepare_simple(query)
+        elif isinstance(query, AuthorQuery):
+            search = self._prepare_author(query)
+        logger.debug(str(search.to_dict()))
+
+        try:
             results = search[query.page_start:query.page_end].execute()
         except TransportError as e:
             if e.error == 'parsing_exception':
@@ -252,10 +337,12 @@ class SearchSession(object):
             raise IOError('Problem communicating with ES: %s' % e) from e
 
         N_pages_raw = results['hits']['total']/query.page_size
-        N_pages = int(round(N_pages_raw)) + int(N_pages_raw % 1 > 0)
+        N_pages = int(floor(N_pages_raw)) + \
+            int(N_pages_raw % query.page_size > 0)
         logger.debug('got %i results', results['hits']['total'])
         return DocumentSet({
             'metadata': {
+                'start': query.page_start,
                 'total': results['hits']['total'],
                 'current_page': query.page,
                 'total_pages': N_pages,

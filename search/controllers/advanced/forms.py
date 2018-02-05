@@ -6,8 +6,6 @@ from wtforms import Form, BooleanField, StringField, SelectField, validators, \
 from wtforms.fields import HiddenField
 from wtforms import widgets
 
-# Special characters?
-
 
 class FieldForm(Form):
     term = StringField("Search term...")
@@ -81,17 +79,24 @@ class DateForm(Form):
         if field.data is None:
             return
         start_of_time = date(year=1991, month=1, day=1)
-        if field.data < start_of_time or field.data > date.today().year:
+        if field.data < start_of_time or field.data > date.today():
             raise ValidationError('Not a valid publication year')
 
 
 class AdvancedSearchForm(Form):
     advanced = HiddenField('Advanced', default=1)
+    """Used to indicate whether the form should be shown."""
+
     terms = FieldList(FormField(FieldForm), min_entries=1)
     classification = FormField(ClassificationForm)
     date = FormField(DateForm)
-    results_per_page = SelectField('results per page', choices=[
+    size = SelectField('results per page', default=25, choices=[
         ('25', '25'),
         ('50', '50'),
         ('100', '100')
     ])
+    order = SelectField('Sort results by', choices=[
+        ('', 'Relevance'),
+        ('submitted_date', 'Submission date (ascending)'),
+        ('-submitted_date', 'Submission date (descending)'),
+    ], validators=[validators.Optional()])

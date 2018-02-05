@@ -4,20 +4,52 @@
 
 {% block title %}
     {% if query and results %}
-        Showing {{ metadata.total }} results for QUERY
+        Showing {{ metadata.total }} results for {{ query.field }}: {{ query.value }}
+    {% elif query and not results %}
+        Sorry, your query for <span class="is-warning">{{ query.field }}: {{ query.value }}</span> produced no results
     {% else %}
-        Advanced Search
+        Search
     {% endif %}
 {% endblock title %}
 
 {% block within_content %}
 
-{% if not query %}
-    {{ search_macros.advanced_query(form) }}
-{% endif %}
+<form method="GET" action="{{ url_for('ui.search') }}">
+  <div class="field has-addons">
+    <div class="control is-expanded">
+      {{ form.query(class="input is-medium")|safe }}
+    </div>
+    <div class="select control is-medium">
+      {{ form.searchtype(class="is-medium")|safe }}
+    </div>
+    <div class="control">
+        <button class="button is-link is-medium">Search</button>
+    </div>
+  </div>
+  <div class="level">
+    <div class="field is-horizontal is-grouped level-left">
+      <div class="control">
+        <span class="select is-small">
+          {{ form.size|safe }}
+        </span>
+        {{ form.size.label }}.
+      </div>
+      <div class="control">
+        {{ form.order.label }}
+        <span class="select is-small">
+          {{ form.order|safe }}
+        </span>
+      </div>
+    </div>
+    <div class="level-right">
+      <a href="{{ url_for('ui.advanced_search') }}">Advanced</a> |  <a href="{{ url_for('ui.author_search') }}">Authors</a>
+    </div>
+  </div>
+</form>
 
 {% if results %}
     {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
+
 {% endif %}
 
 {% endblock %}

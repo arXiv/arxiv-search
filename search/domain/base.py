@@ -1,8 +1,8 @@
 """Core data structures internal to the search service."""
 
 import json
-from typing import Optional, Type, Any
-from datetime import date
+from typing import Optional, Type, Any, Iterable
+from datetime import date, datetime
 import jsonschema
 
 
@@ -57,7 +57,17 @@ class Property(object):
         instance[self._name] = value
 
 
-class SchemaBase(dict):
+class Base(dict):
+    def __init__(self, from_iter: Optional[Iterable] = None, **kwargs):
+        if from_iter is not None:
+            super(Base, self).__init__(from_iter)
+        else:
+            super(Base, self).__init__()
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+class SchemaBase(Base):
     """Base for domain classes with schema validation."""
 
     __schema__ = None
@@ -97,20 +107,31 @@ class Fulltext(SchemaBase):
     """Fulltext content for an arXiv paper, including extraction metadata."""
 
 
-class DateRange(dict):
+class DateRange(Base):
     """Represents an open or closed date range."""
 
-    start_date = Property('start_date', date)
-    """The day on which the range begins."""
+    start_date = Property('start_date', datetime)
+    """The day/time on which the range begins."""
 
-    end_date = Property('end_date', date)
-    """The day at (just before) which the range ends."""
+    end_date = Property('end_date', datetime)
+    """The day/time at (just before) which the range ends."""
 
     # on_version = Property('field', str)
     # """The date field on which to filter
 
+    def __str__(self):
+        """Build a string representation, for use in rendering."""
+        _str = ''
+        if self.start_date:
+            start_date = self.start_date.strftime('%Y-%m-%d')
+            _str += f'from {start_date} '
+        if self.end_date:
+            end_date = self.end_date.strftime('%Y-%m-%d')
+            _str += f'to {end_date}'
+        return _str
 
-class Classification(dict):
+
+class Classification(Base):
     group = Property('group', str)
     archive = Property('archive', str)
     category = Property('category', str)
@@ -148,6 +169,12 @@ class Query(SchemaBase):
     def page(self):
         """Get the approximate page number."""
         return 1 + int(round(self.page_start/self.page_size))
+
+
+class SimpleQuery(Query):
+    """A query on a single field with a single value."""
+    field = Property('field', str)
+    value = Property('value', str)
 
 
 class Document(SchemaBase):

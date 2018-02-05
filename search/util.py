@@ -1,7 +1,11 @@
 """ Utility functions for arxiv.search """
-import re
 
-__all__ = ['parse_arxiv_id']
+import re
+from search import logging
+
+logger = logging.getLogger(__name__)
+
+__all__ = ('parse_arxiv_id')
 
 CATEGORIES = [
     "acc-phys", "adap-org", "alg-geom", "ao-sci", "astro-ph", "atom-ph",
@@ -12,18 +16,22 @@ CATEGORIES = [
     "supr-con", "eess", "econ"
 ]
 
-ARXIV_REGEX = ("^(ar[xX]iv:)?((?:(?:(?:%s)(?:[.][A-Z]{2})?/[0-9]{2}(?:0[1-9]|1[0-2])"
-         "\\d{3}(?:[vV]\\d+)?))|(?:(?:[0-9]{2}(?:0[1-9]|1[0-2])[.]"
-         "\\d{4,5}(?:[vV]\\d+)?)))$" % '|'.join(CATEGORIES))
+ARXIV_REGEX = (
+    "^(ar[xX]iv:)?((?:(?:(?:%s)(?:[.][A-Z]{2})?/[0-9]{2}(?:0[1-9]|1[0-2])"
+    "\\d{3}(?:[vV]\\d+)?))|(?:(?:[0-9]{2}(?:0[1-9]|1[0-2])[.]"
+    "\\d{4,5}(?:[vV]\\d+)?)))$" % '|'.join(CATEGORIES)
+)
+
 
 def parse_arxiv_id(value: str) -> str:
     """
-    Parse arxiv id from string. 
-    
+    Parse arxiv id from string.
+
     Raises `ValidationError` if no arXiv ID.
     """
+    logger.debug('parse arXiv ID: %s', value)
     m = re.search(ARXIV_REGEX, value)
     if not m:
+        logger.debug('not a valid arXiv ID')
         raise ValueError('Not a valid arXiv ID')
     return m.group(2)
-

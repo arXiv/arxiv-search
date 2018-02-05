@@ -6,8 +6,12 @@ from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
 from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, url_for
 from werkzeug.urls import Href, url_encode
-from search.controllers import simple, advanced
+from search.controllers import simple, advanced, authors
 from arxiv import status
+
+from search import logging
+
+logger = logging.getLogger(__name__)
 
 blueprint = Blueprint('ui', __name__, url_prefix='/search')
 
@@ -16,6 +20,7 @@ blueprint = Blueprint('ui', __name__, url_prefix='/search')
 def search():
     """First pass at a search results page."""
     response, code, headers = simple.search(request.args)
+    logger.debug(code)
     if code == status.HTTP_200_OK:
         return render_template("search/search.html", **response)
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
@@ -28,6 +33,13 @@ def advanced_search():
     """Advanced search interface."""
     response, code, headers = advanced.search(request.args)
     return render_template("search/advanced_search.html", **response)
+
+
+@blueprint.route('/authors', methods=['GET'])
+def author_search():
+    """Author search interface."""
+    response, code, headers = authors.search(request.args.copy())
+    return render_template("search/author_search.html", **response)
 
 
 # TODO: we need something more robust here; this is just to get us rolling.
@@ -67,13 +79,14 @@ def url_for_page_builder() -> Dict[str, Callable]:
 
 
 @blueprint.context_processor
-def current_url_sans_parameter_builder() -> Dict[str, Callable]:
+def current_url_sans_parameters_builder() -> Dict[str, Callable]:
     """Add a function to strip GET parameters from the current URL."""
-    def current_url_sans_parameter(param: str) -> str:
+    def current_url_sans_parameters(*params_to_remove: str) -> str:
         """Get the current URL with ``param`` removed from GET parameters."""
         scheme, netloc, path, params, query, fragment = urlparse(request.path)
         query_params = request.args.copy()
-        query_params.pop(param, None)
+        for param in params_to_remove:
+            query_params.pop(param, None)
         query = url_encode(query_params)
         return urlunparse((scheme, netloc, path, params, query, fragment))
-    return dict(current_url_sans_parameter=current_url_sans_parameter)
+    return dict(current_url_sans_parameters=current_url_sans_parameters)
