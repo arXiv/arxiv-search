@@ -1,0 +1,15 @@
+language: python
+sudo: required
+services:
+  - docker
+cache: pip
+os:
+  - linux
+python:
+  - "3.6"
+script:
+  - pip install -r requirements.txt
+  - pip install nose2 coverage
+  - nose2
+after_success:
+  - coveralls
