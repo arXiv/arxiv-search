@@ -114,7 +114,7 @@ class SearchSession(object):
         if type(term_b) is tuple:
             term_b = SearchSession._grouped_terms_to_q(term_b)
         else:
-            term_b = SearchSession._grouped_terms_to_q(term_b)
+            term_b = SearchSession._field_term_to_q(term_b)
         if operator == 'OR':
             return term_a | term_b
         elif operator == 'AND':
