@@ -7,7 +7,7 @@ python:
   - "3.6"
 script:
   - pip install -r requirements.txt
-  - pip install nose2 coverage
+  - pip install nose2 coverage coveralls
   - nose2
 after_success:
   - coveralls
