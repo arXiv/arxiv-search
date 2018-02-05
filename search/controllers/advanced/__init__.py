@@ -31,17 +31,18 @@ def search(request_params: dict) -> Response:
     response_data['show_form'] = ('advanced' not in request_params)
     logger.debug('show_form: %s', str(response_data['show_form']))
     form = forms.AdvancedSearchForm(request_params)
-    if form.validate():
-        logger.debug('form is valid')
-        q = _query_from_form(form)
-        q = query.paginate(q, request_params)
-        response_data.update(index.search(q))
-        response_data['query'] = q
-    else:
-        logger.debug('form is invalid: %s' % str(form.errors))
-        q = None
-        response_data['query'] = q
-        response_data['show_form'] = True
+    if 'advanced' in request_params:
+        if form.validate():
+            logger.debug('form is valid')
+            q = _query_from_form(form)
+            q = query.paginate(q, request_params)
+            response_data.update(index.search(q))
+            response_data['query'] = q
+        else:
+            logger.debug('form is invalid: %s' % str(form.errors))
+            q = None
+            response_data['query'] = q
+            response_data['show_form'] = True
     response_data['form'] = form
     return response_data, status.HTTP_200_OK, {}
 
@@ -63,6 +64,9 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     query = _update_query_with_dates(query, form.date.data)
     query = _update_query_with_terms(query, form.terms.data)
     query = _update_query_with_classification(query, form.classification.data)
+    order = form.order.data
+    if order and order != 'None':
+        query.order = order
     return query
 
 
@@ -120,6 +124,15 @@ def _update_query_with_dates(query: AdvancedQuery, date_data: dict) \
                               hour=0, minute=0, second=0, tzinfo=EASTERN),
         )
     elif date_data.get('date_range'):
+        if date_data['from_date']:
+            date_data['from_date'] = datetime.combine(date_data['from_date'],
+                                                      datetime.min.time(),
+                                                      tzinfo=EASTERN)
+        if date_data['to_date']:
+            date_data['to_date'] = datetime.combine(date_data['to_date'],
+                                                    datetime.min.time(),
+                                                    tzinfo=EASTERN)
+
         query.date_range = DateRange(
             start_date=date_data['from_date'],
             end_date=date_data['to_date'],

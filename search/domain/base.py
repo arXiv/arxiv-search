@@ -113,10 +113,10 @@ class DateRange(dict):
         """Build a string representation, for use in rendering."""
         _str = ''
         if self.start_date:
-            start_date = self.start_date.strftime('%Y-%m-%dT%H:%M:%S%z')
+            start_date = self.start_date.strftime('%Y-%m-%d')
             _str += f'from {start_date} '
         if self.end_date:
-            end_date = self.end_date.strftime('%Y-%m-%dT%H:%M:%S%z')
+            end_date = self.end_date.strftime('%Y-%m-%d')
             _str += f'to {end_date}'
         return _str
 

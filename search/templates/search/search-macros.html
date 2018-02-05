@@ -87,35 +87,8 @@
 
 
 {% macro search_results(form, results, metadata, external_url, url_for_page) %}
-<div class="level">
-  <div class="level-left">
-    <div class="level-item">
-        <span class="select is-small">
-          {{ form.results_per_page|safe }}
-        </span>
-        {{ form.results_per_page.label }}
-    </div>
 
-    <!-- sort select -->
-    <div class="field is-horizontal level-item">
-      <div class="control">
-        <div class="field-label">
-          <label class="label is-small">Sort results by:</label>
-        </div>
-        <div class="select is-small">
-          <select>
-            <option>All fields</option>
-            <option>Author</option>
-            <option>Date</option>
-          </select>
-        </div>
-      </div>
-    </div> <!-- endsort -->
-
-  </div>
-</div>
-<ol>
-
+<ol start="{{ metadata.start + 1}}"> {# Start index is 0-based. #}
 {% if metadata.total_pages > 1 %}
   {{ pagination(metadata, url_for_page) }}
 {% endif %}

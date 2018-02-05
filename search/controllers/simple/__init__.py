@@ -125,4 +125,7 @@ def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:
     query = SimpleQuery()
     query.field = form.searchtype.data
     query.value = form.query.data
+    order = form.order.data
+    if order and order != 'None':
+        query.order = order
     return query

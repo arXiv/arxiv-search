@@ -15,16 +15,34 @@
 {% block within_content %}
 
 <form method="GET" action="{{ url_for('ui.search') }}">
-    <div class="field has-addons">
-      <div class="control is-expanded">
-        {{ form.query(class="input is-large")|safe }}
-      </div>
-      <div class="select control is-large">
-        {{ form.searchtype(class="is-large")|safe }}
+  <div class="field has-addons">
+    <div class="control is-expanded">
+      {{ form.query(class="input is-medium")|safe }}
+    </div>
+    <div class="select control is-medium">
+      {{ form.searchtype(class="is-medium")|safe }}
+    </div>
+    <div class="control">
+        <button class="button is-link is-medium">Search</button>
+    </div>
+  </div>
+  <div class="level">
+    <div class="field is-horizontal is-grouped level-left">
+      <div class="control">
+        <span class="select is-small">
+          {{ form.size|safe }}
+        </span>
+        {{ form.size.label }}.
       </div>
       <div class="control">
-          <button class="button is-link is-large">Search</button>
+        {{ form.order.label }}
+        <span class="select is-small">
+          {{ form.order|safe }}
+        </span>
       </div>
+    </div>
+    <div class="level-right">
+      <a href="{{ url_for('ui.advanced_search') }}">Advanced</a>
     </div>
   </div>
 </form>

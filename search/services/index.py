@@ -154,7 +154,7 @@ class SearchSession(object):
 
     @classmethod
     def _get_sort_parameters(cls, query: Query) -> list:
-        if not query.order:
+        if query.order is None:
             return
         return [query.order]
 
@@ -167,7 +167,7 @@ class SearchSession(object):
             & self._classifications_to_q(query)
         )
         sort_params = self._get_sort_parameters(query)
-        if sort_params:
+        if sort_params is not None:
             search = search.sort(*sort_params)
         return search
 
@@ -204,6 +204,9 @@ class SearchSession(object):
                 |
                 Q('match', **{f'{query.field}__tex': query.value})
             )
+        sort_params = self._get_sort_parameters(query)
+        if sort_params is not None:
+            search = search.sort(*sort_params)
         return search
 
     def create_index(self, mappings: dict) -> None:
@@ -315,6 +318,7 @@ class SearchSession(object):
         logger.debug('got %i results', results['hits']['total'])
         return DocumentSet({
             'metadata': {
+                'start': query.page_start,
                 'total': results['hits']['total'],
                 'current_page': query.page,
                 'total_pages': N_pages,

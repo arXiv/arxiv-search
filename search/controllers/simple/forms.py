@@ -16,8 +16,13 @@ class SimpleSearchForm(Form):
     ])
     query = StringField('Search or Article ID',
                         validators=[validators.Length(min=1)])
-    results_per_page = SelectField('results per page', default=25, choices=[
+    size = SelectField('results per page', default=25, choices=[
         ('25', '25'),
         ('50', '50'),
         ('100', '100')
     ])
+    order = SelectField('Sort results by', choices=[
+        ('', 'Relevance'),
+        ('submitted_date', 'Submission date (ascending)'),
+        ('-submitted_date', 'Submission date (descending)'),
+    ], validators=[validators.Optional()])
