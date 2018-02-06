@@ -8,6 +8,6 @@ python:
 script:
   - pip install -r requirements.txt
   - pip install nose2 coverage coveralls
-  - nose2
+  - nose2 --with-coverage
 after_success:
   - coveralls
