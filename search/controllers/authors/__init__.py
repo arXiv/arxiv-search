@@ -1,6 +1,9 @@
 """Controllers for author search."""
 
 from typing import Tuple, Dict, Any
+
+from werkzeug.exceptions import InternalServerError
+
 from arxiv import status
 from search import logging
 
@@ -15,11 +18,6 @@ from .forms import AuthorSearchForm
 logger = logging.getLogger(__name__)
 
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
-
-
-def health() -> Response:
-    """Return a heartbeat, including connection to the search index."""
-    return {'index': index.ok()}, status.HTTP_200_OK, {}
 
 
 def search(request_params: dict) -> Response:
@@ -62,8 +60,25 @@ def search(request_params: dict) -> Response:
         if form.validate():
             logger.debug('form is valid')
             q = _query_from_form(form)
+
+            # Pagination is handled outside of the form.
             q = query.paginate(q, request_params)
-            response_data.update(index.search(q))
+            try:
+                # Execute the search. We'll use the results directly in
+                #  template rendering, so they get added directly to the
+                #  response content.
+                response_data.update(index.search(q))
+            except index.IndexConnectionError as e:
+                # There was a (hopefully transient) connection problem. Either
+                #  this will clear up relatively quickly (next request), or
+                #  there is a more serious outage.
+                response_data['index_error'] = True
+            except index.QueryError as e:
+                # Base exception routers should pick this up and show bug page.
+                raise InternalServerError(
+                    'Encountered an error in search query'
+                ) from e
+
             response_data['query'] = q
         else:
             logger.debug('form is invalid: %s' % str(form.errors))

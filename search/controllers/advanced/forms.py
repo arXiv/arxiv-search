@@ -8,6 +8,8 @@ from wtforms import widgets
 
 
 class FieldForm(Form):
+    """Subform for query parts on specific fields."""
+
     term = StringField("Search term...")
     operator = SelectField("Operator", choices=[
         ('AND', 'AND'), ('OR', 'OR'), ('NOT', 'NOT')
@@ -20,6 +22,8 @@ class FieldForm(Form):
 
 
 class ClassificationForm(Form):
+    """Subform for selecting a classification to (disjunctively) filter by."""
+
     all_subjects = BooleanField('All subjects')
     computer_science = BooleanField('Computer science (cs)')
     economics = BooleanField('Economics (econ)')
@@ -39,7 +43,7 @@ class ClassificationForm(Form):
 
 
 class DateForm(Form):
-    """Provides options for limiting results by publication date."""
+    """Subform with options for limiting results by publication date."""
 
     all_dates = BooleanField('All dates')
     past_12 = BooleanField('Past 12 months')
@@ -84,10 +88,12 @@ class DateForm(Form):
 
 
 class AdvancedSearchForm(Form):
+    """Replacement for the 'classic' advanced search interface."""
+
     advanced = HiddenField('Advanced', default=1)
     """Used to indicate whether the form should be shown."""
 
-    terms = FieldList(FormField(FieldForm), min_entries=1)
+    terms = FieldList(FormField(FieldForm), min_entries=0)
     classification = FormField(ClassificationForm)
     date = FormField(DateForm)
     size = SelectField('results per page', default=25, choices=[

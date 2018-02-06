@@ -6,6 +6,8 @@ from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
+from werkzeug import MultiDict
+from werkzeug.exceptions import InternalServerError
 from arxiv import status
 
 from search.services import index, fulltext, metadata
@@ -22,7 +24,7 @@ Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 EASTERN = timezone('US/Eastern')
 
 
-def search(request_params: dict) -> Response:
+def search(request_params: MultiDict) -> Response:
     """
     Perform a search from the advanced search interface.
 
@@ -41,6 +43,13 @@ def search(request_params: dict) -> Response:
         HTTP status code.
     dict
         Extra headers to add to the response.
+
+    Raises
+    ------
+    InternalServerError
+        Raised when there is an unrecoverable error while interacting with the
+        search index. This should be handled in the base routes, to display a
+        "bug" error page to the user.
     """
     logger.debug('search request from advanced form')
     response_data = {}
@@ -55,14 +64,36 @@ def search(request_params: dict) -> Response:
         if form.validate():
             logger.debug('form is valid')
             q = _query_from_form(form)
+
+            # Pagination is handled outside of the form.
             q = query.paginate(q, request_params)
-            response_data.update(index.search(q))
+            try:
+                # Execute the search. We'll use the results directly in
+                #  template rendering, so they get added directly to the
+                #  response content.
+                response_data.update(index.search(q))
+            except index.IndexConnectionError as e:
+                # There was a (hopefully transient) connection problem. Either
+                #  this will clear up relatively quickly (next request), or
+                #  there is a more serious outage.
+                response_data['index_error'] = True
+            except index.QueryError as e:
+                # Base exception routers should pick this up and show bug page.
+                raise InternalServerError(
+                    'Encountered an error in search query'
+                ) from e
+
             response_data['query'] = q
         else:
             logger.debug('form is invalid: %s' % str(form.errors))
-            q = None
-            response_data['query'] = q
+            # Force the form to be displayed, so that we can render errors.
+            #  This has most likely occurred due to someone manually crafting
+            #  a GET response, but it could be something else.
             response_data['show_form'] = True
+
+    # We want the form handy even when it is not shown to the user. For
+    #  example, we can generate new form-friendly requests to update sort
+    #  order and page size by embedding the form (hidden).
     response_data['form'] = form
     return response_data, status.HTTP_200_OK, {}
 
@@ -90,7 +121,7 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     return query
 
 
-def _update_query_with_classification(query: AdvancedQuery, data: dict) \
+def _update_query_with_classification(query: AdvancedQuery, data: MultiDict) \
         -> AdvancedQuery:
     query.primary_classification = ClassificationList()
     groups = [
@@ -124,7 +155,7 @@ def _update_query_with_terms(query: AdvancedQuery, terms_data: list) \
     return query
 
 
-def _update_query_with_dates(query: AdvancedQuery, date_data: dict) \
+def _update_query_with_dates(query: AdvancedQuery, date_data: MultiDict) \
         -> AdvancedQuery:
     if date_data.get('all_dates'):    # Nothing to do; all dates by default.
         return query

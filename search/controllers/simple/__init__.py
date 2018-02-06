@@ -1,6 +1,9 @@
 """Search controllers."""
 
 from typing import Tuple, Dict, Any
+
+from werkzeug.exceptions import InternalServerError, NotFound
+
 from arxiv import status
 from search import logging
 
@@ -49,10 +52,10 @@ def search(request_params: dict) -> Response:
     response_data = {}
 
     logger.debug('simple search request')
-    if 'value' in request_params:
+    if 'query' in request_params:
         try:
             # first check if the URL includes an arXiv ID
-            arxiv_id = parse_arxiv_id(request_params['value'])
+            arxiv_id = parse_arxiv_id(request_params['query'])
             # If so, redirect.
             logger.debug(arxiv_id)
         except ValueError as e:
@@ -73,9 +76,23 @@ def search(request_params: dict) -> Response:
     if form.validate():
         logger.debug('form is valid')
         q = _query_from_form(form)
+        # Pagination is handled outside of the form.
         q = query.paginate(q, request_params)
-        response_data.update(index.search(q))
-        response_data['query'] = q
+        try:
+            # Execute the search. We'll use the results directly in
+            #  template rendering, so they get added directly to the
+            #  response content.
+            response_data.update(index.search(q))
+        except index.IndexConnectionError as e:
+            # There was a (hopefully transient) connection problem. Either
+            #  this will clear up relatively quickly (next request), or
+            #  there is a more serious outage.
+            response_data['index_error'] = True
+        except index.QueryError as e:
+            # Base exception routers should pick this up and show bug page.
+            raise InternalServerError(
+                'Encountered an error in search query'
+            ) from e
     else:
         logger.debug('form is invalid: %s' % str(form.errors))
         q = None
@@ -101,15 +118,24 @@ def retrieve_document(document_id: str) -> Response:
         HTTP status code.
     dict
         Headers to add to the response.
+
+    Raises
+    ------
+    InternalServerError
+        Encountered error in search query.
+    NotFound
+        No such document
     """
     try:
         result = index.get_document(document_id)
-    except ValueError as e:    #
-        result = None   # TODO: handle this
-    except IOError as e:
-        result = None   # TODO: handle this
-    if result is None:
-        return {'reason': 'No such paper'}, status.HTTP_404_NOT_FOUND, {}
+    except index.QueryError as e:
+        # Base exception routers should pick this up and show bug page.
+        raise InternalServerError('Encountered error in search query') from e
+    except index.IndexConnectionError as e:
+        return {'index_error': True}, status.HTTP_200_OK, {}
+    except index.DocumentNotFound as e:
+        # Base exception routers should pick this up and show 404 not found.
+        raise NotFound('No such document')
     return {'document': result}, status.HTTP_200_OK, {}
 
 

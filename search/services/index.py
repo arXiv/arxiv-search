@@ -18,6 +18,23 @@ from search.domain import Document, DocumentSet, Query, DateRange, \
 logger = logging.getLogger(__name__)
 
 
+class IndexConnectionError(IOError):
+    """There was a problem connecting to the search index."""
+
+
+class QueryError(ValueError):
+    """
+    Elasticsearch could not handle the query.
+
+    This is likely due either to a programming error that resulted in a bad
+    index, or to a mal-formed query.
+    """
+
+
+class DocumentNotFound(RuntimeError):
+    """Could not find a requested document in the search index."""
+
+
 class SearchSession(object):
     """Encapsulates session with Elasticsearch host."""
 
@@ -36,7 +53,7 @@ class SearchSession(object):
 
         Raises
         ------
-        IOError
+        IndexConnectionError
             Problem communicating with Elasticsearch host.
         """
         logger.debug('init ES session for index "%s" at %s:%s',
@@ -47,7 +64,9 @@ class SearchSession(object):
                                     connection_class=Urllib3HttpConnection,
                                     **extra)
         except ElasticsearchException as e:
-            raise IOError('Could not initialize ES session: %s' % e) from e
+            raise IndexConnectionError(
+                'Could not initialize ES session: %s' % e
+            ) from e
 
     @staticmethod
     def _get_operator(obj):
@@ -95,7 +114,7 @@ class SearchSession(object):
         if type(term_b) is tuple:
             term_b = SearchSession._grouped_terms_to_q(term_b)
         else:
-            term_b = SearchSession._grouped_terms_to_q(term_b)
+            term_b = SearchSession._field_term_to_q(term_b)
         if operator == 'OR':
             return term_a | term_b
         elif operator == 'AND':
@@ -258,18 +277,20 @@ class SearchSession(object):
 
         Raises
         ------
-        IOError
+        IndexConnectionError
             Problem communicating with Elasticsearch host.
-        ValueError
+        QueryError
             Problem serializing ``document`` for indexing.
         """
         try:
             self.es.index(index=self.index, doc_type='document',
                           id=document['paper_id'], body=document)
         except SerializationError as e:
-            raise ValueError('Problem serializing document: %s' % e) from e
+            raise QueryError('Problem serializing document: %s' % e) from e
         except TransportError as e:
-            raise IOError('Problem communicating with ES: %s' % e) from e
+            raise IndexConnectionError(
+                'Problem communicating with ES: %s' % e
+            ) from e
 
     def get_document(self, document_id: int) -> Document:
         """
@@ -288,17 +309,22 @@ class SearchSession(object):
 
         Raises
         ------
-        IOError
+        IndexConnectionError
+            Problem communicating with the search index.
+        QueryError
+            Invalid query parameters.
         """
         try:
             record = self.es.get(index=self.index, doc_type='document',
                                  id=document_id)
         except SerializationError as e:
-            raise ValueError('Problem serializing document: %s' % e) from e
+            raise QueryError('Problem serializing document: %s' % e) from e
         except TransportError as e:
-            raise IOError('Problem communicating with ES: %s' % e) from e
+            raise IndexConnectionError(
+                'Problem communicating with ES: %s' % e
+            ) from e
         if not record:
-            return
+            raise DocumentNotFound('No such document')
         return Document(record['_source'])
 
     def search(self, query: Query) -> DocumentSet:
@@ -315,9 +341,9 @@ class SearchSession(object):
 
         Raises
         ------
-        IOError
+        IndexConnectionError
             Problem communicating with the search index.
-        ValueError
+        QueryError
             Invalid query parameters.
         """
         logger.debug('got search request %s', str(query))
@@ -333,8 +359,10 @@ class SearchSession(object):
             results = search[query.page_start:query.page_end].execute()
         except TransportError as e:
             if e.error == 'parsing_exception':
-                raise ValueError(e.info) from e
-            raise IOError('Problem communicating with ES: %s' % e) from e
+                raise QueryError(e.info) from e
+            raise IndexConnectionError(
+                'Problem communicating with ES: %s' % e
+            ) from e
 
         N_pages_raw = results['hits']['total']/query.page_size
         N_pages = int(floor(N_pages_raw)) + \
