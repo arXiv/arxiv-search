@@ -27,7 +27,6 @@
     {% if form.errors %}
     <div class="notification is-warning">
       Whoops! Something went wrong. Please correct errors in the form below.
-      {{ form.errors }}
     </div>
     {% endif %}
     <div class="box">
@@ -37,11 +36,6 @@
         {# Field-specific search term fieldset. #}
         <section data-toggle="fieldset" id="terms-fieldset">
           {% for entry in form.terms.entries %}
-            {% if entry.errors %}
-              <div class="notification is-warning">
-                {{ entry.errors }}
-              </div>
-            {% endif %}
             <div class="field has-addons" data-toggle="fieldset-entry">
               <div class="control fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>
                 <span class="select" aria-label="Boolean operator">
@@ -50,7 +44,19 @@
               </div>
               <div class="control is-expanded">
                 <label for="terms-{{loop.index0}}-term" class="hidden-label">Search term</label>
-                {{ entry.term(class='input', placeholder="Search term...")|safe }}
+                {% if entry.term.errors %}
+                  {{ entry.term(class='input is-warning', placeholder="Search term...")|safe }}
+                {% else %}
+                  {{ entry.term(class='input', placeholder="Search term...")|safe }}
+                {% endif %}
+                {% if entry.term.errors %}
+                  <div class="help is-warning">
+                    {% for error in entry.term.errors %}
+                        {{ error }}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
               </div>
               <div class="control">
                 <label for="terms-{{loop.index0}}-field" class="hidden-label">Field to search</label>

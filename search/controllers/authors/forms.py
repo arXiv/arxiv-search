@@ -6,11 +6,15 @@ from wtforms import Form, BooleanField, StringField, SelectField, validators, \
 from wtforms.fields import HiddenField
 from wtforms import widgets
 
+from search.controllers.util import doesNotStartWithWildcard
+
 
 class AuthorForm(Form):
     forename = StringField("Forename", validators=[validators.Length(min=1),
-                                                   validators.Optional()])
-    surname = StringField("Surname", validators=[validators.Length(min=1)])
+                                                   validators.Optional(),
+                                                   doesNotStartWithWildcard])
+    surname = StringField("Surname", validators=[validators.Length(min=1),
+                                                 doesNotStartWithWildcard])
 
 
 class AuthorSearchForm(Form):

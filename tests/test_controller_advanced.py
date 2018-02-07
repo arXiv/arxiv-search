@@ -141,6 +141,16 @@ class TestAdvancedSearchForm(TestCase):
         form = AdvancedSearchForm(data)
         self.assertTrue(form.validate())
 
+    def test_term_starts_with_wildcard(self):
+        """User has entered a string that starts with a wildcard."""
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': '*foo'
+        })
+        form = AdvancedSearchForm(data)
+        self.assertFalse(form.validate(), "Form should be invalid")
+
     def test_only_one_date_selection_allowed(self):
         """If the user selects more than one date option, form is invalid."""
         data = MultiDict({
