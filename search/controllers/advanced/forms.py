@@ -26,7 +26,6 @@ class FieldForm(Form):
 class ClassificationForm(Form):
     """Subform for selecting a classification to (disjunctively) filter by."""
 
-    all_subjects = BooleanField('All subjects')
     computer_science = BooleanField('Computer science (cs)')
     economics = BooleanField('Economics (econ)')
     eess = BooleanField('Electrical Engineering and Systems Science (eess)')

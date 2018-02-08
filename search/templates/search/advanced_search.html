@@ -100,14 +100,7 @@
                 {% endfor %}
               {% endfor %}
             {% endif %}
-            <div class="field">
-              {% if form.classification.all_subjects.errors %}
-                {{ form.classification.all_subjects(class="is-danger")|safe }}
-              {% else %}
-                {{ form.classification.all_subjects|safe }}
-              {% endif %}
-              {{ form.classification.all_subjects.label }}
-            </div>
+            <div class="help has-text-grey">All classifications will be included by default.</div>
             <div class="columns is-baseline">
               <div class="column">
                 {{ select_field(form.classification.computer_science) }}
