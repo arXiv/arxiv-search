@@ -6,11 +6,13 @@ from wtforms import Form, BooleanField, StringField, SelectField, validators, \
 from wtforms.fields import HiddenField
 from wtforms import widgets
 
+from search.controllers.util import doesNotStartWithWildcard
+
 
 class FieldForm(Form):
     """Subform for query parts on specific fields."""
 
-    term = StringField("Search term...")
+    term = StringField("Search term...", validators=[doesNotStartWithWildcard])
     operator = SelectField("Operator", choices=[
         ('AND', 'AND'), ('OR', 'OR'), ('NOT', 'NOT')
     ], default='AND')
@@ -24,7 +26,6 @@ class FieldForm(Form):
 class ClassificationForm(Form):
     """Subform for selecting a classification to (disjunctively) filter by."""
 
-    all_subjects = BooleanField('All subjects')
     computer_science = BooleanField('Computer science (cs)')
     economics = BooleanField('Economics (econ)')
     eess = BooleanField('Electrical Engineering and Systems Science (eess)')
@@ -93,7 +94,7 @@ class AdvancedSearchForm(Form):
     advanced = HiddenField('Advanced', default=1)
     """Used to indicate whether the form should be shown."""
 
-    terms = FieldList(FormField(FieldForm), min_entries=0)
+    terms = FieldList(FormField(FieldForm), min_entries=1)
     classification = FormField(ClassificationForm)
     date = FormField(DateForm)
     size = SelectField('results per page', default=25, choices=[
