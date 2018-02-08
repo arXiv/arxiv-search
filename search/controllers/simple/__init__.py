@@ -73,6 +73,7 @@ def search(request_params: dict) -> Response:
 
     # Fall back to form-based search.
     form = SimpleSearchForm(request_params)
+    q = None
     if form.validate():
         logger.debug('form is valid')
         q = _query_from_form(form)
@@ -96,7 +97,7 @@ def search(request_params: dict) -> Response:
     else:
         logger.debug('form is invalid: %s' % str(form.errors))
         q = None
-        response_data['query'] = q
+    response_data['query'] = q
     response_data['form'] = form
     return response_data, status.HTTP_200_OK, {}
 

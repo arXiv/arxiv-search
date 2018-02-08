@@ -3,10 +3,8 @@
 {% import "search/search-macros.html" as search_macros %}
 
 {% block title %}
-    {% if query and results %}
+    {% if results %}
         Showing {{ metadata.total }} results for {{ query.field }}: {{ query.value }}
-    {% elif query and not results %}
-        Sorry, your query for <span class="is-warning">{{ query.field }}: {{ query.value }}</span> produced no results
     {% else %}
         Search
     {% endif %}
@@ -58,9 +56,14 @@
   </div>
 </form>
 
+{% if query and not results %}
+  <div class="is-size-4 has-text-warning">
+    Sorry, your query for <span class="is-warning">{{ query.field }}: {{ query.value }}</span> produced no results.
+  </div>
+{% endif %}
+
 {% if results %}
     {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
-
 {% endif %}
 
 {% endblock %}
