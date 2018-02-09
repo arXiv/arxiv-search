@@ -170,6 +170,10 @@
           "type": "date",
           "format": "strict_date_time_no_millis"
         },
+        "announced_date_first": {
+          "type": "date",
+          "format": "year_month"
+        },
         "doi": {
           "type": "keyword"
         },

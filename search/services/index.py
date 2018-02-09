@@ -267,7 +267,7 @@ class SearchSession(object):
         """
         Add a document to the search index.
 
-        Uses ``metadata_id`` as the primary identifier for the document. If the
+        Uses ``paper_id_v`` as the primary identifier for the document. If the
         document is already indexed, will quietly overwrite.
 
         Paramters
@@ -283,8 +283,12 @@ class SearchSession(object):
             Problem serializing ``document`` for indexing.
         """
         try:
+            self.es.index
             self.es.index(index=self.index, doc_type='document',
-                          id=document['paper_id'], body=document)
+                          id=document['paper_id_v'], body=document)
+            if document['is_current']:
+                self.es.index(index=self.index, doc_type='document',
+                              id=document['paper_id'], body=document)
         except SerializationError as e:
             raise QueryError('Problem serializing document: %s' % e) from e
         except TransportError as e:
