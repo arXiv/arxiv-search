@@ -84,7 +84,7 @@ class SchemaBase(Base):
         if key in self or not hasattr(self, key):
             self[key] = value
             return
-        setattr(SchemaBase, self).__setattr__(key, value)
+        super(SchemaBase, self).__setattr__(key, value)
 
     @property
     def valid(self):
