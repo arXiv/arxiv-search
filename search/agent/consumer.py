@@ -184,7 +184,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             document = transform.to_search_document(docmeta)
         except Exception as e:
             # At the moment we don't have any special exceptions.
-            logger.error('unhandled exception during transform')
+            logger.error('unhandled exception during transform: %s', e)
             raise DocumentFailed('Could not transform document') from e
         return document
 

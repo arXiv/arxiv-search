@@ -20,15 +20,8 @@ def _prepareSubmitter(meta: DocMeta) -> dict:
     return meta['submitter']
 
 
-# QUESTION: is it not true that we are no longer expecting information about
-# previous versions in the docmeta response?
 def _constructSubDate(meta: DocMeta) -> list:
-    # previous_versions = meta.get('previous_versions', [])
-    # current = _reformatDate(meta['created'])
-    # previous = [_reformatDate(v['created']) for v in previous_versions]
-    # previous = list(filter(lambda o: o is not None, previous))
-    # return list(sorted([current] + previous))[::-1]
-    return [_reformatDate(meta['created'])]
+    return _reformatDate(meta['submitted_date'])
 
 
 def _constructPaperVersion(meta: DocMeta) -> str:
@@ -71,6 +64,7 @@ _transformations = [
     ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
     ("submitted_date", _constructSubDate),
+    ("submitted_date_all", _constructSubDateAll),
     ("modified_date", lambda meta: _reformatDate(meta['modtime'])),
     ("updated_date", lambda meta: _reformatDate(meta['updated'])),
     ("is_current", "is_current"),
