@@ -8,8 +8,17 @@
     font-size: 1.05em; }
 
 /* may want to move this section up to baseui */
+.is-monospace {
+  font-family: monospace; }
+
+.pagination-list {
+  margin: 0; }
+
 .pagination-list li {
   list-style: none; }
+
+.pagination-list li + li {
+  margin: 0; }
 
 .fieldset {
   border: 1px solid #DBDBDB;
@@ -18,8 +27,7 @@
   margin: 1em 0; }
 
 .fieldset.is-warning {
-  border: 1px solid #d47500;
-}
+  border: 1px solid #d47500; }
 
 .legend {
   font-weight: 600;

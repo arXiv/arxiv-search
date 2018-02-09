@@ -162,6 +162,10 @@
           "type": "date",
           "format": "strict_date_time_no_millis"
         },
+        "submitted_date_all": {
+          "type": "date",
+          "format": "strict_date_time_no_millis"
+        },
         "updated_date": {
           "type": "date",
           "format": "strict_date_time_no_millis"

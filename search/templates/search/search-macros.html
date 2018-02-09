@@ -88,10 +88,11 @@
 
 {% macro search_results(form, results, metadata, external_url, url_for_page) %}
 
-<ol start="{{ metadata.start + 1}}"> {# Start index is 0-based. #}
 {% if metadata.total_pages > 1 %}
   {{ pagination(metadata, url_for_page) }}
 {% endif %}
+
+<ol start="{{ metadata.start + 1}}"> {# Start index is 0-based. #}
 
 {% for result in results %}
   <li class="arxiv-result">
