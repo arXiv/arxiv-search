@@ -335,8 +335,9 @@ class SearchSession(object):
             Problem serializing ``document`` for indexing.
         """
         try:
+            ident = document.get('id', document['paper_id'])
             self.es.index(index=self.index, doc_type='document',
-                          id=document['paper_id'], body=document)
+                          id=ident, body=document)
         except SerializationError as e:
             raise IndexingError('Problem serializing document: %s' % e) from e
         except TransportError as e:

@@ -4,8 +4,8 @@ import json
 import os
 import click
 from search.factory import create_web_app
-from search.services import index, metadata
-from search.process import transform
+from search.agent import MetadataRecordProcessor, DocumentFailed, \
+    IndexingFailed
 
 app = create_web_app()
 app.app_context().push()
@@ -19,33 +19,44 @@ app.app_context().push()
 def populate(print_indexable, paper_id):
     """Populate the search index with some test data."""
     # Create cache directory if it doesn't exist
-    cache_path_tmpl = 'tests/data/temp/%s.json'
-    cache_dir = os.path.dirname(cache_path_tmpl)
+    # cache_path_tmpl = 'tests/data/temp/%s.json'
+    # cache_dir = os.path.dirname(cache_path_tmpl)
+    cache_dir = os.path.abspath('tests/data/temp')
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
 
     with open('tests/data/sample.json') as f:
         TO_INDEX = json.load(f).get('sample')
 
+    MAX_ERRORS = int(os.environ.get('MAX_ERRORS', 5))
+
+    processor = MetadataRecordProcessor()
+    processor.init_cache(cache_dir)
+
+    error_count = 0
+    index_count = 0
     if paper_id:
         TO_INDEX = [{'id': paper_id}]
     for doc in TO_INDEX:
-        # Look for a local copy first.
-        cache_path = cache_path_tmpl % doc['id'].replace('/', '_')
-        if os.path.exists(cache_path):
-            with open(cache_path) as f:
-                docmeta = json.load(f)
-        else:
-            # retrieve the metadata for the document
-            docmeta = metadata.retrieve(doc['id'])
-            with open(cache_path, 'w') as f:
-                json.dump(docmeta, f)
-        document = transform.to_search_document(docmeta)
+        if error_count > MAX_ERRORS:
+            click.echo('Too many failed documents; aborting.')
+            return
+
+        arxiv_id = doc.get('id')
+        if 'v' in arxiv_id:
+            arxiv_id = arxiv_id.split('v')[0]
+        try:
+            document = processor.index_paper(arxiv_id)
+        except DocumentFailed:
+            error_count += 1
+        except IndexingFailed as e:
+            click.echo('Indexing failed, aborting: %s' % str(e))
+
         if print_indexable:
             print(document.json())
-        index.add_document(document)
-
+        index_count += 1
         click.echo(doc['id'])
+    click.echo(f'Indexed {index_count} documents')
 
 
 if __name__ == '__main__':

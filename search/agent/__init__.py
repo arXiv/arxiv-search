@@ -10,4 +10,4 @@ and becomes available for discovery via the :mod:`search.routes.ui` and
 :mod:`search.routes.external_api`.
 """
 
-from .consumer import MetadataRecordProcessor
+from .consumer import MetadataRecordProcessor, DocumentFailed, IndexingFailed

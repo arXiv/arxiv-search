@@ -2,6 +2,7 @@
 
 import json
 import time
+import os
 from search import logging
 from search.services import metadata, index
 from search.process import transform
@@ -29,7 +30,69 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         """Initialize exception counter."""
         super(MetadataRecordProcessor, self).__init__(*args, **kwargs)
         self._error_count = 0
+        self._cache = None
 
+    def init_cache(self, cache_dir: str) -> None:
+        """Configure the processor to use a local cache for docmeta."""
+        if not os.path.exists(cache_dir):
+            raise ValueError(f'cache_dir does not exist: {cache_dir}')
+        self._cache = cache_dir
+
+    def _from_cache(self, arxiv_id: str) -> DocMeta:
+        """
+        Get the docmeta document from a local cache, if available.
+
+        Parameters
+        ----------
+        arxiv_id : str
+
+        Returns
+        -------
+        :class:`.DocMeta`
+
+        Raises
+        ------
+        RuntimeError
+            Raised when the cache is not available, or the document could not
+            be found in the cache.
+        """
+        if not self._cache:
+            raise RuntimeError('Cache not set')
+
+        fname = '%s.json' % arxiv_id.replace('/', '_')
+        cache_path = os.path.join(self._cache, fname)
+        if not os.path.exists(cache_path):
+            raise RuntimeError('No cached document')
+
+        with open(cache_path) as f:
+            return DocMeta(json.load(f).items())
+
+    def _to_cache(self, arxiv_id: str, docmeta: DocMeta) -> None:
+        """
+        Add a document to the local cache, if available.
+
+        Parameters
+        ----------
+        arxiv_id : str
+        docmeta : :class:`.DocMeta`
+
+        Raises
+        ------
+        RuntimeError
+            Raised when the cache is not available, or the document could not
+            be added to the cache.
+        """
+        if not self._cache:
+            raise RuntimeError('Cache not set')
+        fname = '%s.json' % arxiv_id.replace('/', '_')
+        cache_path = os.path.join(self._cache, fname)
+        try:
+            with open(cache_path, 'w') as f:
+                json.dump(dict(docmeta.items()), f)
+        except Exception as e:
+            raise RuntimeError(str(e)) from e
+
+    # TODO: bring McCabe index down.
     def _get_metadata(self, arxiv_id: str) -> DocMeta:
         """
         Retrieve metadata from the :mod:`.metadata` service.
@@ -53,9 +116,19 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             Indexing of the document failed in a way that indicates recovery
             is unlikely for subsequent papers.
         """
+        logger.debug(f'{arxiv_id}: get metadata')
+        try:
+            return self._from_cache(arxiv_id)
+        except Exception as e:  # Low tolerance for failure,
+            rsn = str(e)
+            logger.debug(f'{arxiv_id}: could not retrieve from cache: {rsn}')
+            pass
+
         try:
             logger.debug(f'{arxiv_id}: requesting metadata')
             docmeta = metadata.retrieve(arxiv_id)
+
+        # TODO: use a context manager for retry?
         except metadata.ConnectionFailed as e:
             # The metadata service will retry bad responses, but not connection
             # errors. Sometimes it just takes another try, so why not.
@@ -78,9 +151,16 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         except Exception as e:
             logger.error(f'{arxiv_id}: unhandled error from metadata service')
             raise IndexingFailed('Unhandled exception') from e
+
+        try:
+            self._to_cache(arxiv_id, docmeta)
+        except Exception as e:
+            rsn = str(e)
+            logger.debug(f'{arxiv_id}: could not add to cache: {rsn}')
+            pass
         return docmeta
 
-    def _transform_to_document(docmeta: DocMeta) -> Document:
+    def _transform_to_document(self, docmeta: DocMeta) -> Document:
         """
         Transform paper :class:`.DocMeta` to a search :class:`.Document`.
 
@@ -104,7 +184,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             document = transform.to_search_document(docmeta)
         except Exception as e:
             # At the moment we don't have any special exceptions.
-            logger.error(f'{arxiv_id}: unhandled exception during transform')
+            logger.error('unhandled exception during transform')
             raise DocumentFailed('Could not transform document') from e
         return document
 
@@ -134,12 +214,12 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             except index.IndexConnectionError as e:   # Nope, not happening.
                 raise IndexingFailed('Could not index document') from e
         except Exception as e:
-            logger.error(f'{arxiv_id}: unhandled exception from index service')
+            logger.error('unhandled exception from index service')
             raise IndexingFailed('Unhandled exception') from e
 
     # TODO: update this based on the final verdict on submission/announcement
     #  dates.
-    def index_paper(self, arxiv_id: str) -> None:
+    def index_paper(self, arxiv_id: str) -> Document:
         """
         Index a paper, including its previous versions.
 
@@ -159,9 +239,10 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         """
         try:
             docmeta = self._get_metadata(arxiv_id)
-            document = self._transform_to_search_document(docmeta)
+            document = self._transform_to_document(docmeta)
 
-            current_version = docmeta.get('version', None)
+            current_version = docmeta.version
+            logger.debug(f'current version is {current_version}')
             if current_version is not None and current_version > 1:
                 for version in range(1, current_version):
                     ver_docmeta = self._get_metadata(f'{arxiv_id}v{version}')
@@ -169,22 +250,27 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
                     # The earlier versions are here primarily to respond to
                     # queries that explicitly specify the version number.
-                    ver_document['is_latest'] = False
+                    ver_document.is_current = False
 
                     # Attach submission dates from earlier versions so that
                     # they respond to queries for earlier time periods.
-                    document['submission_dates'].append(
-                        ver_docmeta['submission_date']
+                    document.submitted_date.append(
+                        ver_document.submitted_date[0]
                     )
                     # Add a reference to the most recent version.
-                    ver_document['latest'] = f'{arxiv_id}v{current_version}'
+                    ver_document.latest = f'{arxiv_id}v{current_version}'
+                    # Set the primary document ID to the version-specied
+                    # arXiv identifier, to avoid clobbering the latest version.
+                    ver_document.id = f'{arxiv_id}v{version}'
+                    self._add_to_index(ver_document)
 
             # Finally, index the most recent version.
-            document['is_latest'] = True
+            document.is_current = True
             self._add_to_index(document)
         except (DocumentFailed, IndexingFailed) as e:
             # We just pass these along so that process_record() can keep track.
             raise
+        return document
 
     # TODO: verify notification payload on MetadataIsAvailable stream.
     def process_record(self, data: bytes, partition_key: bytes,
