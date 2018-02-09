@@ -235,22 +235,28 @@ class SearchSession(object):
             search = search.sort(*sort_params)
         return search
 
+    def _get_base_search(self) -> Search:
+        return Search(using=self.es, index=self.index)\
+            .filter("term", is_current=True)
+
     def _prepare(self, query: AdvancedQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
-        search = Search(using=self.es, index=self.index)
-        search = search.query(
+        search = self._get_base_search()
+        q = (
             self._fielded_terms_to_q(query)
             & self._daterange_to_q(query)
             & self._classifications_to_q(query)
         )
+        # q &= Q("match", is_current=True)
+        search = search.query(q)
         search = self._apply_sort(query, search)
         return search
 
     def _prepare_simple(self, query: SimpleQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
-        search = Search(using=self.es, index=self.index)
+        search = self._get_base_search()
         if query.field == 'all':
-            search = search.query(
+            q = (
                 Q('nested', path='authors', query=(
                     _Q('match', 'authors__first_name__folded', query.value)
                     |
@@ -266,7 +272,7 @@ class SearchSession(object):
                 _Q('match', 'abstract__tex', query.value)
             )
         elif query.field == 'author':
-            search = search.query(
+            q = (
                 Q('nested', path='authors', query=(
                     _Q('match', 'authors__first_name__folded', query.value)
                     |
@@ -274,16 +280,18 @@ class SearchSession(object):
                 ))
             )
         else:
-            search = search.query(
+            q = (
                 _Q('match', f'{query.field}__english', query.value)
                 |
                 _Q('match', f'{query.field}__tex', query.value)
             )
+        # q &= Q("match", is_current=True)
+        search = search.query(q)
         search = self._apply_sort(query, search)
         return search
 
     def _prepare_author(self, query: AuthorQuery) -> Search:
-        search = Search(using=self.es, index=self.index)
+        search = self._get_base_search()
         q = Q()
         for au in query.authors:
             _q = _Q('match', 'authors__last_name__folded', au.surname)
@@ -299,8 +307,10 @@ class SearchSession(object):
                 )
 
             q &= Q('nested', path='authors', query=_q)
+        # q &= Q("match", is_current=True)
+        search = search.query(q)
         search = self._apply_sort(query, search)
-        return search.query(q)
+        return search
 
     def create_index(self, mappings: dict) -> None:
         """
