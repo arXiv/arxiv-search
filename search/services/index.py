@@ -24,6 +24,10 @@ class IndexConnectionError(IOError):
     """There was a problem connecting to the search index."""
 
 
+class IndexingError(IOError):
+    """There was a problem adding a document to the index."""
+
+
 class QueryError(ValueError):
     """
     Elasticsearch could not handle the query.
@@ -334,7 +338,7 @@ class SearchSession(object):
             self.es.index(index=self.index, doc_type='document',
                           id=document['paper_id'], body=document)
         except SerializationError as e:
-            raise QueryError('Problem serializing document: %s' % e) from e
+            raise IndexingError('Problem serializing document: %s' % e) from e
         except TransportError as e:
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e

@@ -10,3 +10,4 @@ elasticsearch-dsl==6.1.0
 wtforms==2.1
 arxiv-base>=0.1
 pytz==2017.3
+amazon-kclpy==1.4.4

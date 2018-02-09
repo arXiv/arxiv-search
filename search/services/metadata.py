@@ -6,6 +6,7 @@ import json
 from functools import wraps
 
 import requests
+from requests.packages.urllib3.util.retry import Retry
 
 from arxiv import status
 from search.context import get_application_config, get_application_global
@@ -16,13 +17,36 @@ from search.domain import DocMeta
 logger = logging.getLogger(__name__)
 
 
+class RequestFailed(IOError):
+    """The metadata endpoint returned an unexpected status code."""
+
+
+class ConnectionFailed(IOError):
+    """Could not connect to the metadata service."""
+
+
+class SecurityException(ConnectionFailed):
+    """Raised when SSL connection fails."""
+
+
+class BadResponse(IOError):
+    """The response from the metadata service was malformed."""
+
+
 class DocMetaSession(object):
     """An HTTP session with the docmeta endpoint."""
 
     def __init__(self, endpoint: str) -> None:
         """Initialize an HTTP session."""
         self._session = requests.Session()
-        self._adapter = requests.adapters.HTTPAdapter(max_retries=2)
+        self._retry = Retry(
+            total=10,
+            read=10,
+            connect=10,
+            status=10,
+            backoff_factor=0.5
+        )
+        self._adapter = requests.adapters.HTTPAdapter(max_retries=self._retry)
         self._session.mount('https://', self._adapter)
 
         if not endpoint[-1] == '/':
@@ -52,17 +76,25 @@ class DocMetaSession(object):
         try:
             response = requests.get(urljoin(self.endpoint, document_id))
         except requests.exceptions.SSLError as e:
-            raise IOError('SSL failed: %s' % e)
+            raise SecurityException('SSL failed: %s' % e) from e
+        except requests.exceptions.ConnectionError as e:
+            raise ConnectionFailed(
+                'Could not connect to metadata service: %s' % e
+            ) from e
 
         if response.status_code not in \
                 [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]:
-            raise IOError('%s: could not retrieve metadata: %i' %
-                          (document_id, response.status_code))
+            raise RequestFailed(
+                '%s: failed with %i: %s' % (
+                    document_id, response.status_code, response.content
+                )
+            )
         try:
             data = DocMeta(response.json())
         except json.decoder.JSONDecodeError as e:
-            raise IOError('%s: could not decode response: %s' %
-                          (document_id, e)) from e
+            raise BadResponse(
+                '%s: could not decode response: %s' % (document_id, e)
+            ) from e
         return data
 
     def ok(self) -> bool:
@@ -75,7 +107,7 @@ class DocMetaSession(object):
             return r.ok
         except IOError as e:
             logger.debug('connection to metadata endpoint failed with %s', e)
-        return False
+            return False
 
 
 def init_app(app: object = None) -> None:

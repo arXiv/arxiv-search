@@ -33,7 +33,6 @@ class SimpleSearchForm(Form):
 
     def validate_query(form: Form, field: StringField) -> None:
         """Validate the length of the querystring, if searchtype is set."""
-        print(form.searchtype.data)
         if form.searchtype.data is None or form.searchtype.data == 'None':
             return
         if not form.query.data or len(form.query.data) < 1:
