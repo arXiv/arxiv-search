@@ -68,19 +68,17 @@
                 <button type="button"
                   data-toggle="fieldset-remove-row"
                   id="term-{{loop.index0}}-remove"
-                  class="button fieldset-hidden-on-first-row"
+                  class="button is-monospace fieldset-hidden-on-first-row"
                   aria-label="Remove this search term"
                   {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}
-                  >
-                    {# TODO: need something less hacky to get add/remove buttons the same width. #}
-                    <span style="width: 8.016px;">–</span>
+                  >–
                 </button>
               </div>
             </div>
           {% endfor %}
           <div class="control is-clearfix">
             <button type="button"
-              class="button is-pulled-right"
+              class="button is-monospace is-pulled-right"
               data-toggle="fieldset-add-row"
               data-target="#terms-fieldset"
               aria-label="Add another term">+
