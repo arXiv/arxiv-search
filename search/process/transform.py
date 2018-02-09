@@ -5,6 +5,7 @@ from typing import Optional
 from search.domain import Document, DocMeta, Fulltext
 
 
+# QUESTION: is this still necessary? Input and output formats look the same.
 def _reformatDate(datestring: str,
                   output_format: str = '%Y-%m-%dT%H:%M:%S%z') -> str:
     """Recast DocMeta date format to ES date format."""
@@ -19,14 +20,15 @@ def _prepareSubmitter(meta: DocMeta) -> dict:
     return meta['submitter']
 
 
+# QUESTION: is it not true that we are no longer expecting information about
+# previous versions in the docmeta response?
 def _constructSubDate(meta: DocMeta) -> list:
-    previous_versions = meta.get('previous_versions', [])
-    current = _reformatDate(meta['created'])
-    previous = [_reformatDate(v['created']) for v in previous_versions]
-    # TODO: comparison should probably be done on datetime objects, not strings
-    # now that dates are no longer YYMMDD
-    previous = list(filter(lambda o: o is not None, previous))
-    return list(sorted([current] + previous))[::-1]
+    # previous_versions = meta.get('previous_versions', [])
+    # current = _reformatDate(meta['created'])
+    # previous = [_reformatDate(v['created']) for v in previous_versions]
+    # previous = list(filter(lambda o: o is not None, previous))
+    # return list(sorted([current] + previous))[::-1]
+    return [_reformatDate(meta['created'])]
 
 
 def _constructPaperVersion(meta: DocMeta) -> str:
@@ -63,14 +65,12 @@ def _constructAuthors(meta: DocMeta) -> dict:
 
 
 _transformations = [
+    ('id', 'paper_id'),
     ('abstract', 'abstract'),
     ('authors', _constructAuthors),
     ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
-
     ("submitted_date", _constructSubDate),
-    ("submitted_date_first", lambda meta: _constructSubDate(meta)[-1]),
-    ("submitted_date_latest", lambda meta: _reformatDate(meta['created'])),
     ("modified_date", lambda meta: _reformatDate(meta['modtime'])),
     ("updated_date", lambda meta: _reformatDate(meta['updated'])),
     ("is_current", "is_current"),
@@ -90,7 +90,6 @@ _transformations = [
     ("metadata_id", "metadata_id"),
     ("journal_ref", "journal_ref_utf8"),
     ("is_withdrawn", "is_withdrawn"),
-    ("is_current", "is_current"),
     ("doi", "doi"),
     ("comments", "comments_utf8"),
     ("acm_class", _constructACMClass),
