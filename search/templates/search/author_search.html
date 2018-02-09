@@ -112,7 +112,7 @@
 {% macro size_and_order(form) %}
 <div class="level">
   <div class="level-left">
-    <form method="GET" action="{{ url_for('ui.advanced_search') }}">
+    <form method="GET" action="{{ url_for('ui.author_search') }}">
       <div style="display: none;">
         {% for field in form %}
           {% if field != form.size and field != form.order %}

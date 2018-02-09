@@ -252,11 +252,6 @@ class MetadataRecordProcessor(BaseRecordProcessor):
                     # queries that explicitly specify the version number.
                     ver_document.is_current = False
 
-                    # Attach submission dates from earlier versions so that
-                    # they respond to queries for earlier time periods.
-                    document.submitted_date.append(
-                        ver_document.submitted_date[0]
-                    )
                     # Add a reference to the most recent version.
                     ver_document.latest = f'{arxiv_id}v{current_version}'
                     # Set the primary document ID to the version-specied
