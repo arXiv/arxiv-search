@@ -43,11 +43,11 @@ def _constructAuthors(meta: DocMeta) -> dict:
 
 
 _transformations = [
+    ('id', 'paper_id'),
     ('abstract', 'abstract'),
     ('authors', _constructAuthors),
     ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
-
     ("submitted_date", "submitted_date"),
     ("submitted_date_first",
         lambda meta: meta.get('submitted_date_all', [])[0]),
@@ -73,7 +73,6 @@ _transformations = [
     ("metadata_id", "metadata_id"),
     ("journal_ref", "journal_ref_utf8"),
     ("is_withdrawn", "is_withdrawn"),
-    ("is_current", "is_current"),
     ("doi", "doi"),
     ("comments", "comments_utf8"),
     ("acm_class", _constructACMClass),

@@ -141,9 +141,22 @@ class TestAdvancedSearchForm(TestCase):
         form = AdvancedSearchForm(data)
         self.assertTrue(form.validate())
 
+    def test_term_starts_with_wildcard(self):
+        """User has entered a string that starts with a wildcard."""
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': '*foo'
+        })
+        form = AdvancedSearchForm(data)
+        self.assertFalse(form.validate(), "Form should be invalid")
+
     def test_only_one_date_selection_allowed(self):
         """If the user selects more than one date option, form is invalid."""
         data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
             'date-past_12': True,
             'date-specific_year': True,
             'date-year': '2012'
@@ -155,6 +168,9 @@ class TestAdvancedSearchForm(TestCase):
     def test_specific_year_must_be_specified(self):
         """If the user selects specific year, they must indicate a year."""
         data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
             'date-specific_year': True,
         })
         form = AdvancedSearchForm(data)
@@ -162,6 +178,9 @@ class TestAdvancedSearchForm(TestCase):
         self.assertEqual(len(form.errors), 1)
 
         data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
             'date-specific_year': True,
             'date-year': '2012'
         })
@@ -171,6 +190,9 @@ class TestAdvancedSearchForm(TestCase):
     def test_date_range_must_be_specified(self):
         """If the user selects date range, they must indicate start or end."""
         data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
             'date-date_range': True,
         })
         form = AdvancedSearchForm(data)
@@ -178,6 +200,9 @@ class TestAdvancedSearchForm(TestCase):
         self.assertEqual(len(form.errors), 1)
 
         data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
             'date-date_range': True,
             'date-from_date': '2012-02-05'
         })
@@ -185,6 +210,9 @@ class TestAdvancedSearchForm(TestCase):
         self.assertTrue(form.validate())
 
         data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
             'date-date_range': True,
             'date-to_date': '2012-02-05'
         })
@@ -194,6 +222,9 @@ class TestAdvancedSearchForm(TestCase):
     def test_year_must_be_after_1990(self):
         """If the user selects a specific year, it must be after 1990."""
         data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
             'date-specific_year': True,
             'date-year': '1990'
         })
@@ -201,6 +232,9 @@ class TestAdvancedSearchForm(TestCase):
         self.assertFalse(form.validate())
 
         data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
             'date-specific_year': True,
             'date-year': '1991'
         })

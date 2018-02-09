@@ -72,6 +72,20 @@ class SchemaBase(Base):
 
     __schema__ = None
 
+    def __getattr__(self, key: str) -> Any:
+        try:
+            super(SchemaBase, self).__getattr__(key)
+        except AttributeError:
+            if key in self:
+                return self[key]
+        raise AttributeError('No such attribute')
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        if key in self or not hasattr(self, key):
+            self[key] = value
+            return
+        super(SchemaBase, self).__setattr__(key, value)
+
     @property
     def valid(self):
         """Indicate whether the domain object is valid, per its __schema__."""

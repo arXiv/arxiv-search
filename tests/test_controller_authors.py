@@ -156,6 +156,15 @@ class TestAuthorSearchForm(TestCase):
         form = AuthorSearchForm(data)
         self.assertTrue(form.validate(), "Form should be valid")
 
+    def test_value_starts_with_wildcard(self):
+        """User has entered a value that starts with wildcard."""
+        data = MultiDict({
+            'authors-0-forename': '*david',
+            'authors-0-surname': 'davis'
+        })
+        form = AuthorSearchForm(data)
+        self.assertFalse(form.validate(), "Form should be invalid")
+
 
 class TestRewriteSimpleParams(TestCase):
     """Tests for :func:`.authors._rewrite_simple_params`."""

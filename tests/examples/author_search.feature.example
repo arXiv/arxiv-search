@@ -1,0 +1,21 @@
+Feature: Author Search
+
+  Users should be able to search for all or part of an author's name.
+  This should produce a list of sortable results, including variations on
+  possible diacritic letters.
+  - Wildcards allowed except in first letter position
+  - Surname required, forename optional
+
+  Scenario: searching for a surname
+    Given surname field is "schroder"
+    When user performs a search
+    Then a list of results is returned
+    And all entries contain at least one author with surname "schroder" or diacritic variant "Schrøder" or "Schröder" or "Schrœder" (or others)
+
+  Scenario: searching for a partial name
+
+    Given forename field is "W."
+    And surname field is "W"
+    When a user performs a search
+    Then a list of results is returned
+    And all entries contain at least one author with the forename "W." and the surname fragment "W"

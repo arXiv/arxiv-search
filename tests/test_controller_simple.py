@@ -278,3 +278,12 @@ class TestQueryFromForm(TestCase):
         self.assertIsInstance(query, SimpleQuery,
                               "Should return an instance of SimpleQuery")
         self.assertIsNone(query.order, "Order should be None")
+
+    def test_querystring_has_wildcard_at_start(self):
+        """Querystring starts with a wildcard."""
+        data = MultiDict({
+            'searchtype': 'title',
+            'query': '*foo title'
+        })
+        form = SimpleSearchForm(data)
+        self.assertFalse(form.validate(), "Form should be invalid")

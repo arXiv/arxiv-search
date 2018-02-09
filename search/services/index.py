@@ -1,7 +1,9 @@
 """Integration with search index."""
 
 import json
+import re
 from math import floor
+from typing import Tuple
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError
@@ -22,6 +24,10 @@ class IndexConnectionError(IOError):
     """There was a problem connecting to the search index."""
 
 
+class IndexingError(IOError):
+    """There was a problem adding a document to the index."""
+
+
 class QueryError(ValueError):
     """
     Elasticsearch could not handle the query.
@@ -33,6 +39,51 @@ class QueryError(ValueError):
 
 class DocumentNotFound(RuntimeError):
     """Could not find a requested document in the search index."""
+
+
+# We'll compile this ahead of time, since it gets called quite a lot.
+STRING_LITERAL = re.compile(r"(['\"][^'\"]*['\"])")
+
+
+def _wildcardEscape(querystring: str) -> Tuple[str, bool]:
+    """
+    Detect wildcard characters, and escape any that occur within a literal.
+
+    Parameters
+    ----------
+    querystring : str
+
+    Returns
+    -------
+    str
+        Query string with wildcard characters enclosed in literals escaped.
+    bool
+        If a non-literal wildcard character is present, returns True.
+    """
+    # This should get caught by the controller (form validation), but just
+    # in case we should check for it here.
+    if querystring.startswith('?') or querystring.startswith('*'):
+        raise QueryError('Query cannot start with a wildcard')
+
+    # Escape wildcard characters within string literals.
+    # re.sub() can't handle the complexity, sadly...
+    parts = re.split(STRING_LITERAL, querystring)
+    parts = [part.replace('*', '\*').replace('?', '\?')
+             if part.startswith('"') or part.startswith("'") else part
+             for part in parts]
+    querystring = "".join(parts)
+
+    # Only unescaped wildcard characters should remain.
+    wildcard = re.search(r'(?<!\\)([\*\?])', querystring) is not None
+    return querystring, wildcard
+
+
+def _Q(qtype: str, field: str, value: str) -> Q:
+    """Construct a :class:`.Q`, but handle wildcards first."""
+    value, wildcard = _wildcardEscape(value)
+    if wildcard:
+        return Q('wildcard', **{field: value})
+    return Q(qtype, **{field: value})
 
 
 class SearchSession(object):
@@ -93,15 +144,15 @@ class SearchSession(object):
     def _field_term_to_q(term) -> Q:
         if term.field in ['title', 'abstract']:
             return (
-                Q("match", **{f'{term.field}__tex': term.term})
-                | Q("match", **{f'{term.field}__english': term.term})
+                _Q("match", f'{term.field}__tex', term.term)
+                | _Q("match", f'{term.field}__english', term.term)
             )
         elif term.field == 'author':
             return Q('nested', path='authors', query=(
-                Q('match', **{'authors__first_name__folded': term.term}) |
-                Q('match', **{'authors__last_name__folded': term.term})
+                _Q('match', 'authors__first_name__folded', term.term) |
+                _Q('match', 'authors__last_name__folded', term.term)
             ))
-        return Q("match", **{term.field: term.term})
+        return _Q("match", term.field, term.term)
 
     @staticmethod
     def _grouped_terms_to_q(term_pair: tuple) -> Bool:
@@ -135,8 +186,18 @@ class SearchSession(object):
                 .strftime('%Y-%m-%dT%H:%M:%S%z')
         return Q('range', submitted_date=params)
 
+    @classmethod
+    def _fielded_terms_to_q(cls, query: Query) -> Match:
+        if len(query.terms) == 1:
+            return SearchSession._field_term_to_q(query.terms[0])
+            # return Q("match", **{query.terms[0].field: query.terms[0].term})
+        elif len(query.terms) > 1:
+            terms = cls._group_terms(query)
+            return cls._grouped_terms_to_q(terms)
+        return Q('match_all')
+
     @staticmethod
-    def _class_to_q(field: str, classification: Classification) \
+    def _classification_to_q(field: str, classification: Classification) \
             -> Match:
         q = Q()
         if classification.group:
@@ -151,24 +212,15 @@ class SearchSession(object):
         return Q('nested', path=field, query=q)
 
     @classmethod
-    def _fielded_terms_to_q(cls, query: Query) -> Match:
-        if len(query.terms) == 1:
-            return SearchSession._field_term_to_q(query.terms[0])
-            # return Q("match", **{query.terms[0].field: query.terms[0].term})
-        elif len(query.terms) > 1:
-            terms = cls._group_terms(query)
-            return cls._grouped_terms_to_q(terms)
-        return Q('match_all')
-
-    @classmethod
     def _classifications_to_q(cls, query: Query) -> Match:
         if not query.primary_classification:
             return Q()
-        q = cls._class_to_q('primary_classification',
-                            query.primary_classification[0])
+        q = cls._classification_to_q('primary_classification',
+                                     query.primary_classification[0])
         if len(query.primary_classification) > 1:
             for classification in query.primary_classification[1:]:
-                q |= cls._class_to_q('primary_classification', classification)
+                q |= cls._classification_to_q('primary_classification',
+                                              classification)
         return q
 
     @classmethod
@@ -200,32 +252,32 @@ class SearchSession(object):
         if query.field == 'all':
             search = search.query(
                 Q('nested', path='authors', query=(
-                    Q('match', **{'authors__first_name__folded': query.value})
+                    _Q('match', 'authors__first_name__folded', query.value)
                     |
-                    Q('match', **{'authors__last_name__folded': query.value})
+                    _Q('match', 'authors__last_name__folded', query.value)
                 ))
                 |
-                Q('match', **{'title__english': query.value})
+                _Q('match', 'title__english', query.value)
                 |
-                Q('match', **{'title__tex': query.value})
+                _Q('match', 'title__tex', query.value)
                 |
-                Q('match', **{'abstract__english': query.value})
+                _Q('match', 'abstract__english', query.value)
                 |
-                Q('match', **{'abstract__tex': query.value})
+                _Q('match', 'abstract__tex', query.value)
             )
         elif query.field == 'author':
             search = search.query(
                 Q('nested', path='authors', query=(
-                    Q('match', **{'authors__first_name__folded': query.value})
+                    _Q('match', 'authors__first_name__folded', query.value)
                     |
-                    Q('match', **{'authors__last_name__folded': query.value})
+                    _Q('match', 'authors__last_name__folded', query.value)
                 ))
             )
         else:
             search = search.query(
-                Q('match', **{f'{query.field}__english': query.value})
+                _Q('match', f'{query.field}__english', query.value)
                 |
-                Q('match', **{f'{query.field}__tex': query.value})
+                _Q('match', f'{query.field}__tex', query.value)
             )
         search = self._apply_sort(query, search)
         return search
@@ -234,14 +286,14 @@ class SearchSession(object):
         search = Search(using=self.es, index=self.index)
         q = Q()
         for au in query.authors:
-            _q = Q('match', **{'authors__last_name__folded': au.surname})
+            _q = _Q('match', 'authors__last_name__folded', au.surname)
 
             if au.forename:    # Try as both forename and initials.
                 _q_init = Q()
                 for i in au.forename.replace('.', ' ').split():
-                    _q_init &= Q('match', **{'authors__initials__folded': i})
+                    _q_init &= _Q('match', 'authors__initials__folded', i)
                 _q &= (
-                    Q('match', **{'authors__first_name__folded': au.forename})
+                    _Q('match', 'authors__first_name__folded', au.forename)
                     |
                     _q_init
                 )
@@ -283,14 +335,11 @@ class SearchSession(object):
             Problem serializing ``document`` for indexing.
         """
         try:
-            self.es.index
+            ident = document.get('id', document['paper_id'])
             self.es.index(index=self.index, doc_type='document',
-                          id=document['paper_id_v'], body=document)
-            if document['is_current']:
-                self.es.index(index=self.index, doc_type='document',
-                              id=document['paper_id'], body=document)
+                          id=ident, body=document)
         except SerializationError as e:
-            raise QueryError('Problem serializing document: %s' % e) from e
+            raise IndexingError('Problem serializing document: %s' % e) from e
         except TransportError as e:
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
