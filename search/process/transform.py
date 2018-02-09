@@ -5,30 +5,8 @@ from typing import Optional
 from search.domain import Document, DocMeta, Fulltext
 
 
-# QUESTION: is this still necessary? Input and output formats look the same.
-def _reformatDate(datestring: str,
-                  output_format: str = '%Y-%m-%dT%H:%M:%S%z') -> str:
-    """Recast DocMeta date format to ES date format."""
-    try:
-        asdate = datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%S%z')
-    except ValueError:
-        return
-    return asdate.strftime(output_format)
-
-
 def _prepareSubmitter(meta: DocMeta) -> dict:
     return meta['submitter']
-
-
-# QUESTION: is it not true that we are no longer expecting information about
-# previous versions in the docmeta response?
-def _constructSubDate(meta: DocMeta) -> list:
-    # previous_versions = meta.get('previous_versions', [])
-    # current = _reformatDate(meta['created'])
-    # previous = [_reformatDate(v['created']) for v in previous_versions]
-    # previous = list(filter(lambda o: o is not None, previous))
-    # return list(sorted([current] + previous))[::-1]
-    return [_reformatDate(meta['created'])]
 
 
 def _constructPaperVersion(meta: DocMeta) -> str:
@@ -70,9 +48,17 @@ _transformations = [
     ('authors', _constructAuthors),
     ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
-    ("submitted_date", _constructSubDate),
-    ("modified_date", lambda meta: _reformatDate(meta['modtime'])),
-    ("updated_date", lambda meta: _reformatDate(meta['updated'])),
+    ("submitted_date", "submitted_date"),
+    ("submitted_date_all",
+        lambda meta: meta.get('submitted_date_all', [])
+        if meta.get('is_current') else None),
+    ("submitted_date_first",
+        lambda meta: meta.get('submitted_date_all', [])[0]),
+    ("submitted_date_latest",
+        lambda meta: meta.get('submitted_date_all', [])[-1]),
+    ("modified_date", "modified_date"),
+    ("updated_date", "updated_date"),
+    ("announced_date_first", "announced_date_first"),
     ("is_current", "is_current"),
     ("is_withdrawn", "is_withdrawn"),
     ("license", "license"),

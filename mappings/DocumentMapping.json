@@ -162,6 +162,10 @@
           "type": "date",
           "format": "strict_date_time_no_millis"
         },
+        "submitted_date_all": {
+          "type": "date",
+          "format": "strict_date_time_no_millis"
+        },
         "updated_date": {
           "type": "date",
           "format": "strict_date_time_no_millis"
@@ -169,6 +173,10 @@
         "modified_date": {
           "type": "date",
           "format": "strict_date_time_no_millis"
+        },
+        "announced_date_first": {
+          "type": "date",
+          "format": "year_month"
         },
         "doi": {
           "type": "keyword"
@@ -211,7 +219,7 @@
           "type": "keyword"
         },
         "primary_classification": {
-          "type": "nested",
+          "type": "object",
           "properties": {
             "group": {
               "type": "object",
@@ -345,6 +353,9 @@
             "tex": {
               "type": "text",
               "analyzer": "tex_analyzer"
+            },
+            "keyword": {
+              "type": "keyword"
             }
           }
         },

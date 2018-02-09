@@ -319,7 +319,7 @@ class SearchSession(object):
         """
         Add a document to the search index.
 
-        Uses ``metadata_id`` as the primary identifier for the document. If the
+        Uses ``paper_id_v`` as the primary identifier for the document. If the
         document is already indexed, will quietly overwrite.
 
         Paramters
