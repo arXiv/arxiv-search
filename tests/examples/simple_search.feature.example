@@ -1,0 +1,26 @@
+Feature: Simple Search
+
+  Users should be able to enter terms and expressions into a basic search box.
+  Users should also be able to select from a simple list of metadata in which to search.
+  A list of results is generated containing the results across the metadata fields selected.
+
+  Scenario: simple term search across all fields
+    Given search entry is "flux capacitor"
+    And selected field to search is "All fields"
+    When a user performs a search
+    Then a list of results is displayed
+    And all entries contain a metadata field that contains "flux"
+    And all entries contain a metadata field that contains "capacitor"
+
+  Scenario: search for TeX terms
+    This could be a scenario for any of the search forms and is a test of how and whether the TeX tokenizing works.
+    A search for a TeX expression should match similar metadata strings.
+    Note, I am not sure if this is supposed to happen:
+    This "$z$" also produces results for "z" (not wrapped in TeX)
+    "λ" produces no results but "lambda" and "$\lambda$" do
+
+    Given search entry is "$z_1$"
+    And selected field to search is "All fields"
+    When a user performs a search
+    Then a list of results is displayed
+    And all entries contain a metadata field that contains the expression "z_1"
