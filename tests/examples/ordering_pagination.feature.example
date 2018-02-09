@@ -1,0 +1,12 @@
+Feature: Ordering and Pagination
+
+  Users should be able to change the number of entries per page for results.
+  Users should also be able to reorder results by relevance, ascending date,
+  descending date.
+
+  Scenario: reordering from author search
+    Given surname field is "cat*"
+    And search form used is "Author Search"
+    And "Submission date (ascending)" is selected
+    When user presses "Go" to trigger reordering
+    Then the list of results is displayed in order of ascending submission date
