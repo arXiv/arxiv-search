@@ -49,6 +49,9 @@ _transformations = [
     ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
     ("submitted_date", "submitted_date"),
+    ("submitted_date_all",
+        lambda meta: meta.get('submitted_date_all', [])
+        if meta.get('is_current') else None),
     ("submitted_date_first",
         lambda meta: meta.get('submitted_date_all', [])[0]),
     ("submitted_date_latest",
