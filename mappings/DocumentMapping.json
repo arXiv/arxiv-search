@@ -215,7 +215,7 @@
           "type": "keyword"
         },
         "primary_classification": {
-          "type": "nested",
+          "type": "object",
           "properties": {
             "group": {
               "type": "object",
