@@ -3,6 +3,7 @@
 import json
 import re
 from math import floor
+from datetime import datetime
 from typing import Tuple
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
@@ -448,7 +449,17 @@ class SearchSession(object):
         """Transform an ES search result back into a :class:`.Document`."""
         result = {}
         for key in dir(raw):
-            result[key] = getattr(raw, key)
+            value = getattr(raw, key)
+            if key in ['submitted_date', 'submitted_date_first',
+                       'submitted_date_latest']:
+                try:
+                    value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S%z')
+                except ValueError:
+                    logger.warning(
+                        f'Could not parse {key}: {value} as datetime'
+                    )
+                    pass
+            result[key] = value
         # result = raw['_source']
         result['score'] = raw.meta.score
         return Document(result)

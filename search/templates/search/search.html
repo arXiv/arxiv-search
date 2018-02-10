@@ -63,6 +63,7 @@
 {% endif %}
 
 {% if results %}
+    {{ search_macros.size_and_order(form, url_for('ui.search')) }}
     {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
 {% endif %}
 
