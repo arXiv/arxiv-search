@@ -18,6 +18,7 @@ CATEGORIES = [
 
 class ArXivConverter(BaseConverter):
     """Route converter for arXiv IDs."""
+    # pylint: ignore=W0612
 
     regex = ("((?:(?:(?:%s)(?:[.][A-Z]{2})?/[0-9]{2}(?:0[1-9]|1[0-2])"
              "\\d{3}(?:[vV]\\d+)?))|(?:(?:[0-9]{2}(?:0[1-9]|1[0-2])[.]"

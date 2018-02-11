@@ -7,7 +7,7 @@ from flask import current_app as flask_app
 import werkzeug
 
 
-def get_application_config(app: Flask=None) -> Union[dict, os._Environ]:
+def get_application_config(app: Flask = None) -> Union[dict, os._Environ]:
     """
     Get a configuration from the current app, or fall back to env.
 
