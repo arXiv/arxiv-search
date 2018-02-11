@@ -1,6 +1,9 @@
 """Integration with search index."""
 
 import json
+import re
+from math import floor
+from typing import Tuple
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError
@@ -12,9 +15,75 @@ from elasticsearch_dsl.query import Range, Match, Bool
 from search.context import get_application_config, get_application_global
 from search import logging
 from search.domain import Document, DocumentSet, Query, DateRange, \
-    Classification
+    Classification, AdvancedQuery, SimpleQuery, AuthorQuery
 
 logger = logging.getLogger(__name__)
+
+
+class IndexConnectionError(IOError):
+    """There was a problem connecting to the search index."""
+
+
+class IndexingError(IOError):
+    """There was a problem adding a document to the index."""
+
+
+class QueryError(ValueError):
+    """
+    Elasticsearch could not handle the query.
+
+    This is likely due either to a programming error that resulted in a bad
+    index, or to a mal-formed query.
+    """
+
+
+class DocumentNotFound(RuntimeError):
+    """Could not find a requested document in the search index."""
+
+
+# We'll compile this ahead of time, since it gets called quite a lot.
+STRING_LITERAL = re.compile(r"(['\"][^'\"]*['\"])")
+
+
+def _wildcardEscape(querystring: str) -> Tuple[str, bool]:
+    """
+    Detect wildcard characters, and escape any that occur within a literal.
+
+    Parameters
+    ----------
+    querystring : str
+
+    Returns
+    -------
+    str
+        Query string with wildcard characters enclosed in literals escaped.
+    bool
+        If a non-literal wildcard character is present, returns True.
+    """
+    # This should get caught by the controller (form validation), but just
+    # in case we should check for it here.
+    if querystring.startswith('?') or querystring.startswith('*'):
+        raise QueryError('Query cannot start with a wildcard')
+
+    # Escape wildcard characters within string literals.
+    # re.sub() can't handle the complexity, sadly...
+    parts = re.split(STRING_LITERAL, querystring)
+    parts = [part.replace('*', '\*').replace('?', '\?')
+             if part.startswith('"') or part.startswith("'") else part
+             for part in parts]
+    querystring = "".join(parts)
+
+    # Only unescaped wildcard characters should remain.
+    wildcard = re.search(r'(?<!\\)([\*\?])', querystring) is not None
+    return querystring, wildcard
+
+
+def _Q(qtype: str, field: str, value: str) -> Q:
+    """Construct a :class:`.Q`, but handle wildcards first."""
+    value, wildcard = _wildcardEscape(value)
+    if wildcard:
+        return Q('wildcard', **{field: value})
+    return Q(qtype, **{field: value})
 
 
 class SearchSession(object):
@@ -35,7 +104,7 @@ class SearchSession(object):
 
         Raises
         ------
-        IOError
+        IndexConnectionError
             Problem communicating with Elasticsearch host.
         """
         logger.debug('init ES session for index "%s" at %s:%s',
@@ -46,7 +115,9 @@ class SearchSession(object):
                                     connection_class=Urllib3HttpConnection,
                                     **extra)
         except ElasticsearchException as e:
-            raise IOError('Could not initialize ES session: %s' % e) from e
+            raise IndexConnectionError(
+                'Could not initialize ES session: %s' % e
+            ) from e
 
     @staticmethod
     def _get_operator(obj):
@@ -70,17 +141,31 @@ class SearchSession(object):
         return terms[0]
 
     @staticmethod
+    def _field_term_to_q(term) -> Q:
+        if term.field in ['title', 'abstract']:
+            return (
+                _Q("match", f'{term.field}__tex', term.term)
+                | _Q("match", f'{term.field}__english', term.term)
+            )
+        elif term.field == 'author':
+            return Q('nested', path='authors', query=(
+                _Q('match', 'authors__first_name__folded', term.term) |
+                _Q('match', 'authors__last_name__folded', term.term)
+            ))
+        return _Q("match", term.field, term.term)
+
+    @staticmethod
     def _grouped_terms_to_q(term_pair: tuple) -> Bool:
         """Generate a :class:`.Q` from grouped terms."""
         term_a, operator, term_b = term_pair
         if type(term_a) is tuple:
             term_a = SearchSession._grouped_terms_to_q(term_a)
         else:
-            term_a = Q("match", **{term_a.field: term_a.term})
+            term_a = SearchSession._field_term_to_q(term_a)
         if type(term_b) is tuple:
             term_b = SearchSession._grouped_terms_to_q(term_b)
         else:
-            term_b = Q("match", **{term_b.field: term_b.term})
+            term_b = SearchSession._field_term_to_q(term_b)
         if operator == 'OR':
             return term_a | term_b
         elif operator == 'AND':
@@ -94,13 +179,25 @@ class SearchSession(object):
             return Q()
         params = {}
         if query.date_range.start_date:
-            params["gte"] = query.date_range.start_date.strftime('%Y%m%d')
+            params["gte"] = query.date_range.start_date \
+                .strftime('%Y-%m-%dT%H:%M:%S%z')
         if query.date_range.end_date:
-            params["lt"] = query.date_range.end_date.strftime('%Y%m%d')
-        return Q('range', publication_date=params)
+            params["lt"] = query.date_range.end_date\
+                .strftime('%Y-%m-%dT%H:%M:%S%z')
+        return Q('range', submitted_date=params)
+
+    @classmethod
+    def _fielded_terms_to_q(cls, query: Query) -> Match:
+        if len(query.terms) == 1:
+            return SearchSession._field_term_to_q(query.terms[0])
+            # return Q("match", **{query.terms[0].field: query.terms[0].term})
+        elif len(query.terms) > 1:
+            terms = cls._group_terms(query)
+            return cls._grouped_terms_to_q(terms)
+        return Q('match_all')
 
     @staticmethod
-    def _class_to_q(field: str, classification: Classification) \
+    def _classification_to_q(field: str, classification: Classification) \
             -> Match:
         q = Q()
         if classification.group:
@@ -115,43 +212,95 @@ class SearchSession(object):
         return Q('nested', path=field, query=q)
 
     @classmethod
-    def _fielded_terms_to_q(cls, query: Query) -> Match:
-        if len(query.terms) == 1:
-            return Q("match", **{query.terms[0].field: query.terms[0].term})
-        elif len(query.terms) > 1:
-            terms = cls._group_terms(query)
-            return cls._grouped_terms_to_q(terms)
-        return Q()
-
-    @classmethod
     def _classifications_to_q(cls, query: Query) -> Match:
         if not query.primary_classification:
             return Q()
-        q = cls._class_to_q('primary_classification',
-                            query.primary_classification[0])
+        q = cls._classification_to_q('primary_classification',
+                                     query.primary_classification[0])
         if len(query.primary_classification) > 1:
             for classification in query.primary_classification[1:]:
-                q |= cls._class_to_q('primary_classification', classification)
+                q |= cls._classification_to_q('primary_classification',
+                                              classification)
         return q
 
     @classmethod
     def _get_sort_parameters(cls, query: Query) -> list:
-        if not query.order:
+        if query.order is None:
             return
         return [query.order]
 
-    def _prepare(self, query: Query) -> Search:
-        """Generate an ES :class:`.Search` from a :class:`.Query`."""
+    def _apply_sort(self, query: Query, search: Search) -> Search:
+        sort_params = self._get_sort_parameters(query)
+        if sort_params is not None:
+            search = search.sort(*sort_params)
+        return search
+
+    def _prepare(self, query: AdvancedQuery) -> Search:
+        """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
         search = Search(using=self.es, index=self.index)
         search = search.query(
             self._fielded_terms_to_q(query)
             & self._daterange_to_q(query)
             & self._classifications_to_q(query)
         )
-        sort_params = self._get_sort_parameters(query)
-        if sort_params:
-            search = search.sort(*sort_params)
+        search = self._apply_sort(query, search)
         return search
+
+    def _prepare_simple(self, query: SimpleQuery) -> Search:
+        """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
+        search = Search(using=self.es, index=self.index)
+        if query.field == 'all':
+            search = search.query(
+                Q('nested', path='authors', query=(
+                    _Q('match', 'authors__first_name__folded', query.value)
+                    |
+                    _Q('match', 'authors__last_name__folded', query.value)
+                ))
+                |
+                _Q('match', 'title__english', query.value)
+                |
+                _Q('match', 'title__tex', query.value)
+                |
+                _Q('match', 'abstract__english', query.value)
+                |
+                _Q('match', 'abstract__tex', query.value)
+            )
+        elif query.field == 'author':
+            search = search.query(
+                Q('nested', path='authors', query=(
+                    _Q('match', 'authors__first_name__folded', query.value)
+                    |
+                    _Q('match', 'authors__last_name__folded', query.value)
+                ))
+            )
+        else:
+            search = search.query(
+                _Q('match', f'{query.field}__english', query.value)
+                |
+                _Q('match', f'{query.field}__tex', query.value)
+            )
+        search = self._apply_sort(query, search)
+        return search
+
+    def _prepare_author(self, query: AuthorQuery) -> Search:
+        search = Search(using=self.es, index=self.index)
+        q = Q()
+        for au in query.authors:
+            _q = _Q('match', 'authors__last_name__folded', au.surname)
+
+            if au.forename:    # Try as both forename and initials.
+                _q_init = Q()
+                for i in au.forename.replace('.', ' ').split():
+                    _q_init &= _Q('match', 'authors__initials__folded', i)
+                _q &= (
+                    _Q('match', 'authors__first_name__folded', au.forename)
+                    |
+                    _q_init
+                )
+
+            q &= Q('nested', path='authors', query=_q)
+        search = self._apply_sort(query, search)
+        return search.query(q)
 
     def create_index(self, mappings: dict) -> None:
         """
@@ -170,7 +319,7 @@ class SearchSession(object):
         """
         Add a document to the search index.
 
-        Uses ``metadata_id`` as the primary identifier for the document. If the
+        Uses ``paper_id_v`` as the primary identifier for the document. If the
         document is already indexed, will quietly overwrite.
 
         Paramters
@@ -180,18 +329,21 @@ class SearchSession(object):
 
         Raises
         ------
-        IOError
+        IndexConnectionError
             Problem communicating with Elasticsearch host.
-        ValueError
+        QueryError
             Problem serializing ``document`` for indexing.
         """
         try:
+            ident = document.get('id', document['paper_id'])
             self.es.index(index=self.index, doc_type='document',
-                          id=document['paper_id'], body=document)
+                          id=ident, body=document)
         except SerializationError as e:
-            raise ValueError('Problem serializing document: %s' % e) from e
+            raise IndexingError('Problem serializing document: %s' % e) from e
         except TransportError as e:
-            raise IOError('Problem communicating with ES: %s' % e) from e
+            raise IndexConnectionError(
+                'Problem communicating with ES: %s' % e
+            ) from e
 
     def get_document(self, document_id: int) -> Document:
         """
@@ -210,17 +362,22 @@ class SearchSession(object):
 
         Raises
         ------
-        IOError
+        IndexConnectionError
+            Problem communicating with the search index.
+        QueryError
+            Invalid query parameters.
         """
         try:
             record = self.es.get(index=self.index, doc_type='document',
                                  id=document_id)
         except SerializationError as e:
-            raise ValueError('Problem serializing document: %s' % e) from e
+            raise QueryError('Problem serializing document: %s' % e) from e
         except TransportError as e:
-            raise IOError('Problem communicating with ES: %s' % e) from e
+            raise IndexConnectionError(
+                'Problem communicating with ES: %s' % e
+            ) from e
         if not record:
-            return
+            raise DocumentNotFound('No such document')
         return Document(record['_source'])
 
     def search(self, query: Query) -> DocumentSet:
@@ -237,25 +394,36 @@ class SearchSession(object):
 
         Raises
         ------
-        IOError
+        IndexConnectionError
             Problem communicating with the search index.
-        ValueError
+        QueryError
             Invalid query parameters.
         """
         logger.debug('got search request %s', str(query))
-        try:
+        if isinstance(query, AdvancedQuery):
             search = self._prepare(query)
+        elif isinstance(query, SimpleQuery):
+            search = self._prepare_simple(query)
+        elif isinstance(query, AuthorQuery):
+            search = self._prepare_author(query)
+        logger.debug(str(search.to_dict()))
+
+        try:
             results = search[query.page_start:query.page_end].execute()
         except TransportError as e:
             if e.error == 'parsing_exception':
-                raise ValueError(e.info) from e
-            raise IOError('Problem communicating with ES: %s' % e) from e
+                raise QueryError(e.info) from e
+            raise IndexConnectionError(
+                'Problem communicating with ES: %s' % e
+            ) from e
 
         N_pages_raw = results['hits']['total']/query.page_size
-        N_pages = int(round(N_pages_raw)) + int(N_pages_raw % 1 > 0)
+        N_pages = int(floor(N_pages_raw)) + \
+            int(N_pages_raw % query.page_size > 0)
         logger.debug('got %i results', results['hits']['total'])
         return DocumentSet({
             'metadata': {
+                'start': query.page_start,
                 'total': results['hits']['total'],
                 'current_page': query.page,
                 'total_pages': N_pages,

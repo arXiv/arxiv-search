@@ -5,28 +5,8 @@ from typing import Optional
 from search.domain import Document, DocMeta, Fulltext
 
 
-def _reformatDate(datestring: str,
-                  output_format: str = '%Y-%m-%dT%H:%M:%S%z') -> str:
-    """Recast DocMeta date format to ES date format."""
-    try:
-        asdate = datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%S%z')
-    except ValueError:
-        return
-    return asdate.strftime(output_format)
-
-
 def _prepareSubmitter(meta: DocMeta) -> dict:
     return meta['submitter']
-
-
-def _constructPubDate(meta: DocMeta) -> list:
-    previous_versions = meta.get('previous_versions', [])
-    current = _reformatDate(meta['modtime'])
-    previous = [_reformatDate(v['modtime']) for v in previous_versions]
-    # TODO: comparison should probably be done on datetime objects, not strings
-    # now that dates are no longer YYMMDD
-    previous = list(filter(lambda o: o is not None, previous))
-    return list(sorted([current] + previous))[::-1]
 
 
 def _constructPaperVersion(meta: DocMeta) -> str:
@@ -52,16 +32,33 @@ def _constructACMClass(meta: DocMeta) -> dict:
     return [obj.strip() for obj in raw.split(';')]
 
 
+def _update_with_initials(author: dict) -> dict:
+    author['initials'] = [pt[0] for pt in author['first_name'].split() if pt]
+    return author
+
+
+def _constructAuthors(meta: DocMeta) -> dict:
+    return [_update_with_initials(author)
+            for author in meta.get("authors_parsed", [])]
+
+
 _transformations = [
+    ('id', 'paper_id'),
     ('abstract', 'abstract'),
-    ('authors', "authors_parsed"),
+    ('authors', _constructAuthors),
     ('authors_freeform', "authors_utf8"),
     ("author_owners", "author_owners"),
-    ("created_date", lambda meta: _reformatDate(meta['created'])),
-    ("publication_date", _constructPubDate),
-    ("publication_date_first", lambda meta: _constructPubDate(meta)[-1]),
-    ("publication_date_latest", lambda meta: _reformatDate(meta['modtime'])),
-    ("updated_date", lambda meta: _reformatDate(meta['updated'])),
+    ("submitted_date", "submitted_date"),
+    ("submitted_date_all",
+        lambda meta: meta.get('submitted_date_all', [])
+        if meta.get('is_current') else None),
+    ("submitted_date_first",
+        lambda meta: meta.get('submitted_date_all', [])[0]),
+    ("submitted_date_latest",
+        lambda meta: meta.get('submitted_date_all', [])[-1]),
+    ("modified_date", "modified_date"),
+    ("updated_date", "updated_date"),
+    ("announced_date_first", "announced_date_first"),
     ("is_current", "is_current"),
     ("is_withdrawn", "is_withdrawn"),
     ("license", "license"),
@@ -79,7 +76,6 @@ _transformations = [
     ("metadata_id", "metadata_id"),
     ("journal_ref", "journal_ref_utf8"),
     ("is_withdrawn", "is_withdrawn"),
-    ("is_current", "is_current"),
     ("doi", "doi"),
     ("comments", "comments_utf8"),
     ("acm_class", _constructACMClass),

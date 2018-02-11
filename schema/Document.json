@@ -135,24 +135,28 @@
             "description": "comments field with texisms converted to utf-8 equivalents",
             "type": ["string"]
         },
-        "publication_date_latest": {
-            "description": "Date this version of paper was announced",
+        "submitted_date": {
+            "description": "Date this version of paper was submitted",
             "type": "string"
         },
-        "publication_date_first": {
-            "description": "Date the first version of the paper was announced",
-            "type": "string"
-        },
-        "publication_date": {
-            "description": "Publication dates of all of the versions of this paper",
+        "submitted_date_all": {
+            "description": "Submitted dates of all of the versions of this paper",
             "type": "array",
             "items": {
                 "type": "string"
             },
             "minItems": 0
         },
+        "announced_first": {
+          "desription": "Date (year and month) the paper was originally announced",
+          "type": "string"
+        }
         "updated_date": {
             "description": "Date this version of paper was last touched",
+            "type": "string"
+        },
+        "modified_date": {
+            "description": "Date this version of paper .abs file was last modified",
             "type": "string"
         },
         "document_id": {
@@ -274,10 +278,9 @@
     "required": [
         "abstract",
         "authors",
-        "publication_date",
-        "publication_date_latest",
-        "publication_date_first",
-        "updated_date",
+        "submitted_date",
+        "submitted_date_latest",
+        "submitted_date_first",
         "is_current",
         "is_withdrawn",
         "license",

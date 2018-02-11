@@ -1,0 +1,38 @@
+Feature: Advanced Search
+
+  Scenario: date range search
+    Dates can be searched across all versions and the results show the most
+    current version. Not sure how to write the test to reflect this.
+
+    Given Specific year field is "2015"
+    When a user performs a search
+    Then a list of results is returned
+    And all entries contain at least one version with a submitted date field
+    that matches "2015"
+
+  Scenario: multiple terms search success
+
+  Note that the term "jqk" doesn't match any strings in our existing database
+  and is expected to fail. This test, combined with the one below, also checks
+  the boolean operators as well as whether two fields at once can be searched.
+  Anded results will have no results, ored results will have results.
+
+    Given first term field is "schroder"
+    And first field selected is "Author(s)"
+    And second term field is "jqk"
+    And second field selected is "Title"
+    And boolean operator is "OR"
+    When a user performs a search
+    Then a list of results is returned
+    And all entries contain the name "schroder" or the term "jqk"
+
+  Scenario: multiple terms with no results
+
+    Given first term field is "schroder"
+    And first field selected is "Author(s)"
+    And second term field is "jqk"
+    And second field selected is "Title"
+    And boolean operator is "AND"
+    When a user performs a search
+    Then no results are returned
+    And a message is displayed to the user

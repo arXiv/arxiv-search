@@ -10,14 +10,26 @@
 
 /* may want to move this section up to baseui */
 
+.is-monospace
+  font-family: monospace
+
+.pagination-list
+  margin: 0
+
 .pagination-list li
   list-style: none
+
+.pagination-list li + li // fixes override from content li + li
+  margin: 0
 
 .fieldset
   border: 1px solid #DBDBDB // $grey-lighter
   border-radius: 2px // $radius-small
   padding: .5em 1em 1em 1em
   margin: 1em 0
+
+.fieldset.is-warning
+  border: 1px solid #d47500
 
 .legend
   font-weight: 600 // $weight-semibold

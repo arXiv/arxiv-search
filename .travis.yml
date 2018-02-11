@@ -1,0 +1,13 @@
+language: python
+sudo: required
+cache: pip
+os:
+  - linux
+python:
+  - "3.6"
+script:
+  - pip install -r requirements.txt
+  - pip install nose2 coverage coveralls
+  - nose2 --with-coverage
+after_success:
+  - coveralls
