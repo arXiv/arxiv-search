@@ -81,7 +81,7 @@ def search(request_params: dict) -> Response:
 
             response_data['query'] = q
         else:
-            logger.debug('form is invalid: %s' % str(form.errors))
+            logger.debug('form is invalid: %s', str(form.errors))
             q = None
             response_data['query'] = q
             response_data['show_form'] = True
@@ -102,14 +102,14 @@ def _query_from_form(form: AuthorSearchForm) -> AuthorQuery:
     -------
     :class:`.AuthorQuery`
     """
-    query = AuthorQuery(authors=AuthorList([
+    q = AuthorQuery(authors=AuthorList([
         Author(forename=author['forename'], surname=author['surname'])
         for author in form.authors.data
     ]))
     order = form.order.data
     if order and order != 'None':
-        query.order = order
-    return query
+        q.order = order
+    return q
 
 
 def _rewrite_simple_params(params: dict) -> dict:

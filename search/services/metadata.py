@@ -135,9 +135,11 @@ def current_session():
 
 @wraps(DocMetaSession.retrieve)
 def retrieve(document_id: str) -> DocMeta:
+    """Retrieves an arxiv document by id."""
     return current_session().retrieve(document_id)
 
 
 @wraps(DocMetaSession.ok)
 def ok() -> bool:
+    """Return a 200 OK."""
     return current_session().ok()

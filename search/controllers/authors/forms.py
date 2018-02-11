@@ -1,3 +1,5 @@
+"""wtforms representations for an author."""
+
 from datetime import date
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
@@ -10,6 +12,7 @@ from search.controllers.util import doesNotStartWithWildcard
 
 
 class AuthorForm(Form):
+    # pylint: disable=missing-docstring,too-few-public-methods
     forename = StringField("Forename", validators=[validators.Length(min=1),
                                                    validators.Optional(),
                                                    doesNotStartWithWildcard])
@@ -18,6 +21,7 @@ class AuthorForm(Form):
 
 
 class AuthorSearchForm(Form):
+    # pylint: disable=missing-docstring,too-few-public-methods
     authors = FieldList(FormField(AuthorForm), min_entries=1)
     size = SelectField('results per page', default=25, choices=[
         ('25', '25'),

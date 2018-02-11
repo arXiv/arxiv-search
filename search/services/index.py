@@ -68,7 +68,7 @@ def _wildcardEscape(querystring: str) -> Tuple[str, bool]:
     # Escape wildcard characters within string literals.
     # re.sub() can't handle the complexity, sadly...
     parts = re.split(STRING_LITERAL, querystring)
-    parts = [part.replace('*', '\*').replace('?', '\?')
+    parts = [part.replace('*', r'\*').replace('?', r'\?')
              if part.startswith('"') or part.startswith("'") else part
              for part in parts]
     querystring = "".join(parts)
@@ -91,7 +91,7 @@ class SearchSession(object):
 
     # TODO: we need to take on security considerations here. Presumably we will
     # use SSL. Presumably we will use HTTP Auth, or something else.
-    def __init__(self, host: str, index: str, port: int=9200, **extra) -> None:
+    def __init__(self, host: str, index: str, port: int = 9200, **extra) -> None:
         """
         Initialize the connection to Elasticsearch.
 
@@ -121,7 +121,7 @@ class SearchSession(object):
 
     @staticmethod
     def _get_operator(obj):
-        if type(obj) is tuple:
+        if isinstance(obj, tuple):
             return SearchSession._get_operator(obj[0])
         return obj.operator
 
@@ -158,20 +158,26 @@ class SearchSession(object):
     def _grouped_terms_to_q(term_pair: tuple) -> Bool:
         """Generate a :class:`.Q` from grouped terms."""
         term_a, operator, term_b = term_pair
-        if type(term_a) is tuple:
+
+        if isinstance(term_a, tuple):
             term_a = SearchSession._grouped_terms_to_q(term_a)
         else:
             term_a = SearchSession._field_term_to_q(term_a)
-        if type(term_b) is tuple:
+
+        if isinstance(term_b, tuple):
             term_b = SearchSession._grouped_terms_to_q(term_b)
         else:
             term_b = SearchSession._field_term_to_q(term_b)
+
         if operator == 'OR':
             return term_a | term_b
         elif operator == 'AND':
             return term_a & term_b
         elif operator == 'NOT':
             return term_a & ~term_b
+        else:
+            # TODO: Discuss whether to throw an exception.
+            return None
 
     @staticmethod
     def _daterange_to_q(query: Query) -> Range:
@@ -226,8 +232,9 @@ class SearchSession(object):
     @classmethod
     def _get_sort_parameters(cls, query: Query) -> list:
         if query.order is None:
-            return
-        return [query.order]
+            return None
+        else:
+            return [query.order]
 
     def _apply_sort(self, query: Query, search: Search) -> Search:
         sort_params = self._get_sort_parameters(query)
@@ -476,16 +483,19 @@ def current_session():
 
 @wraps(SearchSession.search)
 def search(query: Query) -> DocumentSet:
+    """Retrieve search results."""
     return current_session().search(query)
 
 
 @wraps(SearchSession.add_document)
 def add_document(document: Document) -> None:
+    """Add Document."""
     return current_session().add_document(document)
 
 
 @wraps(SearchSession.get_document)
 def get_document(document_id: int) -> Document:
+    """Retrieve arxiv document by id."""
     return current_session().get_document(document_id)
 
 
@@ -493,6 +503,6 @@ def ok() -> bool:
     """Health check."""
     try:
         current_session()
-    except Exception as e:    # TODO: be more specific.
+    except:    # TODO: be more specific.
         return False
     return True

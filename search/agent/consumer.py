@@ -122,7 +122,6 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         except Exception as e:  # Low tolerance for failure,
             rsn = str(e)
             logger.debug(f'{arxiv_id}: could not retrieve from cache: {rsn}')
-            pass
 
         try:
             logger.debug(f'{arxiv_id}: requesting metadata')
@@ -157,7 +156,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         except Exception as e:
             rsn = str(e)
             logger.debug(f'{arxiv_id}: could not add to cache: {rsn}')
-            pass
+
         return docmeta
 
     def _transform_to_document(self, docmeta: DocMeta) -> Document:
@@ -186,6 +185,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             # At the moment we don't have any special exceptions.
             logger.error('unhandled exception during transform')
             raise DocumentFailed('Could not transform document') from e
+
         return document
 
     def _add_to_index(self, document: Document) -> None:
@@ -264,7 +264,9 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             self._add_to_index(document)
         except (DocumentFailed, IndexingFailed) as e:
             # We just pass these along so that process_record() can keep track.
-            raise
+            # TODO: Ensure this is the correct behavior.
+            raise e
+
         return document
 
     # TODO: verify notification payload on MetadataIsAvailable stream.
@@ -293,8 +295,8 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         try:
             deserialized = json.loads(data.decode('utf-8'))
         except Exception as e:
-            logger.error("Error while deserializing data: %s" % e)
-            logger.error("Data payload: %s" % data)
+            logger.error("Error while deserializing data: %s", e)
+            logger.error("Data payload: %s", data)
             return   # Don't bring down the whole batch.
 
         try:

@@ -12,7 +12,7 @@ class Author(Base):
         if self.forename:
             return f'{self.forename} {self.surname}'
         return self.surname
- 
+
 
 class AuthorList(list):
     """Represents a list of authors."""

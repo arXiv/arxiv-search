@@ -1,3 +1,5 @@
+"""wtforms representations for an advanced search."""
+
 from datetime import date
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
@@ -11,6 +13,7 @@ from search.controllers.util import doesNotStartWithWildcard
 
 class FieldForm(Form):
     """Subform for query parts on specific fields."""
+    # pylint: disable=too-few-public-methods
 
     term = StringField("Search term...", validators=[doesNotStartWithWildcard])
     operator = SelectField("Operator", choices=[
@@ -25,6 +28,7 @@ class FieldForm(Form):
 
 class ClassificationForm(Form):
     """Subform for selecting a classification to (disjunctively) filter by."""
+    # pylint: disable=too-few-public-methods
 
     computer_science = BooleanField('Computer science (cs)')
     economics = BooleanField('Economics (econ)')
@@ -90,6 +94,7 @@ class DateForm(Form):
 
 class AdvancedSearchForm(Form):
     """Replacement for the 'classic' advanced search interface."""
+    # pylint: disable=too-few-public-methods
 
     advanced = HiddenField('Advanced', default=1)
     """Used to indicate whether the form should be shown."""

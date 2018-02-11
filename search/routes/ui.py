@@ -6,10 +6,10 @@ from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
 from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, url_for
 from werkzeug.urls import Href, url_encode
-from search.controllers import simple, advanced, authors
-from arxiv import status
 
+from arxiv import status
 from search import logging
+from search.controllers import simple, advanced, authors
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,8 @@ def search():
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
           or code == status.HTTP_303_SEE_OTHER):
         return redirect(headers['Location'], code=code)
+    else:
+        return None
 
 
 @blueprint.route('/advanced', methods=['GET'])
@@ -46,7 +48,7 @@ def author_search():
 def _browse_url(name, **parameters):
     paper_id = parameters.get('paper_id')
     if paper_id is None:
-        return
+        return None
     if name == 'abstract':
         route = 'abs'
     elif name == 'pdf':
@@ -62,7 +64,7 @@ def external_url_builder() -> Dict[str, Callable]:
         """Build an URL to external endpoint."""
         if service == 'browse':
             return _browse_url(name, **parameters)
-        return
+        return None
     return dict(external_url=external_url)
 
 
