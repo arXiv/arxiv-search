@@ -2,9 +2,10 @@
 
 import re
 
+from werkzeug.routing import BaseConverter, ValidationError
+
 import search.util as util
 
-from werkzeug.routing import BaseConverter, ValidationError
 
 CATEGORIES = [
     "acc-phys", "adap-org", "alg-geom", "ao-sci", "astro-ph", "atom-ph",

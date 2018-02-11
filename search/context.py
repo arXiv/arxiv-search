@@ -21,6 +21,7 @@ def get_application_config(app: Flask = None) -> Union[dict, os._Environ]:
         This is either the current Flask application configuration, or
         ``os.environ``. Either of these should support the ``get()`` method.
     """
+    # pylint: disable=protected-access
     if app is not None:
         if isinstance(app, Flask):
             return app.config
