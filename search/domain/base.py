@@ -8,6 +8,7 @@ import jsonschema
 
 class Property(object):
     """Describes a named, typed property on a data structure."""
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, name: str, klass: Optional[Type] = None,
                  default: Any = None) -> None:
@@ -58,6 +59,7 @@ class Property(object):
 
 
 class Base(dict):
+    """Represents a basic search"""
     def __init__(self, from_iter: Optional[Iterable] = None, **kwargs):
         if from_iter is not None:
             super(Base, self).__init__(from_iter)
@@ -83,8 +85,8 @@ class SchemaBase(Base):
     def __setattr__(self, key: str, value: Any) -> None:
         if key in self or not hasattr(self, key):
             self[key] = value
-            return
-        super(SchemaBase, self).__setattr__(key, value)
+        else:
+            super(SchemaBase, self).__setattr__(key, value)
 
     @property
     def valid(self):
@@ -146,6 +148,8 @@ class DateRange(Base):
 
 
 class Classification(Base):
+    """Represents an arxiv classification."""
+
     group = Property('group', str)
     archive = Property('archive', str)
     category = Property('category', str)
@@ -161,6 +165,8 @@ class Classification(Base):
 
 
 class ClassificationList(list):
+    """Represents a list of arxiv classifications."""
+
     def __str__(self):
         """Build a string representation, for use in rendering."""
         return ', '.join([str(item) for item in self])

@@ -1,3 +1,5 @@
+"""Represents fielded search terms, with multiple operators."""
+
 from .base import Property, DateRange, Query, ClassificationList
 
 
@@ -14,12 +16,17 @@ class FieldedSearchTerm(dict):
 
 
 class FieldedSearchList(list):
+    """Represents a list of fielded search terms."""
     def __str__(self):
         """Build a string representation, for use in rendering."""
         return '; '.join([str(item) for item in self])
 
 
 class AdvancedQuery(Query):
+    """
+    Represents an advanced query using fielded search terms
+    and boolean operators.
+    """
     date_range = Property('date_range', DateRange)
     primary_classification = Property('primary_classification',
                                       ClassificationList)
