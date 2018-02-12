@@ -159,7 +159,8 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
         return docmeta
 
-    def _transform_to_document(self, docmeta: DocMeta) -> Document:
+    @staticmethod
+    def _transform_to_document(docmeta: DocMeta) -> Document:
         """
         Transform paper :class:`.DocMeta` to a search :class:`.Document`.
 
@@ -188,7 +189,8 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
         return document
 
-    def _add_to_index(self, document: Document) -> None:
+    @staticmethod
+    def _add_to_index(document: Document) -> None:
         """
         Add a :class:`.Document` to the search index.
 
@@ -239,14 +241,16 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         """
         try:
             docmeta = self._get_metadata(arxiv_id)
-            document = self._transform_to_document(docmeta)
+            document = MetadataRecordProcessor._transform_to_document(docmeta)
 
             current_version = docmeta.version
             logger.debug(f'current version is {current_version}')
             if current_version is not None and current_version > 1:
                 for version in range(1, current_version):
                     ver_docmeta = self._get_metadata(f'{arxiv_id}v{version}')
-                    ver_document = self._transform_to_document(ver_docmeta)
+                    ver_document =\
+                        MetadataRecordProcessor._transform_to_document(
+                            ver_docmeta)
 
                     # The earlier versions are here primarily to respond to
                     # queries that explicitly specify the version number.
@@ -257,11 +261,11 @@ class MetadataRecordProcessor(BaseRecordProcessor):
                     # Set the primary document ID to the version-specied
                     # arXiv identifier, to avoid clobbering the latest version.
                     ver_document.id = f'{arxiv_id}v{version}'
-                    self._add_to_index(ver_document)
+                    MetadataRecordProcessor._add_to_index(ver_document)
 
             # Finally, index the most recent version.
             document.is_current = True
-            self._add_to_index(document)
+            MetadataRecordProcessor._add_to_index(document)
         except (DocumentFailed, IndexingFailed) as e:
             # We just pass these along so that process_record() can keep track.
             # TODO: Ensure this is the correct behavior.

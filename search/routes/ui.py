@@ -26,8 +26,6 @@ def search():
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
           or code == status.HTTP_303_SEE_OTHER):
         return redirect(headers['Location'], code=code)
-    else:
-        return None
 
 
 @blueprint.route('/advanced', methods=['GET'])

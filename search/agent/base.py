@@ -164,7 +164,7 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
             logger.error("Encountered an exception while processing records."
                          " Exception was %s", e)
             logger.error("Seq: %i; Sub seq: %i; Key: %s", seq, sub_seq, key)
-            logger.error("{}", data)
+            logger.error(data)
 
     def process_record(self, data: bytes, partition_key: bytes,
                        sequence_number: int, sub_sequence_number: int) -> None:

@@ -14,7 +14,7 @@ curl -u $USERNAME:$GITHUB_TOKEN \
 
 
 # Check mypy integration
-#mypy -p search
+#mypy --ignore-missing-imports -p search
 #MYPY_STATUS=$?
 #if [ $MYPY_STATUS -ne 0 ]; then MYPY_STATE="failure" && echo "mypy failed"; else MYPY_STATE="success" &&  echo "mypy passed"; fi
 

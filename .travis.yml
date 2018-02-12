@@ -10,6 +10,6 @@ script:
   - pip install nose2 coverage coveralls
   - nose2 --with-coverage
 after_success:
-  - pip install pylint pydocstyle
+  - pip install pylint pydocstyle mypy
   - ./lintstats.sh
   - coveralls

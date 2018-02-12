@@ -66,7 +66,7 @@ class Property(object):
 class Base(dict):
     """Represents a basic search."""
 
-    def __init__(self, from_iter: Optional[Iterable] = None, **kwargs):
+    def __init__(self, from_iter: Optional[Iterable] = None, **kwargs) -> None:
         if from_iter is not None:
             super(Base, self).__init__(from_iter)
         else:
@@ -78,7 +78,7 @@ class Base(dict):
 class SchemaBase(Base):
     """Base for domain classes with schema validation."""
 
-    __schema__ = None
+    __schema__: str
 
     def __getattr__(self, key: str) -> Any:
         """Get a schema attribute."""
@@ -100,7 +100,7 @@ class SchemaBase(Base):
     def valid(self):
         """Indicate whether the domain object is valid, per its __schema__."""
         if self.__schema__ is None:    # No schema to validate against.
-            return
+            return None
         try:
             with open(self.__schema__) as f:
                 schema = json.load(f)

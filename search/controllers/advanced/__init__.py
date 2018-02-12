@@ -157,6 +157,7 @@ def _update_query_with_terms(q: AdvancedQuery, terms_data: list) \
 
 def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         -> AdvancedQuery:
+
     if date_data.get('all_dates'):    # Nothing to do; all dates by default.
         return q
     elif date_data.get('past_12'):

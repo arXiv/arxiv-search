@@ -236,28 +236,28 @@ class SearchSession(object):
         else:
             return [query.order]
 
-    def _apply_sort(self, query: Query, search: Search) -> Search:
+    def _apply_sort(self, query: Query, current_search: Search) -> Search:
         sort_params = self._get_sort_parameters(query)
         if sort_params is not None:
-            search = search.sort(*sort_params)
-        return search
+            current_search = current_search.sort(*sort_params)
+        return current_search
 
     def _prepare(self, query: AdvancedQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
-        search = Search(using=self.es, index=self.index)
-        search = search.query(
+        current_search = Search(using=self.es, index=self.index)
+        current_search = current_search.query(
             self._fielded_terms_to_q(query)
             & self._daterange_to_q(query)
             & self._classifications_to_q(query)
         )
-        search = self._apply_sort(query, search)
-        return search
+        current_search = self._apply_sort(query, current_search)
+        return current_search
 
     def _prepare_simple(self, query: SimpleQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
-        search = Search(using=self.es, index=self.index)
+        current_search = Search(using=self.es, index=self.index)
         if query.field == 'all':
-            search = search.query(
+            current_search = current_search.query(
                 Q('nested', path='authors', query=(
                     _Q('match', 'authors__first_name__folded', query.value)
                     |
@@ -273,7 +273,7 @@ class SearchSession(object):
                 _Q('match', 'abstract__tex', query.value)
             )
         elif query.field == 'author':
-            search = search.query(
+            current_search = current_search.query(
                 Q('nested', path='authors', query=(
                     _Q('match', 'authors__first_name__folded', query.value)
                     |
@@ -281,16 +281,16 @@ class SearchSession(object):
                 ))
             )
         else:
-            search = search.query(
+            current_search = current_search.query(
                 _Q('match', f'{query.field}__english', query.value)
                 |
                 _Q('match', f'{query.field}__tex', query.value)
             )
-        search = self._apply_sort(query, search)
-        return search
+        current_search = self._apply_sort(query, current_search)
+        return current_search
 
     def _prepare_author(self, query: AuthorQuery) -> Search:
-        search = Search(using=self.es, index=self.index)
+        current_search = Search(using=self.es, index=self.index)
         q = Q()
         for au in query.authors:
             _q = _Q('match', 'authors__last_name__folded', au.surname)
@@ -306,8 +306,8 @@ class SearchSession(object):
                 )
 
             q &= Q('nested', path='authors', query=_q)
-        search = self._apply_sort(query, search)
-        return search.query(q)
+        current_search = self._apply_sort(query, current_search)
+        return current_search.query(q)
 
     def create_index(self, mappings: dict) -> None:
         """
@@ -406,17 +406,17 @@ class SearchSession(object):
         QueryError
             Invalid query parameters.
         """
-        logger.debug('got search request %s', str(query))
+        logger.debug('got current_search request %s', str(query))
         if isinstance(query, AdvancedQuery):
-            search = self._prepare(query)
+            current_search = self._prepare(query)
         elif isinstance(query, SimpleQuery):
-            search = self._prepare_simple(query)
+            current_search = self._prepare_simple(query)
         elif isinstance(query, AuthorQuery):
-            search = self._prepare_author(query)
-        logger.debug(str(search.to_dict()))
+            current_search = self._prepare_author(query)
+        logger.debug(str(current_search.to_dict()))
 
         try:
-            results = search[query.page_start:query.page_end].execute()
+            results = current_search[query.page_start:query.page_end].execute()
         except TransportError as e:
             if e.error == 'parsing_exception':
                 raise QueryError(e.info) from e
@@ -439,8 +439,9 @@ class SearchSession(object):
             'results': list(map(self._transform, results))
         })
 
-    def _transform(self, raw: dict) -> Document:
+    def _transform(self, raw) -> Document:
         """Transform an ES search result back into a :class:`.Document`."""
+        # typing: ignore
         result = {}
         for key in dir(raw):
             result[key] = getattr(raw, key)
