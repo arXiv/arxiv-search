@@ -2,10 +2,10 @@
 
 import json
 import click
-from search.factory import create_web_app
+from search.factory import create_ui_web_app
 from search.services import index
 
-app = create_web_app()
+app = create_ui_web_app()
 app.app_context().push()
 
 

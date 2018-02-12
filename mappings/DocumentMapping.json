@@ -355,8 +355,7 @@
               "analyzer": "tex_analyzer"
             },
             "keyword": {
-              "type": "keyword",
-              "analyzer": "english"
+              "type": "keyword"
             }
           }
         },

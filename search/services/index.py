@@ -21,6 +21,10 @@ from search.domain import Document, DocumentSet, Query, DateRange, \
 logger = logging.getLogger(__name__)
 
 
+class MappingError(ValueError):
+    """There was a problem with the search document mapping."""
+
+
 class IndexConnectionError(IOError):
     """There was a problem connecting to the search index."""
 
@@ -326,7 +330,17 @@ class SearchSession(object):
             elastic.co/guide/en/elasticsearch/reference/current/mapping.html
         """
         logger.debug('create ES index "%s"', self.index)
-        self.es.indices.create(self.index, mappings, ignore=400)
+        try:
+            self.es.indices.create(self.index, mappings)
+        except TransportError as e:
+            if e.error == 'resource_already_exists_exception':
+                logger.debug('Index already exists; move along')
+            elif e.error == 'mapper_parsing_exception':
+                logger.error('Invalid document mapping; create index failed')
+                logger.debug(str(e.info))
+                raise MappingError('Invalid mapping: %s' % str(e.info)) from e
+            else:
+                raise RuntimeError('Unhandled exception: %s' % str(e)) from e
 
     def add_document(self, document: Document) -> None:
         """

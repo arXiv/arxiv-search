@@ -3,11 +3,11 @@
 import json
 import os
 import click
-from search.factory import create_web_app
+from search.factory import create_ui_web_app
 from search.agent import MetadataRecordProcessor, DocumentFailed, \
     IndexingFailed
 
-app = create_web_app()
+app = create_ui_web_app()
 app.app_context().push()
 
 
@@ -53,7 +53,7 @@ def populate(print_indexable, paper_id):
             click.echo('Indexing failed, aborting: %s' % str(e))
 
         if print_indexable:
-            print(document.json())
+            click.echo(document.json())
         index_count += 1
         click.echo(doc['id'])
     click.echo(f'Indexed {index_count} documents')

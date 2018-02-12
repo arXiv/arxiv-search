@@ -8,8 +8,8 @@ from search.converter import ArXivConverter
 from arxiv.base import Base
 
 
-def create_web_app() -> Flask:
-    """Initialize an instance of the extractor backend service."""
+def create_ui_web_app() -> Flask:
+    """Initialize an instance of the search frontend UI web application."""
     logging.getLogger('boto').setLevel(logging.ERROR)
     logging.getLogger('boto3').setLevel(logging.ERROR)
     logging.getLogger('botocore').setLevel(logging.ERROR)
@@ -22,5 +22,21 @@ def create_web_app() -> Flask:
 
     Base(app)
     app.register_blueprint(ui.blueprint)
+    return app
+
+
+def create_web_external_api_app() -> Flask:
+    """Initialize an instance of the search API application."""
+    logging.getLogger('boto').setLevel(logging.ERROR)
+    logging.getLogger('boto3').setLevel(logging.ERROR)
+    logging.getLogger('botocore').setLevel(logging.ERROR)
+
+    app = Flask('search')
+    app.config.from_pyfile('config.py')
+    app.url_map.converters['arxiv'] = ArXivConverter
+
+    index.init_app(app)
+
+    Base(app)
     app.register_blueprint(external_api.blueprint)
     return app

@@ -1,8 +1,13 @@
 """Responsible for transforming metadata & fulltext into a search document."""
 
 from datetime import datetime
+from string import punctuation
 from typing import Optional
 from search.domain import Document, DocMeta, Fulltext
+
+
+def _strip_punctuation(s):
+    return ''.join([c for c in s if c not in punctuation])
 
 
 def _prepareSubmitter(meta: DocMeta) -> dict:
@@ -33,7 +38,8 @@ def _constructACMClass(meta: DocMeta) -> dict:
 
 
 def _update_with_initials(author: dict) -> dict:
-    author['initials'] = [pt[0] for pt in author['first_name'].split() if pt]
+    fname = _strip_punctuation(author['first_name'])
+    author['initials'] = [pt[0] for pt in fname.split() if pt]
     return author
 
 

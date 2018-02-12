@@ -105,7 +105,7 @@ class SchemaBase(Base):
 
     def json(self):
         """Return the string representation of the instance in JSON."""
-        return json.dumps(self, default=lambda o: o.__dict__)
+        return json.dumps(self, default=lambda o: o.__dict__, indent=2)
 
     def __str__(self):
         """Build a string representation, for use in rendering."""
