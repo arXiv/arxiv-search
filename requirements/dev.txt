@@ -1,0 +1,11 @@
+certifi==2017.7.27.1
+chardet==3.0.4
+idna==2.6
+requests==2.18.4
+urllib3==1.22
+jsonschema>=2.6.0
+flask==0.12.2
+elasticsearch==6.1.1
+elasticsearch-dsl==6.1.0
+wtforms==2.1
+arxiv-base>=0.1

@@ -7,9 +7,9 @@ import json
 
 import requests
 
+from arxiv import status
 from search.context import get_application_config, get_application_global
 from search.domain import Fulltext
-from arxiv import status
 
 
 class FulltextSession(object):
@@ -103,9 +103,11 @@ def current_session():
 
 @wraps(FulltextSession.retrieve)
 def retrieve(document_id: str) -> Fulltext:
+    """Retrieves an arxiv document by id."""
     return current_session().retrieve(document_id)
 
 
 @wraps(FulltextSession.ok)
 def ok() -> bool:
+    """Return a 200 OK."""
     return current_session().ok()

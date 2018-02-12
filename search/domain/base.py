@@ -9,6 +9,8 @@ import jsonschema
 class Property(object):
     """Describes a named, typed property on a data structure."""
 
+    # pylint: disable=too-few-public-methods
+
     def __init__(self, name: str, klass: Optional[Type] = None,
                  default: Any = None) -> None:
         """Set the name, type, and default value for the property."""
@@ -19,12 +21,14 @@ class Property(object):
     def __get__(self, instance: Any, owner: Optional[Type] = None) -> Any:
         """
         Retrieve the value of property from the data instance.
+
         Parameters
         ----------
         instance : object
             The data structure instance on which the property is set.
         owner : type
             The class/type of ``instance``.
+
         Returns
         -------
         object
@@ -40,12 +44,14 @@ class Property(object):
     def __set__(self, instance: Any, value: Any) -> None:
         """
         Set the value of the property on the data instance.
+
         Parameters
         ----------
         instance : object
             The data structure instance on which the property is set.
         value : object
             The value to which the property should be set.
+
         Raises
         ------
         TypeError
@@ -58,7 +64,9 @@ class Property(object):
 
 
 class Base(dict):
-    def __init__(self, from_iter: Optional[Iterable] = None, **kwargs):
+    """Represents a basic search."""
+
+    def __init__(self, from_iter: Optional[Iterable] = None, **kwargs) -> None:
         if from_iter is not None:
             super(Base, self).__init__(from_iter)
         else:
@@ -70,9 +78,10 @@ class Base(dict):
 class SchemaBase(Base):
     """Base for domain classes with schema validation."""
 
-    __schema__ = None
+    __schema__: str
 
     def __getattr__(self, key: str) -> Any:
+        """Get a schema attribute."""
         try:
             super(SchemaBase, self).__getattr__(key)
         except AttributeError:
@@ -81,16 +90,17 @@ class SchemaBase(Base):
         raise AttributeError('No such attribute')
 
     def __setattr__(self, key: str, value: Any) -> None:
+        """Set a schema attribute."""
         if key in self or not hasattr(self, key):
             self[key] = value
-            return
-        super(SchemaBase, self).__setattr__(key, value)
+        else:
+            super(SchemaBase, self).__setattr__(key, value)
 
     @property
     def valid(self):
         """Indicate whether the domain object is valid, per its __schema__."""
         if self.__schema__ is None:    # No schema to validate against.
-            return
+            return None
         try:
             with open(self.__schema__) as f:
                 schema = json.load(f)
@@ -146,6 +156,8 @@ class DateRange(Base):
 
 
 class Classification(Base):
+    """Represents an arxiv classification."""
+
     group = Property('group', str)
     archive = Property('archive', str)
     category = Property('category', str)
@@ -161,6 +173,8 @@ class Classification(Base):
 
 
 class ClassificationList(list):
+    """Represents a list of arxiv classifications."""
+
     def __str__(self):
         """Build a string representation, for use in rendering."""
         return ', '.join([str(item) for item in self])
@@ -187,6 +201,7 @@ class Query(SchemaBase):
 
 class SimpleQuery(Query):
     """A query on a single field with a single value."""
+
     field = Property('field', str)
     value = Property('value', str)
 

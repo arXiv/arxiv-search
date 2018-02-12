@@ -14,6 +14,7 @@ def json_response(func):
     """Generate a wrapper for routes that JSONifies the response body."""
     @wraps(func)
     def wrapper(*args, **kwargs):
+        # pylint: disable=missing-docstring
         r_body, r_status, r_headers = func(*args, **kwargs)
         return jsonify(r_body), r_status, r_headers
     return wrapper

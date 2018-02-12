@@ -1,3 +1,5 @@
+"""wtforms representations for an advanced search."""
+
 from datetime import date
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
@@ -12,6 +14,8 @@ from search.controllers.util import doesNotStartWithWildcard
 class FieldForm(Form):
     """Subform for query parts on specific fields."""
 
+    # pylint: disable=too-few-public-methods
+
     term = StringField("Search term...", validators=[doesNotStartWithWildcard])
     operator = SelectField("Operator", choices=[
         ('AND', 'AND'), ('OR', 'OR'), ('NOT', 'NOT')
@@ -25,6 +29,8 @@ class FieldForm(Form):
 
 class ClassificationForm(Form):
     """Subform for selecting a classification to (disjunctively) filter by."""
+
+    # pylint: disable=too-few-public-methods
 
     computer_science = BooleanField('Computer science (cs)')
     economics = BooleanField('Economics (econ)')
@@ -56,33 +62,35 @@ class DateForm(Form):
     from_date = DateField('From', validators=[validators.Optional()])
     to_date = DateField('to', validators=[validators.Optional()])
 
-    def validate_all_dates(form, field) -> None:
+    def validate_all_dates(self, field) -> None:
         """Only one option may be selected."""
         selected = int(field.data)
         for fname in ['past_12', 'specific_year', 'date_range']:
-            selected += int(form.data.get(fname))
+            selected += int(self.data.get(fname))
         if selected > 1:
             raise ValidationError('Only one date filter may be selected')
 
-    def validate_specific_year(form, field) -> None:
+    def validate_specific_year(self, field) -> None:
         """If ``specific_year`` is selected, ``year`` must be set."""
-        if field.data and not form.data.get('year'):
+        if field.data and not self.data.get('year'):
             raise ValidationError('Please select a year')
 
-    def validate_date_range(form, field) -> None:
+    def validate_date_range(self, field) -> None:
         """The field(s) ``from_date`` and/or ``to_date`` must be set."""
         if not field.data:
-            return
-        if not form.data.get('from_date') and not form.data.get('to_date'):
+            return None
+
+        if not self.data.get('from_date') and not self.data.get('to_date'):
             raise ValidationError('Must select start and/or end date(s)')
-        if form.data.get('from_date') and form.data.get('to_date'):
-            if form.data.get('from_date') >= form.data.get('to_date'):
+        if self.data.get('from_date') and self.data.get('to_date'):
+            if self.data.get('from_date') >= self.data.get('to_date'):
                 raise ValidationError('End date must be later than start date')
 
-    def validate_year(form, field) -> None:
+    def validate_year(self, field) -> None:
         """May not be prior to 1991, or later than the current year."""
         if field.data is None:
-            return
+            return None
+
         start_of_time = date(year=1991, month=1, day=1)
         if field.data < start_of_time or field.data > date.today():
             raise ValidationError('Not a valid publication year')
@@ -90,6 +98,8 @@ class DateForm(Form):
 
 class AdvancedSearchForm(Form):
     """Replacement for the 'classic' advanced search interface."""
+
+    # pylint: disable=too-few-public-methods
 
     advanced = HiddenField('Advanced', default=1)
     """Used to indicate whether the form should be shown."""

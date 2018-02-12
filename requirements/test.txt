@@ -1,0 +1,6 @@
+coverage==4.4.2
+mypy==0.550
+nose2==0.7.2
+pylint==1.7.4
+coveralls==1.2.0
+pydocstyle==2.1.1
