@@ -11,8 +11,8 @@ default_level = int(CONFIG.get('LOGLEVEL', logging.INFO))
 LOGFILE = CONFIG.get('LOGFILE', None)
 
 
-def getLogger(name: str, fmt: str=default_format,
-              level: int=default_level) -> logging.Logger:
+def getLogger(name: str, fmt: str = default_format,
+              level: int = default_level) -> logging.Logger:
     """
     Wrapper for :func:`logging.getLogger` that applies configuration.
 
@@ -26,7 +26,7 @@ def getLogger(name: str, fmt: str=default_format,
     -------
     :class:`logging.Logger`
     """
-    logging.basicConfig(format=default_format)
+    logging.basicConfig(format=fmt)
     logger = logging.getLogger(name)
     logger.setLevel(level)
     if LOGFILE is not None:

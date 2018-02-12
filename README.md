@@ -28,7 +28,7 @@ Kibana will be available at http://127.0.0.1:5601/
 ### Create & populate the index
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements/dev.txt
 FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python create_index.py
 FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python populate_test_metadata.py
 ```
@@ -48,7 +48,7 @@ You can run the search app directly. Using virtualenv:
 virtualenv ~/.venv/arxiv-search
 source ~/.venv/arxiv-search/bin/activate
 cd /wherever/you/put/arxiv-search
-pip install -r requirements.txt
+pip install -r requirements/dev.txt
 FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 flask run
 ```
 

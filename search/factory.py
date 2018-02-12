@@ -1,11 +1,13 @@
 """Application factory for references service components."""
 
 import logging
+
 from flask import Flask
+
+from arxiv.base import Base
 from search.routes import ui, external_api
 from search.services import index
 from search.converter import ArXivConverter
-from arxiv.base import Base
 
 
 def create_web_app() -> Flask:
