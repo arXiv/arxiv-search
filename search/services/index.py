@@ -3,13 +3,14 @@
 import json
 import re
 from math import floor
+from datetime import datetime
 from typing import Tuple
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError
 from elasticsearch.connection import Urllib3HttpConnection
 
-from elasticsearch_dsl import Search, Q
+from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
 
 from search.context import get_application_config, get_application_global
@@ -18,6 +19,10 @@ from search.domain import Document, DocumentSet, Query, DateRange, \
     Classification, AdvancedQuery, SimpleQuery, AuthorQuery
 
 logger = logging.getLogger(__name__)
+
+
+class MappingError(ValueError):
+    """There was a problem with the search document mapping."""
 
 
 class IndexConnectionError(IOError):
@@ -96,7 +101,6 @@ class SearchSession(object):
                  scheme: str='http', user: str=None, password: str=None,
                  **extra) -> None:
 
-        """
         Initialize the connection to Elasticsearch.
 
         Parameters
@@ -158,7 +162,8 @@ class SearchSession(object):
     def _field_term_to_q(term) -> Q:
         if term.field in ['title', 'abstract']:
             return (
-                _Q("match", f'{term.field}__tex', term.term)
+                _Q("match", term.field, term.term)
+                | _Q("match", f'{term.field}__tex', term.term)
                 | _Q("match", f'{term.field}__english', term.term)
             )
         elif term.field == 'author':
@@ -229,7 +234,7 @@ class SearchSession(object):
         if classification.category:
             field_name = '%s__category__id' % field
             q &= Q('match', **{field_name: classification.category})
-        return Q('nested', path=field, query=q)
+        return q    # Q('nested', path=field, query=q)
 
     @classmethod
     def _classifications_to_q(cls, query: Query) -> Match:
@@ -256,55 +261,65 @@ class SearchSession(object):
             current_search = current_search.sort(*sort_params)
         return current_search
 
+    def _get_base_search(self) -> Search:
+        return Search(using=self.es, index=self.index)
+
     def _prepare(self, query: AdvancedQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
-        current_search = Search(using=self.es, index=self.index)
-        current_search = current_search.query(
+        current_search = self._get_base_search()
+        q = (
             self._fielded_terms_to_q(query)
             & self._daterange_to_q(query)
             & self._classifications_to_q(query)
         )
-        current_search = self._apply_sort(query, current_search)
+        if query.order is None or query.order == 'relevance':
+            # Boost the current version heavily when sorting by relevance.
+            logger.debug('apply filter functions')
+            q = Q('function_score', query=q, boost=5, boost_mode="multiply",
+                  score_mode="max",
+                  functions=[
+                    SF({'weight': 5, 'filter': Q('term', is_current=True)})
+                  ])
+        else:
+            current_search = self._apply_sort(query, current_search)
+        current_search = current_search.query(q)
+
         return current_search
 
     def _prepare_simple(self, query: SimpleQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
-        current_search = Search(using=self.es, index=self.index)
+        current_search = self._get_base_search().filter("term", is_current=True)
         if query.field == 'all':
-            current_search = current_search.query(
+            q = (
                 Q('nested', path='authors', query=(
                     _Q('match', 'authors__first_name__folded', query.value)
-                    |
-                    _Q('match', 'authors__last_name__folded', query.value)
+                    | _Q('match', 'authors__last_name__folded', query.value)
                 ))
-                |
-                _Q('match', 'title__english', query.value)
-                |
-                _Q('match', 'title__tex', query.value)
-                |
-                _Q('match', 'abstract__english', query.value)
-                |
-                _Q('match', 'abstract__tex', query.value)
+                | _Q('match', 'title', query.value)
+                | _Q('match', 'title__english', query.value)
+                | _Q('match', 'title__tex', query.value)
+                | _Q('match', 'abstract__english', query.value)
+                | _Q('match', 'abstract__tex', query.value)
             )
         elif query.field == 'author':
-            current_search = current_search.query(
+            q = (
                 Q('nested', path='authors', query=(
                     _Q('match', 'authors__first_name__folded', query.value)
-                    |
-                    _Q('match', 'authors__last_name__folded', query.value)
+                    | _Q('match', 'authors__last_name__folded', query.value)
                 ))
             )
         else:
-            current_search = current_search.query(
-                _Q('match', f'{query.field}__english', query.value)
-                |
-                _Q('match', f'{query.field}__tex', query.value)
+            q = (
+                _Q('match', query.field, query.value)
+                | _Q('match', f'{query.field}__english', query.value)
+                | _Q('match', f'{query.field}__tex', query.value)
             )
+        current_search = current_search.query(q)
         current_search = self._apply_sort(query, current_search)
         return current_search
 
     def _prepare_author(self, query: AuthorQuery) -> Search:
-        current_search = Search(using=self.es, index=self.index)
+        current_search = self._get_base_search().filter("term", is_current=True)
         q = Q()
         for au in query.authors:
             _q = _Q('match', 'authors__last_name__folded', au.surname)
@@ -320,8 +335,9 @@ class SearchSession(object):
                 )
 
             q &= Q('nested', path='authors', query=_q)
+        current_search = current_search.query(q)
         current_search = self._apply_sort(query, current_search)
-        return current_search.query(q)
+        return current_search
 
     def create_index(self, mappings: dict) -> None:
         """
@@ -334,7 +350,17 @@ class SearchSession(object):
             elastic.co/guide/en/elasticsearch/reference/current/mapping.html
         """
         logger.debug('create ES index "%s"', self.index)
-        self.es.indices.create(self.index, mappings, ignore=400)
+        try:
+            self.es.indices.create(self.index, mappings)
+        except TransportError as e:
+            if e.error == 'resource_already_exists_exception':
+                logger.debug('Index already exists; move along')
+            elif e.error == 'mapper_parsing_exception':
+                logger.error('Invalid document mapping; create index failed')
+                logger.debug(str(e.info))
+                raise MappingError('Invalid mapping: %s' % str(e.info)) from e
+            else:
+                raise RuntimeError('Unhandled exception: %s' % str(e)) from e
 
     def add_document(self, document: Document) -> None:
         """
@@ -458,7 +484,17 @@ class SearchSession(object):
         # typing: ignore
         result = {}
         for key in dir(raw):
-            result[key] = getattr(raw, key)
+            value = getattr(raw, key)
+            if key in ['submitted_date', 'submitted_date_first',
+                       'submitted_date_latest']:
+                try:
+                    value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S%z')
+                except ValueError:
+                    logger.warning(
+                        f'Could not parse {key}: {value} as datetime'
+                    )
+                    pass
+            result[key] = value
         # result = raw['_source']
         result['score'] = raw.meta.score
         return Document(result)

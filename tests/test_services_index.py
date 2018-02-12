@@ -219,18 +219,12 @@ class TestPrepare(TestCase):
             })]
         })
         q = self.session._classifications_to_q(query)
-
-        self.assertIsInstance(q, Nested)
-        expected = Nested(
-            path='primary_classification',
-            query=Bool(
-                must=[
-                    Match(primary_classification__group__id='physics'),
-                    Match(primary_classification__archive__id='physics'),
-                    Match(primary_classification__category__id='astro-ph')
-                ]
-            )
-        )
+        self.assertIsInstance(q, Bool)
+        expected = Bool(must=[
+            Match(primary_classification__group__id='physics'),
+            Match(primary_classification__archive__id='physics'),
+            Match(primary_classification__category__id='astro-ph')
+        ])
         self.assertEqual(q, expected)
 
     def test_prepare(self):
@@ -239,7 +233,7 @@ class TestPrepare(TestCase):
                 FieldedSearchTerm(operator=None, field='title', term='muon'),
                 FieldedSearchTerm(operator='OR', field='title', term='gluon')
             ]),
-            order='title',
+            order='title.keyword',
             date_range=DateRange(
                 start_date=datetime(year=2006, month=2, day=5,
                                     hour=0, minute=0, second=0),
@@ -250,7 +244,63 @@ class TestPrepare(TestCase):
                 Classification(group='cs')
             ])
         )
-        expected = {'query': {'bool': {'should': [{'match': {'title.tex': 'muon'}}, {'match': {'title.english': 'muon'}}, {'match': {'title.tex': 'gluon'}}, {'match': {'title.english': 'gluon'}}], 'must': [{'range': {'submitted_date': {'gte': '2006-02-05T00:00:00', 'lt': '2007-03-25T00:00:00'}}}, {'nested': {'path': 'primary_classification', 'query': {'match': {'primary_classification.group.id': 'cs'}}}}], 'minimum_should_match': 1}}, 'sort': ['title']}
+        expected = {
+              "query": {
+                "bool": {
+                  "should": [
+                    {
+                      "match": {
+                        "title": "muon"
+                      }
+                    },
+                    {
+                      "match": {
+                        "title.tex": "muon"
+                      }
+                    },
+                    {
+                      "match": {
+                        "title.english": "muon"
+                      }
+                    },
+                    {
+                      "match": {
+                        "title": "gluon"
+                      }
+                    },
+                    {
+                      "match": {
+                        "title.tex": "gluon"
+                      }
+                    },
+                    {
+                      "match": {
+                        "title.english": "gluon"
+                      }
+                    }
+                  ],
+                  "must": [
+                    {
+                      "range": {
+                        "submitted_date": {
+                          "gte": "2006-02-05T00:00:00",
+                          "lt": "2007-03-25T00:00:00"
+                        }
+                      }
+                    },
+                    {
+                      "match": {
+                        "primary_classification.group.id": "cs"
+                      }
+                    }
+                  ],
+                  "minimum_should_match": 1
+                }
+              },
+              "sort": [
+                "title.keyword"
+              ]
+            }
 
         search = self.session._prepare(query)
         self.assertDictEqual(search.to_dict(), expected)

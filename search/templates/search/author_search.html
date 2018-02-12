@@ -107,39 +107,6 @@
 
 {%- endmacro -%}
 
-{% macro size_and_order(form) %}
-<div class="level">
-  <div class="level-left">
-    <form method="GET" action="{{ url_for('ui.advanced_search') }}">
-      <div style="display: none;">
-        {% for field in form %}
-          {% if field != form.size and field != form.order %}
-            {{ field }}
-          {% endif %}
-        {% endfor %}
-      </div>
-      <div class="field is-horizontal is-grouped level-item">
-        <div class="control">
-          <span class="select is-small">
-            {{ form.size|safe }}
-          </span>
-          {{ form.size.label }}.
-        </div>
-        <div class="control">
-          {{ form.order.label }}
-          <span class="select is-small">
-            {{ form.order|safe }}
-          </span>
-        </div>
-        <div class="control">
-          <button class="button is-small is-link">Go</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-{%- endmacro -%}
-
 {% block title %}
     {% if not show_form and results %}
         Showing {{ metadata.total }} results
@@ -161,7 +128,7 @@
 {% else %}
   <p class="subtitle is-5">Refine your query: <a href="{{ current_url_sans_parameters() }}&show_form=true">{{ query }}</a> or <a href="{{ url_for('ui.author_search') }}">Start a new search</a></p>
   {% if results %}
-      {{ size_and_order(form) }}
+      {{ search_macros.size_and_order(form, url_for('ui.author_search')) }}
       {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
   {% endif %}
 {% endif %}

@@ -11,59 +11,45 @@
 {% endblock title %}
 
 {% block within_content %}
-
-<form method="GET" action="{{ url_for('ui.search') }}">
-  <div class="field has-addons">
-    <div class="control is-expanded">
-      {% if form.query.errors %}
-        {{ form.query(class="input is-medium is-warning")|safe }}
-      {% else %}
-        {{ form.query(class="input is-medium")|safe }}
-      {% endif %}
-      {% if form.query.errors %}
-        <div class="help is-warning">
-          {% for error in form.query.errors %}
-              {{ error }}
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
-    <div class="select control is-medium">
-      {{ form.searchtype(class="is-medium")|safe }}
-    </div>
-    <div class="control">
-        <button class="button is-link is-medium">Search</button>
-    </div>
-  </div>
-  <div class="level">
-    <div class="field is-horizontal is-grouped level-left">
-      <div class="control">
-        <span class="select is-small">
-          {{ form.size|safe }}
-        </span>
-        {{ form.size.label }}.
+  <form method="GET" action="{{ url_for('ui.search') }}">
+    <div class="field has-addons">
+      <div class="control is-expanded">
+        {% if form.query.errors %}
+          {{ form.query(class="input is-medium is-warning")|safe }}
+        {% else %}
+          {{ form.query(class="input is-medium")|safe }}
+        {% endif %}
+        {% if form.query.errors %}
+          <div class="help is-warning">
+            {% for error in form.query.errors %}
+                {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      <div class="select control is-medium">
+        {{ form.searchtype(class="is-medium")|safe }}
       </div>
       <div class="control">
-        {{ form.order.label }}
-        <span class="select is-small">
-          {{ form.order|safe }}
-        </span>
+          <button class="button is-link is-medium">Search</button>
       </div>
     </div>
-    <div class="level-right">
-      <a href="{{ url_for('ui.advanced_search') }}">Advanced</a> |  <a href="{{ url_for('ui.author_search') }}">Authors</a>
+    <div class="is-clearfix" style="height: 2.5em"> {# TODO - adjust this layout so that it matches across all forms less awkwardly #}
+      <div class="is-pulled-right">
+        <a href="{{ url_for('ui.advanced_search') }}">Advanced</a> | <a href="{{ url_for('ui.author_search') }}">Authors</a>
+      </div>
     </div>
-  </div>
-</form>
+  </form>
 
-{% if query and not results %}
-  <div class="is-size-4 has-text-warning">
-    Sorry, your query for <span class="is-warning">{{ query.field }}: {{ query.value }}</span> produced no results.
-  </div>
-{% endif %}
+  {% if query and not results %}
+    <div class="is-size-4 has-text-warning">
+      Sorry, your query for <span class="is-warning">{{ query.field }}: {{ query.value }}</span> produced no results.
+    </div>
+  {% endif %}
 
-{% if results %}
-    {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
-{% endif %}
+  {% if results %}
+      {{ search_macros.size_and_order(form, url_for('ui.search')) }}
+      {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
+  {% endif %}
 
 {% endblock %}

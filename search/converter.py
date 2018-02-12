@@ -1,4 +1,5 @@
 """URL conversion for paths containing arXiv IDs."""
+# TODO: move this to arxiv-base.
 
 import re
 
