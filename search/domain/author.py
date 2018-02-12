@@ -9,6 +9,7 @@ class Author(Base):
     surname = Property('forensurnameame', str)
 
     def __str__(self):
+        """Prints the author name."""
         if self.forename:
             return f'{self.forename} {self.surname}'
         return self.surname
@@ -18,6 +19,7 @@ class AuthorList(list):
     """Represents a list of authors."""
 
     def __str__(self):
+        """Prints comma-delimited list of authors."""
         return ', '.join([str(au) for au in self])
 
 

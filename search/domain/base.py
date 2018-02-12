@@ -8,6 +8,7 @@ import jsonschema
 
 class Property(object):
     """Describes a named, typed property on a data structure."""
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self, name: str, klass: Optional[Type] = None,
@@ -20,12 +21,14 @@ class Property(object):
     def __get__(self, instance: Any, owner: Optional[Type] = None) -> Any:
         """
         Retrieve the value of property from the data instance.
+
         Parameters
         ----------
         instance : object
             The data structure instance on which the property is set.
         owner : type
             The class/type of ``instance``.
+
         Returns
         -------
         object
@@ -41,12 +44,14 @@ class Property(object):
     def __set__(self, instance: Any, value: Any) -> None:
         """
         Set the value of the property on the data instance.
+
         Parameters
         ----------
         instance : object
             The data structure instance on which the property is set.
         value : object
             The value to which the property should be set.
+
         Raises
         ------
         TypeError
@@ -59,7 +64,8 @@ class Property(object):
 
 
 class Base(dict):
-    """Represents a basic search"""
+    """Represents a basic search."""
+
     def __init__(self, from_iter: Optional[Iterable] = None, **kwargs):
         if from_iter is not None:
             super(Base, self).__init__(from_iter)
@@ -75,6 +81,7 @@ class SchemaBase(Base):
     __schema__ = None
 
     def __getattr__(self, key: str) -> Any:
+        """Get a schema attribute."""
         try:
             super(SchemaBase, self).__getattr__(key)
         except AttributeError:
@@ -83,6 +90,7 @@ class SchemaBase(Base):
         raise AttributeError('No such attribute')
 
     def __setattr__(self, key: str, value: Any) -> None:
+        """Set a schema attribute."""
         if key in self or not hasattr(self, key):
             self[key] = value
         else:
@@ -193,6 +201,7 @@ class Query(SchemaBase):
 
 class SimpleQuery(Query):
     """A query on a single field with a single value."""
+
     field = Property('field', str)
     value = Property('value', str)
 

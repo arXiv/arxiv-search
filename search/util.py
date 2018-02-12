@@ -1,4 +1,4 @@
-""" Utility functions for arxiv.search """
+"""Utility functions for arxiv.search."""
 # pylint: disable=C0330
 
 import re
