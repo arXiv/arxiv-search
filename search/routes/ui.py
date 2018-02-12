@@ -87,12 +87,13 @@ def current_url_sans_parameters_builder() -> Dict[str, Callable]:
     """Add a function to strip GET parameters from the current URL."""
     def current_url_sans_parameters(*params_to_remove: str) -> str:
         """Get the current URL with ``param`` removed from GET parameters."""
-        scheme, netloc, path, params, query, fragment = urlparse(request.path)
-        query_params = request.args.copy()
+        rule = request.url_rule
+        parts = url_parse(url_for(rule.endpoint))
+        args = request.args.copy()
         for param in params_to_remove:
-            query_params.pop(param, None)
-        query = url_encode(query_params)
-        return urlunparse((scheme, netloc, path, params, query, fragment))
+            args.pop(param, None)
+        parts = parts.replace(query=url_encode(args))
+        return url_unparse(parts)
     return dict(current_url_sans_parameters=current_url_sans_parameters)
 
 
