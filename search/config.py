@@ -7,7 +7,6 @@ Docstrings are from the `Flask configuration documentation
 import os
 
 
-
 VERSION = '0.2'
 """The application version, used to sign extracted references."""
 
@@ -126,7 +125,8 @@ If set to a value in bytes, Flask will reject incoming requests with a content
 length greater than this by returning a 413 status code.
 """
 
-SEND_FILE_MAX_AGE_DEFAULT = int(os.environ.get('SEND_FILE_MAX_AGE_DEFAULT', 43200))
+SEND_FILE_MAX_AGE_DEFAULT = int(os.environ.get('SEND_FILE_MAX_AGE_DEFAULT',
+                                               43200))
 """
 Default cache control max age to use with send_static_file() (the default
 static file handler) and send_file(), as datetime.timedelta or as seconds.
@@ -219,6 +219,7 @@ LOGLEVEL = os.environ.get('LOGLEVEL', 20)
 
 ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST', 'localhost')
 ELASTICSEARCH_PORT = os.environ.get('ELASTICSEARCH_PORT', '9200')
+ELASTICSEARCH_SCHEME = os.environ.get('ELASTICSEARCH_SCHEME', 'http')
 ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'arxiv')
 ELASTICSEARCH_USER = os.environ.get('ELASTICSEARCH_USER', 'elastic')
 ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD', 'changeme')
