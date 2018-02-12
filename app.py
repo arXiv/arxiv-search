@@ -1,5 +1,5 @@
 """Provides application for development purposes."""
 
-from search.factory import create_web_app
+from search.factory import create_ui_web_app
 
-app = create_web_app()
+app = create_ui_web_app()

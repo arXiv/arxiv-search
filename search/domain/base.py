@@ -67,6 +67,7 @@ class Base(dict):
     """Represents a basic search."""
 
     def __init__(self, from_iter: Optional[Iterable] = None, **kwargs) -> None:
+        """Overridden to support initialization from a dict."""
         if from_iter is not None:
             super(Base, self).__init__(from_iter)
         else:
@@ -115,7 +116,7 @@ class SchemaBase(Base):
 
     def json(self):
         """Return the string representation of the instance in JSON."""
-        return json.dumps(self, default=lambda o: o.__dict__)
+        return json.dumps(self, default=lambda o: o.__dict__, indent=2)
 
     def __str__(self):
         """Build a string representation, for use in rendering."""

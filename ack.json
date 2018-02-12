@@ -1,0 +1,17 @@
+{
+"query": {
+"nested": {
+"path": "primary_classification",
+"query": {
+"nested": {
+"path": "primary_classification.group",
+"query": {
+"match": {
+"primary_classification.group.id": "cs"
+}
+}
+}
+}
+}
+}
+}

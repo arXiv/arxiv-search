@@ -57,11 +57,23 @@ class TestIndexPaper(TestCase):
                             created='2001-03-04T03:04:05-400')
         mock_meta.retrieve.side_effect = [mock_dm_3, mock_dm_1, mock_dm_2]
         mock_doc_1 = Document(version=1, paper_id='1234.56789', title='foo',
-                              submitted_date=['2001-03-02T03:04:05-400'])
+                              submitted_date=['2001-03-02T03:04:05-400'],
+                              submitted_date_all=[
+                                '2001-03-02T03:04:05-400',
+                              ])
         mock_doc_2 = Document(version=2, paper_id='1234.56789', title='foo',
-                              submitted_date=['2001-03-03T03:04:05-400'])
+                              submitted_date=['2001-03-03T03:04:05-400'],
+                              submitted_date_all=[
+                                '2001-03-02T03:04:05-400',
+                                '2001-03-03T03:04:05-400',
+                              ])
         mock_doc_3 = Document(version=3, paper_id='1234.56789', title='foo',
-                              submitted_date=['2001-03-04T03:04:05-400'])
+                              submitted_date=['2001-03-04T03:04:05-400'],
+                              submitted_date_all=[
+                                '2001-03-02T03:04:05-400',
+                                '2001-03-03T03:04:05-400',
+                                '2001-03-04T03:04:05-400'
+                              ])
         mock_tx.to_search_document.side_effect = [
             mock_doc_3, mock_doc_1, mock_doc_2
         ]
@@ -74,9 +86,9 @@ class TestIndexPaper(TestCase):
         last_indexed = mock_idx.add_document.call_args[0][0]
         self.assertTrue(last_indexed.is_current,
                         "Should be flagged as the most recent version")
-        #self.assertEqual(len(last_indexed.submitted_date), 3,
-        #                 "Submission dates from all three versions should be"
-        #                 " included.")
+        self.assertEqual(len(last_indexed.submitted_date_all), 3,
+                         "Submission dates from all three versions should be"
+                         " included.")
 
 
 class TestAddToIndex(TestCase):
