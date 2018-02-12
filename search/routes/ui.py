@@ -28,14 +28,14 @@ def search():
         return redirect(headers['Location'], code=code)
 
 
-@blueprint.route('/advanced', methods=['GET'])
+@blueprint.route('advanced', methods=['GET'])
 def advanced_search():
     """Advanced search interface."""
     response, code, headers = advanced.search(request.args)
     return render_template("search/advanced_search.html", **response)
 
 
-@blueprint.route('/authors', methods=['GET'])
+@blueprint.route('authors', methods=['GET'])
 def author_search():
     """Author search interface."""
     response, code, headers = authors.search(request.args.copy())
