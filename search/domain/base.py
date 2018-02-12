@@ -67,6 +67,7 @@ class Base(dict):
     """Represents a basic search."""
 
     def __init__(self, from_iter: Optional[Iterable] = None, **kwargs) -> None:
+        """Overridden to support initialization from a dict."""
         if from_iter is not None:
             super(Base, self).__init__(from_iter)
         else:

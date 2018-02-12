@@ -97,4 +97,5 @@ def current_url_sans_parameters_builder() -> Dict[str, Callable]:
 @wraps(base_routes.config_url_builder)
 @blueprint.context_processor
 def config_url_builder() -> Dict[str, Callable]:
+    """Inject configurable URLs for base template rendering."""
     return base_routes.config_url_builder()
