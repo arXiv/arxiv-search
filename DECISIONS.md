@@ -3,7 +3,7 @@
 1. To get started quickly, we will start with an AWS Elasticsearch managed
    cluster running in the cloud. We may wish to run our own cluster in the
    future.
-2. The search application itself well be deployed as a Docker container on
+2. The search application itself well be deployed using mod_wsgi on
    classic servers.
 3. The H1 application will run at /search rather than /find. When we deploy to
    production, links on the classic site will be updated to point to /search.
