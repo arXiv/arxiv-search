@@ -68,6 +68,7 @@ for i in `seq 1 ${SHARDS}`; do
     docker run -d --network=arxivsearch_es_stack \
         -v /tmp/to_index:/to_index \
         -e ELASTICSEARCH_HOST=elasticsearch \
+        -e METADATA_ENDPOINT="https://server-${i}.foo.org/metadata/" \
         arxiv/search-index /to_index/shard_${i}.txt;
 done
 ```
