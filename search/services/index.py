@@ -91,7 +91,8 @@ class SearchSession(object):
 
     # TODO: we need to take on security considerations here. Presumably we will
     # use SSL. Presumably we will use HTTP Auth, or something else.
-    def __init__(self, host: str, index: str, port: int=9200, **extra) -> None:
+    def __init__(self, host: str, index: str, scheme: str, port: int=9200,
+                 **extra) -> None:
         """
         Initialize the connection to Elasticsearch.
 
@@ -99,6 +100,7 @@ class SearchSession(object):
         ----------
         host : str
         index : str
+        scheme: str
         port : int
             Default: 9200
 
@@ -111,7 +113,8 @@ class SearchSession(object):
                      index, host, port)
         self.index = index
         try:
-            self.es = Elasticsearch([{'host': host, 'port': port}],
+            self.es = Elasticsearch([{'host': host, 'port': port,
+                                      'scheme': scheme}],
                                     connection_class=Urllib3HttpConnection,
                                     **extra)
         except ElasticsearchException as e:
@@ -457,6 +460,7 @@ def get_session(app: object = None) -> SearchSession:
     config = get_application_config(app)
     host = config.get('ELASTICSEARCH_HOST', 'localhost')
     port = config.get('ELASTICSEARCH_PORT', '9200')
+    scheme = config.get('ELASTICSEARCH_SCHEME', 'http')
     index = config.get('ELASTICSEARCH_INDEX', 'arxiv')
     user = config.get('ELASTICSEARCH_USER', 'elastic')
     password = config.get('ELASTICSEARCH_PASSWORD', 'changeme')
