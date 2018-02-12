@@ -99,7 +99,6 @@ class SearchSession(object):
 
     def __init__(self, host: str, index: str, port: int=9200,
                  scheme: str='http', **extra) -> None:
-
         """
         Initialize the connection to Elasticsearch.
 
