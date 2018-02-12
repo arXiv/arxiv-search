@@ -6,7 +6,7 @@ from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
 
 from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, url_for
-from werkzeug.urls import Href, url_encode
+from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
 
 from arxiv import status
 from arxiv.base import routes as base_routes
@@ -73,10 +73,12 @@ def url_for_page_builder() -> Dict[str, Callable]:
     """Add a page URL builder function to the template context."""
     def url_for_page(page: int, page_size: int) -> str:
         """Build an URL to for a search result page."""
-        href = Href('/')
+        rule = request.url_rule
+        parts = url_parse(url_for(rule.endpoint))
         args = request.args.copy()
         args['start'] = (page - 1) * page_size
-        return href(request.path, args)
+        parts = parts.replace(query=url_encode(args))
+        return url_unparse(parts)
     return dict(url_for_page=url_for_page)
 
 
