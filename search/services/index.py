@@ -96,11 +96,11 @@ class SearchSession(object):
 
     # TODO: we need to take on security considerations here. Presumably we will
     # use SSL. Presumably we will use HTTP Auth, or something else.
-
+    
     def __init__(self, host: str, index: str, port: int=9200,
                  scheme: str='http', user: str=None, password: str=None,
                  **extra) -> None:
-
+        """
         Initialize the connection to Elasticsearch.
 
         Parameters
