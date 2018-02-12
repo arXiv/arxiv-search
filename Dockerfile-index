@@ -1,0 +1,49 @@
+# Process for indexing papers by arXiv ID.
+#
+# Expects a path to a list of newline-delimited arXiv IDs (versionless).
+#
+# Example (local stack):
+#
+#    $ mkdir /tmp/to_index
+#    $ cp arxiv_id_dump.txt /tmp/to_index
+#    $ docker run -it --network=arxivsearch_es_stack \
+#    >   -v /tmp/to_index:/to_index \
+#    >   -e ELASTICSEARCH_HOST=elasticsearch \
+#    >   arxiv/search-index /to_index/arxiv_id_dump.txt
+#
+# See also ELASTICSEARCH_* and METADATA_ENDPOINT parameters, below.
+
+FROM arxiv/base
+
+# Add Python consumer and configuration.
+ADD requirements.txt /opt/arxiv/
+ADD app.py /opt/arxiv/
+RUN pip install -U pip
+RUN pip install -r /opt/arxiv/requirements.txt
+
+ENV PATH "/opt/arxiv:${PATH}"
+
+ADD schema /opt/arxiv/schema
+ADD mappings /opt/arxiv/mappings
+ADD search /opt/arxiv/search
+ADD tests /opt/arxiv/tests
+ADD populate_test_metadata.py /opt/arxiv/
+
+WORKDIR /opt/arxiv/
+
+ENV LC_ALL en_US.utf8
+ENV LANG en_US.utf8
+ENV LOGLEVEL 10
+ENV FLASK_DEBUG 1
+ENV FLASK_APP /opt/arxiv/app.py
+
+ENV ELASTICSEARCH_HOST 127.0.0.1
+ENV ELASTICSEARCH_SCHEME http
+ENV ELASTICSEARCH_PORT 9200
+ENV ELASTICSEARCH_USER elastic
+ENV ELASTICSEARCH_PASSWORD changeme
+ENV METADATA_ENDPOINT https://arxiv.org/docmeta/
+
+VOLUME /to_index
+
+ENTRYPOINT ["python3.6", "populate_test_metadata.py", "-l"]
