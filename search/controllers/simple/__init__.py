@@ -67,7 +67,6 @@ def search(request_params: dict) -> Response:
     if arxiv_id:
         return {}, status.HTTP_301_MOVED_PERMANENTLY,\
             {'Location': f'https://arxiv.org/abs/{arxiv_id}'}
-        logger.debug("WHY AM I HERE")
         # TODO: use URL constructor to generate URL
         #{'Location': external_url_builder('browse', 'abstract', arxiv_id=arxiv_id)}
 
@@ -95,7 +94,7 @@ def search(request_params: dict) -> Response:
                 'Encountered an error in search query'
             ) from e
     else:
-        logger.debug('form is invalid: %s' % str(form.errors))
+        logger.debug('form is invalid: %s', str(form.errors))
         q = None
     response_data['query'] = q
     response_data['form'] = form
@@ -153,10 +152,10 @@ def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:
     -------
     :class:`.SimpleQuery`
     """
-    query = SimpleQuery()
-    query.field = form.searchtype.data
-    query.value = form.query.data
+    q = SimpleQuery()
+    q.field = form.searchtype.data
+    q.value = form.query.data
     order = form.order.data
     if order and order != 'None':
-        query.order = order
-    return query
+        q.order = order
+    return q

@@ -68,7 +68,7 @@ def _wildcardEscape(querystring: str) -> Tuple[str, bool]:
     # Escape wildcard characters within string literals.
     # re.sub() can't handle the complexity, sadly...
     parts = re.split(STRING_LITERAL, querystring)
-    parts = [part.replace('*', '\*').replace('?', '\?')
+    parts = [part.replace('*', r'\*').replace('?', r'\?')
              if part.startswith('"') or part.startswith("'") else part
              for part in parts]
     querystring = "".join(parts)
@@ -91,7 +91,7 @@ class SearchSession(object):
 
     # TODO: we need to take on security considerations here. Presumably we will
     # use SSL. Presumably we will use HTTP Auth, or something else.
-    def __init__(self, host: str, index: str, port: int=9200, **extra) -> None:
+    def __init__(self, host: str, index: str, port: int = 9200, **extra) -> None:
         """
         Initialize the connection to Elasticsearch.
 
@@ -121,7 +121,7 @@ class SearchSession(object):
 
     @staticmethod
     def _get_operator(obj):
-        if type(obj) is tuple:
+        if isinstance(obj, tuple):
             return SearchSession._get_operator(obj[0])
         return obj.operator
 
@@ -158,20 +158,26 @@ class SearchSession(object):
     def _grouped_terms_to_q(term_pair: tuple) -> Bool:
         """Generate a :class:`.Q` from grouped terms."""
         term_a, operator, term_b = term_pair
-        if type(term_a) is tuple:
+
+        if isinstance(term_a, tuple):
             term_a = SearchSession._grouped_terms_to_q(term_a)
         else:
             term_a = SearchSession._field_term_to_q(term_a)
-        if type(term_b) is tuple:
+
+        if isinstance(term_b, tuple):
             term_b = SearchSession._grouped_terms_to_q(term_b)
         else:
             term_b = SearchSession._field_term_to_q(term_b)
+
         if operator == 'OR':
             return term_a | term_b
         elif operator == 'AND':
             return term_a & term_b
         elif operator == 'NOT':
             return term_a & ~term_b
+        else:
+            # TODO: Discuss whether to throw an exception.
+            return None
 
     @staticmethod
     def _daterange_to_q(query: Query) -> Range:
@@ -226,31 +232,32 @@ class SearchSession(object):
     @classmethod
     def _get_sort_parameters(cls, query: Query) -> list:
         if query.order is None:
-            return
-        return [query.order]
+            return None
+        else:
+            return [query.order]
 
-    def _apply_sort(self, query: Query, search: Search) -> Search:
+    def _apply_sort(self, query: Query, current_search: Search) -> Search:
         sort_params = self._get_sort_parameters(query)
         if sort_params is not None:
-            search = search.sort(*sort_params)
-        return search
+            current_search = current_search.sort(*sort_params)
+        return current_search
 
     def _prepare(self, query: AdvancedQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
-        search = Search(using=self.es, index=self.index)
-        search = search.query(
+        current_search = Search(using=self.es, index=self.index)
+        current_search = current_search.query(
             self._fielded_terms_to_q(query)
             & self._daterange_to_q(query)
             & self._classifications_to_q(query)
         )
-        search = self._apply_sort(query, search)
-        return search
+        current_search = self._apply_sort(query, current_search)
+        return current_search
 
     def _prepare_simple(self, query: SimpleQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
-        search = Search(using=self.es, index=self.index)
+        current_search = Search(using=self.es, index=self.index)
         if query.field == 'all':
-            search = search.query(
+            current_search = current_search.query(
                 Q('nested', path='authors', query=(
                     _Q('match', 'authors__first_name__folded', query.value)
                     |
@@ -266,7 +273,7 @@ class SearchSession(object):
                 _Q('match', 'abstract__tex', query.value)
             )
         elif query.field == 'author':
-            search = search.query(
+            current_search = current_search.query(
                 Q('nested', path='authors', query=(
                     _Q('match', 'authors__first_name__folded', query.value)
                     |
@@ -274,16 +281,16 @@ class SearchSession(object):
                 ))
             )
         else:
-            search = search.query(
+            current_search = current_search.query(
                 _Q('match', f'{query.field}__english', query.value)
                 |
                 _Q('match', f'{query.field}__tex', query.value)
             )
-        search = self._apply_sort(query, search)
-        return search
+        current_search = self._apply_sort(query, current_search)
+        return current_search
 
     def _prepare_author(self, query: AuthorQuery) -> Search:
-        search = Search(using=self.es, index=self.index)
+        current_search = Search(using=self.es, index=self.index)
         q = Q()
         for au in query.authors:
             _q = _Q('match', 'authors__last_name__folded', au.surname)
@@ -299,8 +306,8 @@ class SearchSession(object):
                 )
 
             q &= Q('nested', path='authors', query=_q)
-        search = self._apply_sort(query, search)
-        return search.query(q)
+        current_search = self._apply_sort(query, current_search)
+        return current_search.query(q)
 
     def create_index(self, mappings: dict) -> None:
         """
@@ -399,17 +406,17 @@ class SearchSession(object):
         QueryError
             Invalid query parameters.
         """
-        logger.debug('got search request %s', str(query))
+        logger.debug('got current_search request %s', str(query))
         if isinstance(query, AdvancedQuery):
-            search = self._prepare(query)
+            current_search = self._prepare(query)
         elif isinstance(query, SimpleQuery):
-            search = self._prepare_simple(query)
+            current_search = self._prepare_simple(query)
         elif isinstance(query, AuthorQuery):
-            search = self._prepare_author(query)
-        logger.debug(str(search.to_dict()))
+            current_search = self._prepare_author(query)
+        logger.debug(str(current_search.to_dict()))
 
         try:
-            results = search[query.page_start:query.page_end].execute()
+            results = current_search[query.page_start:query.page_end].execute()
         except TransportError as e:
             if e.error == 'parsing_exception':
                 raise QueryError(e.info) from e
@@ -432,8 +439,9 @@ class SearchSession(object):
             'results': list(map(self._transform, results))
         })
 
-    def _transform(self, raw: dict) -> Document:
+    def _transform(self, raw) -> Document:
         """Transform an ES search result back into a :class:`.Document`."""
+        # typing: ignore
         result = {}
         for key in dir(raw):
             result[key] = getattr(raw, key)
@@ -476,16 +484,19 @@ def current_session():
 
 @wraps(SearchSession.search)
 def search(query: Query) -> DocumentSet:
+    """Retrieve search results."""
     return current_session().search(query)
 
 
 @wraps(SearchSession.add_document)
 def add_document(document: Document) -> None:
+    """Add Document."""
     return current_session().add_document(document)
 
 
 @wraps(SearchSession.get_document)
 def get_document(document_id: int) -> Document:
+    """Retrieve arxiv document by id."""
     return current_session().get_document(document_id)
 
 
@@ -493,6 +504,6 @@ def ok() -> bool:
     """Health check."""
     try:
         current_session()
-    except Exception as e:    # TODO: be more specific.
+    except:    # TODO: be more specific.
         return False
     return True

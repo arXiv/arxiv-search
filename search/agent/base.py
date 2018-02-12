@@ -56,7 +56,7 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
                 checkpointer.checkpoint(sequence_number, sub_sequence_number)
                 return
             except kcl.CheckpointError as e:
-                if 'ShutdownException' == e.value:
+                if e.value == 'ShutdownException':
                     # A ShutdownException indicates that this record processor
                     #  should be shutdown. This is due to some failover event,
                     #  e.g. another MultiLangDaemon has taken the lease for
@@ -64,24 +64,24 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
                     logger.info("Encountered shutdown exception, skipping"
                                 " checkpoint")
                     return
-                elif 'ThrottlingException' == e.value:
+                elif e.value == 'ThrottlingException':
                     # A ThrottlingException indicates that one of our
                     #  dependencies is is over burdened, e.g. too many dynamo
                     #  writes. We will sleep temporarily to let it recover.
                     if self._CHECKPOINT_RETRIES - 1 == n:
                         logger.error("Failed to checkpoint after %i attempts,"
-                                     " giving up." % n)
+                                     " giving up.", n)
                         return
                     else:
                         logger.info("Was throttled while checkpointing, will"
-                                    " attempt again in %i seconds"
-                                    % self._SLEEP_SECONDS)
-                elif 'InvalidStateException' == e.value:
+                                    " attempt again in %i seconds",
+                                    self._SLEEP_SECONDS)
+                elif e.value == 'InvalidStateException':
                     logger.error("MultiLangDaemon reported an invalid state"
                                  " while checkpointing.")
                 else:  # Some other error
                     logger.error("Encountered an error while checkpointing,"
-                                 " error was %s" % e)
+                                 " error was %s", e)
             time.sleep(self._SLEEP_SECONDS)
 
     def should_update_sequence(self, sequence_number: int,
@@ -128,7 +128,7 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
                 # **ATTEMPTING TO CHECKPOINT ONCE A LEASE IS LOST WILL FAIL**
                 logger.info("Shutting down due to failover. Won't checkpoint.")
         except Exception as e:
-            logger.error("Encountered exception while shutting down: %s" % e)
+            logger.error("Encountered exception while shutting down: %s", e)
 
     def process_records(self, records: ProcessRecordsInput) -> None:
         """
@@ -162,9 +162,9 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
 
         except Exception as e:
             logger.error("Encountered an exception while processing records."
-                         " Exception was %s" % e)
-            logger.error("Seq: %i; Sub seq: %i; Key: %s" % (seq, sub_seq, key))
-            logger.error("{}".format(data))
+                         " Exception was %s", e)
+            logger.error("Seq: %i; Sub seq: %i; Key: %s", seq, sub_seq, key)
+            logger.error(data)
 
     def process_record(self, data: bytes, partition_key: bytes,
                        sequence_number: int, sub_sequence_number: int) -> None:

@@ -20,7 +20,7 @@ def _constructMSCClass(meta: DocMeta) -> dict:
     """Extract ``msc_class`` field as an array."""
     raw = meta.get('msc_class')
     if not raw:
-        return
+        return None
     return [obj.strip() for obj in raw.split(',')]
 
 
@@ -28,7 +28,7 @@ def _constructACMClass(meta: DocMeta) -> dict:
     """Extract ``acm_class`` field as an array."""
     raw = meta.get('acm_class')
     if not raw:
-        return
+        return None
     return [obj.strip() for obj in raw.split(';')]
 
 
@@ -50,12 +50,12 @@ _transformations = [
     ("author_owners", "author_owners"),
     ("submitted_date", "submitted_date"),
     ("submitted_date_all",
-        lambda meta: meta.get('submitted_date_all', [])
-        if meta.get('is_current') else None),
+     lambda meta: meta.get('submitted_date_all', [])
+     if meta.get('is_current') else None),
     ("submitted_date_first",
-        lambda meta: meta.get('submitted_date_all', [])[0]),
+     lambda meta: meta.get('submitted_date_all', [])[0]),
     ("submitted_date_latest",
-        lambda meta: meta.get('submitted_date_all', [])[-1]),
+     lambda meta: meta.get('submitted_date_all', [])[-1]),
     ("modified_date", "modified_date"),
     ("updated_date", "updated_date"),
     ("announced_date_first", "announced_date_first"),
