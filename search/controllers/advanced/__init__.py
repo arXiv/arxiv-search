@@ -121,7 +121,7 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     return q
 
 
-def _update_q_with_classification(q: AdvancedQuery, data: MultiDict) \
+def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
         -> AdvancedQuery:
     q.primary_classification = ClassificationList()
     groups = [
@@ -158,7 +158,7 @@ def _update_query_with_terms(q: AdvancedQuery, terms_data: list) \
 def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         -> AdvancedQuery:
     if date_data.get('all_dates'):    # Nothing to do; all dates by default.
-        return query
+        return q
     elif date_data.get('past_12'):
         one_year_ago = date.today() - relativedelta(months=12)
         q.date_range = DateRange(
