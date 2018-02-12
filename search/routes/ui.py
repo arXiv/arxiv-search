@@ -15,7 +15,7 @@ from search.controllers import simple, advanced, authors
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint('ui', __name__, url_prefix='/search')
+blueprint = Blueprint('ui', __name__, url_prefix='/')
 
 
 @blueprint.route('/', methods=['GET'])
