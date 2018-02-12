@@ -6,7 +6,7 @@ from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
-from werkzeug import MultiDict
+from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError
 from arxiv import status
 
@@ -85,7 +85,7 @@ def search(request_params: MultiDict) -> Response:
 
             response_data['query'] = q
         else:
-            logger.debug('form is invalid: %s' % str(form.errors))
+            logger.debug('form is invalid: %s', str(form.errors))
             # Force the form to be displayed, so that we can render errors.
             #  This has most likely occurred due to someone manually crafting
             #  a GET response, but it could be something else.
@@ -111,19 +111,19 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     -------
     :class:`.AdvancedQuery`
     """
-    query = AdvancedQuery()
-    query = _update_query_with_dates(query, form.date.data)
-    query = _update_query_with_terms(query, form.terms.data)
-    query = _update_query_with_classification(query, form.classification.data)
+    q = AdvancedQuery()
+    q = _update_query_with_dates(q, form.date.data)
+    q = _update_query_with_terms(q, form.terms.data)
+    q = _update_query_with_classification(q, form.classification.data)
     order = form.order.data
     if order and order != 'None':
-        query.order = order
-    return query
+        q.order = order
+    return q
 
 
-def _update_query_with_classification(query: AdvancedQuery, data: MultiDict) \
+def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
         -> AdvancedQuery:
-    query.primary_classification = ClassificationList()
+    q.primary_classification = ClassificationList()
     groups = [
         ('computer_science', 'cs'), ('economics', 'econ'), ('eess', 'eess'),
         ('mathematics', 'math'), ('q_biology', 'q-bio'),
@@ -131,44 +131,45 @@ def _update_query_with_classification(query: AdvancedQuery, data: MultiDict) \
     ]
     for field, group in groups:
         if data.get(field):
-            query.primary_classification.append(
+            q.primary_classification.append(
                 Classification(group=group, archive=group)
             )
     if data.get('physics') and 'physics_archives' in data:
         if 'all' in data['physics_archives']:
-            query.primary_classification.append(
+            q.primary_classification.append(
                 Classification(group='physics')
             )
         else:
-            query.primary_classification.append(
+            q.primary_classification.append(
                 Classification(group='physics',
                                archive=data['physics_archives'])
             )
-    return query
+    return q
 
 
-def _update_query_with_terms(query: AdvancedQuery, terms_data: list) \
+def _update_query_with_terms(q: AdvancedQuery, terms_data: list) \
         -> AdvancedQuery:
-    query.terms = FieldedSearchList([
+    q.terms = FieldedSearchList([
         FieldedSearchTerm(**term) for term in terms_data if term['term']
     ])
-    return query
+    return q
 
 
-def _update_query_with_dates(query: AdvancedQuery, date_data: MultiDict) \
+def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         -> AdvancedQuery:
+
     if date_data.get('all_dates'):    # Nothing to do; all dates by default.
-        return query
+        return q
     elif date_data.get('past_12'):
         one_year_ago = date.today() - relativedelta(months=12)
-        query.date_range = DateRange(
+        q.date_range = DateRange(
             start_date=datetime(year=one_year_ago.year,
                                 month=one_year_ago.month,
                                 day=1, hour=0, minute=0, second=0,
                                 tzinfo=EASTERN)
         )
     elif date_data.get('specific_year'):
-        query.date_range = DateRange(
+        q.date_range = DateRange(
             start_date=datetime(year=date_data['year'].year, month=1, day=1,
                                 hour=0, minute=0, second=0, tzinfo=EASTERN),
             end_date=datetime(year=date_data['year'].year + 1, month=1, day=1,
@@ -184,8 +185,8 @@ def _update_query_with_dates(query: AdvancedQuery, date_data: MultiDict) \
                                                     datetime.min.time(),
                                                     tzinfo=EASTERN)
 
-        query.date_range = DateRange(
+        q.date_range = DateRange(
             start_date=date_data['from_date'],
             end_date=date_data['to_date'],
         )
-    return query
+    return q

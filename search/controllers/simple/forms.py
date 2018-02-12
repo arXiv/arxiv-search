@@ -1,3 +1,5 @@
+"""wtforms representations for a simple search."""
+
 from datetime import date
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
