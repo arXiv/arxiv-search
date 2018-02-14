@@ -177,13 +177,15 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         )
     elif date_data.get('date_range'):
         if date_data['from_date']:
-            date_data['from_date'] = datetime.combine(date_data['from_date'],
-                                                      datetime.min.time(),
-                                                      tzinfo=EASTERN) #type: ignore
+            date_data['from_date'] = datetime.combine( #type: ignore
+                date_data['from_date'],
+                datetime.min.time(),
+                tzinfo=EASTERN)
         if date_data['to_date']:
-            date_data['to_date'] = datetime.combine(date_data['to_date'],
-                                                    datetime.min.time(),
-                                                    tzinfo=EASTERN) # type: ignore
+            date_data['to_date'] = datetime.combine( # type: ignore
+                date_data['to_date'],
+                datetime.min.time(),
+                tzinfo=EASTERN)
 
         q.date_range = DateRange(
             start_date=date_data['from_date'],
