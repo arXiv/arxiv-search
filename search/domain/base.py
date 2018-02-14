@@ -83,11 +83,8 @@ class SchemaBase(Base):
 
     def __getattr__(self, key: str) -> Any:
         """Get a schema attribute."""
-        try:
-            super(SchemaBase, self).__getattr__(key)
-        except AttributeError:
-            if key in self:
-                return self[key]
+        if key in self:
+            return self[key]
         raise AttributeError('No such attribute')
 
     def __setattr__(self, key: str, value: Any) -> None:

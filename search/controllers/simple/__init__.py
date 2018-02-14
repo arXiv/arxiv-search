@@ -10,7 +10,7 @@ from search import logging
 from search.process import query
 from search.services import index, fulltext, metadata
 from search.util import parse_arxiv_id
-from search.domain import SimpleQuery
+from search.domain import Query, SimpleQuery
 
 from .forms import SimpleSearchForm
 # from search.routes.ui import external_url_builder
@@ -49,7 +49,7 @@ def search(request_params: dict) -> Response:
         Headers to add to the response.
     """
     logger.debug('simple search form')
-    response_data = {}
+    response_data = {} # type: Dict[str, Any]
 
     logger.debug('simple search request')
     if 'query' in request_params:
@@ -72,7 +72,7 @@ def search(request_params: dict) -> Response:
 
     # Fall back to form-based search.
     form = SimpleSearchForm(request_params)
-    q = None
+    q: Query
     if form.validate():
         logger.debug('form is valid')
         q = _query_from_form(form)

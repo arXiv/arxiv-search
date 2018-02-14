@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from string import punctuation
-from typing import Optional
+from typing import Callable, Dict, List, Optional, Tuple, Union
 from search.domain import Document, DocMeta, Fulltext
 
 
@@ -21,7 +21,7 @@ def _constructPaperVersion(meta: DocMeta) -> str:
     return '%sv%i' % (meta['paper_id'], meta.get('version', 1))
 
 
-def _constructMSCClass(meta: DocMeta) -> dict:
+def _constructMSCClass(meta: DocMeta) -> list:
     """Extract ``msc_class`` field as an array."""
     raw = meta.get('msc_class')
     if not raw:
@@ -29,7 +29,7 @@ def _constructMSCClass(meta: DocMeta) -> dict:
     return [obj.strip() for obj in raw.split(',')]
 
 
-def _constructACMClass(meta: DocMeta) -> dict:
+def _constructACMClass(meta: DocMeta) -> list:
     """Extract ``acm_class`` field as an array."""
     raw = meta.get('acm_class')
     if not raw:
@@ -43,12 +43,12 @@ def _update_with_initials(author: dict) -> dict:
     return author
 
 
-def _constructAuthors(meta: DocMeta) -> dict:
+def _constructAuthors(meta: DocMeta) -> List[Dict]:
     return [_update_with_initials(author)
             for author in meta.get("authors_parsed", [])]
 
-
-_transformations = [
+TransformType = Union[str, Callable]
+_transformations: List[Tuple[str, TransformType]] = [
     ('id', 'paper_id'),
     ('abstract', 'abstract'),
     ('authors', _constructAuthors),

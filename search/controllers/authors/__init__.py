@@ -10,7 +10,7 @@ from search import logging
 from search.process import query
 from search.services import index, fulltext, metadata
 from search.util import parse_arxiv_id
-from search.domain import AuthorQuery, Author, AuthorList
+from search.domain import AuthorQuery, Author, AuthorList, Query
 
 from .forms import AuthorSearchForm
 # from search.routes.ui import external_url_builder
@@ -59,7 +59,7 @@ def search(request_params: dict) -> Response:
     if query_is_present:
         if form.validate():
             logger.debug('form is valid')
-            q = _query_from_form(form)
+            q: Query = _query_from_form(form)
 
             # Pagination is handled outside of the form.
             q = query.paginate(q, request_params)

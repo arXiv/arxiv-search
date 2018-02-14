@@ -13,7 +13,7 @@ from arxiv import status
 from search.services import index, fulltext, metadata
 from search.process import query
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
-    Classification, FieldedSearchList, ClassificationList
+    Classification, FieldedSearchList, ClassificationList, Query
 from search import logging
 from . import forms
 
@@ -52,7 +52,7 @@ def search(request_params: MultiDict) -> Response:
         "bug" error page to the user.
     """
     logger.debug('search request from advanced form')
-    response_data = {}
+    response_data: Dict[str, Any] = {}
     response_data['show_form'] = ('advanced' not in request_params)
     logger.debug('show_form: %s', str(response_data['show_form']))
     form = forms.AdvancedSearchForm(request_params)
@@ -63,7 +63,7 @@ def search(request_params: MultiDict) -> Response:
     if 'advanced' in request_params:
         if form.validate():
             logger.debug('form is valid')
-            q = _query_from_form(form)
+            q: Query = _query_from_form(form)
 
             # Pagination is handled outside of the form.
             q = query.paginate(q, request_params)
@@ -179,11 +179,11 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         if date_data['from_date']:
             date_data['from_date'] = datetime.combine(date_data['from_date'],
                                                       datetime.min.time(),
-                                                      tzinfo=EASTERN)
+                                                      tzinfo=EASTERN) #type: ignore
         if date_data['to_date']:
             date_data['to_date'] = datetime.combine(date_data['to_date'],
                                                     datetime.min.time(),
-                                                    tzinfo=EASTERN)
+                                                    tzinfo=EASTERN) # type: ignore
 
         q.date_range = DateRange(
             start_date=date_data['from_date'],
