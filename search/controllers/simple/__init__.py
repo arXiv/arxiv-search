@@ -1,6 +1,6 @@
 """Search controllers."""
 
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 from werkzeug.exceptions import InternalServerError, NotFound
 
@@ -72,7 +72,7 @@ def search(request_params: dict) -> Response:
 
     # Fall back to form-based search.
     form = SimpleSearchForm(request_params)
-    q: Query
+    q: Optional[Query]
     if form.validate():
         logger.debug('form is valid')
         q = _query_from_form(form)

@@ -1,6 +1,6 @@
 """Controllers for author search."""
 
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 from werkzeug.exceptions import InternalServerError
 
@@ -56,10 +56,12 @@ def search(request_params: dict) -> Response:
     response_data['show_form'] = (
         request_params.get('show_form', False) or not query_is_present
     )
+
+    q: Optional[Query]
     if query_is_present:
         if form.validate():
             logger.debug('form is valid')
-            q: Query = _query_from_form(form)
+            q = _query_from_form(form)
 
             # Pagination is handled outside of the form.
             q = query.paginate(q, request_params)

@@ -1,6 +1,6 @@
 """Controller for advanced search."""
 
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
@@ -57,13 +57,14 @@ def search(request_params: MultiDict) -> Response:
     logger.debug('show_form: %s', str(response_data['show_form']))
     form = forms.AdvancedSearchForm(request_params)
 
+    q: Optional[Query]
     # We want to avoid attempting to validate if no query has been entered.
     #  If a query was actually submitted via the form, 'advanced' will be
     #  present in the request parameters.
     if 'advanced' in request_params:
         if form.validate():
             logger.debug('form is valid')
-            q: Query = _query_from_form(form)
+            q = _query_from_form(form)
 
             # Pagination is handled outside of the form.
             q = query.paginate(q, request_params)
