@@ -1,6 +1,6 @@
 """Controller for advanced search."""
 
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
@@ -13,7 +13,7 @@ from arxiv import status
 from search.services import index, fulltext, metadata
 from search.process import query
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
-    Classification, FieldedSearchList, ClassificationList
+    Classification, FieldedSearchList, ClassificationList, Query
 from search import logging
 from . import forms
 
@@ -52,11 +52,12 @@ def search(request_params: MultiDict) -> Response:
         "bug" error page to the user.
     """
     logger.debug('search request from advanced form')
-    response_data = {}
+    response_data: Dict[str, Any] = {}
     response_data['show_form'] = ('advanced' not in request_params)
     logger.debug('show_form: %s', str(response_data['show_form']))
     form = forms.AdvancedSearchForm(request_params)
 
+    q: Optional[Query]
     # We want to avoid attempting to validate if no query has been entered.
     #  If a query was actually submitted via the form, 'advanced' will be
     #  present in the request parameters.
@@ -177,13 +178,15 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         )
     elif date_data.get('date_range'):
         if date_data['from_date']:
-            date_data['from_date'] = datetime.combine(date_data['from_date'],
-                                                      datetime.min.time(),
-                                                      tzinfo=EASTERN)
+            date_data['from_date'] = datetime.combine( #type: ignore
+                date_data['from_date'],
+                datetime.min.time(),
+                tzinfo=EASTERN)
         if date_data['to_date']:
-            date_data['to_date'] = datetime.combine(date_data['to_date'],
-                                                    datetime.min.time(),
-                                                    tzinfo=EASTERN)
+            date_data['to_date'] = datetime.combine( # type: ignore
+                date_data['to_date'],
+                datetime.min.time(),
+                tzinfo=EASTERN)
 
         q.date_range = DateRange(
             start_date=date_data['from_date'],

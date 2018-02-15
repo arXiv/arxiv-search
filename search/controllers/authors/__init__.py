@@ -1,6 +1,6 @@
 """Controllers for author search."""
 
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 from werkzeug.exceptions import InternalServerError
 
@@ -10,7 +10,7 @@ from search import logging
 from search.process import query
 from search.services import index, fulltext, metadata
 from search.util import parse_arxiv_id
-from search.domain import AuthorQuery, Author, AuthorList
+from search.domain import AuthorQuery, Author, AuthorList, Query
 
 from .forms import AuthorSearchForm
 # from search.routes.ui import external_url_builder
@@ -56,6 +56,8 @@ def search(request_params: dict) -> Response:
     response_data['show_form'] = (
         request_params.get('show_form', False) or not query_is_present
     )
+
+    q: Optional[Query]
     if query_is_present:
         if form.validate():
             logger.debug('form is valid')

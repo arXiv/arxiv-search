@@ -39,7 +39,7 @@ class DocMetaSession(object):
     def __init__(self, endpoint: str) -> None:
         """Initialize an HTTP session."""
         self._session = requests.Session()
-        self._retry = Retry(
+        self._retry = Retry( # type: ignore
             total=10,
             read=10,
             connect=10,

@@ -1,5 +1,5 @@
 """Representations of authors, author lists, and author queries."""
-from search.domain import Query, Property, Base
+from search.domain import Query, Property, Base # type: ignore
 
 
 class Author(Base):
