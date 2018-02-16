@@ -359,6 +359,25 @@
             }
           }
         },
+        "title_utf8": {
+          "type": "text",
+          "analyzer": "simple",
+          "search_analyzer": "standard",
+          "search_quote_analyzer": "simple",
+          "fields": {
+            "english": {
+              "type": "text",
+              "analyzer": "english"
+            },
+            "tex": {
+              "type": "text",
+              "analyzer": "tex_analyzer"
+            },
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
         "version": {
           "type": "integer"
         },
