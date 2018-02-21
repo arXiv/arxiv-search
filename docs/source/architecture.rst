@@ -43,6 +43,7 @@ Quality Goals
 =============
 - 90% test coverage on Python components that we develop/control.
 - 99% of requests have a response time of 1 second or less.
+- Meet or exceed WCAG 2.0 level A for accessibility.
 
 Constraints
 ===========
@@ -134,9 +135,9 @@ main search controllers:
 - :mod:`search.controllers.advanced`
 
 These are implemented separately, rather than trying to accommodate all
-use-cases in one controller, because we expect search functionality to change
-dramatically in the future. Each controller module implements its own classes
-for form handling and validation.
+use-cases in one controller, because we expect user interface methods to change
+significantly as enhanced features are introduced. Each controller module
+implements its own classes for form handling and validation.
 
 
 
