@@ -60,8 +60,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'arXiv search'
-copyright = '2017, Jane Bloggs'
-author = 'Jane Bloggs'
+copyright = '2017, arXiv Team'
+author = 'arXiv Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

@@ -26,3 +26,8 @@
     recent version.
   * When sorted by relevance in advanced search, current versions are boosted
     to prevent multiple versions of the same paper from clustering together.
+7. We will truncate author names in search results for now, because papers with
+   hundreds of authors take up enormous screen real-estate in the search
+   results, and we are only seeking feature-parity with the classic system.
+   When we address hit highlighting, we can show matching author names deep in
+   author list to provide visual feedback to the user.

@@ -41,8 +41,19 @@ Key Requirements
 
 Quality Goals
 =============
-- 90% test coverage on Python components that we develop/control.
-- 99% of requests have a response time of 1 second or less.
+- Code quality:
+
+  - 90% test coverage on Python components that we develop/control.
+  - Linting: ``pylint`` passes with >= 9/10.
+  - Documentation: ``pydocstyle`` passes.
+  - Static checking: ``mypy`` passes.
+
+- Performance & reliability:
+
+  - Response time: 99% of requests have a latency of 1 second or less.
+  - Error rate: parity with classic search.
+  - Request rate: support request volume of existing search * safety factor 3.
+
 - Meet or exceed WCAG 2.0 level A for accessibility.
 
 Constraints
