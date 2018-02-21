@@ -105,7 +105,7 @@ Containers
    Container view of arXiv search.
 
 The core of the search system is an ElasticSearch cluster, provided by the `AWS
-Elasticsearch Service <https://aws.amazon.com/elasticsearch-service/>`.
+Elasticsearch Service <https://aws.amazon.com/elasticsearch-service/>`_.
 
 The search service, implemented in Python/Flask, provides both the user-facing
 interfaces as well as a REST API. The search service is only responsible for
