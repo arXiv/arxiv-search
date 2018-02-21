@@ -2,9 +2,21 @@
 
 ## Documentation
 
+- Main service documentation: ``docs/``
 - OpenAPI Documentation: [``api/search.yaml``](api/search.yaml)
 - JSON Schema: [``schema/``](schema)
 - Elasticsearch mappings: [``mappings/``](mappings)
+
+To build the service documentation:
+
+```bash
+cd docs
+pip install -r requirements.txt
+make [format]
+```
+
+where [format] can be ``html``, ``latexpdf``. See the ``Sphinx documentation
+<http://www.sphinx-doc.org/en/master/>`_.
 
 
 ## Development quickstart

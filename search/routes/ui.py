@@ -9,7 +9,6 @@ from flask import Blueprint, render_template, redirect, request, url_for
 from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
 
 from arxiv import status
-from arxiv.base import routes as base_routes
 from search import logging
 from search.controllers import simple, advanced, authors
 
@@ -95,10 +94,3 @@ def current_url_sans_parameters_builder() -> Dict[str, Callable]:
         parts = parts.replace(query=url_encode(args))
         return url_unparse(parts)
     return dict(current_url_sans_parameters=current_url_sans_parameters)
-
-
-@wraps(base_routes.config_url_builder)
-@blueprint.context_processor
-def config_url_builder() -> Dict[str, Callable]:
-    """Inject configurable URLs for base template rendering."""
-    return base_routes.config_url_builder()

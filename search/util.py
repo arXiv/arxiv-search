@@ -6,7 +6,7 @@ from search import logging
 
 logger = logging.getLogger(__name__)
 
-__all__ = ('parse_arxiv_id')
+__all__ = ('parse_arxiv_id', )
 
 CATEGORIES = [
     "acc-phys", "adap-org", "alg-geom", "ao-sci", "astro-ph", "atom-ph",
