@@ -29,7 +29,8 @@ class FieldForm(Form):
         ('acm_class', 'ACM classification'),
         ('msc_class', 'MSC classification'),
         ('report_num', 'Report number'),
-        ('paper_id', 'Identifier')
+        ('paper_id', 'Identifier'),
+        ('doi', 'DOI')
     ])
 
 

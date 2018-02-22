@@ -177,7 +177,7 @@ class SearchSession(object):
         elif term.field in ['journal_ref', 'report_num']:
             return _Q('match_phrase', term.field, term.term)
         # These terms require a simple match.
-        elif term.field in ['acm_class', 'msc_class']:
+        elif term.field in ['acm_class', 'msc_class', 'doi']:
             return _Q('match', term.field, term.term)
         # Search both with and without version.
         elif term.field == 'paper_id':
