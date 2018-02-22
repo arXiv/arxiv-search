@@ -18,7 +18,14 @@ class SimpleSearchForm(Form):
         ('all', 'All fields'),
         ('title', 'Title'),
         ('author', 'Author(s)'),
-        ('abstract', 'Abstract')
+        ('abstract', 'Abstract'),
+        ('comments', 'Comments'),
+        ('journal_ref', 'Journal ref'),
+        ('acm_class', 'ACM classification'),
+        ('msc_class', 'MSC classification'),
+        ('report_num', 'Report number'),
+        ('paper_id', 'Identifier'),
+        ('doi', 'DOI')
     ])
     query = StringField('Search or Article ID',
                         validators=[doesNotStartWithWildcard])

@@ -161,44 +161,43 @@ class SearchSession(object):
     @staticmethod
     def _field_term_to_q(field: str, term: str) -> Q:
         # These terms have fields for both TeX and English normalization.
-        if term.field in ['title', 'abstract']:
+        if field in ['title', 'abstract']:
             return (
                 Q("simple_query_string", fields=[
-                    term.field,
-                    f'{term.field}__tex',
-                    f'{term.field}__english'
-                  ], query=term.term)
+                    field,
+                    f'{field}__tex',
+                    f'{field}__english'
+                  ], query=term)
             )
         # These terms have no additional fields.
-        elif term.field in ['comments']:
-            return Q("simple_query_string", fields=[term.field],
-                     query=term.term)
+        elif field in ['comments']:
+            return Q("simple_query_string", fields=[field], query=term)
         # These terms require a match_phrase search.
-        elif term.field in ['journal_ref', 'report_num']:
-            return _Q('match_phrase', term.field, term.term)
+        elif field in ['journal_ref', 'report_num']:
+            return _Q('match_phrase', field, term)
         # These terms require a simple match.
-        elif term.field in ['acm_class', 'msc_class', 'doi']:
-            return _Q('match', term.field, term.term)
+        elif field in ['acm_class', 'msc_class', 'doi']:
+            return _Q('match', field, term)
         # Search both with and without version.
-        elif term.field == 'paper_id':
+        elif field == 'paper_id':
             return (
-                _Q('match', 'paper_id', term.term)
-                | _Q('match', 'paper_id_v', term.term)
+                _Q('match', 'paper_id', term)
+                | _Q('match', 'paper_id_v', term)
             )
-        elif term.field == 'author':
+        elif field == 'author':
             return (
                 Q('nested', path='authors', query=(
-                    _Q('match', 'authors__first_name__folded', term.term)
-                    | _Q('match', 'authors__last_name__folded', term.term)
-                    | _Q('match', 'authors__full_name__folded', term.term)
+                    _Q('match', 'authors__first_name__folded', term)
+                    | _Q('match', 'authors__last_name__folded', term)
+                    | _Q('match', 'authors__full_name__folded', term)
                 ))
                 | Q('nested', path='owners', query=(
-                    _Q('match', 'owners__first_name__folded', term.term)
-                    | _Q('match', 'owners__last_name__folded', term.term)
-                    | _Q('match', 'owners__full_name__folded', term.term)
+                    _Q('match', 'owners__first_name__folded', term)
+                    | _Q('match', 'owners__last_name__folded', term)
+                    | _Q('match', 'owners__full_name__folded', term)
                 ))
             )
-        return _Q("match", term.field, term.term)
+        return _Q("match", field, term)
 
     @staticmethod
     def _grouped_terms_to_q(term_pair: tuple) -> Bool:
@@ -319,41 +318,19 @@ class SearchSession(object):
         current_search = self._base_search().filter("term", is_current=True)
         if query.field == 'all':
             q = (
-                Q('nested', path='authors', query=(
-                    _Q('match', 'authors__first_name__folded', query.value)
-                    | _Q('match', 'authors__last_name__folded', query.value)
-                    | _Q('match', 'authors__full_name', query.value)
-                ))
-                | Q('nested', path='owners', query=(
-                    _Q('match', 'owners__first_name__folded', query.value)
-                    | _Q('match', 'owners__last_name__folded', query.value)
-                    | _Q('match', 'owners__full_name', query.value)
-                ))
-                | _Q('match', 'title', query.value)
-                | _Q('match', 'title__english', query.value)
-                | _Q('match', 'title__tex', query.value)
-                | _Q('match', 'abstract__english', query.value)
-                | _Q('match', 'abstract__tex', query.value)
-            )
-        elif query.field == 'author':
-            q = (
-                Q('nested', path='authors', query=(
-                    _Q('match', 'authors__first_name__folded', query.value)
-                    | _Q('match', 'authors__last_name__folded', query.value)
-                    | _Q('match', 'authors__full_name', query.value)
-                ))
-                | Q('nested', path='owners', query=(
-                    _Q('match', 'owners__first_name__folded', query.value)
-                    | _Q('match', 'owners__last_name__folded', query.value)
-                    | _Q('match', 'owners__full_name', query.value)
-                ))
+                self._field_term_to_q('author', query.value)
+                | self._field_term_to_q('title', query.value)
+                | self._field_term_to_q('abstract', query.value)
+                | self._field_term_to_q('comments', query.value)
+                | self._field_term_to_q('journal_ref', query.value)
+                | self._field_term_to_q('acm_class', query.value)
+                | self._field_term_to_q('msc_class', query.value)
+                | self._field_term_to_q('report_num', query.value)
+                | self._field_term_to_q('paper_id', query.value)
+                | self._field_term_to_q('doi', query.value)
             )
         else:
-            q = (
-                _Q('match', query.field, query.value)
-                | _Q('match', f'{query.field}__english', query.value)
-                | _Q('match', f'{query.field}__tex', query.value)
-            )
+            q = self._field_term_to_q(query.field, query.value)
         current_search = current_search.query(q)
         current_search = self._apply_sort(query, current_search)
         return current_search
