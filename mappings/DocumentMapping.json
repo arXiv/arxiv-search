@@ -9,6 +9,14 @@
             "lowercase"
           ]
         },
+        "folding": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "icu_folding",
+            "lowercase"
+          ]
+        },
         "tex_analyzer": {
           "type": "custom",
           "tokenizer": "tex_tokenizer"
@@ -94,7 +102,8 @@
               }
             },
             "full_name": {
-              "type": "text"
+              "type": "text",
+              "analyzer": "folding"
             },
             "suffix": {
               "type": "keyword"
@@ -132,6 +141,10 @@
                   "normalizer": "folding"
                 }
               }
+            },
+            "full_name": {
+              "type": "text",
+              "analyzer": "folding"
             },
             "suffix": {
               "type": "keyword"
@@ -365,6 +378,25 @@
               "analyzer": "tex_analyzer",
               "search_analyzer": "tex_analyzer",
               "search_quote_analyzer": "simple"
+            },
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "title_utf8": {
+          "type": "text",
+          "analyzer": "simple",
+          "search_analyzer": "standard",
+          "search_quote_analyzer": "simple",
+          "fields": {
+            "english": {
+              "type": "text",
+              "analyzer": "english"
+            },
+            "tex": {
+              "type": "text",
+              "analyzer": "tex_analyzer"
             },
             "keyword": {
               "type": "keyword"

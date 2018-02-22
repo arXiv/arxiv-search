@@ -37,15 +37,22 @@ def _constructACMClass(meta: DocMeta) -> list:
     return [obj.strip() for obj in raw.split(';')]
 
 
-def _update_with_initials(author: dict) -> dict:
+def _transformAuthor(author: dict) -> dict:
     fname = _strip_punctuation(author['first_name'])
     author['initials'] = [pt[0] for pt in fname.split() if pt]
+    author['full_name'] = f"{author['first_name']} {author['last_name']}"
     return author
 
 
 def _constructAuthors(meta: DocMeta) -> List[Dict]:
-    return [_update_with_initials(author)
+    return [_transformAuthor(author)
             for author in meta.get("authors_parsed", [])]
+
+
+def _constructAuthorOwners(meta: DocMeta) -> List[Dict]:
+    return [_transformAuthor(author)
+            for author in meta.get("author_owners", [])]
+
 
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType]] = [
@@ -53,7 +60,7 @@ _transformations: List[Tuple[str, TransformType]] = [
     ('abstract', 'abstract'),
     ('authors', _constructAuthors),
     ('authors_freeform', "authors_utf8"),
-    ("author_owners", "author_owners"),
+    ("owners", _constructAuthorOwners),
     ("submitted_date", "submitted_date"),
     ("submitted_date_all",
      lambda meta: meta.get('submitted_date_all', [])
@@ -73,6 +80,7 @@ _transformations: List[Tuple[str, TransformType]] = [
     ("primary_classification", "primary_classification"),
     ("secondary_classification", "secondary_classification"),
     ("title", "title"),
+    ("title_utf8", "title_utf8"),
     ("source", "source"),
     ("version", "version"),
     ("submitter", _prepareSubmitter),
