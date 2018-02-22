@@ -6,13 +6,26 @@ class Author(Base):
     """Represents an author."""
 
     forename = Property('forename', str)
-    surname = Property('forensurnameame', str)
+    surname = Property('surname', str)
+    fullname = Property('fullname', str)
 
+    # TODO: gawd this is ugly.
     def __str__(self):
-        """Prints the author name."""
-        if self.forename:
-            return f'{self.forename} {self.surname}'
-        return self.surname
+        """Print the author name."""
+        if self.fullname and self.surname:
+            if self.forename:
+                name = f'{self.forename}[f] {self.surname}[s]'
+            else:
+                name = f'{self.surname}[s]'
+            name = f'{name} OR {self.fullname}'
+        elif self.fullname:
+            name = self.fullname
+        else:
+            if self.forename:
+                name = f'{self.forename}[f] {self.surname}[s]'
+            else:
+                name = f'{self.surname}[s]'
+        return name
 
 
 class AuthorList(list):
@@ -20,7 +33,11 @@ class AuthorList(list):
 
     def __str__(self):
         """Prints comma-delimited list of authors."""
-        return ', '.join([str(au) for au in self])
+        if len(self) == 0:
+            return ''
+        if len(self) > 1:
+            return ' AND '.join([f"({str(au)})" for au in self])
+        return str(self[0])
 
 
 class AuthorQuery(Query):

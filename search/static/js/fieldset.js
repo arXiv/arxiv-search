@@ -43,6 +43,12 @@ $(function() {
                 $(this).val(default_value);
               }
           });
+
+          // Clear help text.
+          new_item.find(".help").each(function() {
+              $(this).empty();
+          });
+
           new_item.show();
           last_item.after(new_item); // Insert the new item below the last.
       });
