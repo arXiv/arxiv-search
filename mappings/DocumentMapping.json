@@ -148,7 +148,10 @@
           }
         },
         "comments": {
-          "type": "text"
+          "type": "text",
+          "analyzer": "simple",
+          "search_analyzer": "standard",
+          "search_quote_analyzer": "simple"
         },
         "submitted_date": {
           "type": "date",
@@ -194,7 +197,12 @@
           "type": "boolean"
         },
         "journal_ref": {
-          "type": "text"
+          "type": "text",
+          "analyzer": "simple"
+        },
+        "report_num": {
+          "type": "text",
+          "analyzer": "simple"
         },
         "license": {
           "properties": {
@@ -348,11 +356,15 @@
           "fields": {
             "english": {
               "type": "text",
-              "analyzer": "english"
+              "analyzer": "english",
+              "search_analyzer": "english",
+              "search_quote_analyzer": "simple"
             },
             "tex": {
               "type": "text",
-              "analyzer": "tex_analyzer"
+              "analyzer": "tex_analyzer",
+              "search_analyzer": "tex_analyzer",
+              "search_quote_analyzer": "simple"
             },
             "keyword": {
               "type": "keyword"

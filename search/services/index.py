@@ -160,11 +160,30 @@ class SearchSession(object):
 
     @staticmethod
     def _field_term_to_q(term) -> Q:
+        # These terms have fields for both TeX and English normalization.
         if term.field in ['title', 'abstract']:
             return (
-                _Q("match", term.field, term.term)
-                | _Q("match", f'{term.field}__tex', term.term)
-                | _Q("match", f'{term.field}__english', term.term)
+                Q("simple_query_string", fields=[
+                    term.field,
+                    f'{term.field}__tex',
+                    f'{term.field}__english'
+                  ], query=term.term)
+            )
+        # These terms have no additional fields.
+        elif term.field in ['comments']:
+            return Q("simple_query_string", fields=[term.field],
+                     query=term.term)
+        # These terms require a match_phrase search.
+        elif term.field in ['journal_ref', 'report_num']:
+            return _Q('match_phrase', term.field, term.term)
+        # These terms require a simple match.
+        elif term.field in ['acm_class', 'msc_class']:
+            return _Q('match', term.field, term.term)
+        # Search both with and without version.
+        elif term.field == 'paper_id':
+            return (
+                _Q('match', 'paper_id', term.term)
+                | _Q('match', 'paper_id_v', term.term)
             )
         elif term.field == 'author':
             return Q('nested', path='authors', query=(
