@@ -13,7 +13,9 @@ services:
     networks:       ['es_stack']
 
   kibana:
-    image:          docker.elastic.co/kibana/kibana:6.1.2
+    build:
+      context: .
+      dockerfile: Dockerfile-kibana
     container_name: kibana
     # environment:
     #   - ELASTICSEARCH_USERNAME=kibana
