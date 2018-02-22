@@ -159,7 +159,7 @@ class SearchSession(object):
         return terms[0]
 
     @staticmethod
-    def _field_term_to_q(term) -> Q:
+    def _field_term_to_q(field: str, term: str) -> Q:
         # These terms have fields for both TeX and English normalization.
         if term.field in ['title', 'abstract']:
             return (
@@ -200,12 +200,12 @@ class SearchSession(object):
         if isinstance(term_a, tuple):
             term_a = SearchSession._grouped_terms_to_q(term_a)
         else:
-            term_a = SearchSession._field_term_to_q(term_a)
+            term_a = SearchSession._field_term_to_q(term_a.field, term_a.term)
 
         if isinstance(term_b, tuple):
             term_b = SearchSession._grouped_terms_to_q(term_b)
         else:
-            term_b = SearchSession._field_term_to_q(term_b)
+            term_b = SearchSession._field_term_to_q(term_b.field, term_b.term)
 
         if operator == 'OR':
             return term_a | term_b
@@ -233,7 +233,8 @@ class SearchSession(object):
     @classmethod
     def _fielded_terms_to_q(cls, query: Query) -> Match:
         if len(query.terms) == 1:
-            return SearchSession._field_term_to_q(query.terms[0])
+            term = query.terms[0]
+            return SearchSession._field_term_to_q(term.field, term.term)
             # return Q("match", **{query.terms[0].field: query.terms[0].term})
         elif len(query.terms) > 1:
             terms = cls._group_terms(query)
