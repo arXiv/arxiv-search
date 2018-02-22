@@ -138,7 +138,10 @@
     </p>
     <p class="title is-5">{{ result.title }}</p>
     <p class="authors">Authors:
-      {% for author in result.authors[0:25] %}<a href="{{ url_for('ui.author_search') }}?surname={{ author.last_name }}&forename={{ author.first_name }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}{% endfor -%}{% if result.authors | length > 25 %}, et al. ({{ result.authors | length - 25 }} additional authors not shown){% endif %}
+      {% for author in result.authors[0:25] %}
+      <a href="{{ url_for('ui.author_search') }}?surname={{ author.last_name }}&forename={{ author.first_name }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}
+      {% endfor -%}
+      {% if result.authors | length > 25 %}, et al. ({{ result.authors | length - 25 }} additional authors not shown){% endif %}
     </p>
     <p>Submitted on {{ result.submitted_date.strftime('%d %B, %Y at %H:%M:%S %Z') }}. {% if result.latest %}<span class="has-text-weight-bold">Latest version: <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a></span>{% endif %}</p>
     <p class="comments">Comments: {{ result.comments }}</p>
