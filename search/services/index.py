@@ -261,12 +261,12 @@ class SearchSession(object):
             current_search = current_search.sort(*sort_params)
         return current_search
 
-    def _get_base_search(self) -> Search:
+    def _base_search(self) -> Search:
         return Search(using=self.es, index=self.index)
 
     def _prepare(self, query: AdvancedQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
-        current_search = self._get_base_search()
+        current_search = self._base_search()
         q = (
             self._fielded_terms_to_q(query)
             & self._daterange_to_q(query)
@@ -288,7 +288,7 @@ class SearchSession(object):
 
     def _prepare_simple(self, query: SimpleQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
-        current_search = self._get_base_search().filter("term", is_current=True)
+        current_search = self._base_search().filter("term", is_current=True)
         if query.field == 'all':
             q = (
                 Q('nested', path='authors', query=(
@@ -319,20 +319,29 @@ class SearchSession(object):
         return current_search
 
     def _prepare_author(self, query: AuthorQuery) -> Search:
-        current_search = self._get_base_search().filter("term", is_current=True)
+        current_search = self._base_search().filter("term", is_current=True)
         q = Q()
         for au in query.authors:
-            _q = _Q('match', 'authors__last_name__folded', au.surname)
+            # We should be checking this in the controller (e.g. form data
+            # validation), but just in case...
+            if not (au.surname or au.fullname):
+                raise ValueError('Surname or fullname must be set')
 
-            if au.forename:    # Try as both forename and initials.
-                _q_init = Q()
-                for i in au.forename.replace('.', ' ').split():
-                    _q_init &= _Q('match', 'authors__initials__folded', i)
-                _q &= (
-                    _Q('match', 'authors__first_name__folded', au.forename)
-                    |
-                    _q_init
-                )
+            _q = None
+            if au.surname:
+                _q = _Q('match', 'authors__last_name__folded', au.surname)
+                if au.forename:    # Try as both forename and initials.
+                    _q_init = Q()
+                    for i in au.forename.replace('.', ' ').split():
+                        _q_init &= _Q('match', 'authors__initials__folded', i)
+                    _q &= (
+                        _Q('match', 'authors__first_name__folded', au.forename)
+                        | _q_init
+                    )
+            if au.surname and au.fullname:
+                _q |= _Q('match', 'authors__full_name', au.fullname)
+            elif au.fullname:
+                _q = _Q('match', 'authors__full_name', au.fullname)
 
             q &= Q('nested', path='authors', query=_q)
         current_search = current_search.query(q)

@@ -37,15 +37,17 @@ def _constructACMClass(meta: DocMeta) -> list:
     return [obj.strip() for obj in raw.split(';')]
 
 
-def _update_with_initials(author: dict) -> dict:
+def _transformAuthor(author: dict) -> dict:
     fname = _strip_punctuation(author['first_name'])
     author['initials'] = [pt[0] for pt in fname.split() if pt]
+    author['full_name'] = f"{author['first_name']} {author['last_name']}"
     return author
 
 
 def _constructAuthors(meta: DocMeta) -> List[Dict]:
-    return [_update_with_initials(author)
+    return [_transformAuthor(author)
             for author in meta.get("authors_parsed", [])]
+
 
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType]] = [
