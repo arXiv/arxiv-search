@@ -142,6 +142,10 @@
                 }
               }
             },
+            "full_name": {
+              "type": "text",
+              "analyzer": "folding"
+            },
             "suffix": {
               "type": "keyword"
             },

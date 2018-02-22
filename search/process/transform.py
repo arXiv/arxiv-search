@@ -49,13 +49,18 @@ def _constructAuthors(meta: DocMeta) -> List[Dict]:
             for author in meta.get("authors_parsed", [])]
 
 
+def _constructAuthorOwners(meta: DocMeta) -> List[Dict]:
+    return [_transformAuthor(author)
+            for author in meta.get("author_owners", [])]
+
+
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType]] = [
     ('id', 'paper_id'),
     ('abstract', 'abstract'),
     ('authors', _constructAuthors),
     ('authors_freeform', "authors_utf8"),
-    ("author_owners", "author_owners"),
+    ("owners", _constructAuthorOwners),
     ("submitted_date", "submitted_date"),
     ("submitted_date_all",
      lambda meta: meta.get('submitted_date_all', [])
