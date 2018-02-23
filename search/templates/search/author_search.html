@@ -31,38 +31,57 @@
     {% endif %}
     <div class="box">
       <form method="GET" action="{{ url_for('ui.author_search') }}">
-
         {# Author search term fieldset. #}
         <section data-toggle="fieldset" id="authors-fieldset" class="section">
           {% for entry in form.authors.entries %}
-            <div class="field has-addons" data-toggle="fieldset-entry">
-              <div class="control is-expanded">
-                <label for="authors-{{loop.index0}}-forename" class="hidden-label">{{ entry.forename.label }}</label>
-                {{ entry.forename(class='input', placeholder="Forename or initial(s)")|safe }}
-                {% if entry.forename.errors %}
+            <div class="columns" data-toggle="fieldset-entry">
+              <div class="column is-gapless">
+                <div class="field has-addons">
+                  <div class="control is-expanded">
+                    <label for="authors-{{loop.index0}}-forename" class="hidden-label">{{ entry.forename.label }}</label>
+                    {{ entry.forename(class='input', placeholder="Forename or initial(s)")|safe }}
+                    {% if entry.forename.errors %}
+                      <div class="help is-warning">
+                        {% for error in entry.forename.errors %}{{ error }}{% endfor %}
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="control is-expanded">
+                    <label for="authors-{{loop.index0}}-surname" class="hidden-label">{{ entry.surname.label }}</label>
+                    {{ entry.surname(class='input', placeholder="Surname")|safe }}
+                    {% if entry.surname.errors %}
+                      <div class="help is-warning">
+                        {% for error in entry.surname.errors %}{{ error }}{% endfor %}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              <div class="column is-gapless">
+                <div class="field has-addons">
+                  <span class="button is-static">OR</span>
+                  <div class="control is-expanded">
+                    <label for="authors-{{loop.index0}}-fullname" class="hidden-label">{{ entry.fullname.label }}</label>
+                    {{ entry.fullname(class='input', placeholder="Full name")|safe }}
+
+                  </div>
+                  <div class="control">
+                    <button type="button"
+                      data-toggle="fieldset-remove-row"
+                      id="authors-{{loop.index0}}-remove"
+                      class="button is-monospace fieldset-hidden-on-first-row"
+                      aria-label="Remove this search term"
+                      {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}
+                      >–
+                    </button>
+                  </div>
+                </div>
+                {% if entry.fullname.errors %}
                   <div class="help is-warning">
-                    {% for error in entry.forename.errors %}{{ error }}{% endfor %}
+                    {% for error in entry.fullname.errors %}{{ error }}{% endfor %}
                   </div>
                 {% endif %}
-              </div>
-              <div class="control is-expanded">
-                <label for="authors-{{loop.index0}}-surname" class="hidden-label">{{ entry.surname.label }}</label>
-                {{ entry.surname(class='input', placeholder="Surname")|safe }}
-                {% if entry.surname.errors %}
-                  <div class="help is-warning">
-                    {% for error in entry.surname.errors %}{{ error }}{% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-              <div class="control">
-                <button type="button"
-                  data-toggle="fieldset-remove-row"
-                  id="authors-{{loop.index0}}-remove"
-                  class="button is-monospace fieldset-hidden-on-first-row"
-                  aria-label="Remove this search term"
-                  {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}
-                  >–
-                </button>
+
               </div>
             </div>
           {% endfor %}

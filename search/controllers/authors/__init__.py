@@ -105,7 +105,11 @@ def _query_from_form(form: AuthorSearchForm) -> AuthorQuery:
     :class:`.AuthorQuery`
     """
     q = AuthorQuery(authors=AuthorList([
-        Author(forename=author['forename'], surname=author['surname'])
+        Author(
+            forename=author['forename'],
+            surname=author['surname'],
+            fullname=author['fullname']
+        )
         for author in form.authors.data
     ]))
     order = form.order.data
@@ -131,4 +135,6 @@ def _rewrite_simple_params(params: dict) -> dict:
         params['authors-0-forename'] = params['forename']
     if 'surname' in params:
         params['authors-0-surname'] = params['surname']
+    if 'fullname' in params:
+        params['authors-0-fullname'] = params['fullname']
     return params

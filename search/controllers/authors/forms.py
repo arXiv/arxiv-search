@@ -11,16 +11,25 @@ from wtforms import widgets
 from search.controllers.util import doesNotStartWithWildcard
 
 
+def validate_fullname(form: Form, field: StringField) -> None:
+    """Either fullname or surname must be set."""
+    if not (form.data['surname'] or form.data['fullname']):
+        raise ValidationError('Enter a value for either surname or fullname')
+
+
 class AuthorForm(Form):
     """wtforms.Form representing an author."""
 
     # pylint: disable=missing-docstring,too-few-public-methods
 
-    forename = StringField("Forename", validators=[validators.Length(min=1),
-                                                   validators.Optional(),
-                                                   doesNotStartWithWildcard])
-    surname = StringField("Surname", validators=[validators.Length(min=1),
-                                                 doesNotStartWithWildcard])
+    forename = StringField("Forename", validators=[
+        validators.Length(min=1),
+        validators.Optional(strip_whitespace=True),
+        doesNotStartWithWildcard
+    ])
+    surname = StringField("Surname", validators=[doesNotStartWithWildcard])
+    fullname = StringField("Full name", validators=[validate_fullname,
+                                                    doesNotStartWithWildcard])
 
 
 class AuthorSearchForm(Form):

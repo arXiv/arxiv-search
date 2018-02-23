@@ -9,6 +9,14 @@
             "lowercase"
           ]
         },
+        "folding": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "icu_folding",
+            "lowercase"
+          ]
+        },
         "tex_analyzer": {
           "type": "custom",
           "tokenizer": "tex_tokenizer"
@@ -94,7 +102,8 @@
               }
             },
             "full_name": {
-              "type": "text"
+              "type": "text",
+              "analyzer": "folding"
             },
             "suffix": {
               "type": "keyword"
@@ -132,6 +141,10 @@
                   "normalizer": "folding"
                 }
               }
+            },
+            "full_name": {
+              "type": "text",
+              "analyzer": "folding"
             },
             "suffix": {
               "type": "keyword"
