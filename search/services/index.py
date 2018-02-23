@@ -4,10 +4,10 @@ import json
 import re
 from math import floor
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, List
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
-                          SerializationError, TransportError
+    SerializationError, TransportError, helpers
 from elasticsearch.connection import Urllib3HttpConnection
 
 from elasticsearch_dsl import Search, Q, SF
@@ -16,7 +16,7 @@ from elasticsearch_dsl.query import Range, Match, Bool
 from search.context import get_application_config, get_application_global
 from search import logging
 from search.domain import Document, DocumentSet, Query, DateRange, \
-    Classification, AdvancedQuery, SimpleQuery, AuthorQuery, Author
+    Classification, AdvancedQuery, SimpleQuery, AuthorQuery
 
 logger = logging.getLogger(__name__)
 
@@ -150,9 +150,9 @@ class SearchSession(object):
         for operator in ['NOT', 'AND', 'OR']:
             i = 0
             while i < len(terms) - 1:
-                if SearchSession._get_operator(terms[i+1]) == operator:
-                    terms[i] = (terms[i], operator, terms[i+1])
-                    terms.pop(i+1)
+                if SearchSession._get_operator(terms[i + 1]) == operator:
+                    terms[i] = (terms[i], operator, terms[i + 1])
+                    terms.pop(i + 1)
                     i -= 1
                 i += 1
         assert len(terms) == 1
@@ -167,18 +167,10 @@ class SearchSession(object):
                 | _Q("match", f'{term.field}__english', term.term)
             )
         elif term.field == 'author':
-            return (
-                Q('nested', path='authors', query=(
-                    _Q('match', 'authors__first_name__folded', term.term)
-                    | _Q('match', 'authors__last_name__folded', term.term)
-                    | _Q('match', 'authors__full_name__folded', term.term)
-                ))
-                | Q('nested', path='owners', query=(
-                    _Q('match', 'owners__first_name__folded', term.term)
-                    | _Q('match', 'owners__last_name__folded', term.term)
-                    | _Q('match', 'owners__full_name__folded', term.term)
-                ))
-            )
+            return Q('nested', path='authors', query=(
+                _Q('match', 'authors__first_name__folded', term.term) |
+                _Q('match', 'authors__last_name__folded', term.term)
+            ))
         return _Q("match", term.field, term.term)
 
     @staticmethod
@@ -269,12 +261,12 @@ class SearchSession(object):
             current_search = current_search.sort(*sort_params)
         return current_search
 
-    def _base_search(self) -> Search:
+    def _get_base_search(self) -> Search:
         return Search(using=self.es, index=self.index)
 
     def _prepare(self, query: AdvancedQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
-        current_search = self._base_search()
+        current_search = self._get_base_search()
         q = (
             self._fielded_terms_to_q(query)
             & self._daterange_to_q(query)
@@ -286,7 +278,7 @@ class SearchSession(object):
             q = Q('function_score', query=q, boost=5, boost_mode="multiply",
                   score_mode="max",
                   functions=[
-                    SF({'weight': 5, 'filter': Q('term', is_current=True)})
+                      SF({'weight': 5, 'filter': Q('term', is_current=True)})
                   ])
         else:
             current_search = self._apply_sort(query, current_search)
@@ -296,18 +288,12 @@ class SearchSession(object):
 
     def _prepare_simple(self, query: SimpleQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
-        current_search = self._base_search().filter("term", is_current=True)
+        current_search = self._get_base_search().filter("term", is_current=True)
         if query.field == 'all':
             q = (
                 Q('nested', path='authors', query=(
                     _Q('match', 'authors__first_name__folded', query.value)
                     | _Q('match', 'authors__last_name__folded', query.value)
-                    | _Q('match', 'authors__full_name', query.value)
-                ))
-                | Q('nested', path='owners', query=(
-                    _Q('match', 'owners__first_name__folded', query.value)
-                    | _Q('match', 'owners__last_name__folded', query.value)
-                    | _Q('match', 'owners__full_name', query.value)
                 ))
                 | _Q('match', 'title', query.value)
                 | _Q('match', 'title__english', query.value)
@@ -320,12 +306,6 @@ class SearchSession(object):
                 Q('nested', path='authors', query=(
                     _Q('match', 'authors__first_name__folded', query.value)
                     | _Q('match', 'authors__last_name__folded', query.value)
-                    | _Q('match', 'authors__full_name', query.value)
-                ))
-                | Q('nested', path='owners', query=(
-                    _Q('match', 'owners__first_name__folded', query.value)
-                    | _Q('match', 'owners__last_name__folded', query.value)
-                    | _Q('match', 'owners__full_name', query.value)
                 ))
             )
         else:
@@ -338,43 +318,23 @@ class SearchSession(object):
         current_search = self._apply_sort(query, current_search)
         return current_search
 
-    def _author_query_part(self, author: Author, field: str) -> Search:
-        _q = None
-        if author.surname:
-            _q = _Q('match', f'{field}__last_name__folded', author.surname)
-            if author.forename:    # Try as both forename and initials.
-                _q_init = Q()
-                for i in author.forename.replace('.', ' ').split():
-                    _q_init &= _Q('match', f'{field}__initials__folded', i)
-                _q &= (
-                    _Q('match', f'{field}__first_name__folded',
-                       author.forename)
-                    | _q_init
-                )
-        if author.surname and author.fullname:
-            _q |= _Q('match', f'{field}__full_name', author.fullname)
-        elif author.fullname:
-            _q = _Q('match', f'{field}__full_name', author.fullname)
-        return _q
-
     def _prepare_author(self, query: AuthorQuery) -> Search:
-        current_search = self._base_search().filter("term", is_current=True)
+        current_search = self._get_base_search().filter("term", is_current=True)
         q = Q()
         for au in query.authors:
-            # We should be checking this in the controller (e.g. form data
-            # validation), but just in case...
-            if not (au.surname or au.fullname):
-                raise ValueError('Surname or fullname must be set')
+            _q = _Q('match', 'authors__last_name__folded', au.surname)
 
-            # We may get a higher-quality hit from owners.
-            # TODO: consider weighting owner-hits more highly?
-            q &= (
-                Q('nested', path='authors',
-                  query=self._author_query_part(au, 'authors'))
-                |
-                Q('nested', path='owners',
-                  query=self._author_query_part(au, 'owners'))
-            )
+            if au.forename:    # Try as both forename and initials.
+                _q_init = Q()
+                for i in au.forename.replace('.', ' ').split():
+                    _q_init &= _Q('match', 'authors__initials__folded', i)
+                _q &= (
+                    _Q('match', 'authors__first_name__folded', au.forename)
+                    |
+                    _q_init
+                )
+
+            q &= Q('nested', path='authors', query=_q)
         current_search = current_search.query(q)
         current_search = self._apply_sort(query, current_search)
         return current_search
@@ -409,8 +369,8 @@ class SearchSession(object):
         Uses ``paper_id_v`` as the primary identifier for the document. If the
         document is already indexed, will quietly overwrite.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         document : :class:`.Document`
             Must be a valid search document, per ``schema/Document.json``.
 
@@ -418,7 +378,7 @@ class SearchSession(object):
         ------
         IndexConnectionError
             Problem communicating with Elasticsearch host.
-        QueryError
+        IndexingError
             Problem serializing ``document`` for indexing.
         """
         try:
@@ -427,6 +387,41 @@ class SearchSession(object):
                           id=ident, body=document)
         except SerializationError as e:
             raise IndexingError('Problem serializing document: %s' % e) from e
+        except TransportError as e:
+            raise IndexConnectionError(
+                'Problem communicating with ES: %s' % e
+            ) from e
+
+    def bulk_add_documents(self, documents: List[Document]) -> None:
+        """
+        Add documents to the search index using the bulk API.
+
+        Parameters
+        ----------
+        document : :class:`.Document`
+            Must be a valid search document, per ``schema/Document.json``.
+
+        Raises
+        ------
+        IndexConnectionError
+            Problem communicating with Elasticsearch host.
+        IndexingError
+            Problem serializing ``document`` for indexing.
+
+        """
+        try:
+            actions = ({
+                '_index': self.index,
+                '_type': 'document',
+                '_id': document.get('id', document['paper_id']),
+                '_source': document
+            } for document in documents)
+
+            helpers.bulk(self.es, actions)
+        except SerializationError as e:
+            raise IndexingError('Problem serializing document: %s' % e) from e
+        except BulkIndexError as e:
+            raise IndexingError('Problem with bulk index: %s' % e) from e
         except TransportError as e:
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
@@ -504,7 +499,7 @@ class SearchSession(object):
                 'Problem communicating with ES: %s' % e
             ) from e
 
-        N_pages_raw = results['hits']['total']/query.page_size
+        N_pages_raw = results['hits']['total'] / query.page_size
         N_pages = int(floor(N_pages_raw)) + \
             int(N_pages_raw % query.page_size > 0)
         logger.debug('got %i results', results['hits']['total'])
@@ -582,6 +577,11 @@ def search(query: Query) -> DocumentSet:
 def add_document(document: Document) -> None:
     """Add Document."""
     return current_session().add_document(document)
+
+@wraps(SearchSession.bulk_add_documents)
+def bulk_add_documents(documents: List[Document]) -> None:
+    """Add Documents."""
+    return current_session().bulk_add_documents(documents)
 
 
 @wraps(SearchSession.get_document)
