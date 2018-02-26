@@ -184,6 +184,15 @@ class SearchSession(object):
                 _Q('match', 'paper_id', term)
                 | _Q('match', 'paper_id_v', term)
             )
+        elif field in ['orcid', 'author_id']:
+            return (
+                Q("nested", path="authors",
+                  query=_Q('match', f'authors__{field}', term))
+                | Q("nested", path="owners",
+                    query=_Q('match', f'owners__{field}', term))
+                | _Q('match', f'submitter__{field}', term)
+            )
+
         elif field == 'author':
             return (
                 Q('nested', path='authors', query=(
@@ -332,6 +341,8 @@ class SearchSession(object):
                 | self._field_term_to_q('report_num', query.value)
                 | self._field_term_to_q('paper_id', query.value)
                 | self._field_term_to_q('doi', query.value)
+                | self._field_term_to_q('orcid', query.value)
+                | self._field_term_to_q('author_id', query.value)
             )
         else:
             q = self._field_term_to_q(query.field, query.value)
@@ -377,7 +388,6 @@ class SearchSession(object):
                 | (_Q('match', 'submitter__name',
                       f'{au.forename} {au.surname} {au.fullname}')
                    & Q('match', **{'submitter__is_author': True}))
-
             )
         current_search = current_search.query(q)
         current_search = self._apply_sort(query, current_search)
