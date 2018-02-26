@@ -11,8 +11,8 @@
 {% endblock title %}
 
 {% block within_content %}
-  <form method="GET" action="{{ url_for('ui.search') }}">
-    <div class="field has-addons">
+  <form method="GET" action="{{ url_for('ui.search') }}" {% if not query and not results %} class="breathe-vertical" {% endif %}>
+    <div class="field has-addons-tablet">
       <div class="control is-expanded">
         {% if form.query.errors %}
           {{ form.query(class="input is-medium is-warning")|safe }}
