@@ -5,10 +5,10 @@
 {% macro select_field(field) %}
 <div class="field is-horizontal">
   <div class="control">
-    <label class="checkbox">
+    <div class="checkbox">
       {{ field|safe }}
       {{ field.label }}
-    </label>
+    </div>
     {% if field.errors %}
       <div class="help is-warning">
         {% for error in field.errors %}
@@ -38,7 +38,8 @@
           {% for entry in form.terms.entries %}
             <div class="field has-addons" data-toggle="fieldset-entry">
               <div class="control fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>
-                <span class="select" aria-label="Boolean operator">
+                <span class="select">
+                  <label for="terms-{{loop.index0}}-operator" class="hidden-label">Boolean operator</label>
                   {{ entry.operator(default='AND')|safe }}
                 </span>
               </div>
@@ -110,10 +111,10 @@
                 {# Physics is odd, since we allow archive selection as well. #}
                 <div class="field is-horizontal is-grouped">
                   <div class="control">
-                    <label class="checkbox">
+                    <div class="checkbox">
                       {{ form.classification.physics|safe }}
                       {{ form.classification.physics.label }}
-                    </label>
+                    </div>
                     {% if form.classification.physics.errors %}
                       <div class="help is-warning">
                         {% for error in form.classification.physics.errors %}

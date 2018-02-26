@@ -11,9 +11,10 @@
 {% endblock title %}
 
 {% block within_content %}
-  <form method="GET" action="{{ url_for('ui.search') }}" {% if not query and not results %} class="breathe-vertical" {% endif %}>
+  <form method="GET" action="{{ url_for('ui.search') }}" {% if not query and not results %} class="breathe-vertical" {% endif %} aria-role="search">
     <div class="field has-addons-tablet">
       <div class="control is-expanded">
+        <label for="query" class="hidden-label">Search term or terms</label>
         {% if form.query.errors %}
           {{ form.query(class="input is-medium is-warning")|safe }}
         {% else %}
@@ -28,6 +29,7 @@
         {% endif %}
       </div>
       <div class="select control is-medium">
+        {{ form.searchtype.label(class="is-hidden") }}
         {{ form.searchtype(class="is-medium")|safe }}
       </div>
       <div class="control">
