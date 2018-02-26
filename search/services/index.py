@@ -196,6 +196,10 @@ class SearchSession(object):
                     | _Q('match', 'owners__last_name__folded', term)
                     | _Q('match', 'owners__full_name__folded', term)
                 ))
+                | (
+                    _Q('match', 'submitter__name', term)
+                    & Q('match', **{'submitter__is_author': True})
+                )
             )
         return _Q("match", field, term)
 

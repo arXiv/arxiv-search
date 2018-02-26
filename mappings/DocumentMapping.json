@@ -338,14 +338,8 @@
               "type": "keyword"
             },
             "name": {
-              "type": "keyword",
-              "normalizer": "simple",
-              "fields": {
-                "folded": {
-                  "type": "keyword",
-                  "normalizer": "folding"
-                }
-              }
+              "type": "text",
+              "analyzer": "folding"
             },
             "submitter_id": {
               "type": "integer"
