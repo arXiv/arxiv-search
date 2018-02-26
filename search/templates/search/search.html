@@ -16,9 +16,9 @@
       <div class="control is-expanded">
         <label for="query" class="hidden-label">Search term or terms</label>
         {% if form.query.errors %}
-          {{ form.query(class="input is-medium is-warning")|safe }}
+          {{ form.query(class="input is-medium is-warning", placeholder="Search term...")|safe }}
         {% else %}
-          {{ form.query(class="input is-medium")|safe }}
+          {{ form.query(class="input is-medium", placeholder="Search term...")|safe }}
         {% endif %}
         {% if form.query.errors %}
           <div class="help is-warning">
