@@ -17,7 +17,16 @@
   margin: 0
 
 .breathe-vertical
-  margin: 5em 0
+  margin-top: 5em
+  margin-bottom: 5em
+
+.breathe-horizontal
+  @media screen and (min-width: 769px)
+    margin-left: 5em !important
+    margin-right: 5em !important
+  @media screen and (min-width: 980px)
+    margin-left: 10em !important
+    margin-right: 10em !important
 
 .pagination-list li
   list-style: none

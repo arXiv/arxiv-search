@@ -1,5 +1,5 @@
 {% macro size_and_order(form, action_uri) %}
-<div class="level">
+<div class="level breathe-horizontal">
   <div class="level-left">
     <form method="GET" action="{{ action_uri }}">
       <div style="display: none;">
@@ -32,7 +32,7 @@
 {%- endmacro -%}
 
 {% macro pagination(metadata, url_for_page) -%}
-  <nav class="pagination is-small is-centered" role="navigation" aria-label="pagination">
+  <nav class="pagination is-small is-centered breathe-horizontal" role="navigation" aria-label="pagination">
     {% if metadata.current_page > 1 %}
     <a href="{{ url_for_page(metadata.current_page - 1, metadata.page_size) }}"
       class="pagination-previous">Previous
@@ -125,7 +125,7 @@
   {{ pagination(metadata, url_for_page) }}
 {% endif %}
 
-<ol start="{{ metadata.start + 1}}"> {# Start index is 0-based. #}
+<ol class="breathe-horizontal" start="{{ metadata.start + 1}}"> {# Start index is 0-based. #}
 
 {% for result in results %}
   <li class="arxiv-result">
