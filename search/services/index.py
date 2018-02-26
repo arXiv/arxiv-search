@@ -372,9 +372,12 @@ class SearchSession(object):
             q &= (
                 Q('nested', path='authors',
                   query=self._author_query_part(au, 'authors'))
-                |
-                Q('nested', path='owners',
-                  query=self._author_query_part(au, 'owners'))
+                | Q('nested', path='owners',
+                    query=self._author_query_part(au, 'owners'))
+                | (_Q('match', 'submitter__name',
+                      f'{au.forename} {au.surname} {au.fullname}')
+                   & Q('match', **{'submitter__is_author': True}))
+
             )
         current_search = current_search.query(q)
         current_search = self._apply_sort(query, current_search)
