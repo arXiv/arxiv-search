@@ -1,6 +1,7 @@
 """wtforms representations for an advanced search."""
 
 from datetime import date
+from typing import Callable, Optional
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
     FormField, SelectMultipleField, DateField, ValidationError, FieldList, \
@@ -59,7 +60,7 @@ class ClassificationForm(Form):
     statistics = BooleanField('Statistics (stat)')
 
 
-def validate_year(form: Form, field: DateField) -> None:
+def yearInBounds(form: Form, field: DateField) -> None:
     """May not be prior to 1991, or later than the current year."""
     if field.data is None:
         return None
@@ -83,11 +84,10 @@ class DateForm(Form):
     )
 
     year = DateField('Year', format='%Y',
-                     validators=[validators.Optional(), validate_year])
+                     validators=[validators.Optional(), yearInBounds])
     from_date = DateField('From',
-                          validators=[validators.Optional(), validate_year])
-    to_date = DateField('to',
-                        validators=[validators.Optional(), validate_year])
+                          validators=[validators.Optional(), yearInBounds])
+    to_date = DateField('to', validators=[validators.Optional(), yearInBounds])
 
     def validate_filter_by(self, field) -> None:
         """Ensure that related fields are filled."""

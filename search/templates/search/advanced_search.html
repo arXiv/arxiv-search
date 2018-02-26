@@ -136,6 +136,11 @@
                     {% endif %}
                   </div>
                 </div>
+                <script>
+                  $('select#classification-physics_archives').change(function() {
+                    $('input#classification-physics').attr('checked', true);
+                  });
+                </script>
                 {{ select_field(form.classification.q_biology) }}
                 {{ select_field(form.classification.q_finance) }}
                 {{ select_field(form.classification.statistics) }}
@@ -144,6 +149,13 @@
           </fieldset>
           <fieldset class="fieldset {% if form.date.errors %}is-warning{% endif %}">
             <legend class="legend">Date</legend>
+            {% if form.date.filter_by.errors %}
+              <div class="help is-warning">
+                {% for error in form.date.filter_by.errors %}
+                    {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
             {% for field in form.date.filter_by %}
             <div class="field is-horizontal is-grouped">
               <div class="control">
@@ -151,14 +163,8 @@
                   {{ field|safe }}
                   {{ field.label }}
                 </label>
-                {% if field.errors %}
-                  <div class="help is-warning">
-                    {% for error in field.errors %}
-                        {{ error }}
-                    {% endfor %}
-                  </div>
-                {% endif %}
               </div>
+              {# TODO: the JS bits here should be re-implemented elsewhere #}
               {% if field.data == 'specific_year' %}
               <div class="control">
                 <label for="date-year" class="hidden-label">Enter four digit year</label>
@@ -167,6 +173,12 @@
                 {% else %}
                   {{ form.date.year(placeholder="YYYY", class="input is-small")|safe }}
                 {% endif %}
+                <script>
+                  $('#date-year').focus(function() {
+                    $('input[name="date-filter_by"]').attr('checked', false);
+                    $('input[value="specific_year"]').attr('checked', true);
+                  });
+                </script>
                 {% if form.date.year.errors %}
                 <div class="help is-warning">
                   {% for error in form.date.year.errors %}
@@ -214,7 +226,16 @@
                 {% endif %}
               </div>
             </div>
-
+            <script>
+              $('#date-to_date').focus(function() {
+                $('input[name="date-filter_by"]').attr('checked', false);
+                $('input[value="date_range"]').attr('checked', true);
+              });
+              $('#date-from_date').focus(function() {
+                $('input[name="date-filter_by"]').attr('checked', false);
+                $('input[value="date_range"]').attr('checked', true);
+              });
+            </script>
           </fieldset>
         </section>
         <section>
