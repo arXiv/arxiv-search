@@ -16,6 +16,9 @@
 .pagination-list
   margin: 0
 
+.breathe-vertical
+  margin: 5em 0
+
 .pagination-list li
   list-style: none
 
@@ -49,3 +52,53 @@
   overflow: hidden
   padding: 0
   position: absolute
+
+/* TODO fold into base as an extension of bulma's default has-addons class */
+.field
+  &.has-addons-tablet
+    .control
+      &:not(:last-child)
+        margin-bottom: .5rem
+    @media screen and (min-width: 769px)
+      display: flex
+      justify-content: flex-start
+      .control
+        &:not(:last-child)
+          margin-right: -1px
+          margin-bottom: 0
+        &:first-child
+          .button,
+          .input,
+          .select select
+            border-bottom-left-radius: 3px
+            border-top-left-radius: 3px
+        &:last-child
+          .button,
+          .input,
+          .select select
+            border-bottom-right-radius: 3px
+            border-top-right-radius: 3px
+        .button,
+        .input,
+        .select select
+          border-radius: 0
+          &:hover,
+          &.is-hovered
+            z-index: 2
+          &:focus,
+          &.is-focused,
+          &:active,
+          &.is-active
+            z-index: 3
+            &:hover
+              z-index: 4
+        &.is-expanded
+          flex-grow: 1
+      &.has-addons-centered
+        justify-content: center
+      &.has-addons-right
+        justify-content: flex-end
+      &.has-addons-fullwidth
+        .control
+          flex-grow: 1
+          flex-shrink: 0
