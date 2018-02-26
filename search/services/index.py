@@ -20,6 +20,8 @@ from search.domain import Document, DocumentSet, Query, DateRange, \
 
 logger = logging.getLogger(__name__)
 
+MAX_RESULTS = 10_000
+
 
 class MappingError(ValueError):
     """There was a problem with the search document mapping."""
@@ -44,6 +46,10 @@ class QueryError(ValueError):
 
 class DocumentNotFound(RuntimeError):
     """Could not find a requested document in the search index."""
+
+
+class OutsideAllowedRange(RuntimeError):
+    """A page outside of the allowed range has been requested."""
 
 
 # We'll compile this ahead of time, since it gets called quite a lot.
@@ -291,9 +297,9 @@ class SearchSession(object):
     @classmethod
     def _get_sort_parameters(cls, query: Query) -> list:
         if query.order is None:
-            return None
+            return ['_score', '_doc']
         else:
-            return [query.order]
+            return [query.order, '_score', '_doc']
 
     def _apply_sort(self, query: Query, current_search: Search) -> Search:
         sort_params = self._get_sort_parameters(query)
@@ -320,8 +326,7 @@ class SearchSession(object):
                   functions=[
                     SF({'weight': 5, 'filter': Q('term', is_current=True)})
                   ])
-        else:
-            current_search = self._apply_sort(query, current_search)
+        current_search = self._apply_sort(query, current_search)
         current_search = current_search.query(q)
 
         return current_search
@@ -522,13 +527,21 @@ class SearchSession(object):
         N_pages = int(floor(N_pages_raw)) + \
             int(N_pages_raw % query.page_size > 0)
         logger.debug('got %i results', results['hits']['total'])
+
+        max_pages = int(MAX_RESULTS/query.page_size)
+        if query.page > max_pages:
+            _message = f'Requested page {query.page}, but max is {max_pages}'
+            logger.error(_message)
+            raise OutsideAllowedRange(_message)
+
         return DocumentSet({
             'metadata': {
                 'start': query.page_start,
                 'total': results['hits']['total'],
                 'current_page': query.page,
                 'total_pages': N_pages,
-                'page_size': query.page_size
+                'page_size': query.page_size,
+                'max_pages': max_pages
             },
             'results': list(map(self._transform, results))
         })
