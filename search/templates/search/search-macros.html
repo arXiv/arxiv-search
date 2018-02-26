@@ -43,9 +43,9 @@
     </a>
     {% endif %}
     {% if metadata.current_page < metadata.total_pages %}
-    <a  href="{{ url_for_page(metadata.current_page + 1, metadata.page_size) }}"
-      class="pagination-next">Next
-    </a>
+      <a href="{% if metadata.current_page + 1 <= metadata.max_pages %}{{ url_for_page(metadata.current_page + 1, metadata.page_size) }}{% endif %}"
+        class="pagination-next" {% if metadata.current_page + 1 > metadata.max_pages %}disabled="true"{% endif %}>Next
+      </a>
     {% else %}
     <a href=""
       class="pagination-next is-invisible">Next
@@ -61,7 +61,7 @@
       </li>
 
       {% if metadata.total_pages < 8 %}
-        {% for p in range(2, metadata.total_pages) %}
+        {% for p in range(2, metadata.total_pages + 1) %}
         <li>
           <a href="{{ url_for_page(p, metadata.page_size) }}"
             class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
@@ -82,9 +82,9 @@
           </li>
           {% endfor %}
           <li><span class="pagination-ellipsis">&hellip;</span></li>
-        {% elif metadata.total_pages - metadata.current_page <= 3 %}  {# Close to the end page #}
+        {% elif (metadata.total_pages + 1 - metadata.current_page) <= 3 %}  {# Close to the end page #}
           <li><span class="pagination-ellipsis">&hellip;</span></li>
-          {% for p in range(metadata.total_pages - 4, metadata.total_pages) %}
+          {% for p in range(metadata.total_pages - 4, metadata.total_pages + 1) %}
           <li>
             <a href="{{ url_for_page(p, metadata.page_size) }}"
               class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
@@ -96,6 +96,7 @@
         {% else %}                                                       {# Somewhere in the middle #}
           <li><span class="pagination-ellipsis">&hellip;</span></li>
           {% for p in range(metadata.current_page - 1, metadata.current_page + 2) %}
+          {% if p <= metadata.max_pages %}
           <li>
             <a href="{{ url_for_page(p, metadata.page_size) }}"
               class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
@@ -103,17 +104,12 @@
               aria-current="page">{{ p }}
             </a>
           </li>
+          {% endif %}
           {% endfor %}
           <li><span class="pagination-ellipsis">&hellip;</span></li>
         {% endif %}
       {% endif %}
-
-      <li>
-        <a href="{{ url_for_page(metadata.total_pages, metadata.page_size) }}"
-          class="pagination-link {% if metadata.current_page == metadata.total_pages %}is-current{% endif %}"
-          aria-label="Goto page {{ metadata.total_pages }}">{{ metadata.total_pages }}
-        </a>
-      </li>
+      <span class="has-text-grey">of ~{{ metadata.total_pages }} pages</span>
     </ul>
   </nav>
 {%- endmacro %}
