@@ -135,6 +135,7 @@
         <span class="tag is-small is-grey">{{ secondary.archive }} {{ secondary.category }}</span>
       {% endfor %}
     {% endif -%}
+    {% if not result.is_current %}<span class="has-text-grey is-size-7">Version {{ result.version }} of {{ result.latest_version }}</span>{% endif %}
     </p>
     <p class="title is-5">{{ result.title }}</p>
     <p class="authors">Authors:
