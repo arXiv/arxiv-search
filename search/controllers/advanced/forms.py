@@ -3,7 +3,8 @@
 from datetime import date
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
-    FormField, SelectMultipleField, DateField, ValidationError, FieldList
+    FormField, SelectMultipleField, DateField, ValidationError, FieldList, \
+    RadioField
 
 from wtforms.fields import HiddenField
 from wtforms import widgets
@@ -61,13 +62,17 @@ class ClassificationForm(Form):
 class DateForm(Form):
     """Subform with options for limiting results by publication date."""
 
-    all_dates = BooleanField('All dates')
-    past_12 = BooleanField('Past 12 months')
+    filter_by = RadioField(
+        'Filter by', choices=[
+            ('all_dates', 'All dates'),
+            ('past_12', 'Past 12 months'),
+            ('specific_year', 'Specific year'),
+            ('date_range', 'Date range')
+        ],
+        default='all_dates'
+    )
 
-    specific_year = BooleanField('Specific year')
     year = DateField('Year', format='%Y', validators=[validators.Optional()])
-
-    date_range = BooleanField('Date range')
     from_date = DateField('From', validators=[validators.Optional()])
     to_date = DateField('to', validators=[validators.Optional()])
 
