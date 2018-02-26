@@ -258,6 +258,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
                     # Add a reference to the most recent version.
                     ver_document.latest = f'{arxiv_id}v{current_version}'
+                    ver_document.latest_version = current_version
                     # Set the primary document ID to the version-specied
                     # arXiv identifier, to avoid clobbering the latest version.
                     ver_document.id = f'{arxiv_id}v{version}'
