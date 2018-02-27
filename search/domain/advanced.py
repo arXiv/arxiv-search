@@ -10,7 +10,7 @@ class FieldedSearchTerm(dict):
     field = Property('field', str)
     term = Property('term', str)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         return f'{self.operator} {self.field}={self.term}'
 
@@ -18,7 +18,7 @@ class FieldedSearchTerm(dict):
 class FieldedSearchList(list):
     """Represents a list of fielded search terms."""
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         return '; '.join([str(item) for item in self])
 

@@ -1,5 +1,5 @@
 """Representations of authors, author lists, and author queries."""
-from search.domain import Query, Property, Base # type: ignore
+from search.domain import Query, Property, Base
 
 
 class Author(Base):
@@ -10,7 +10,7 @@ class Author(Base):
     fullname = Property('fullname', str)
 
     # TODO: gawd this is ugly.
-    def __str__(self):
+    def __str__(self) -> str:
         """Print the author name."""
         if self.fullname and self.surname:
             if self.forename:
@@ -31,7 +31,7 @@ class Author(Base):
 class AuthorList(list):
     """Represents a list of authors."""
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Prints comma-delimited list of authors."""
         if len(self) == 0:
             return ''

@@ -66,7 +66,7 @@ class Property(object):
 class Base(dict):
     """Represents a basic search."""
 
-    def __init__(self, from_iter: Optional[Iterable] = None, **kwargs) -> None:
+    def __init__(self, from_iter: Optional[Iterable] = None, **kwargs: Any) -> None:
         """Overridden to support initialization from a dict."""
         if from_iter is not None:
             super(Base, self).__init__(from_iter)
@@ -95,7 +95,7 @@ class SchemaBase(Base):
             super(SchemaBase, self).__setattr__(key, value)
 
     @property
-    def valid(self):
+    def valid(self) -> bool:
         """Indicate whether the domain object is valid, per its __schema__."""
         if self.__schema__ is None:    # No schema to validate against.
             return None
@@ -111,11 +111,11 @@ class SchemaBase(Base):
             return False
         return True
 
-    def json(self):
+    def json(self) -> str:
         """Return the string representation of the instance in JSON."""
         return json.dumps(self, default=lambda o: o.__dict__, indent=2)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         return '; '.join(['%s: %s' % (k, str(v))
                           for k, v in self.items() if v])
@@ -141,7 +141,7 @@ class DateRange(Base):
     # on_version = Property('field', str)
     # """The date field on which to filter
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         _str = ''
         if self.start_date:
@@ -160,7 +160,7 @@ class Classification(Base):
     archive = Property('archive', str)
     category = Property('category', str)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         rep = f'{self.group}'
         if self.archive:
@@ -173,7 +173,7 @@ class Classification(Base):
 class ClassificationList(list):
     """Represents a list of arxiv classifications."""
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         return ', '.join([str(item) for item in self])
 
@@ -187,12 +187,12 @@ class Query(SchemaBase):
     page_start = Property('page_start', int, 0)
 
     @property
-    def page_end(self):
+    def page_end(self) -> int:
         """Get the index/offset of the end of the page."""
-        return self.page_start + self.page_size
+        return int(self.page_start) + int(self.page_size)
 
     @property
-    def page(self):
+    def page(self) -> int:
         """Get the approximate page number."""
         return 1 + int(round(self.page_start/self.page_size))
 
