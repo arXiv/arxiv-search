@@ -38,14 +38,39 @@
     </div>
     <div class="is-clearfix" style="height: 2.5em"> {# TODO - adjust this layout so that it matches across all forms less awkwardly #}
       <div class="is-pulled-right">
-        <a href="{{ url_for('ui.advanced_search') }}">Advanced</a> | <a href="{{ url_for('ui.author_search') }}">Authors</a>
+        <a href="{{ url_for('ui.advanced_search') }}">Advanced Search</a> | <a href="{{ url_for('ui.author_search') }}">Author Search</a>
       </div>
     </div>
   </form>
 
-  {% if query and not results %}
-    <div class="is-size-4 has-text-warning">
-      Sorry, your query for <span class="is-warning">{{ query.field }}: {{ query.value }}</span> produced no results.
+  {% if not results %}
+    {% if query %}
+      <p class="is-size-4 has-text-warning">
+        Sorry, your query for <span class="is-warning">{{ query.field }}: {{ query.value }}</span> produced no results.
+      </p>
+    {% endif %}
+    <div class="box">
+      <h2 class="title is-5">Tips</h2>
+      <p class="title is-6">Wildcards:</p>
+        <ul>
+         <li>use ? to replace a single character or * to replace any number of characters</li>
+         <li>can be used in any field, but not in the first character position</li>
+        </ul>
+
+      <p class="title is-6">Expressions:</p>
+        <ul>
+           <li>TeX expressions can be searched, enclosed in single $</li>
+        </ul>
+      <p class="title is-6">Phrases</p>
+        <ul>
+          <li>Enclose phrases in double quotes for exact matches in title, abstract, and comments.</li>
+          <li>All journal reference searches are considered literal searches. E.g. a search for <strong>Physica A</strong> will match all papers with journal references containing <em>Physica A</em>, but a search for <strong>Physica A, 245 (1997) 181</strong> will only return the paper with journal reference <em>Physica A, 245 (1997) 181</em>.</li>
+        </ul>
+
+      <p class="title is-6">Author Search:</p>
+        <ul>
+          <li>Diacritic character variants are automatically searched in the Author(s) field</li>
+        </ul>
     </div>
   {% endif %}
 
