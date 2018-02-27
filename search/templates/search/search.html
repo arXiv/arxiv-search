@@ -4,7 +4,7 @@
 
 {% block title %}
     {% if results %}
-        Showing {{ metadata.start }}&ndash;{{ metadata.start + metadata.page_size }} of {{ metadata.total }} results for {{ query.field }}: {{ query.value }}
+        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.start + metadata.page_size }} of {{ metadata.total }} results for {{ query.field }}: {{ query.value }}
     {% else %}
         Search
     {% endif %}
