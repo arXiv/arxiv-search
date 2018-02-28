@@ -1,13 +1,13 @@
 """Integration with search index."""
 
-import json
 import re
 from math import floor
 from datetime import datetime
 from typing import Tuple, List
 from functools import wraps
-from elasticsearch import Elasticsearch, ElasticsearchException, \
-    SerializationError, TransportError, helpers
+from elasticsearch import Elasticsearch, helpers, ElasticsearchException, \
+    SerializationError, TransportError
+from elasticsearch.helpers import BulkIndexError
 from elasticsearch.connection import Urllib3HttpConnection
 
 from elasticsearch_dsl import Search, Q, SF
@@ -32,6 +32,8 @@ class IndexConnectionError(IOError):
 class IndexingError(IOError):
     """There was a problem adding a document to the index."""
 
+class BulkIndexingError(IOError):
+    """There was a problem adding documents to the index."""
 
 class QueryError(ValueError):
     """
@@ -64,6 +66,7 @@ def _wildcardEscape(querystring: str) -> Tuple[str, bool]:
         Query string with wildcard characters enclosed in literals escaped.
     bool
         If a non-literal wildcard character is present, returns True.
+
     """
     # This should get caught by the controller (form validation), but just
     # in case we should check for it here.
@@ -120,6 +123,7 @@ class SearchSession(object):
         ------
         IndexConnectionError
             Problem communicating with Elasticsearch host.
+
         """
         logger.debug('init ES session for index "%s" at %s:%s',
                      index, host, port)
@@ -348,6 +352,7 @@ class SearchSession(object):
         mappings : dict
             See
             elastic.co/guide/en/elasticsearch/reference/current/mapping.html
+
         """
         logger.debug('create ES index "%s"', self.index)
         try:
@@ -380,6 +385,7 @@ class SearchSession(object):
             Problem communicating with Elasticsearch host.
         IndexingError
             Problem serializing ``document`` for indexing.
+
         """
         try:
             ident = document.get('id', document['paper_id'])
@@ -392,7 +398,8 @@ class SearchSession(object):
                 'Problem communicating with ES: %s' % e
             ) from e
 
-    def bulk_add_documents(self, documents: List[Document]) -> None:
+    def bulk_add_documents(self, documents: List[Document],
+                           docs_per_chunk: int = 500) -> None:
         """
         Add documents to the search index using the bulk API.
 
@@ -400,12 +407,14 @@ class SearchSession(object):
         ----------
         document : :class:`.Document`
             Must be a valid search document, per ``schema/Document.json``.
+        docs_per_chunk: int
+            Number of documents to send to ES in a single chunk
 
         Raises
         ------
         IndexConnectionError
             Problem communicating with Elasticsearch host.
-        IndexingError
+        BulkIndexingError
             Problem serializing ``document`` for indexing.
 
         """
@@ -417,11 +426,14 @@ class SearchSession(object):
                 '_source': document
             } for document in documents)
 
-            helpers.bulk(self.es, actions)
+            helpers.bulk(client=self.es, actions=actions,
+                         chunk_size=docs_per_chunk)
+
         except SerializationError as e:
-            raise IndexingError('Problem serializing document: %s' % e) from e
+            raise IndexingError(
+                'Problem serializing documents: %s' % e) from e
         except BulkIndexError as e:
-            raise IndexingError('Problem with bulk index: %s' % e) from e
+            raise IndexingError('Problem with bulk indexing: %s' % e) from e
         except TransportError as e:
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
@@ -448,6 +460,7 @@ class SearchSession(object):
             Problem communicating with the search index.
         QueryError
             Invalid query parameters.
+
         """
         try:
             record = self.es.get(index=self.index, doc_type='document',
@@ -480,6 +493,7 @@ class SearchSession(object):
             Problem communicating with the search index.
         QueryError
             Invalid query parameters.
+
         """
         logger.debug('got current_search request %s', str(query))
         if isinstance(query, AdvancedQuery):
@@ -577,6 +591,7 @@ def search(query: Query) -> DocumentSet:
 def add_document(document: Document) -> None:
     """Add Document."""
     return current_session().add_document(document)
+
 
 @wraps(SearchSession.bulk_add_documents)
 def bulk_add_documents(documents: List[Document]) -> None:
