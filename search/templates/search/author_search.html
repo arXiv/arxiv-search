@@ -142,7 +142,7 @@
 
 {% block title %}
     {% if not show_form and results %}
-        Showing {{ metadata.total }} results
+        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.start + metadata.page_size }} of {{ metadata.total }} results
     {% elif show_form %}
         Author Search
     {% else %}
