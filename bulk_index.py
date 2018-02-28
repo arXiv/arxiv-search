@@ -1,4 +1,4 @@
-"""Use this to populate a search index for testing."""
+"""Use this to populate a search index in bulk or prefetch metadata."""
 
 import os
 import click
