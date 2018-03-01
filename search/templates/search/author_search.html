@@ -5,10 +5,10 @@
 {% macro select_field(field) %}
 <div class="field is-horizontal">
   <div class="control">
-    <label class="checkbox">
+    <div class="checkbox">
       {{ field|safe }}
       {{ field.label }}
-    </label>
+    </div>
     {% if field.errors %}
       <div class="help is-warning">
         {% for error in field.errors %}
@@ -38,7 +38,7 @@
               <div class="column is-gapless">
                 <div class="field has-addons">
                   <div class="control is-expanded">
-                    <label for="authors-{{loop.index0}}-forename" class="hidden-label">{{ entry.forename.label }}</label>
+                    {{ entry.forename.label(class='hidden-label') }}
                     {{ entry.forename(class='input', placeholder="Forename or initial(s)")|safe }}
                     {% if entry.forename.errors %}
                       <div class="help is-warning">
@@ -47,7 +47,7 @@
                     {% endif %}
                   </div>
                   <div class="control is-expanded">
-                    <label for="authors-{{loop.index0}}-surname" class="hidden-label">{{ entry.surname.label }}</label>
+                    {{ entry.surname.label(class='hidden-label') }}
                     {{ entry.surname(class='input', placeholder="Surname")|safe }}
                     {% if entry.surname.errors %}
                       <div class="help is-warning">
@@ -61,7 +61,7 @@
                 <div class="field has-addons">
                   <span class="button is-static">OR</span>
                   <div class="control is-expanded">
-                    <label for="authors-{{loop.index0}}-fullname" class="hidden-label">{{ entry.fullname.label }}</label>
+                    {{ entry.fullname.label(class='hidden-label') }}
                     {{ entry.fullname(class='input', placeholder="Full name")|safe }}
 
                   </div>
@@ -119,6 +119,12 @@
     <div class="column">
       <div class="box">
         <h2 class="title is-5">Tips</h2>
+        <p class="title is-6">Author Search:</p>
+          <ul>
+            <li>Diacritic character variants are automatically searched in the Author(s) field</li>
+            <li>Using a name in the forename field produces exact matches only - if results do not appear as expected, try using an initial or wildcard to capture possible trailing initials or names</li>
+            <li>Using a combination of wildcards and names in the "Full Name" field may be helpful, especially if the author to be searched has multiple surnames</li>
+          </ul>
         <p class="title is-6">Wildcards:</p>
           <ul>
            <li>use ? to replace a single character or * to replace any number of characters</li>
@@ -128,11 +134,6 @@
         <p class="title is-6">Expressions:</p>
           <ul>
              <li>TeX expressions can be searched, enclosed in single $</li>
-          </ul>
-
-        <p class="title is-6">Author Search:</p>
-          <ul>
-            <li>Diacritic character variants are automatically searched in the Author(s) field</li>
           </ul>
       </div>
     </div>
@@ -153,7 +154,7 @@
 {% block within_content %}
 <div class="is-clearfix" style="height: 2.5em"> {# TODO - adjust this layout so that it matches across forms less awkwardly #}
   <div class="is-pulled-right">
-    <a href="{{ url_for('ui.search') }}">Simple</a> | <a href="{{ url_for('ui.advanced_search') }}">Advanced</a>
+    <a href="{{ url_for('ui.search') }}">Simple Search</a> | <a href="{{ url_for('ui.advanced_search') }}">Advanced Search</a>
   </div>
 </div>
 {% if show_form %}
