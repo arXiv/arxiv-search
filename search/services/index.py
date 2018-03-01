@@ -5,10 +5,10 @@ from math import floor
 from datetime import datetime
 from typing import Tuple, List
 from functools import wraps
-from elasticsearch import Elasticsearch, helpers, ElasticsearchException, \
-    SerializationError, TransportError
-from elasticsearch.helpers import BulkIndexError
+from elasticsearch import Elasticsearch, ElasticsearchException, \
+                          SerializationError, TransportError, helpers
 from elasticsearch.connection import Urllib3HttpConnection
+from elasticsearch.helpers import BulkIndexError
 
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
@@ -34,8 +34,6 @@ class IndexConnectionError(IOError):
 class IndexingError(IOError):
     """There was a problem adding a document to the index."""
 
-class BulkIndexingError(IOError):
-    """There was a problem adding documents to the index."""
 
 class QueryError(ValueError):
     """
@@ -129,6 +127,7 @@ class SearchSession(object):
         ------
         IndexConnectionError
             Problem communicating with Elasticsearch host.
+
 
         """
         logger.debug('init ES session for index "%s" at %s:%s',
@@ -433,8 +432,8 @@ class SearchSession(object):
         Uses ``paper_id_v`` as the primary identifier for the document. If the
         document is already indexed, will quietly overwrite.
 
-        Parameters
-        ----------
+        Paramters
+        ---------
         document : :class:`.Document`
             Must be a valid search document, per ``schema/Document.json``.
 
@@ -444,6 +443,7 @@ class SearchSession(object):
             Problem communicating with Elasticsearch host.
         QueryError
             Problem serializing ``document`` for indexing.
+
         """
         try:
             ident = document.get('id', document['paper_id'])
@@ -467,7 +467,6 @@ class SearchSession(object):
             Must be a valid search document, per ``schema/Document.json``.
         docs_per_chunk: int
             Number of documents to send to ES in a single chunk
-
         Raises
         ------
         IndexConnectionError

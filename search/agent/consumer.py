@@ -2,7 +2,7 @@
 
 import json
 import os
-from typing import List, Generator
+from typing import List
 from search import logging
 from search.services import metadata, index
 from search.process import transform
@@ -263,6 +263,24 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         self.index_papers([arxiv_id])
 
     def index_papers(self, arxiv_ids: List[str]) -> None:
+        """
+        Index multiple papers, including their previous versions.
+
+        Parameters
+        ----------
+        arxiv_id : List[str]
+            A list of **versionless** arXiv e-print identifiers.
+
+        Raises
+        ------
+        DocumentFailed
+            Indexing of the documents failed. This may have no bearing on the
+            success of subsequent papers.
+        IndexingFailed
+            Indexing of the documents failed in a way that indicates recovery
+            is unlikely for subsequent papers.
+
+        """
         try:
             documents = []
             for arxiv_id in arxiv_ids:
