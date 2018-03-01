@@ -1,5 +1,5 @@
 {% macro size_and_order(form, action_uri) %}
-<div class="level breathe-horizontal">
+<div class="level">
   <div class="level-left">
     <form method="GET" action="{{ action_uri }}">
       <div style="display: none;">
@@ -32,7 +32,7 @@
 {%- endmacro -%}
 
 {% macro pagination(metadata, url_for_page) -%}
-  <nav class="pagination is-small is-centered breathe-horizontal" role="navigation" aria-label="pagination">
+  <nav class="pagination is-small is-centered" role="navigation" aria-label="pagination">
     {% if metadata.current_page > 1 %}
     <a href="{{ url_for_page(metadata.current_page - 1, metadata.page_size) }}"
       class="pagination-previous">Previous
@@ -43,9 +43,9 @@
     </a>
     {% endif %}
     {% if metadata.current_page < metadata.total_pages %}
-      <a href="{% if metadata.current_page + 1 <= metadata.max_pages %}{{ url_for_page(metadata.current_page + 1, metadata.page_size) }}{% endif %}"
-        class="pagination-next" {% if metadata.current_page + 1 > metadata.max_pages %}disabled="true"{% endif %}>Next
-      </a>
+    <a  href="{{ url_for_page(metadata.current_page + 1, metadata.page_size) }}"
+      class="pagination-next">Next
+    </a>
     {% else %}
     <a href=""
       class="pagination-next is-invisible">Next
@@ -61,7 +61,7 @@
       </li>
 
       {% if metadata.total_pages < 8 %}
-        {% for p in range(2, metadata.total_pages + 1) %}
+        {% for p in range(2, metadata.total_pages) %}
         <li>
           <a href="{{ url_for_page(p, metadata.page_size) }}"
             class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
@@ -82,9 +82,9 @@
           </li>
           {% endfor %}
           <li><span class="pagination-ellipsis">&hellip;</span></li>
-        {% elif (metadata.total_pages + 1 - metadata.current_page) <= 3 %}  {# Close to the end page #}
+        {% elif metadata.total_pages - metadata.current_page <= 3 %}  {# Close to the end page #}
           <li><span class="pagination-ellipsis">&hellip;</span></li>
-          {% for p in range(metadata.total_pages - 4, metadata.total_pages + 1) %}
+          {% for p in range(metadata.total_pages - 4, metadata.total_pages) %}
           <li>
             <a href="{{ url_for_page(p, metadata.page_size) }}"
               class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
@@ -96,7 +96,6 @@
         {% else %}                                                       {# Somewhere in the middle #}
           <li><span class="pagination-ellipsis">&hellip;</span></li>
           {% for p in range(metadata.current_page - 1, metadata.current_page + 2) %}
-          {% if p <= metadata.max_pages %}
           <li>
             <a href="{{ url_for_page(p, metadata.page_size) }}"
               class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
@@ -104,18 +103,19 @@
               aria-current="page">{{ p }}
             </a>
           </li>
-          {% endif %}
           {% endfor %}
           <li><span class="pagination-ellipsis">&hellip;</span></li>
         {% endif %}
       {% endif %}
+
+      <li>
+        <a href="{{ url_for_page(metadata.total_pages, metadata.page_size) }}"
+          class="pagination-link {% if metadata.current_page == metadata.total_pages %}is-current{% endif %}"
+          aria-label="Goto page {{ metadata.total_pages }}">{{ metadata.total_pages }}
+        </a>
+      </li>
     </ul>
   </nav>
-  {% if metadata.current_page + 1 > metadata.max_pages %}
-  <p class="has-text-right has-text-grey is-size-7  breathe-horizontal">
-    Only {{ metadata.max_pages }} pages are available. Please refine your search.
-  </p>
-  {% endif %}
 {%- endmacro %}
 
 
@@ -125,7 +125,7 @@
   {{ pagination(metadata, url_for_page) }}
 {% endif %}
 
-<ol class="breathe-horizontal" start="{{ metadata.start + 1}}"> {# Start index is 0-based. #}
+<ol start="{{ metadata.start + 1}}"> {# Start index is 0-based. #}
 
 {% for result in results %}
   <li class="arxiv-result">
@@ -135,7 +135,6 @@
         <span class="tag is-small is-grey">{{ secondary.archive }} {{ secondary.category }}</span>
       {% endfor %}
     {% endif -%}
-    {% if not result.is_current %}<span class="has-text-grey is-size-7">Version {{ result.version }} of {{ result.latest_version }}</span>{% endif %}
     </p>
     <p class="title is-5">{{ result.title }}</p>
     <p class="authors">Authors:

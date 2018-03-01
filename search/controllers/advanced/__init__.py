@@ -158,10 +158,10 @@ def _update_query_with_terms(q: AdvancedQuery, terms_data: list) \
 
 def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         -> AdvancedQuery:
-    filter_by = date_data['filter_by']
-    if filter_by == 'all_dates':    # Nothing to do; all dates by default.
+
+    if date_data.get('all_dates'):    # Nothing to do; all dates by default.
         return q
-    elif filter_by == 'past_12':
+    elif date_data.get('past_12'):
         one_year_ago = date.today() - relativedelta(months=12)
         q.date_range = DateRange(
             start_date=datetime(year=one_year_ago.year,
@@ -169,21 +169,21 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
                                 day=1, hour=0, minute=0, second=0,
                                 tzinfo=EASTERN)
         )
-    elif filter_by == 'specific_year':
+    elif date_data.get('specific_year'):
         q.date_range = DateRange(
             start_date=datetime(year=date_data['year'].year, month=1, day=1,
                                 hour=0, minute=0, second=0, tzinfo=EASTERN),
             end_date=datetime(year=date_data['year'].year + 1, month=1, day=1,
                               hour=0, minute=0, second=0, tzinfo=EASTERN),
         )
-    elif filter_by == 'date_range':
+    elif date_data.get('date_range'):
         if date_data['from_date']:
-            date_data['from_date'] = datetime.combine(  #type: ignore
+            date_data['from_date'] = datetime.combine( #type: ignore
                 date_data['from_date'],
                 datetime.min.time(),
                 tzinfo=EASTERN)
         if date_data['to_date']:
-            date_data['to_date'] = datetime.combine(    # type: ignore
+            date_data['to_date'] = datetime.combine( # type: ignore
                 date_data['to_date'],
                 datetime.min.time(),
                 tzinfo=EASTERN)

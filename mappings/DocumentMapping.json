@@ -161,10 +161,7 @@
           }
         },
         "comments": {
-          "type": "text",
-          "analyzer": "simple",
-          "search_analyzer": "standard",
-          "search_quote_analyzer": "simple"
+          "type": "text"
         },
         "submitted_date": {
           "type": "date",
@@ -206,22 +203,11 @@
         "is_current": {
           "type": "boolean"
         },
-        "latest": {
-          "type": "keyword"
-        },
-        "latest_version": {
-          "type": "integer"
-        },
         "is_withdrawn": {
           "type": "boolean"
         },
         "journal_ref": {
-          "type": "text",
-          "analyzer": "simple"
-        },
-        "report_num": {
-          "type": "text",
-          "analyzer": "simple"
+          "type": "text"
         },
         "license": {
           "properties": {
@@ -344,8 +330,14 @@
               "type": "keyword"
             },
             "name": {
-              "type": "text",
-              "analyzer": "folding"
+              "type": "keyword",
+              "normalizer": "simple",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
             },
             "submitter_id": {
               "type": "integer"
@@ -369,15 +361,11 @@
           "fields": {
             "english": {
               "type": "text",
-              "analyzer": "english",
-              "search_analyzer": "english",
-              "search_quote_analyzer": "simple"
+              "analyzer": "english"
             },
             "tex": {
               "type": "text",
-              "analyzer": "tex_analyzer",
-              "search_analyzer": "tex_analyzer",
-              "search_quote_analyzer": "simple"
+              "analyzer": "tex_analyzer"
             },
             "keyword": {
               "type": "keyword"

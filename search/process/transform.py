@@ -10,6 +10,10 @@ def _strip_punctuation(s):
     return ''.join([c for c in s if c not in punctuation])
 
 
+def _prepareSubmitter(meta: DocMeta) -> dict:
+    return meta['submitter']
+
+
 def _constructPaperVersion(meta: DocMeta) -> str:
     """Generate a version-qualified paper ID."""
     if 'v' in meta['paper_id']:
@@ -79,7 +83,7 @@ _transformations: List[Tuple[str, TransformType]] = [
     ("title_utf8", "title_utf8"),
     ("source", "source"),
     ("version", "version"),
-    ("submitter", "submitter"),
+    ("submitter", _prepareSubmitter),
     ("report_num", "report_num"),
     ("proxy", "proxy"),
     ("msc_class", _constructMSCClass),

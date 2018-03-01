@@ -226,3 +226,81 @@ class TestPrepare(TestCase):
             Match(primary_classification__category__id='astro-ph')
         ])
         self.assertEqual(q, expected)
+
+    def test_prepare(self):
+        query = AdvancedQuery(
+            terms=FieldedSearchList([
+                FieldedSearchTerm(operator=None, field='title', term='muon'),
+                FieldedSearchTerm(operator='OR', field='title', term='gluon')
+            ]),
+            order='title.keyword',
+            date_range=DateRange(
+                start_date=datetime(year=2006, month=2, day=5,
+                                    hour=0, minute=0, second=0),
+                end_date=datetime(year=2007, month=3, day=25,
+                                  hour=0, minute=0, second=0)
+            ),
+            primary_classification=ClassificationList([
+                Classification(group='cs')
+            ])
+        )
+        expected = {
+              "query": {
+                "bool": {
+                  "should": [
+                    {
+                      "match": {
+                        "title": "muon"
+                      }
+                    },
+                    {
+                      "match": {
+                        "title.tex": "muon"
+                      }
+                    },
+                    {
+                      "match": {
+                        "title.english": "muon"
+                      }
+                    },
+                    {
+                      "match": {
+                        "title": "gluon"
+                      }
+                    },
+                    {
+                      "match": {
+                        "title.tex": "gluon"
+                      }
+                    },
+                    {
+                      "match": {
+                        "title.english": "gluon"
+                      }
+                    }
+                  ],
+                  "must": [
+                    {
+                      "range": {
+                        "submitted_date": {
+                          "gte": "2006-02-05T00:00:00",
+                          "lt": "2007-03-25T00:00:00"
+                        }
+                      }
+                    },
+                    {
+                      "match": {
+                        "primary_classification.group.id": "cs"
+                      }
+                    }
+                  ],
+                  "minimum_should_match": 1
+                }
+              },
+              "sort": [
+                "title.keyword"
+              ]
+            }
+
+        search = self.session._prepare(query)
+        self.assertDictEqual(search.to_dict(), expected)

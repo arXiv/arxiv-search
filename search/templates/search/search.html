@@ -4,15 +4,15 @@
 
 {% block title %}
     {% if results %}
-        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.start + metadata.page_size }} of {{ metadata.total }} results for {{ query.field }}: {{ query.value }}
+        Showing {{ metadata.total }} results for {{ query.field }}: {{ query.value }}
     {% else %}
         Search
     {% endif %}
 {% endblock title %}
 
 {% block within_content %}
-  <form method="GET" action="{{ url_for('ui.search') }}" {% if not query and not results %} class="breathe-vertical" {% endif %}>
-    <div class="field has-addons-tablet">
+  <form method="GET" action="{{ url_for('ui.search') }}">
+    <div class="field has-addons">
       <div class="control is-expanded">
         {% if form.query.errors %}
           {{ form.query(class="input is-medium is-warning")|safe }}
