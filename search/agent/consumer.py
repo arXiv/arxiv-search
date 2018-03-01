@@ -28,8 +28,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
     def __init__(self, *args, **kwargs) -> None:
         """Initialize exception counter."""
-        super(MetadataRecordProcessor, self).\
-            __init__(*args, **kwargs)  # type: ignore
+        super(MetadataRecordProcessor, self).__init__(*args, **kwargs)  # type: ignore
         self._error_count = 0
         self._cache: str
 
