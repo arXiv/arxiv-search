@@ -16,7 +16,7 @@ from elasticsearch_dsl.query import Range, Match, Bool
 from search.context import get_application_config, get_application_global
 from search import logging
 from search.domain import Document, DocumentSet, Query, DateRange, \
-    Classification, AdvancedQuery, SimpleQuery, AuthorQuery
+    Classification, AdvancedQuery, SimpleQuery, AuthorQuery, Author
 
 logger = logging.getLogger(__name__)
 
@@ -160,9 +160,9 @@ class SearchSession(object):
         for operator in ['NOT', 'AND', 'OR']:
             i = 0
             while i < len(terms) - 1:
-                if SearchSession._get_operator(terms[i + 1]) == operator:
-                    terms[i] = (terms[i], operator, terms[i + 1])
-                    terms.pop(i + 1)
+                if SearchSession._get_operator(terms[i+1]) == operator:
+                    terms[i] = (terms[i], operator, terms[i+1])
+                    terms.pop(i+1)
                     i -= 1
                 i += 1
         assert len(terms) == 1
@@ -311,12 +311,12 @@ class SearchSession(object):
             current_search = current_search.sort(*sort_params)
         return current_search
 
-    def _get_base_search(self) -> Search:
+    def _base_search(self) -> Search:
         return Search(using=self.es, index=self.index)
 
     def _prepare(self, query: AdvancedQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
-        current_search = self._get_base_search()
+        current_search = self._base_search()
         q = (
             self._fielded_terms_to_q(query)
             & self._daterange_to_q(query)
@@ -328,7 +328,7 @@ class SearchSession(object):
             q = Q('function_score', query=q, boost=5, boost_mode="multiply",
                   score_mode="max",
                   functions=[
-                      SF({'weight': 5, 'filter': Q('term', is_current=True)})
+                    SF({'weight': 5, 'filter': Q('term', is_current=True)})
                   ])
         current_search = self._apply_sort(query, current_search)
         current_search = current_search.query(q)
@@ -337,7 +337,7 @@ class SearchSession(object):
 
     def _prepare_simple(self, query: SimpleQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
-        current_search = self._get_base_search().filter("term", is_current=True)
+        current_search = self._base_search().filter("term", is_current=True)
         if query.field == 'all':
             q = (
                 self._field_term_to_q('author', query.value)
@@ -359,21 +359,24 @@ class SearchSession(object):
         current_search = self._apply_sort(query, current_search)
         return current_search
 
-    def _prepare_author(self, query: AuthorQuery) -> Search:
-        current_search = self._get_base_search().filter("term", is_current=True)
-        q = Q()
-        for au in query.authors:
-            _q = _Q('match', 'authors__last_name__folded', au.surname)
-
-            if au.forename:    # Try as both forename and initials.
+    def _author_query_part(self, author: Author, field: str) -> Search:
+        _q = None
+        if author.surname:
+            _q = _Q('match', f'{field}__last_name__folded', author.surname)
+            if author.forename:    # Try as both forename and initials.
                 _q_init = Q()
-                for i in au.forename.replace('.', ' ').split():
-                    _q_init &= _Q('match', 'authors__initials__folded', i)
+                for i in author.forename.replace('.', ' ').split():
+                    _q_init &= _Q('match', f'{field}__initials__folded', i)
                 _q &= (
-                    _Q('match', 'authors__first_name__folded', au.forename)
-                    |
-                    _q_init
+                    _Q('match', f'{field}__first_name__folded',
+                       author.forename)
+                    | _q_init
                 )
+        if author.surname and author.fullname:
+            _q |= _Q('match', f'{field}__full_name', author.fullname)
+        elif author.fullname:
+            _q = _Q('match', f'{field}__full_name', author.fullname)
+        return _q
 
     def _prepare_author(self, query: AuthorQuery) -> Search:
         current_search = self._base_search().filter("term", is_current=True)
@@ -439,9 +442,8 @@ class SearchSession(object):
         ------
         IndexConnectionError
             Problem communicating with Elasticsearch host.
-        IndexingError
+        QueryError
             Problem serializing ``document`` for indexing.
-
         """
         try:
             ident = document.get('id', document['paper_id'])
@@ -569,7 +571,7 @@ class SearchSession(object):
                 'Problem communicating with ES: %s' % e
             ) from e
 
-        N_pages_raw = results['hits']['total'] / query.page_size
+        N_pages_raw = results['hits']['total']/query.page_size
         N_pages = int(floor(N_pages_raw)) + \
             int(N_pages_raw % query.page_size > 0)
         logger.debug('got %i results', results['hits']['total'])
