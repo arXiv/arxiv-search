@@ -5,7 +5,7 @@ import logging
 from flask import Flask
 
 from arxiv.base import Base
-from search.routes import ui, external_api
+from search.routes import ui
 from search.services import index
 from search.converter import ArXivConverter
 from search import exceptions
