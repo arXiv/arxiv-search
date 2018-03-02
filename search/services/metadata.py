@@ -86,7 +86,7 @@ class DocMetaSession(object):
 
         if response.status_code not in \
                 [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]:
-            logger.error('Request failed: %s', response.data)
+            logger.error('Request failed: %s', response.content)
             raise RequestFailed(
                 '%s: failed with %i: %s' % (
                     document_id, response.status_code, response.content
