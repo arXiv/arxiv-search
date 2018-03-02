@@ -87,6 +87,7 @@ def search(request_params: dict) -> Response:
             # There was a (hopefully transient) connection problem. Either
             #  this will clear up relatively quickly (next request), or
             #  there is a more serious outage.
+            logger.error('IndexConnectionError: %s', e)
             raise InternalServerError(
                 "There was a problem connecting to the search index. This is "
                 "quite likely a transient issue, so please try your search "
@@ -95,6 +96,7 @@ def search(request_params: dict) -> Response:
             ) from e
         except index.QueryError as e:
             # Base exception routers should pick this up and show bug page.
+            logger.error('QueryError: %s', e)
             raise InternalServerError(
                 "There was a problem executing your query. Please try your "
                 "search again.  If this problem persists, please report it to "
@@ -139,6 +141,7 @@ def retrieve_document(document_id: str) -> Response:
         # There was a (hopefully transient) connection problem. Either
         #  this will clear up relatively quickly (next request), or
         #  there is a more serious outage.
+        logger.error('IndexConnectionError: %s', e)
         raise InternalServerError(
             "There was a problem connecting to the search index. This is "
             "quite likely a transient issue, so please try your search "
@@ -147,12 +150,14 @@ def retrieve_document(document_id: str) -> Response:
         ) from e
     except index.QueryError as e:
         # Base exception routers should pick this up and show bug page.
+        logger.error('QueryError: %s', e)
         raise InternalServerError(
             "There was a problem executing your query. Please try your "
             "search again.  If this problem persists, please report it to "
             "help@arxiv.org."
         ) from e
     except index.DocumentNotFound as e:
+        logger.error('DocumentNotFound: %s', e)
         raise NotFound(f"Could not find a paper with id {document_id}") from e
     return {'document': result}, status.HTTP_200_OK, {}
 

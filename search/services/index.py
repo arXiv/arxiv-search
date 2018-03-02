@@ -142,6 +142,7 @@ class SearchSession(object):
                                     connection_class=Urllib3HttpConnection,
                                     **extra)
         except ElasticsearchException as e:
+            logger.error('ElasticsearchException: %s', e)
             raise IndexConnectionError(
                 'Could not initialize ES session: %s' % e
             ) from e
@@ -450,8 +451,10 @@ class SearchSession(object):
             self.es.index(index=self.index, doc_type='document',
                           id=ident, body=document)
         except SerializationError as e:
+            logger.error("SerializationError: %s", e)
             raise IndexingError('Problem serializing document: %s' % e) from e
         except TransportError as e:
+            logger.error("TransportError: %s", e)
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
@@ -487,11 +490,14 @@ class SearchSession(object):
                          chunk_size=docs_per_chunk)
 
         except SerializationError as e:
+            logger.error("SerializationError: %s", e)
             raise IndexingError(
                 'Problem serializing documents: %s' % e) from e
         except BulkIndexError as e:
+            logger.error("BulkIndexError: %s", e)
             raise IndexingError('Problem with bulk indexing: %s' % e) from e
         except TransportError as e:
+            logger.error("TransportError: %s", e)
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
@@ -523,12 +529,15 @@ class SearchSession(object):
             record = self.es.get(index=self.index, doc_type='document',
                                  id=document_id)
         except SerializationError as e:
+            logger.error("SerializationError: %s", e)
             raise QueryError('Problem serializing document: %s' % e) from e
         except TransportError as e:
+            logger.error("TransportError: %s", e)
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
         if not record:
+            logger.error("No such document: %s", document_id)
             raise DocumentNotFound('No such document')
         return Document(record['_source'])
 
@@ -564,6 +573,7 @@ class SearchSession(object):
         try:
             results = current_search[query.page_start:query.page_end].execute()
         except TransportError as e:
+            logger.error("TransportError: %s", e)
             if e.error == 'parsing_exception':
                 raise QueryError(e.info) from e
             raise IndexConnectionError(
@@ -674,6 +684,6 @@ def ok() -> bool:
     """Health check."""
     try:
         current_session()
-    except:    # TODO: be more specific.
+    except Exception:    # TODO: be more specific.
         return False
     return True
