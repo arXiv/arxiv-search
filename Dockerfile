@@ -16,6 +16,14 @@ ADD search /opt/arxiv/search
 ADD wsgi.py /opt/arxiv/
 RUN pip install uwsgi
 
+ENV ELASTICSEARCH_HOST localhost
+ENV ELASTICSEARCH_PORT 9200
+ENV ELASTICSEARCH_SCHEME http
+ENV ELASTICSEARCH_INDEX arxiv
+ENV ELASTICSEARCH_USER elastic
+ENV ELASTICSEARCH_PASSWORD changeme
+ENV METADATA_ENDPOINT https://arxiv.org/docmeta/
+
 EXPOSE 8000
 
 WORKDIR /opt/arxiv

@@ -27,7 +27,7 @@ ADD schema /opt/arxiv/schema
 ADD mappings /opt/arxiv/mappings
 ADD search /opt/arxiv/search
 ADD tests /opt/arxiv/tests
-ADD populate_test_metadata.py /opt/arxiv/
+ADD bulk_index.py /opt/arxiv/
 
 WORKDIR /opt/arxiv/
 
@@ -46,4 +46,4 @@ ENV METADATA_ENDPOINT https://arxiv.org/docmeta/
 
 VOLUME /to_index
 
-ENTRYPOINT ["python3.6", "populate_test_metadata.py", "-l"]
+ENTRYPOINT ["python3.6", "bulk_index.py", "-l"]
