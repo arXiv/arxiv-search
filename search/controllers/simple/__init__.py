@@ -49,7 +49,7 @@ def search(request_params: dict) -> Response:
         Headers to add to the response.
     """
     logger.debug('simple search form')
-    response_data = {} # type: Dict[str, Any]
+    response_data = {}  # type: Dict[str, Any]
 
     logger.debug('simple search request')
     if 'query' in request_params:
@@ -87,11 +87,18 @@ def search(request_params: dict) -> Response:
             # There was a (hopefully transient) connection problem. Either
             #  this will clear up relatively quickly (next request), or
             #  there is a more serious outage.
-            response_data['index_error'] = True
+            raise InternalServerError(
+                "There was a problem connecting to the search index. This is "
+                "quite likely a transient issue, so please try your search "
+                "again. If this problem persists, please report it to "
+                "help@arxiv.org."
+            ) from e
         except index.QueryError as e:
             # Base exception routers should pick this up and show bug page.
             raise InternalServerError(
-                'Encountered an error in search query'
+                "There was a problem executing your query. Please try your "
+                "search again.  If this problem persists, please report it to "
+                "help@arxiv.org."
             ) from e
     else:
         logger.debug('form is invalid: %s', str(form.errors))
@@ -128,14 +135,25 @@ def retrieve_document(document_id: str) -> Response:
     """
     try:
         result = index.get_document(document_id)
+    except index.IndexConnectionError as e:
+        # There was a (hopefully transient) connection problem. Either
+        #  this will clear up relatively quickly (next request), or
+        #  there is a more serious outage.
+        raise InternalServerError(
+            "There was a problem connecting to the search index. This is "
+            "quite likely a transient issue, so please try your search "
+            "again. If this problem persists, please report it to "
+            "help@arxiv.org."
+        ) from e
     except index.QueryError as e:
         # Base exception routers should pick this up and show bug page.
-        raise InternalServerError('Encountered error in search query') from e
-    except index.IndexConnectionError as e:
-        return {'index_error': True}, status.HTTP_200_OK, {}
+        raise InternalServerError(
+            "There was a problem executing your query. Please try your "
+            "search again.  If this problem persists, please report it to "
+            "help@arxiv.org."
+        ) from e
     except index.DocumentNotFound as e:
-        # Base exception routers should pick this up and show 404 not found.
-        raise NotFound('No such document')
+        raise NotFound(f"Could not find a paper with id {document_id}") from e
     return {'document': result}, status.HTTP_200_OK, {}
 
 

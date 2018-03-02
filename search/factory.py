@@ -8,6 +8,7 @@ from arxiv.base import Base
 from search.routes import ui, external_api
 from search.services import index
 from search.converter import ArXivConverter
+from search import exceptions
 
 
 def create_ui_web_app() -> Flask:
@@ -24,6 +25,12 @@ def create_ui_web_app() -> Flask:
 
     Base(app)
     app.register_blueprint(ui.blueprint)
+
+    # Attach error handlers.
+    # TODO: remove this when base exception handling is released in arXiv-base.
+    for error, handler in exceptions.get_handlers():
+        app.errorhandler(error)(handler)
+
     return app
 
 
