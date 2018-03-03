@@ -91,14 +91,14 @@ def get_session(app: object = None) -> FulltextSession:
     return FulltextSession(endpoint)
 
 
-def current_session():
+def current_session() -> FulltextSession:
     """Get/create :class:`.FulltextSession` for this context."""
     g = get_application_global()
     if not g:
         return get_session()
     if 'fulltext' not in g:
-        g.fulltext = get_session()
-    return g.fulltext
+        g.fulltext = get_session() # type: ignore
+    return g.fulltext # type: ignore
 
 
 @wraps(FulltextSession.retrieve)

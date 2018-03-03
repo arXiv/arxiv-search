@@ -123,14 +123,14 @@ def get_session(app: object = None) -> DocMetaSession:
     return DocMetaSession(endpoint)
 
 
-def current_session():
+def current_session() -> DocMetaSession:
     """Get/create :class:`.DocMetaSession` for this context."""
     g = get_application_global()
     if not g:
         return get_session()
-    if 'docmeta' not in g:
-        g.docmeta = get_session()
-    return g.docmeta
+    elif 'docmeta' not in g:
+        g.docmeta = get_session() # type: ignore
+    return g.docmeta # type: ignore
 
 
 @wraps(DocMetaSession.retrieve)

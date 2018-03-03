@@ -1,7 +1,7 @@
 """Helpers for working with Flask globals."""
 
 import os
-from typing import Union
+from typing import Optional, Union
 from flask import g, Flask
 from flask import current_app as flask_app
 import werkzeug
@@ -24,13 +24,13 @@ def get_application_config(app: Flask = None) -> Union[dict, os._Environ]:
     # pylint: disable=protected-access
     if app is not None:
         if isinstance(app, Flask):
-            return app.config
+            return app.config # type: ignore
     if flask_app:    # Proxy object; falsey if there is no application context.
-        return flask_app.config
+        return flask_app.config # type: ignore
     return os.environ
 
 
-def get_application_global() -> werkzeug.local.LocalProxy:
+def get_application_global() -> Optional[werkzeug.local.LocalProxy]:
     """
     Get the current application global proxy object.
 
@@ -39,5 +39,5 @@ def get_application_global() -> werkzeug.local.LocalProxy:
     proxy or None
     """
     if g:
-        return g
+        return g # type: ignore
     return None

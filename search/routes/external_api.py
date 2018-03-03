@@ -1,4 +1,5 @@
 """Provides REST API routes."""
+from typing import Callable
 
 from functools import wraps
 
@@ -10,7 +11,7 @@ from search import controllers
 blueprint = Blueprint('external_api', __name__, url_prefix='/search/api')
 
 
-def json_response(func):
+def json_response(func: Callable[..., str]) -> Callable[..., str]:
     """Generate a wrapper for routes that JSONifies the response body."""
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -22,20 +23,20 @@ def json_response(func):
 
 @blueprint.route('/', methods=['GET'])
 @json_response
-def search():
+def search() -> str:
     """First pass at a search results page."""
     return controllers.search(request.args.to_dict())
 
 
 @blueprint.route('/<arxiv:document_id>', methods=['GET'])
 @json_response
-def retrieve_document(document_id):
+def retrieve_document(document_id) -> str:
     """Retrieve an arXiv paper by ID."""
     return controllers.retrieve_document(document_id)
 
 
 @blueprint.route('/status', methods=['GET'])
 @json_response
-def ok():
+def ok() -> str:
     """Health check endpoint."""
     return controllers.health()

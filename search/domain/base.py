@@ -186,10 +186,15 @@ class Query(SchemaBase):
     page_size = Property('page_size', int)
     page_start = Property('page_start', int, 0)
 
+    raw_query: str
+    order: str
+    page_size: int
+    page_start: int = 0
+
     @property
     def page_end(self) -> int:
         """Get the index/offset of the end of the page."""
-        return int(self.page_start) + int(self.page_size)
+        return self.page_start + self.page_size
 
     @property
     def page(self) -> int:

@@ -4,7 +4,7 @@ import json
 import re
 from math import floor
 from datetime import datetime
-from typing import Tuple
+from typing import Any, Optional, Tuple, Union
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError
@@ -12,6 +12,7 @@ from elasticsearch.connection import Urllib3HttpConnection
 
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
+from elasticsearch_dsl.response import Response
 
 from search.context import get_application_config, get_application_global
 from search import logging
@@ -104,8 +105,8 @@ class SearchSession(object):
     # use SSL. Presumably we will use HTTP Auth, or something else.
 
     def __init__(self, host: str, index: str, port: int=9200,
-                 scheme: str='http', user: str=None, password: str=None,
-                 **extra) -> None:
+                 scheme: str='http', user: Optional[str]=None, password: Optional[str]=None,
+                 **extra: Any) -> None:
         """
         Initialize the connection to Elasticsearch.
 
@@ -143,11 +144,12 @@ class SearchSession(object):
                 'Could not initialize ES session: %s' % e
             ) from e
 
+    # TODO: Verify type of `SearchSession._get_operator(obj)`
     @staticmethod
-    def _get_operator(obj):
+    def _get_operator(obj: Any) -> str:
         if isinstance(obj, tuple):
             return SearchSession._get_operator(obj[0])
-        return obj.operator
+        return obj.operator # type: ignore
 
     @staticmethod
     def _group_terms(query: Query) -> tuple:
@@ -162,7 +164,7 @@ class SearchSession(object):
                     i -= 1
                 i += 1
         assert len(terms) == 1
-        return terms[0]
+        return terms[0] # type: ignore
 
     @staticmethod
     def _field_term_to_q(field: str, term: str) -> Q:
@@ -219,19 +221,19 @@ class SearchSession(object):
         return _Q("match", field, term)
 
     @staticmethod
-    def _grouped_terms_to_q(term_pair: tuple) -> Bool:
+    def _grouped_terms_to_q(term_pair: tuple) -> Q:
         """Generate a :class:`.Q` from grouped terms."""
-        term_a, operator, term_b = term_pair
-
-        if isinstance(term_a, tuple):
-            term_a = SearchSession._grouped_terms_to_q(term_a)
+        term_a_raw, operator, term_b_raw = term_pair
+        
+        if isinstance(term_a_raw, tuple):
+            term_a = SearchSession._grouped_terms_to_q(term_a_raw)
         else:
-            term_a = SearchSession._field_term_to_q(term_a.field, term_a.term)
+            term_a = SearchSession._field_term_to_q(term_a_raw.field, term_a_raw.term)
 
-        if isinstance(term_b, tuple):
-            term_b = SearchSession._grouped_terms_to_q(term_b)
+        if isinstance(term_b_raw, tuple):
+            term_b = SearchSession._grouped_terms_to_q(term_b_raw)
         else:
-            term_b = SearchSession._field_term_to_q(term_b.field, term_b.term)
+            term_b = SearchSession._field_term_to_q(term_b_raw.field, term_b_raw.term)
 
         if operator == 'OR':
             return term_a | term_b
@@ -240,8 +242,8 @@ class SearchSession(object):
         elif operator == 'NOT':
             return term_a & ~term_b
         else:
-            # TODO: Discuss whether to throw an exception.
-            return None
+            # TODO: Confirm proper exception.
+            raise TypeError("Invalid operator for terms")
 
     @staticmethod
     def _daterange_to_q(query: Query) -> Range:
@@ -546,7 +548,7 @@ class SearchSession(object):
             'results': list(map(self._transform, results))
         })
 
-    def _transform(self, raw) -> Document:
+    def _transform(self, raw: Response) -> Document:
         """Transform an ES search result back into a :class:`.Document`."""
         # typing: ignore
         result = {}
@@ -589,14 +591,14 @@ def get_session(app: object = None) -> SearchSession:
     return SearchSession(host, index, port, scheme, user, password)
 
 
-def current_session():
+def current_session() -> SearchSession:
     """Get/create :class:`.SearchSession` for this context."""
     g = get_application_global()
     if not g:
         return get_session()
     if 'search' not in g:
-        g.search = get_session()
-    return g.search
+        g.search = get_session() #type: ignore
+    return g.search # type: ignore
 
 
 @wraps(SearchSession.search)
