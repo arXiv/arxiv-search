@@ -1,115 +1,15 @@
 """Core data structures internal to the search service."""
 
-import json
-from typing import Optional, Type, Any, Iterable
+from typing import Any, Iterable, NamedTuple, Optional, Type
 from datetime import date, datetime
+import json
+from operator import attrgetter
+
 import jsonschema
 
 
-class Property(object):
-    """Describes a named, typed property on a data structure."""
-
-    # pylint: disable=too-few-public-methods
-
-    def __init__(self, name: str, klass: Optional[Type] = None,
-                 default: Any = None) -> None:
-        """Set the name, type, and default value for the property."""
-        self._name = name
-        self.klass = klass
-        self.default = default
-
-    def __get__(self, instance: Any, owner: Optional[Type] = None) -> Any:
-        """
-        Retrieve the value of property from the data instance.
-
-        Parameters
-        ----------
-        instance : object
-            The data structure instance on which the property is set.
-        owner : type
-            The class/type of ``instance``.
-
-        Returns
-        -------
-        object
-            If the data structure is instantiated, returns the value of this
-            property. Otherwise returns this :class:`.Property` instance.
-        """
-        if instance:
-            if self._name not in instance.keys():
-                instance[self._name] = self.default
-            return instance[self._name]
-        return self.default
-
-    def __set__(self, instance: Any, value: Any) -> None:
-        """
-        Set the value of the property on the data instance.
-
-        Parameters
-        ----------
-        instance : object
-            The data structure instance on which the property is set.
-        value : object
-            The value to which the property should be set.
-
-        Raises
-        ------
-        TypeError
-            Raised when ``value`` is not an instance of the specified type
-            for the property.
-        """
-        if self.klass is not None and not isinstance(value, self.klass):
-            raise TypeError('Must be an %s' % self.klass.__name__)
-        instance[self._name] = value
-
-
-class Base(dict):
-    """Represents a basic search."""
-
-    def __init__(self, from_iter: Optional[Iterable] = None, **kwargs: Any) -> None:
-        """Overridden to support initialization from a dict."""
-        if from_iter is not None:
-            super(Base, self).__init__(from_iter)
-        else:
-            super(Base, self).__init__()
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-
-class SchemaBase(Base):
-    """Base for domain classes with schema validation."""
-
-    __schema__: str
-
-    def __getattr__(self, key: str) -> Any:
-        """Get a schema attribute."""
-        if key in self:
-            return self[key]
-        raise AttributeError('No such attribute')
-
-    def __setattr__(self, key: str, value: Any) -> None:
-        """Set a schema attribute."""
-        if key in self or not hasattr(self, key):
-            self[key] = value
-        else:
-            super(SchemaBase, self).__setattr__(key, value)
-
-    @property
-    def valid(self) -> bool:
-        """Indicate whether the domain object is valid, per its __schema__."""
-        if self.__schema__ is None:    # No schema to validate against.
-            return None
-        try:
-            with open(self.__schema__) as f:
-                schema = json.load(f)
-        except IOError as e:
-            raise RuntimeError('Could not load %s' % self.__schema__) from e
-
-        try:
-            jsonschema.validate(self, schema)
-        except jsonschema.ValidationError as e:
-            return False
-        return True
+class SchemaBase(NamedTuple):
+    """Base for domain classes with standardized JSON and str representations."""
 
     def json(self) -> str:
         """Return the string representation of the instance in JSON."""
@@ -117,8 +17,8 @@ class SchemaBase(Base):
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        return '; '.join(['%s: %s' % (k, str(v))
-                          for k, v in self.items() if v])
+        return '; '.join(['%s: %s' % (attr, attrgetter(attr)(self)) # type: ignore
+                          for attr in self._fields if attrgetter(attr)(self)]) # pylint: disable=E1101
 
 
 class DocMeta(SchemaBase):
@@ -129,13 +29,13 @@ class Fulltext(SchemaBase):
     """Fulltext content for an arXiv paper, including extraction metadata."""
 
 
-class DateRange(Base):
+class DateRange(NamedTuple):
     """Represents an open or closed date range."""
 
-    start_date = Property('start_date', datetime)
+    start_date: datetime
     """The day/time on which the range begins."""
 
-    end_date = Property('end_date', datetime)
+    end_date: datetime
     """The day/time at (just before) which the range ends."""
 
     # on_version = Property('field', str)
@@ -153,12 +53,12 @@ class DateRange(Base):
         return _str
 
 
-class Classification(Base):
+class Classification(NamedTuple):
     """Represents an arxiv classification."""
 
-    group = Property('group', str)
-    archive = Property('archive', str)
-    category = Property('category', str)
+    group: str
+    archive: str
+    category: str
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
@@ -181,11 +81,6 @@ class ClassificationList(list):
 class Query(SchemaBase):
     """Represents a search query originating from the UI or API."""
 
-    raw_query = Property('raw_query', str)
-    order = Property('order', str)
-    page_size = Property('page_size', int)
-    page_start = Property('page_start', int, 0)
-
     raw_query: str
     order: str
     page_size: int
@@ -205,17 +100,17 @@ class Query(SchemaBase):
 class SimpleQuery(Query):
     """A query on a single field with a single value."""
 
-    field = Property('field', str)
-    value = Property('value', str)
+    field: str
+    value: str
 
 
 class Document(SchemaBase):
     """A single search document, representing an arXiv paper."""
 
-    __schema__ = 'schema/Document.json'
+    # __schema__ = 'schema/Document.json'
 
 
 class DocumentSet(SchemaBase):
     """A set of search results retrieved from the search index."""
 
-    __schema__ = 'schema/DocumentSet.json'
+    # __schema__ = 'schema/DocumentSet.json'

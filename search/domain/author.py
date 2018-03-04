@@ -1,13 +1,14 @@
 """Representations of authors, author lists, and author queries."""
-from search.domain import Query, Property, Base
+from search.domain import Query
+from typing import NamedTuple
 
 
-class Author(Base):
+class Author(NamedTuple):
     """Represents an author."""
 
-    forename = Property('forename', str)
-    surname = Property('surname', str)
-    fullname = Property('fullname', str)
+    forename: str
+    surname: str
+    fullname: str
 
     # TODO: gawd this is ugly.
     def __str__(self) -> str:
@@ -43,4 +44,4 @@ class AuthorList(list):
 class AuthorQuery(Query):
     """Represents an author query."""
 
-    authors = Property('authors', AuthorList)
+    authors: AuthorList

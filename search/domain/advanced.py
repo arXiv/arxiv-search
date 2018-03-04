@@ -1,14 +1,15 @@
 """Represents fielded search terms, with multiple operators."""
 
-from .base import Property, DateRange, Query, ClassificationList
+from .base import DateRange, Query, ClassificationList
 
+from typing import NamedTuple
 
-class FieldedSearchTerm(dict):
+class FieldedSearchTerm(NamedTuple):
     """Represents a fielded search term."""
 
-    operator = Property('operator', str)
-    field = Property('field', str)
-    term = Property('term', str)
+    operator: str
+    field: str
+    term: str
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
@@ -30,7 +31,6 @@ class AdvancedQuery(Query):
     An advanced query contains fielded search terms and boolean operators.
     """
 
-    date_range = Property('date_range', DateRange)
-    primary_classification = Property('primary_classification',
-                                      ClassificationList)
-    terms = Property('terms', FieldedSearchList, FieldedSearchList())
+    date_range: DateRange
+    primary_classification: ClassificationList
+    terms: FieldedSearchList = FieldedSearchList()
