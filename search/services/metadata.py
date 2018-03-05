@@ -63,7 +63,7 @@ class DocMetaSession(object):
     @property
     def endpoint(self):
         """Get a metadata endpoint."""
-        logger.debug(f'{document_id}: get next endpoint')
+        logger.debug('get next endpoint')
         return self._endpoints.__next__()
 
     def retrieve(self, document_id: str) -> DocMeta:
