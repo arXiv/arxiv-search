@@ -229,6 +229,7 @@ ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD', None)
 
 METADATA_ENDPOINT = os.environ.get('METADATA_ENDPOINT',
                                    'https://arxiv.org/docmeta/')
+METADATA_VERIFY_CERT = os.environ.get('METADATA_VERIFY_CERT', 'True')
 
 FULLTEXT_ENDPOINT = os.environ.get('FULLTEXT_ENDPOINT',
                                    'https://fulltext.arxiv.org/fulltext/')

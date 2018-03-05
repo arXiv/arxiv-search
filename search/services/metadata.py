@@ -57,6 +57,7 @@ class DocMetaSession(object):
         for endpoint in endpoints:
             if not endpoint[-1] == '/':
                 endpoint += '/'
+        logger.debug(f'New DocMeta session with endpoints {endpoints}')
         self._endpoints = cycle(endpoints)
 
     @property
@@ -138,7 +139,7 @@ def get_session(app: object = None) -> DocMetaSession:
     endpoint = config.get('METADATA_ENDPOINT', 'https://arxiv.org/docmeta/')
     verify_cert = bool(eval(config.get('METADATA_VERIFY_CERT', 'True')))
     if ',' in endpoint:
-        return DocMetaSession(*endpoint.split(','), verify_cert=verify_cert)
+        return DocMetaSession(*(endpoint.split(',')), verify_cert=verify_cert)
     return DocMetaSession(endpoint, verify_cert=verify_cert)
 
 
