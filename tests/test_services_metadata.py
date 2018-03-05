@@ -3,6 +3,7 @@
 import unittest
 from unittest import mock
 import json
+import os
 from itertools import cycle
 
 from search.services import metadata
@@ -12,7 +13,7 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
     """Metadata is available for a paper."""
 
     @mock.patch('search.services.metadata.requests.get')
-    def test_calls_fulltext_endpoint(self, mock_get):
+    def test_calls_metadata_endpoint(self, mock_get):
         """:func:`.metadata.retrieve` calls passed endpoint with GET."""
         base = 'https://asdf.com/'
 
@@ -36,6 +37,42 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
         except Exception as e:
             self.fail('Did not call requests.get as expected: %s' % e)
         self.assertTrue(args[0].startswith(base))
+
+    @mock.patch('search.services.metadata.requests.get')
+    def test_calls_metadata_endpoint_roundrobin(self, mock_get):
+        """:func:`.metadata.retrieve` calls passed endpoint with GET."""
+        base = ['https://asdf.com/', 'https://asdf2.com/']
+        os.environ['METADATA_ENDPOINT'] = ','.join(base)
+        os.environ['METADATA_VERIFY_CERT'] = 'False'
+        response = mock.MagicMock()
+        with open('tests/data/docmeta.json') as f:
+            mock_content = json.load(f)
+
+        type(response).json = mock.MagicMock(return_value=mock_content)
+        response.status_code = 200
+        mock_get.return_value = response
+
+        docmeta_session = metadata.current_session()
+
+        try:
+            docmeta_session.retrieve('1602.00123')
+        except Exception as e:
+            self.fail('Choked on valid response: %s' % e)
+        try:
+            args, _ = mock_get.call_args
+        except Exception as e:
+            self.fail('Did not call requests.get as expected: %s' % e)
+        self.assertTrue(args[0].startswith(base[0]))
+
+        try:
+            docmeta_session.retrieve('1602.00124')
+        except Exception as e:
+            self.fail('Choked on valid response: %s' % e)
+        try:
+            args, _ = mock_get.call_args
+        except Exception as e:
+            self.fail('Did not call requests.get as expected: %s' % e)
+        self.assertTrue(args[0].startswith(base[1]))
 
     @mock.patch('search.services.metadata.requests.get')
     def test_returns_dict(self, mock_get):
