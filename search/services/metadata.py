@@ -43,7 +43,7 @@ class DocMetaSession(object):
 
         """
         self._session = requests.Session()
-        self._session.verify = verify_cert
+        self._verify_cert = verify_cert
         self._retry = Retry(  # type: ignore
             total=10,
             read=10,
@@ -86,7 +86,8 @@ class DocMetaSession(object):
             raise ValueError('Invalid value for document_id')
 
         try:
-            response = requests.get(urljoin(self.endpoint, document_id))
+            response = requests.get(urljoin(self.endpoint, document_id),
+                                    verify=self._verify_cert)
         except requests.exceptions.SSLError as e:
             logger.error('SSLError: %s', e)
             raise SecurityException('SSL failed: %s' % e) from e
@@ -117,7 +118,7 @@ class DocMetaSession(object):
         """Health check."""
         logger.debug('check health of metadata service at %s', self.endpoint)
         try:
-            r = requests.head(self.endpoint)
+            r = requests.head(self.endpoint, verify=self._verify_cert)
             logger.debug('response from metadata endpoint:  %i: %s',
                          r.status_code, r.content)
             return r.ok
