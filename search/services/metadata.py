@@ -109,6 +109,7 @@ class DocMetaSession(object):
                     document_id, response.status_code, response.content
                 )
             )
+        logger.debug(f'{document_id}: response OK')
         try:
             data = DocMeta(response.json())
         except json.decoder.JSONDecodeError as e:
@@ -116,6 +117,7 @@ class DocMetaSession(object):
             raise BadResponse(
                 '%s: could not decode response: %s' % (document_id, e)
             ) from e
+        logger.debug(f'{document_id}: response decoded; done!')
         return data
 
     def ok(self) -> bool:
