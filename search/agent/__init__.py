@@ -6,8 +6,7 @@ each notification, the agent retrieves metadata for the most recent version of
 the indicated paper from the :mod:`search.services.metadata` service. The agent
 also retrieves metadata for earlier versions, if there are multiple versions
 available. Each version is passed to the :mod:`search.services.index` service,
-and becomes available for discovery via the :mod:`search.routes.ui` and
-:mod:`search.routes.external_api`.
+and becomes available for discovery via :mod:`search.routes.ui`.
 """
 
 from .consumer import MetadataRecordProcessor, DocumentFailed, IndexingFailed

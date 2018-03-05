@@ -76,14 +76,17 @@ class DocMetaSession(object):
         try:
             response = requests.get(urljoin(self.endpoint, document_id))
         except requests.exceptions.SSLError as e:
+            logger.error('SSLError: %s', e)
             raise SecurityException('SSL failed: %s' % e) from e
         except requests.exceptions.ConnectionError as e:
+            logger.error('ConnectionError: %s', e)
             raise ConnectionFailed(
                 'Could not connect to metadata service: %s' % e
             ) from e
 
         if response.status_code not in \
                 [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]:
+            logger.error('Request failed: %s', response.content)
             raise RequestFailed(
                 '%s: failed with %i: %s' % (
                     document_id, response.status_code, response.content
@@ -92,6 +95,7 @@ class DocMetaSession(object):
         try:
             data = DocMeta(response.json())
         except json.decoder.JSONDecodeError as e:
+            logger.error('JSONDecodeError: %s', e)
             raise BadResponse(
                 '%s: could not decode response: %s' % (document_id, e)
             ) from e
@@ -106,7 +110,7 @@ class DocMetaSession(object):
                          r.status_code, r.content)
             return r.ok
         except IOError as e:
-            logger.debug('connection to metadata endpoint failed with %s', e)
+            logger.error('IOError: %s', e)
             return False
 
 
@@ -135,7 +139,7 @@ def current_session():
 
 @wraps(DocMetaSession.retrieve)
 def retrieve(document_id: str) -> DocMeta:
-    """Retrieves an arxiv document by id."""
+    """Retrieve an arxiv document by id."""
     return current_session().retrieve(document_id)
 
 

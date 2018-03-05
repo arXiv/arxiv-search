@@ -84,19 +84,14 @@ class TestSearchController(TestCase):
             'terms-0-field': 'title',
             'terms-0-term': 'foo'
         })
-        try:
+        with self.assertRaises(InternalServerError):
             response_data, code, headers = advanced.search(request_data)
-        except IndexConnectionError as e:
-            self.fail("IndexConnectionError should be handled (caught %s)" % e)
+
         self.assertEqual(mock_index.search.call_count, 1,
                          "A search should be attempted")
         call_args, call_kwargs = mock_index.search.call_args
         self.assertIsInstance(call_args[0], AdvancedQuery,
                               "An AdvancedQuery is passed to the search index")
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
-
-        self.assertIn('index_error', response_data,
-                      "index_error flag should be set in response data")
 
     @mock.patch('search.controllers.advanced.index')
     def test_index_raises_query_error(self, mock_index):

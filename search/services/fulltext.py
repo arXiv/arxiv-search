@@ -103,7 +103,7 @@ def current_session():
 
 @wraps(FulltextSession.retrieve)
 def retrieve(document_id: str) -> Fulltext:
-    """Retrieves an arxiv document by id."""
+    """Retrieve an arxiv document by id."""
     return current_session().retrieve(document_id)
 
 
