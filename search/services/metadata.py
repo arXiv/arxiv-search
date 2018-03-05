@@ -86,8 +86,12 @@ class DocMetaSession(object):
             raise ValueError('Invalid value for document_id')
 
         try:
-            response = requests.get(urljoin(self.endpoint, document_id),
-                                    verify=self._verify_cert)
+            target = urljoin(self.endpoint, document_id)
+            logger.debug(
+                f'{document_id}: retrieve metadata from {target} with SSL'
+                f' verify {self._verify_cert}'
+            )
+            response = requests.get(target, verify=self._verify_cert)
         except requests.exceptions.SSLError as e:
             logger.error('SSLError: %s', e)
             raise SecurityException('SSL failed: %s' % e) from e
