@@ -2,8 +2,10 @@
 
 import unittest
 from unittest import mock
-from search.services import metadata
 import json
+from itertools import cycle
+
+from search.services import metadata
 
 
 class TestRetrieveExistantMetadata(unittest.TestCase):
@@ -23,7 +25,7 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
         mock_get.return_value = response
 
         docmeta_session = metadata.current_session()
-        docmeta_session.endpoint = base
+        docmeta_session._endpoints = cycle([base])
 
         try:
             docmeta_session.retrieve('1602.00123')
