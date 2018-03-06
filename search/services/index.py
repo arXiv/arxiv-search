@@ -136,7 +136,7 @@ class SearchSession(object):
         self.index = index
         self.mapping = mapping
         use_ssl = True if scheme == 'https' else False
-        http_auth = '%s:%s' % (user, password) if user is not None else None
+        http_auth = '%s:%s' % (user, password) if user else None
         try:
             self.es = Elasticsearch([{'host': host, 'port': port,
                                       'scheme': scheme, 'use_ssl': use_ssl,
