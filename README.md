@@ -1,5 +1,42 @@
 # arxiv-search
 
+## Testing & quality
+
+### Test suite
+Run the main test suite with...
+
+```bash
+nose2 --with-coverage
+```
+
+### Static checking
+Goal: zero errors/warnings.
+
+Use `# type: ignore` to disable mypy messages that do not reveal actual
+programming errors, and that are impractical to fix. If ignoring without
+verifying, insert a `# TODO: recheck`.
+
+If there is an active `mypy` GitHub issue (i.e. it's a bug/limitation in mypy)
+relevant to missed check, link that for later follow-up.
+
+```bash
+mypy --ignore-missing-imports -p search
+```
+
+### Documentation style
+Goal: zero errors/warnings.
+
+```bash
+pydocstyle --convention=numpy --add-ignore=D401 search
+```
+
+### Linting
+Goal: 9/10 or better.
+
+```bash
+pylint search
+```
+
 ## Documentation
 
 - Main service documentation: ``docs/``
