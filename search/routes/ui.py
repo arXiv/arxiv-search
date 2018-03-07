@@ -45,6 +45,7 @@ def author_search():
 
 # TODO: we need something more robust here; this is just to get us rolling.
 def _browse_url(name, **parameters):
+    """Generate a URL for a browse route."""
     paper_id = parameters.get('paper_id')
     if paper_id is None:
         return None
