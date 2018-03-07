@@ -11,3 +11,4 @@ wtforms==2.1
 arxiv-base>=0.2.2
 pytz==2017.3
 amazon-kclpy==1.4.4
+dataclasses==0.4

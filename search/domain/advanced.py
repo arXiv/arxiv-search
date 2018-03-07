@@ -2,6 +2,7 @@
 
 from .base import DateRange, Query, ClassificationList
 
+from dataclasses import dataclass, field
 from typing import NamedTuple
 
 class FieldedSearchTerm(NamedTuple):
@@ -23,7 +24,7 @@ class FieldedSearchList(list):
         """Build a string representation, for use in rendering."""
         return '; '.join([str(item) for item in self])
 
-
+@dataclass
 class AdvancedQuery(Query):
     """
     Represents an advanced query.
@@ -33,4 +34,4 @@ class AdvancedQuery(Query):
 
     date_range: DateRange
     primary_classification: ClassificationList
-    terms: FieldedSearchList = FieldedSearchList()
+    terms: FieldedSearchList = field(default_factory=FieldedSearchList)

@@ -1,9 +1,11 @@
 """Representations of authors, author lists, and author queries."""
-from search.domain import Query
+from dataclasses import dataclass
 from typing import NamedTuple
 
+from search.domain import Query
 
-class Author(NamedTuple):
+@dataclass
+class Author:
     """Represents an author."""
 
     forename: str
@@ -40,7 +42,7 @@ class AuthorList(list):
             return ' AND '.join([f"({str(au)})" for au in self])
         return str(self[0])
 
-
+@dataclass
 class AuthorQuery(Query):
     """Represents an author query."""
 

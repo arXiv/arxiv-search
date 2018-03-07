@@ -7,8 +7,10 @@ from operator import attrgetter
 
 import jsonschema
 
+from dataclasses import dataclass, fields
 
-class SchemaBase(NamedTuple):
+@dataclass(init=False)
+class SchemaBase:
     """Base for domain classes with standardized JSON and str representations."""
 
     def json(self) -> str:
@@ -17,17 +19,16 @@ class SchemaBase(NamedTuple):
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        return '; '.join(['%s: %s' % (attr, attrgetter(attr)(self)) # type: ignore
-                          for attr in self._fields if attrgetter(attr)(self)]) # pylint: disable=E1101
+        return '; '.join(['%s: %s' % (attr, attrgetter(attr)(self))
+                          for attr in fields(self) if attrgetter(attr)(self)]) # pylint: disable=E1101
 
-
+@dataclass
 class DocMeta(SchemaBase):
     """Metadata for an arXiv paper, retrieved from the core repository."""
 
-
+@dataclass
 class Fulltext(SchemaBase):
     """Fulltext content for an arXiv paper, including extraction metadata."""
-
 
 class DateRange(NamedTuple):
     """Represents an open or closed date range."""
@@ -77,14 +78,14 @@ class ClassificationList(list):
         """Build a string representation, for use in rendering."""
         return ', '.join([str(item) for item in self])
 
-
+@dataclass
 class Query(SchemaBase):
     """Represents a search query originating from the UI or API."""
 
     raw_query: str
     order: str
     page_size: int
-    page_start: int = 0
+    page_start: int
 
     @property
     def page_end(self) -> int:
@@ -96,20 +97,20 @@ class Query(SchemaBase):
         """Get the approximate page number."""
         return 1 + int(round(self.page_start/self.page_size))
 
-
+@dataclass
 class SimpleQuery(Query):
     """A query on a single field with a single value."""
 
     field: str
     value: str
 
-
+@dataclass
 class Document(SchemaBase):
     """A single search document, representing an arXiv paper."""
 
     # __schema__ = 'schema/Document.json'
 
-
+@dataclass
 class DocumentSet(SchemaBase):
     """A set of search results retrieved from the search index."""
 
