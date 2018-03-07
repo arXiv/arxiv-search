@@ -22,9 +22,13 @@ class SchemaBase:
         return '; '.join(['%s: %s' % (attr, attrgetter(attr)(self))
                           for attr in fields(self) if attrgetter(attr)(self)]) # pylint: disable=E1101
 
-@dataclass
 class DocMeta(SchemaBase):
     """Metadata for an arXiv paper, retrieved from the core repository."""
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
 
 @dataclass
 class Fulltext(SchemaBase):
@@ -33,10 +37,10 @@ class Fulltext(SchemaBase):
 class DateRange(NamedTuple):
     """Represents an open or closed date range."""
 
-    start_date: datetime
+    start_date: datetime = datetime(1990, 1, 1)
     """The day/time on which the range begins."""
 
-    end_date: datetime
+    end_date: datetime = datetime.now()
     """The day/time at (just before) which the range ends."""
 
     # on_version = Property('field', str)
@@ -58,8 +62,8 @@ class Classification(NamedTuple):
     """Represents an arxiv classification."""
 
     group: str
-    archive: str
-    category: str
+    archive: Optional[str] = None
+    category: Optional[str] = None
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
@@ -81,11 +85,9 @@ class ClassificationList(list):
 @dataclass
 class Query(SchemaBase):
     """Represents a search query originating from the UI or API."""
-
-    raw_query: str
-    order: str
-    page_size: int
-    page_start: int
+    order: Optional[str] = None
+    page_size: int = 25
+    page_start: int = 0
 
     @property
     def page_end(self) -> int:
@@ -101,14 +103,17 @@ class Query(SchemaBase):
 class SimpleQuery(Query):
     """A query on a single field with a single value."""
 
-    field: str
-    value: str
+    field: str = '' 
+    value: str = ''
 
-@dataclass
 class Document(SchemaBase):
     """A single search document, representing an arXiv paper."""
 
     # __schema__ = 'schema/Document.json'
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
 
 @dataclass
 class DocumentSet(SchemaBase):

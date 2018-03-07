@@ -1,5 +1,5 @@
 """Representations of authors, author lists, and author queries."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import NamedTuple
 
 from search.domain import Query
@@ -46,4 +46,4 @@ class AuthorList(list):
 class AuthorQuery(Query):
     """Represents an author query."""
 
-    authors: AuthorList
+    authors: AuthorList = field(default_factory=AuthorList)

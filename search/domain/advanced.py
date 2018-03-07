@@ -3,7 +3,7 @@
 from .base import DateRange, Query, ClassificationList
 
 from dataclasses import dataclass, field
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 class FieldedSearchTerm(NamedTuple):
     """Represents a fielded search term."""
@@ -32,6 +32,6 @@ class AdvancedQuery(Query):
     An advanced query contains fielded search terms and boolean operators.
     """
 
-    date_range: DateRange
-    primary_classification: ClassificationList
+    date_range: Optional[DateRange] = None
+    primary_classification: ClassificationList = field(default_factory=ClassificationList)
     terms: FieldedSearchList = field(default_factory=FieldedSearchList)
