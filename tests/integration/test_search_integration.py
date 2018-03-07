@@ -1,4 +1,4 @@
-"""Test the simple search feature."""
+"""Integration and search behavior tests."""
 
 from unittest import TestCase
 import os
@@ -8,18 +8,11 @@ import time
 # os.environ['ELASTICSEARCH_HOST'] = os.environ.get('ELASTICSEARCH_SERVICE_HOST')
 from search.services import index
 from search.agent.consumer import MetadataRecordProcessor
-from search.domain import SimpleQuery
+from search.domain import SimpleQuery, AuthorQuery, AuthorList, Author
 
 
-class TestSimpleSearch(TestCase):
-    """
-    Test the simple search feature.
-
-    Users should be able to enter terms and expressions into a basic search
-    box. Users should also be able to select from a simple list of metadata in
-    which to search. A list of results is generated containing the results
-    across the metadata fields selected.
-    """
+class TestSearchIntegration(TestCase):
+    """Indexes a limited set of documents, and tests search behavior."""
 
     @classmethod
     def setUpClass(cls):
@@ -51,7 +44,12 @@ class TestSimpleSearch(TestCase):
             "1403.6219",     # λ
             "1404.3450",     # $z_1$
             "1703.09067",    # $\lambda$
-            "1408.6682"     # $\lambda$
+            "1408.6682",     # $\lambda$
+            "1607.05107",    # Schröder
+            "1509.08727",    # Schroder
+            "1710.01597",    # Schroeder
+            "1708.07156",    # w w
+            "1401.1012",     # Wonmin Son
         ]
         cls.cache_dir = os.path.abspath('tests/data/examples')
         cls.processor = MetadataRecordProcessor()
@@ -61,7 +59,7 @@ class TestSimpleSearch(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """Tear down Elasticsearch."""
+        """Tear down Elasticsearch once all tests have run."""
         stop_es = subprocess.run(f"docker rm -f {cls.container}",
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
@@ -89,8 +87,8 @@ class TestSimpleSearch(TestCase):
                             " 'flux' or 'capacitor'.")
 
 
-    def test_search_for_utf8(self):
-        """Scenario: search for TeX terms."""
+    def test_simple_search_for_utf8(self):
+        """Scenario: simple search for utf8 terms."""
 
         # A search for a TeX expression should match similar metadata strings.
         query = SimpleQuery(
@@ -104,8 +102,8 @@ class TestSimpleSearch(TestCase):
         self.assertEqual(len(document_set['results']), 1)
         self.assertEqual(document_set['results'][0]['id'], "1403.6219")
 
-    def test_search_for_texism(self):
-        """Scenario: search for TeX terms."""
+    def test_simple_search_for_texism(self):
+        """Scenario: simple search for TeX terms."""
         query = SimpleQuery(
             raw_query='?query=%24z_1%24&searchtype=all',
             order='',
@@ -117,8 +115,8 @@ class TestSimpleSearch(TestCase):
         self.assertEqual(len(document_set['results']), 1)
         self.assertEqual(document_set['results'][0]['id'], "1404.3450")
 
-    def test_search_for_texism2(self):
-        """Scenario: search for TeX terms."""
+    def test_simple_search_for_texism2(self):
+        """Scenario: simple search for TeX terms."""
         query = SimpleQuery(
             raw_query='?query=%24%5Clambda%24&searchtype=all',
             order='',
@@ -128,3 +126,32 @@ class TestSimpleSearch(TestCase):
         )
         document_set = index.search(query)
         self.assertEqual(len(document_set['results']), 2)
+
+    def test_author_search_with_folding(self):
+        """Scenario: searching for a surname."""
+        query = AuthorQuery(
+            raw_query='?authors-0-surname=schröder&size=25',
+            order='',
+            page_size=10,
+            authors=AuthorList([Author(surname="schröder")])
+        )
+        document_set = index.search(query)
+        self.assertEqual(len(document_set['results']), 2)
+        self.assertIn("1607.05107", [r['id'] for r in document_set['results']],
+                      "Schröder should match.")
+        self.assertIn("1509.08727", [r['id'] for r in document_set['results']],
+                      "Schroder should match.")
+
+    def test_author_search_with_forename(self):
+        """Scenario: searching with surname and forename."""
+        query = AuthorQuery(
+            raw_query='',
+            order='',
+            page_size=10,
+            authors=AuthorList([Author(surname="w", forename="w")])
+        )
+        document_set = index.search(query)
+        self.assertEqual(len(document_set['results']), 1)
+        _ids = [r['id'] for r in document_set['results']]
+        self.assertIn("1708.07156", _ids, "Wissink B. W should match")
+        self.assertNotIn("1401.1012", _ids, "Wonmin Son should not match.")

@@ -37,7 +37,7 @@ class TestSearch(TestCase):
 
         query = AdvancedQuery(
             raw_query='fooquery',
-            order='relevance',
+            order='',
             page_size=10,
             date_range=DateRange(
                 start_date=datetime.now() - timedelta(days=5),
@@ -100,7 +100,7 @@ class TestSearch(TestCase):
 
         query = AuthorQuery(
             raw_query='fooquery',
-            order='relevance',
+            order='',
             page_size=10,
             authors=AuthorList([Author(forename="Bob", surname="Dole")])
         )
@@ -133,7 +133,7 @@ class TestSearch(TestCase):
 
         query = SimpleQuery(
             raw_query='fooquery',
-            order='relevance',
+            order='',
             page_size=10,
             field='title',
             value='foo title'

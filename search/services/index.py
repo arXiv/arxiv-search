@@ -367,14 +367,16 @@ class SearchSession(object):
         if author.surname:
             _q = _Q('match', f'{field}__last_name__folded', author.surname)
             if author.forename:    # Try as both forename and initials.
-                _q_init = Q()
-                for i in author.forename.replace('.', ' ').split():
-                    _q_init &= _Q('match', f'{field}__initials__folded', i)
-                _q &= (
-                    _Q('match', f'{field}__first_name__folded',
-                       author.forename)
-                    | _q_init
-                )
+                _q_forename = _Q('match', f'{field}__first_name__folded',
+                                 author.forename)
+                initials = author.forename.replace('.', ' ').split()
+                if initials:
+                    _q_init = Q()
+                    for i in initials:
+                        _q_init &= _Q('match', f'{field}__initials__folded', i)
+                    _q &= (_q_forename | _q_init)
+                else:
+                    _q &= _q_forename
         if author.surname and author.fullname:
             _q |= _Q('match', f'{field}__full_name', author.fullname)
         elif author.fullname:
@@ -397,9 +399,12 @@ class SearchSession(object):
                   query=self._author_query_part(au, 'authors'))
                 | Q('nested', path='owners',
                     query=self._author_query_part(au, 'owners'))
-                | (_Q('match', 'submitter__name',
-                      f'{au.forename} {au.surname} {au.fullname}')
-                   & Q('match', **{'submitter__is_author': True}))
+                # TODO: revisit incorporating submitter in this search; as
+                # implemented, it overrides expected behavior of explicit
+                # forename/surname search.
+                # | (_Q('match', 'submitter__name',
+                #       f'{au.forename} {au.surname} {au.fullname}')
+                #    & Q('match', **{'submitter__is_author': True}))
             )
         current_search = current_search.query(q)
         current_search = self._apply_sort(query, current_search)
