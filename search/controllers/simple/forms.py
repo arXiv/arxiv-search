@@ -8,7 +8,7 @@ from wtforms import Form, BooleanField, StringField, SelectField, validators, \
 from wtforms.fields import HiddenField
 from wtforms import widgets
 
-from search.controllers.util import doesNotStartWithWildcard
+from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
 
 
 class SimpleSearchForm(Form):
@@ -30,6 +30,7 @@ class SimpleSearchForm(Form):
         ('author_id', 'Author ID')
     ])
     query = StringField('Search or Article ID',
+                        filters=[stripWhiteSpace],
                         validators=[doesNotStartWithWildcard])
     size = SelectField('results per page', default=25, choices=[
         ('25', '25'),

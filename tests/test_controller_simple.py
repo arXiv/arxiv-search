@@ -278,3 +278,13 @@ class TestQueryFromForm(TestCase):
         })
         form = SimpleSearchForm(data)
         self.assertFalse(form.validate(), "Form should be invalid")
+
+    def test_input_whitespace_is_stripped(self):
+        """If query has padding whitespace, it should be removed."""
+        data = MultiDict({
+            'searchtype': 'title',
+            'query': ' foo title '
+        })
+        form = SimpleSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid.")
+        self.assertEqual(form.query.data, 'foo title')
