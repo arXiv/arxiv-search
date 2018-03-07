@@ -1,14 +1,151 @@
+"""Tests for :mod:`search.services.index`."""
+
 from unittest import TestCase, mock
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pytz import timezone
 from elasticsearch_dsl import Search, Q
 from elasticsearch_dsl.query import Range, Match, Bool, Nested
 
 from search.services import index
 from search.domain import Query, FieldedSearchTerm, DateRange, Classification,\
-    AdvancedQuery, FieldedSearchList, ClassificationList
+    AdvancedQuery, FieldedSearchList, ClassificationList, SimpleQuery, \
+    DocumentSet, AuthorQuery, AuthorList, Author
 
 EASTERN = timezone('US/Eastern')
+
+
+class TestSearch(TestCase):
+    """Tests for :func:`.index.search`."""
+
+    @mock.patch('search.services.index.Search')
+    @mock.patch('search.services.index.Elasticsearch')
+    def test_advanced_query(self, mock_Elasticsearch, mock_Search):
+        """:class:`.index.search` supports :class:`AdvancedQuery`."""
+        mock_results = mock.MagicMock()
+        mock_results.__getitem__.return_value = {'total': 53}
+        mock_result = mock.MagicMock()
+        mock_result.meta.score = 1
+        mock_results.__iter__.return_value = [mock_result]
+        mock_Search.execute.return_value = mock_results
+
+        # Support the chaining API for py-ES.
+        mock_Search.return_value = mock_Search
+        mock_Search.filter.return_value = mock_Search
+        mock_Search.query.return_value = mock_Search
+        mock_Search.sort.return_value = mock_Search
+        mock_Search.__getitem__.return_value = mock_Search
+
+        query = AdvancedQuery(
+            raw_query='fooquery',
+            order='relevance',
+            page_size=10,
+            date_range=DateRange(
+                start_date=datetime.now() - timedelta(days=5),
+                end_date=datetime.now()
+            ),
+            primary_classification=ClassificationList([
+                Classification(
+                    group='physics',
+                    archive='physics',
+                    category='hep-th'
+                )
+            ]),
+            terms=FieldedSearchList([
+                FieldedSearchTerm(operator='AND', field='title', term='foo'),
+                FieldedSearchTerm(operator='AND', field='author', term='joe'),
+                FieldedSearchTerm(operator='OR', field='abstract', term='hmm'),
+                FieldedSearchTerm(operator='NOT', field='comments', term='eh'),
+                FieldedSearchTerm(operator='AND', field='journal_ref',
+                                  term='jref (1999) 1:2-3'),
+                FieldedSearchTerm(operator='AND', field='acm_class',
+                                  term='abc123'),
+                FieldedSearchTerm(operator='AND', field='msc_class',
+                                  term='abc123'),
+                FieldedSearchTerm(operator='OR', field='report_num',
+                                  term='abc123'),
+                FieldedSearchTerm(operator='OR', field='doi',
+                                  term='10.01234/56789'),
+                FieldedSearchTerm(operator='OR', field='orcid',
+                                  term='0000-0000-0000-0000'),
+                FieldedSearchTerm(operator='OR', field='author_id',
+                                  term='Bloggs_J'),
+            ])
+        )
+        document_set = index.search(query)
+        self.assertIsInstance(document_set, DocumentSet)
+        self.assertEqual(document_set['metadata']['start'], 0)
+        self.assertEqual(document_set['metadata']['total'], 53)
+        self.assertEqual(document_set['metadata']['current_page'], 1)
+        self.assertEqual(document_set['metadata']['total_pages'], 6)
+        self.assertEqual(document_set['metadata']['page_size'], 10)
+        self.assertEqual(len(document_set['results']), 1)
+
+    @mock.patch('search.services.index.Search')
+    @mock.patch('search.services.index.Elasticsearch')
+    def test_author_query(self, mock_Elasticsearch, mock_Search):
+        """:class:`.index.search` supports :class:`AuthorQuery`."""
+        mock_results = mock.MagicMock()
+        mock_results.__getitem__.return_value = {'total': 53}
+        mock_result = mock.MagicMock()
+        mock_result.meta.score = 1
+        mock_results.__iter__.return_value = [mock_result]
+        mock_Search.execute.return_value = mock_results
+
+        # Support the chaining API for py-ES.
+        mock_Search.return_value = mock_Search
+        mock_Search.filter.return_value = mock_Search
+        mock_Search.query.return_value = mock_Search
+        mock_Search.sort.return_value = mock_Search
+        mock_Search.__getitem__.return_value = mock_Search
+
+        query = AuthorQuery(
+            raw_query='fooquery',
+            order='relevance',
+            page_size=10,
+            authors=AuthorList([Author(forename="Bob", surname="Dole")])
+        )
+        document_set = index.search(query)
+        self.assertIsInstance(document_set, DocumentSet)
+        self.assertEqual(document_set['metadata']['start'], 0)
+        self.assertEqual(document_set['metadata']['total'], 53)
+        self.assertEqual(document_set['metadata']['current_page'], 1)
+        self.assertEqual(document_set['metadata']['total_pages'], 6)
+        self.assertEqual(document_set['metadata']['page_size'], 10)
+        self.assertEqual(len(document_set['results']), 1)
+
+    @mock.patch('search.services.index.Search')
+    @mock.patch('search.services.index.Elasticsearch')
+    def test_simple_query(self, mock_Elasticsearch, mock_Search):
+        """:class:`.index.search` supports :class:`SimpleQuery`."""
+        mock_results = mock.MagicMock()
+        mock_results.__getitem__.return_value = {'total': 53}
+        mock_result = mock.MagicMock()
+        mock_result.meta.score = 1
+        mock_results.__iter__.return_value = [mock_result]
+        mock_Search.execute.return_value = mock_results
+
+        # Support the chaining API for py-ES.
+        mock_Search.return_value = mock_Search
+        mock_Search.filter.return_value = mock_Search
+        mock_Search.query.return_value = mock_Search
+        mock_Search.sort.return_value = mock_Search
+        mock_Search.__getitem__.return_value = mock_Search
+
+        query = SimpleQuery(
+            raw_query='fooquery',
+            order='relevance',
+            page_size=10,
+            field='title',
+            value='foo title'
+        )
+        document_set = index.search(query)
+        self.assertIsInstance(document_set, DocumentSet)
+        self.assertEqual(document_set['metadata']['start'], 0)
+        self.assertEqual(document_set['metadata']['total'], 53)
+        self.assertEqual(document_set['metadata']['current_page'], 1)
+        self.assertEqual(document_set['metadata']['total_pages'], 6)
+        self.assertEqual(document_set['metadata']['page_size'], 10)
+        self.assertEqual(len(document_set['results']), 1)
 
 
 class TestWildcardSearch(TestCase):
@@ -106,7 +243,6 @@ class TestWildcardSearch(TestCase):
             index._Q('match', 'title', '*nope')
 
 
-
 class TestPrepare(TestCase):
     """
     Tests for :meth:`.index.SearchSession._prepare`.
@@ -171,24 +307,6 @@ class TestPrepare(TestCase):
         except AssertionError:
             self.fail('Should result in a single group')
         self.assertEqual(expected, terms)
-
-    # def test_grouped_terms_to_q(self):
-    #     """:meth:`._grouped_terms_to_q` builds a Bool from grouped terms."""
-    #     query = AdvancedQuery({'terms': FieldedSearchList([
-    #         FieldedSearchTerm(operator=None, field='title', term='muon'),
-    #         FieldedSearchTerm(operator='OR', field='title', term='gluon'),
-    #         FieldedSearchTerm(operator='NOT', field='title', term='foo'),
-    #         FieldedSearchTerm(operator='AND', field='title', term='boson'),
-    #     ])})
-    #     expected = (Q('match', title='muon')
-    #                 | (
-    #                   (Q('match', title='gluon')
-    #                    & ~Q('match', title='foo'))
-    #                   & Q('match', title='boson'))
-    #                 )
-    #     q = self.session._grouped_terms_to_q(self.session._group_terms(query))
-    #     self.assertIsInstance(q, Bool)
-    #     self.assertEqual(expected, q)
 
     def test_daterange_to_q(self):
         """:meth:`._daterange_to_q` builds a Range from :class:`.DateRange`."""

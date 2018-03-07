@@ -3,6 +3,7 @@ omit =
     app.py
     setup.py
     docs/*
+    tests/*
     wsgi.py
     populate_test_metadata.py
     create_index.py
