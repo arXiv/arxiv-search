@@ -1,9 +1,10 @@
 """Representations of authors, author lists, and author queries."""
-from search.domain import Query, Property, Base # type: ignore
+
+from search.domain import Query, Property, Base     # type: ignore
 
 
 class Author(Base):
-    """Represents an author."""
+    """Represents a query part for an author."""
 
     forename = Property('forename', str)
     surname = Property('surname', str)
@@ -29,7 +30,7 @@ class Author(Base):
 
 
 class AuthorList(list):
-    """Represents a list of authors."""
+    """Represents a list of author query parts."""
 
     def __str__(self):
         """Prints comma-delimited list of authors."""
