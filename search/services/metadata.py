@@ -41,6 +41,15 @@ class DocMetaSession(object):
         """
         Initialize an HTTP session.
 
+        Parameters
+        ----------
+        endpoints : str
+            One or more endpoints for metadata retrieval. If more than one
+            are provided, calls to :meth:`.retrieve` will cycle through those
+            endpoints for each call.
+        verify_cert : bool
+            Whether or not SSL certificate verification should enforced.
+
         """
         self._session = requests.Session()
         self._verify_cert = verify_cert
