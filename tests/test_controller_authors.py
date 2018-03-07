@@ -84,7 +84,6 @@ class TestSearchController(TestCase):
         self.assertIsInstance(call_args[0], AuthorQuery,
                               "An AuthorQuery is passed to the search index")
 
-
     @mock.patch('search.controllers.authors.index')
     def test_index_raises_query_error(self, mock_index):
         """Index service raises a QueryError."""
@@ -225,3 +224,16 @@ class TestQueryFromForm(TestCase):
         self.assertIsInstance(query, AuthorQuery,
                               "Should return an instance of AuthorQuery")
         self.assertIsNone(query.order, "Order should be None")
+
+    def test_input_whitespace_is_stripped(self):
+        """If query has padding whitespace, it should be removed."""
+        data = MultiDict({
+            'authors-0-forename': ' david ',
+            'authors-0-surname': ' davis ',
+            'authors-1-fullname': ' franklin '
+        })
+        form = AuthorSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid.")
+        self.assertEqual(form.authors[0].forename.data, 'david')
+        self.assertEqual(form.authors[0].surname.data, 'davis')
+        self.assertEqual(form.authors[1].fullname.data, 'franklin')

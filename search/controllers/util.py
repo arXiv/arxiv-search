@@ -9,3 +9,10 @@ def doesNotStartWithWildcard(form: Form, field: StringField) -> None:
         return
     if field.data.startswith('?') or field.data.startswith('*'):
         raise validators.ValidationError('Search cannot start with a wildcard')
+
+
+def stripWhiteSpace(value: str) -> str:
+    """Strip whitespace from form input."""
+    if not value:
+        return value
+    return value.strip()
