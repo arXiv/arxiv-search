@@ -6,6 +6,21 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 from search.domain import Document, DocMeta, Fulltext
 
 
+DEFAULT_LICENSE = {
+    'uri': 'http://arxiv.org/licenses/assumed-1991-2003/',
+    'label': "Assumed arXiv.org perpetual, non-exclusive license to distribute"
+             " this article for submissions made before January 2004"
+}
+
+
+def _constructLicense(meta: DocMeta) -> dict:
+    """Get the document license, or set the default."""
+    if 'license' not in meta or not meta['license'] \
+            or not meta['license']['uri']:
+        return DEFAULT_LICENSE
+    return meta['license']
+
+
 def _strip_punctuation(s):
     return ''.join([c for c in s if c not in punctuation])
 
@@ -19,18 +34,16 @@ def _constructPaperVersion(meta: DocMeta) -> str:
 
 def _constructMSCClass(meta: DocMeta) -> list:
     """Extract ``msc_class`` field as an array."""
-    raw = meta.get('msc_class')
-    if not raw:
+    if 'msc_class' not in meta or not meta['msc_class']:
         return None
-    return [obj.strip() for obj in raw.split(',')]
+    return [obj.strip() for obj in meta['msc_class'].split(',')]
 
 
 def _constructACMClass(meta: DocMeta) -> list:
     """Extract ``acm_class`` field as an array."""
-    raw = meta.get('acm_class')
-    if not raw:
+    if 'acm_class' not in meta or not meta['acm_class']:
         return None
-    return [obj.strip() for obj in raw.split(';')]
+    return [obj.strip() for obj in meta['acm_class'].split(';')]
 
 
 def _transformAuthor(author: dict) -> dict:
@@ -50,6 +63,18 @@ def _constructAuthorOwners(meta: DocMeta) -> List[Dict]:
             for author in meta.get("author_owners", [])]
 
 
+def _getFirstSubDate(meta: DocMeta) -> Optional[str]:
+    if 'submitted_date_all' not in meta or not meta['submitted_date_all']:
+        return None
+    return meta['submitted_date_all'][0]
+
+
+def _getLastSubDate(meta: DocMeta) -> Optional[str]:
+    if 'submitted_date_all' not in meta or not meta['submitted_date_all']:
+        return None
+    return meta['submitted_date_all'][-1]
+
+
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType]] = [
     ('id', 'paper_id'),
@@ -61,16 +86,14 @@ _transformations: List[Tuple[str, TransformType]] = [
     ("submitted_date_all",
      lambda meta: meta.get('submitted_date_all', [])
      if meta.get('is_current') else None),
-    ("submitted_date_first",
-     lambda meta: meta.get('submitted_date_all', [])[0]),
-    ("submitted_date_latest",
-     lambda meta: meta.get('submitted_date_all', [])[-1]),
+    ("submitted_date_first", _getFirstSubDate),
+    ("submitted_date_latest", _getLastSubDate),
     ("modified_date", "modified_date"),
     ("updated_date", "updated_date"),
     ("announced_date_first", "announced_date_first"),
     ("is_current", "is_current"),
     ("is_withdrawn", "is_withdrawn"),
-    ("license", "license"),
+    ("license", _constructLicense),
     ('paper_id', 'paper_id'),
     ('paper_id_v', _constructPaperVersion),
     ("primary_classification", "primary_classification"),
@@ -85,7 +108,6 @@ _transformations: List[Tuple[str, TransformType]] = [
     ("msc_class", _constructMSCClass),
     ("metadata_id", "metadata_id"),
     ("journal_ref", "journal_ref_utf8"),
-    ("is_withdrawn", "is_withdrawn"),
     ("doi", "doi"),
     ("comments", "comments_utf8"),
     ("acm_class", _constructACMClass),
