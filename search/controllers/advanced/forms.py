@@ -10,7 +10,7 @@ from wtforms import Form, BooleanField, StringField, SelectField, validators, \
 from wtforms.fields import HiddenField
 from wtforms import widgets
 
-from search.controllers.util import doesNotStartWithWildcard
+from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
 
 
 class FieldForm(Form):
@@ -18,7 +18,8 @@ class FieldForm(Form):
 
     # pylint: disable=too-few-public-methods
 
-    term = StringField("Search term...", validators=[doesNotStartWithWildcard])
+    term = StringField("Search term...", filters=[stripWhiteSpace],
+                       validators=[doesNotStartWithWildcard])
     operator = SelectField("Operator", choices=[
         ('AND', 'AND'), ('OR', 'OR'), ('NOT', 'NOT')
     ], default='AND')
