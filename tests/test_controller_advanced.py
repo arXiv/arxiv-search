@@ -222,6 +222,18 @@ class TestAdvancedSearchForm(TestCase):
         form = AdvancedSearchForm(data)
         self.assertTrue(form.validate())
 
+    def test_input_whitespace_is_stripped(self):
+        """If query has padding whitespace, it should be removed."""
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': ' foo '
+        })
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid.")
+        self.assertEqual(form.terms[0].term.data, 'foo',
+                         "Whitespace should be stripped.")
+
 
 class TestUpdatequeryWithClassification(TestCase):
     """:func:`.advanced._update_query_with_classification` adds classfnxn."""
