@@ -3,6 +3,7 @@
 import os
 from urllib.parse import urljoin
 import json
+from itertools import cycle
 from functools import wraps
 
 import requests
@@ -36,9 +37,22 @@ class BadResponse(IOError):
 class DocMetaSession(object):
     """An HTTP session with the docmeta endpoint."""
 
-    def __init__(self, endpoint: str) -> None:
-        """Initialize an HTTP session."""
+    def __init__(self, *endpoints: str, verify_cert: bool = True) -> None:
+        """
+        Initialize an HTTP session.
+
+        Parameters
+        ----------
+        endpoints : str
+            One or more endpoints for metadata retrieval. If more than one
+            are provided, calls to :meth:`.retrieve` will cycle through those
+            endpoints for each call.
+        verify_cert : bool
+            Whether or not SSL certificate verification should enforced.
+
+        """
         self._session = requests.Session()
+        self._verify_cert = verify_cert
         self._retry = Retry(  # type: ignore
             total=10,
             read=10,
@@ -49,9 +63,17 @@ class DocMetaSession(object):
         self._adapter = requests.adapters.HTTPAdapter(max_retries=self._retry)
         self._session.mount('https://', self._adapter)
 
-        if not endpoint[-1] == '/':
-            endpoint += '/'
-        self.endpoint = endpoint
+        for endpoint in endpoints:
+            if not endpoint[-1] == '/':
+                endpoint += '/'
+        logger.debug(f'New DocMeta session with endpoints {endpoints}')
+        self._endpoints = cycle(endpoints)
+
+    @property
+    def endpoint(self):
+        """Get a metadata endpoint."""
+        logger.debug('get next endpoint')
+        return self._endpoints.__next__()
 
     def retrieve(self, document_id: str) -> DocMeta:
         """
@@ -74,7 +96,12 @@ class DocMetaSession(object):
             raise ValueError('Invalid value for document_id')
 
         try:
-            response = requests.get(urljoin(self.endpoint, document_id))
+            target = urljoin(self.endpoint, document_id)
+            logger.debug(
+                f'{document_id}: retrieve metadata from {target} with SSL'
+                f' verify {self._verify_cert}'
+            )
+            response = requests.get(target, verify=self._verify_cert)
         except requests.exceptions.SSLError as e:
             logger.error('SSLError: %s', e)
             raise SecurityException('SSL failed: %s' % e) from e
@@ -92,6 +119,7 @@ class DocMetaSession(object):
                     document_id, response.status_code, response.content
                 )
             )
+        logger.debug(f'{document_id}: response OK')
         try:
             data = DocMeta(response.json())
         except json.decoder.JSONDecodeError as e:
@@ -99,13 +127,14 @@ class DocMetaSession(object):
             raise BadResponse(
                 '%s: could not decode response: %s' % (document_id, e)
             ) from e
+        logger.debug(f'{document_id}: response decoded; done!')
         return data
 
     def ok(self) -> bool:
         """Health check."""
         logger.debug('check health of metadata service at %s', self.endpoint)
         try:
-            r = requests.head(self.endpoint)
+            r = requests.head(self.endpoint, verify=self._verify_cert)
             logger.debug('response from metadata endpoint:  %i: %s',
                          r.status_code, r.content)
             return r.ok
@@ -118,13 +147,17 @@ def init_app(app: object = None) -> None:
     """Set default configuration parameters for an application instance."""
     config = get_application_config(app)
     config.setdefault('METADATA_ENDPOINT', 'https://arxiv.org/docmeta/')
+    config.setdefault('METADATA_VERIFY_CERT', 'True')
 
 
 def get_session(app: object = None) -> DocMetaSession:
     """Get a new session with the docmeta endpoint."""
     config = get_application_config(app)
     endpoint = config.get('METADATA_ENDPOINT', 'https://arxiv.org/docmeta/')
-    return DocMetaSession(endpoint)
+    verify_cert = bool(eval(config.get('METADATA_VERIFY_CERT', 'True')))
+    if ',' in endpoint:
+        return DocMetaSession(*(endpoint.split(',')), verify_cert=verify_cert)
+    return DocMetaSession(endpoint, verify_cert=verify_cert)
 
 
 def current_session():

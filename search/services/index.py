@@ -1,6 +1,7 @@
 """Integration with search index."""
 
 import re
+import json
 from math import floor
 from datetime import datetime
 from typing import Tuple, List
@@ -106,7 +107,7 @@ class SearchSession(object):
 
     def __init__(self, host: str, index: str, port: int=9200,
                  scheme: str='http', user: str=None, password: str=None,
-                 **extra) -> None:
+                 mapping: str=None, **extra) -> None:
         """
         Initialize the connection to Elasticsearch.
 
@@ -133,8 +134,9 @@ class SearchSession(object):
         logger.debug('init ES session for index "%s" at %s:%s',
                      index, host, port)
         self.index = index
+        self.mapping = mapping
         use_ssl = True if scheme == 'https' else False
-        http_auth = '%s:%s' % (user, password) if user is not None else None
+        http_auth = '%s:%s' % (user, password) if user else None
         try:
             self.es = Elasticsearch([{'host': host, 'port': port,
                                       'scheme': scheme, 'use_ssl': use_ssl,
@@ -402,6 +404,17 @@ class SearchSession(object):
         current_search = self._apply_sort(query, current_search)
         return current_search
 
+    def _try_create_index(self):
+        try:
+            logger.error('Index not found; attempting to create')
+            with open(self.mapping) as f:
+                mapping = json.load(f)
+            self.create_index(mapping)
+        except Exception as e:
+            raise IndexConnectionError(
+                'Could not create index: %s' % e
+            ) from e
+
     def create_index(self, mappings: dict) -> None:
         """
         Create the search index.
@@ -454,6 +467,8 @@ class SearchSession(object):
             logger.error("SerializationError: %s", e)
             raise IndexingError('Problem serializing document: %s' % e) from e
         except TransportError as e:
+            if e.error == 'index_not_found_exception':
+                self._try_create_index()
             logger.error("TransportError: %s", e)
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
@@ -498,6 +513,8 @@ class SearchSession(object):
             raise IndexingError('Problem with bulk indexing: %s' % e) from e
         except TransportError as e:
             logger.error("TransportError: %s", e)
+            if e.error == 'index_not_found_exception':
+                self._try_create_index()
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
@@ -533,6 +550,8 @@ class SearchSession(object):
             raise QueryError('Problem serializing document: %s' % e) from e
         except TransportError as e:
             logger.error("TransportError: %s", e)
+            if e.error == 'index_not_found_exception':
+                self._try_create_index()
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
@@ -574,6 +593,8 @@ class SearchSession(object):
             results = current_search[query.page_start:query.page_end].execute()
         except TransportError as e:
             logger.error("TransportError: %s", e)
+            if e.error == 'index_not_found_exception':
+                self._try_create_index()
             if e.error == 'parsing_exception':
                 raise QueryError(e.info) from e
             raise IndexConnectionError(
@@ -632,6 +653,7 @@ def init_app(app: object = None) -> None:
     config.setdefault('ELASTICSEARCH_INDEX', 'arxiv')
     config.setdefault('ELASTICSEARCH_USER', 'elastic')
     config.setdefault('ELASTICSEARCH_PASSWORD', 'changeme')
+    config.setdefault('ELASTICSEARCH_MAPPING', 'mappings/DocumentMapping.json')
 
 
 def get_session(app: object = None) -> SearchSession:
@@ -643,7 +665,9 @@ def get_session(app: object = None) -> SearchSession:
     index = config.get('ELASTICSEARCH_INDEX', 'arxiv')
     user = config.get('ELASTICSEARCH_USER', 'elastic')
     password = config.get('ELASTICSEARCH_PASSWORD', 'changeme')
-    return SearchSession(host, index, port, scheme, user, password)
+    mapping = config.get('ELASTICSEARCH_MAPPING',
+                         'mappings/DocumentMapping.json')
+    return SearchSession(host, index, port, scheme, user, password, mapping)
 
 
 def current_session():

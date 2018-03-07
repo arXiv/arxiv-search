@@ -151,7 +151,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             logger.error(f'{arxiv_id}: bad response from metadata service')
             raise DocumentFailed('Bad response from metadata service') from e
         except Exception as e:
-            logger.error(f'{arxiv_id}: unhandled error from metadata service')
+            logger.error(f'{arxiv_id}: unhandled error, metadata service: {e}')
             raise IndexingFailed('Unhandled exception') from e
 
         try:
