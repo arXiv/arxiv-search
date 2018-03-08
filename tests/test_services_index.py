@@ -98,7 +98,12 @@ class TestSearch(TestCase):
         mock_Search.__getitem__.return_value = mock_Search
 
         query = AuthorQuery(
+<<<<<<< HEAD
             order='relevance',
+=======
+            raw_query='fooquery',
+            order='',
+>>>>>>> develop
             page_size=10,
             authors=AuthorList([Author(forename="Bob", surname="Dole")])
         )

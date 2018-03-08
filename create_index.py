@@ -12,9 +12,7 @@ app.app_context().push()
 @app.cli.command()
 def create_index():
     """Initialize the search index."""
-    with open('mappings/DocumentMapping.json') as f:
-        mappings = json.load(f)
-    index.current_session().create_index(mappings)
+    index.current_session().create_index()
 
 
 if __name__ == '__main__':
