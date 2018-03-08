@@ -12,7 +12,7 @@ from dataclasses import dataclass, fields
 
 @dataclass(init=False)
 class SchemaBase:
-    """Base for domain classes with standardized JSON and str representations."""
+    """Base for domain classes with standardized JSON and str reprs."""
 
     def json(self) -> str:
         """Return the string representation of the instance in JSON."""
@@ -20,8 +20,11 @@ class SchemaBase:
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        return '; '.join(['%s: %s' % (attr, attrgetter(attr)(self))
-                          for attr in fields(self) if attrgetter(attr)(self)]) # pylint: disable=E1101
+        return '; '.join([
+            '%s: %s' % (attr, attrgetter(attr)(self))
+            for attr in fields(self) if attrgetter(attr)(self)
+        ])  # pylint: disable=E1101
+
 
 class DocMeta(SchemaBase):
     """Metadata for an arXiv paper, retrieved from the core repository."""
@@ -34,6 +37,7 @@ class DocMeta(SchemaBase):
 @dataclass
 class Fulltext(SchemaBase):
     """Fulltext content for an arXiv paper, including extraction metadata."""
+
 
 class DateRange(NamedTuple):
     """Represents an open or closed date range."""
@@ -104,7 +108,7 @@ class Query(SchemaBase):
 
 @dataclass
 class SimpleQuery(Query):
-    """A query on a single field with a single value."""
+    """A query on a single field."""
 
     field: str = ''
     value: str = ''

@@ -121,12 +121,12 @@ class TestPrepare(TestCase):
 
     def test_group_terms(self):
         """:meth:`._group_terms` groups terms using logical precedence."""
-        query = AdvancedQuery({'terms': FieldedSearchList([
+        query = AdvancedQuery(terms=FieldedSearchList([
             FieldedSearchTerm(operator=None, field='title', term='muon'),
             FieldedSearchTerm(operator='OR', field='title', term='gluon'),
             FieldedSearchTerm(operator='NOT', field='title', term='foo'),
             FieldedSearchTerm(operator='AND', field='title', term='boson'),
-        ])})
+        ]))
         expected = (
             FieldedSearchTerm(operator=None, field='title', term='muon'),
             'OR',
@@ -140,19 +140,19 @@ class TestPrepare(TestCase):
               FieldedSearchTerm(operator='AND', field='title', term='boson')
             )
         )
-        #try:
-        terms = self.session._group_terms(query)
-        #except AssertionError:
-        #    self.fail('Should result in a single group')
+        try:
+            terms = self.session._group_terms(query)
+        except AssertionError:
+           self.fail('Should result in a single group')
         self.assertEqual(expected, terms)
 
     def test_group_terms_all_and(self):
         """:meth:`._group_terms` groups terms using logical precedence."""
-        query = AdvancedQuery({'terms': FieldedSearchList([
+        query = AdvancedQuery(terms=FieldedSearchList([
             FieldedSearchTerm(operator=None, field='title', term='muon'),
             FieldedSearchTerm(operator='AND', field='title', term='gluon'),
             FieldedSearchTerm(operator='AND', field='title', term='foo'),
-        ])})
+        ]))
         expected = (
             (
               FieldedSearchTerm(operator=None, field='title', term='muon'),

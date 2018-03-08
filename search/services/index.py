@@ -147,7 +147,7 @@ class SearchSession(object):
     # TODO: Verify type of `SearchSession._get_operator(obj)`
     @staticmethod
     def _get_operator(obj: Any) -> str:
-        if isinstance(obj, tuple):
+        if type(obj) is tuple:
             return SearchSession._get_operator(obj[0])
         return obj.operator # type: ignore
 
@@ -224,7 +224,7 @@ class SearchSession(object):
     def _grouped_terms_to_q(term_pair: tuple) -> Q:
         """Generate a :class:`.Q` from grouped terms."""
         term_a_raw, operator, term_b_raw = term_pair
-        
+
         if isinstance(term_a_raw, tuple):
             term_a = SearchSession._grouped_terms_to_q(term_a_raw)
         else:
