@@ -477,7 +477,7 @@ class SearchSession(object):
             Problem serializing ``document`` for indexing.
 
         """
-        if not self.indices.exists(index=self.index):
+        if not self.es.indices.exists(index=self.index):
             self.create_index()
         try:
             ident = document.get('id', document['paper_id'])
