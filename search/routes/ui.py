@@ -17,6 +17,15 @@ logger = logging.getLogger(__name__)
 blueprint = Blueprint('ui', __name__, url_prefix='/')
 
 
+@blueprint.after_request
+def apply_response_headers(response):
+    """Hook for applying response headers to all responses."""
+    """Prevent UI redress attacks"""
+    response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    return response
+
+
 @blueprint.route('/', methods=['GET'])
 def search():
     """First pass at a search results page."""
@@ -45,6 +54,7 @@ def author_search():
 
 # TODO: we need something more robust here; this is just to get us rolling.
 def _browse_url(name, **parameters):
+    """Generate a URL for a browse route."""
     paper_id = parameters.get('paper_id')
     if paper_id is None:
         return None

@@ -31,20 +31,7 @@ class TestIndexPaper(TestCase):
 
         self.processor.index_paper('1234.56789')
 
-        '''
-        self.assertEqual(mock_meta.retrieve.call_count, 1,
-                         "Only the metadata for the current version should be"
-                         " retrieved")
-        '''
-        self.assertEqual(mock_idx.add_document.call_count, 1,
-                         "Only the current version should be indexed")
-
-        indexed = mock_idx.add_document.call_args[0][0]
-        self.assertTrue(indexed.is_current,
-                        "Should be flagged as the most recent version")
-        self.assertEqual(len(indexed.submitted_date), 1,
-                         "Only the submission date of the current version"
-                         " should be included")
+        mock_idx.bulk_add_documents.assert_called_once_with([mock_doc])
 
     @mock.patch('search.agent.consumer.index')
     @mock.patch('search.agent.consumer.transform')
@@ -82,15 +69,8 @@ class TestIndexPaper(TestCase):
         self.processor.index_paper('1234.56789')
         self.assertEqual(mock_meta.retrieve.call_count, 3,
                          "Metadata should be retrieved for each version.")
-        self.assertEqual(mock_idx.add_document.call_count, 3,
-                         "All three versions should be indexed.")
-
-        last_indexed = mock_idx.add_document.call_args[0][0]
-        self.assertTrue(last_indexed.is_current,
-                        "Should be flagged as the most recent version")
-        self.assertEqual(len(last_indexed.submitted_date_all), 3,
-                         "Submission dates from all three versions should be"
-                         " included.")
+        mock_idx.bulk_add_documents.assert_called_once_with(
+            [mock_doc_1, mock_doc_2, mock_doc_3])
 
 
 class TestAddToIndex(TestCase):
@@ -107,7 +87,7 @@ class TestAddToIndex(TestCase):
             self.processor._add_to_index(Document())
         except Exception as e:
             self.fail(e)
-        self.assertEqual(mock_index.add_document.call_count, 1)
+        mock_index.add_document.assert_called_once()
 
     @mock.patch('search.agent.consumer.index')
     def test_index_raises_index_connection_error(self, mock_index):
@@ -127,6 +107,39 @@ class TestAddToIndex(TestCase):
         with self.assertRaises(consumer.IndexingFailed):
             self.processor._add_to_index(Document())
 
+class TestBulkAddToIndex(TestCase):
+    """Add multiple search documents to the index in bulk."""
+
+    def setUp(self):
+        """Initialize a :class:`.MetadataRecordProcessor`."""
+        self.processor = consumer.MetadataRecordProcessor()
+
+    @mock.patch('search.agent.consumer.index')
+    def test_bulk_add_documents_succeeds(self, mock_index):
+        """The search document is added successfully."""
+        try:
+            self.processor._bulk_add_to_index([Document()])
+        except Exception as e:
+            self.fail(e)
+        mock_index.bulk_add_documents.assert_called_once()
+
+    @mock.patch('search.agent.consumer.index')
+    def test_index_raises_index_connection_error(self, mock_index):
+        """The index raises :class:`.index.IndexConnectionError`."""
+        mock_index.IndexConnectionError = index.IndexConnectionError
+
+        mock_index.bulk_add_documents.side_effect = index.IndexConnectionError
+        with self.assertRaises(consumer.IndexingFailed):
+            self.processor._bulk_add_to_index([Document()])
+
+    @mock.patch('search.agent.consumer.index')
+    def test_index_raises_unhandled_error(self, mock_index):
+        """The index raises an unhandled exception."""
+        mock_index.IndexConnectionError = index.IndexConnectionError
+
+        mock_index.bulk_add_documents.side_effect = RuntimeError
+        with self.assertRaises(consumer.IndexingFailed):
+            self.processor._bulk_add_to_index([Document()])
 
 class TestTransformToDocument(TestCase):
     """Transform metadata into a search document."""
@@ -134,17 +147,6 @@ class TestTransformToDocument(TestCase):
     def setUp(self):
         """Initialize a :class:`.MetadataRecordProcessor`."""
         self.processor = consumer.MetadataRecordProcessor()
-
-    @mock.patch('search.agent.consumer.transform')
-    def test_transform_returns_document(self, mock_transform):
-        """The transform module returns a :class:`.Document`."""
-        document = Document()
-        mock_transform.to_search_document.return_value = document
-        self.assertEqual(
-            self.processor._transform_to_document(DocMeta()),
-            document,
-            "The search document is returned."
-        )
 
     @mock.patch('search.agent.consumer.transform')
     def test_transform_raises_exception(self, mock_transform):

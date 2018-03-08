@@ -65,7 +65,7 @@ class FulltextSession(object):
         except json.decoder.JSONDecodeError as e:
             raise IOError('%s: could not decode response: %s' %
                           (document_id, e)) from e
-        return Fulltext(data)
+        return Fulltext(**data)
 
     def ok(self) -> bool:
         """Health check."""
@@ -103,7 +103,7 @@ def current_session() -> FulltextSession:
 
 @wraps(FulltextSession.retrieve)
 def retrieve(document_id: str) -> Fulltext:
-    """Retrieves an arxiv document by id."""
+    """Retrieve an arxiv document by id."""
     return current_session().retrieve(document_id)
 
 

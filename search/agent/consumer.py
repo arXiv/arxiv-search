@@ -1,8 +1,8 @@
 """Provides a record processor for MetadataIsAvailable notifications."""
 
 import json
-import time
 import os
+from typing import List
 from search import logging
 from search.services import metadata, index
 from search.process import transform
@@ -28,7 +28,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
     def __init__(self, *args, **kwargs) -> None:
         """Initialize exception counter."""
-        super(MetadataRecordProcessor, self).__init__(*args, **kwargs) # type: ignore
+        super(MetadataRecordProcessor, self).__init__(*args, **kwargs)  # type: ignore
         self._error_count = 0
         self._cache: str
 
@@ -55,6 +55,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         RuntimeError
             Raised when the cache is not available, or the document could not
             be found in the cache.
+
         """
         if not self._cache:
             raise RuntimeError('Cache not set')
@@ -81,6 +82,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         RuntimeError
             Raised when the cache is not available, or the document could not
             be added to the cache.
+
         """
         if not self._cache:
             raise RuntimeError('Cache not set')
@@ -115,6 +117,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         IndexingFailed
             Indexing of the document failed in a way that indicates recovery
             is unlikely for subsequent papers.
+
         """
         logger.debug(f'{arxiv_id}: get metadata')
         try:
@@ -148,7 +151,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             logger.error(f'{arxiv_id}: bad response from metadata service')
             raise DocumentFailed('Bad response from metadata service') from e
         except Exception as e:
-            logger.error(f'{arxiv_id}: unhandled error from metadata service')
+            logger.error(f'{arxiv_id}: unhandled error, metadata service: {e}')
             raise IndexingFailed('Unhandled exception') from e
 
         try:
@@ -179,6 +182,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         DocumentFailed
             Indexing of the document failed. This may have no bearing on the
             success of subsequent papers.
+
         """
         try:
             document = transform.to_search_document(docmeta)
@@ -200,12 +204,10 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
         Raises
         ------
-        DocumentFailed
-            Indexing of the document failed. This may have no bearing on the
-            success of subsequent papers.
         IndexingFailed
             Indexing of the document failed in a way that indicates recovery
             is unlikely for subsequent papers.
+
         """
         try:
             index.add_document(document)
@@ -219,66 +221,147 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             logger.error('unhandled exception from index service')
             raise IndexingFailed('Unhandled exception') from e
 
-    # TODO: update this based on the final verdict on submission/announcement
-    #  dates.
-    def index_paper(self, arxiv_id: str) -> Document:
+    @staticmethod
+    def _bulk_add_to_index(documents: List[Document]) -> None:
         """
-        Index a paper, including its previous versions.
+        Add :class:`.Document` to the search index.
+
+        Parameters
+        ----------
+        documents : :class:`.Document`
+
+        Raises
+        ------
+        IndexingFailed
+            Indexing of the document failed in a way that indicates recovery
+            is unlikely for subsequent papers.
+
+        """
+        try:
+            index.bulk_add_documents(documents)
+        except index.IndexConnectionError as e:
+            # Let's try once more before giving up entirely.
+            try:
+                index.bulk_add_documents(documents)
+            except index.IndexConnectionError as e:   # Nope, not happening.
+                raise IndexingFailed('Could not bulk index documents') from e
+        except Exception as e:
+            logger.error('unhandled exception from index service')
+            raise IndexingFailed('Unhandled exception') from e
+
+    def index_paper(self, arxiv_id: str) -> None:
+        """
+        Index a single paper, including its previous versions.
 
         Parameters
         ----------
         arxiv_id : str
             A **versionless** arXiv e-print identifier.
 
+        """
+        self.index_papers([arxiv_id])
+
+    def index_papers(self, arxiv_ids: List[str]) -> None:
+        """
+        Index multiple papers, including their previous versions.
+
+        Parameters
+        ----------
+        arxiv_id : List[str]
+            A list of **versionless** arXiv e-print identifiers.
+
         Raises
         ------
         DocumentFailed
-            Indexing of the document failed. This may have no bearing on the
+            Indexing of the documents failed. This may have no bearing on the
             success of subsequent papers.
         IndexingFailed
-            Indexing of the document failed in a way that indicates recovery
+            Indexing of the documents failed in a way that indicates recovery
             is unlikely for subsequent papers.
+
         """
         try:
-            docmeta = self._get_metadata(arxiv_id)
-            document = MetadataRecordProcessor._transform_to_document(docmeta)
+            documents = []
+            for arxiv_id in arxiv_ids:
+                docmeta = self._get_metadata(arxiv_id)
+                document = MetadataRecordProcessor._transform_to_document(
+                    docmeta)
+                current_version = docmeta.version
+                logger.debug(f'current version is {current_version}')
+                if current_version is not None and current_version > 1:
+                    for version in range(1, current_version):
+                        ver_docmeta = self._get_metadata(
+                            f'{arxiv_id}v{version}')
+                        ver_document =\
+                            MetadataRecordProcessor._transform_to_document(
+                                ver_docmeta)
 
-            current_version = docmeta.version
-            logger.debug(f'current version is {current_version}')
-            if current_version is not None and current_version > 1:
-                for version in range(1, current_version):
-                    ver_docmeta = self._get_metadata(f'{arxiv_id}v{version}')
-                    ver_document =\
-                        MetadataRecordProcessor._transform_to_document(
-                            ver_docmeta)
+                        # The earlier versions are here primarily to respond to
+                        # queries that explicitly specify the version number.
+                        ver_document.is_current = False
 
-                    # The earlier versions are here primarily to respond to
-                    # queries that explicitly specify the version number.
-                    ver_document.is_current = False
+                        # Add a reference to the most recent version.
+                        ver_document.latest = f'{arxiv_id}v{current_version}'
 
-                    # Add a reference to the most recent version.
-                    ver_document.latest = f'{arxiv_id}v{current_version}'
-                    ver_document.latest_version = current_version
-                    # Set the primary document ID to the version-specied
-                    # arXiv identifier, to avoid clobbering the latest version.
-                    ver_document.id = f'{arxiv_id}v{version}'
-                    MetadataRecordProcessor._add_to_index(ver_document)
+                        # Set the primary document ID to the version-specied
+                        # arXiv identifier, to avoid clobbering the latest
+                        # version.
+                        ver_document.id = f'{arxiv_id}v{version}'
+                        documents.append(ver_document)
 
-            # Finally, index the most recent version.
-            document.is_current = True
-            MetadataRecordProcessor._add_to_index(document)
+                # Finally, ensure the most recent version gets indexed.
+                document.is_current = True
+                documents.append(document)
+            MetadataRecordProcessor._bulk_add_to_index(documents)
         except (DocumentFailed, IndexingFailed) as e:
             # We just pass these along so that process_record() can keep track.
             # TODO: Ensure this is the correct behavior.
             raise e
 
-        return document
+    # Experimental generator
+    # def _transform_from_ids(
+    #                         self,
+    #                         arxiv_ids: List[str]
+    #                         ) -> Generator[DocMeta, None, None]:
+    #     try:
+    #         for arxiv_id in arxiv_ids:
+    #             docmeta = self._get_metadata(arxiv_id)
+    #             document = MetadataRecordProcessor._transform_to_document(
+    #                 docmeta)
+    #             current_version = docmeta.version
+    #             logger.debug(f'current version is {current_version}')
+    #             if current_version is not None and current_version > 1:
+    #                 for version in range(1, current_version):
+    #                     ver_docmeta = self._get_metadata(
+    #                         f'{arxiv_id}v{version}')
+    #                     ver_document =\
+    #                         MetadataRecordProcessor._transform_to_document(
+    #                             ver_docmeta)
+    #
+    #                     # The earlier versions are here primarily to respond to
+    #                     # queries that explicitly specify the version number.
+    #                     ver_document.is_current = False
+    #
+    #                     # Add a reference to the most recent version.
+    #                     ver_document.latest = f'{arxiv_id}v{current_version}'
+    #
+    #                     # Set the primary document ID to the version-specied
+    #                     # arXiv identifier, to avoid clobbering the latest
+    #                     # version.
+    #                     ver_document.id = f'{arxiv_id}v{version}'
+    #                     yield ver_document
+    #
+    #             # Finally, ensure the most recent version gets indexed.
+    #             document.is_current = True
+    #             yield document
+    #     except (DocumentFailed) as e:
+    #         raise e
 
     # TODO: verify notification payload on MetadataIsAvailable stream.
     def process_record(self, data: bytes, partition_key: bytes,
                        sequence_number: int, sub_sequence_number: int) -> None:
         """
-        Called for each record that is passed to process_records.
+        Call for each record that is passed to process_records.
 
         Parameters
         ----------
@@ -293,6 +376,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             Indexing of the document failed in a way that indicates recovery
             is unlikely for subsequent papers, or too many individual
             documents failed.
+
         """
         if self._error_count > self.MAX_ERRORS:
             raise IndexingFailed('Too many errors')

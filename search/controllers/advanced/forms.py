@@ -1,14 +1,16 @@
 """wtforms representations for an advanced search."""
 
 from datetime import date
+from typing import Callable, Optional
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
-    FormField, SelectMultipleField, DateField, ValidationError, FieldList
+    FormField, SelectMultipleField, DateField, ValidationError, FieldList, \
+    RadioField
 
 from wtforms.fields import HiddenField
 from wtforms import widgets
 
-from search.controllers.util import doesNotStartWithWildcard
+from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
 
 
 class FieldForm(Form):
@@ -16,7 +18,8 @@ class FieldForm(Form):
 
     # pylint: disable=too-few-public-methods
 
-    term = StringField("Search term...", validators=[doesNotStartWithWildcard])
+    term = StringField("Search term...", filters=[stripWhiteSpace],
+                       validators=[doesNotStartWithWildcard])
     operator = SelectField("Operator", choices=[
         ('AND', 'AND'), ('OR', 'OR'), ('NOT', 'NOT')
     ], default='AND')
@@ -58,51 +61,47 @@ class ClassificationForm(Form):
     statistics = BooleanField('Statistics (stat)')
 
 
+def yearInBounds(form: Form, field: DateField) -> None:
+    """May not be prior to 1991, or later than the current year."""
+    if field.data is None:
+        return None
+
+    start_of_time = date(year=1991, month=1, day=1)
+    if field.data < start_of_time or field.data > date.today():
+        raise ValidationError('Not a valid publication year')
+
+
 class DateForm(Form):
     """Subform with options for limiting results by publication date."""
 
-    all_dates = BooleanField('All dates')
-    past_12 = BooleanField('Past 12 months')
+    filter_by = RadioField(
+        'Filter by', choices=[
+            ('all_dates', 'All dates'),
+            ('past_12', 'Past 12 months'),
+            ('specific_year', 'Specific year'),
+            ('date_range', 'Date range')
+        ],
+        default='all_dates'
+    )
 
-    specific_year = BooleanField('Specific year')
-    year = DateField('Year', format='%Y', validators=[validators.Optional()])
+    year = DateField('Year', format='%Y',
+                     validators=[validators.Optional(), yearInBounds])
+    from_date = DateField('From',
+                          validators=[validators.Optional(), yearInBounds])
+    to_date = DateField('to', validators=[validators.Optional(), yearInBounds])
 
-    date_range = BooleanField('Date range')
-    from_date = DateField('From', validators=[validators.Optional()])
-    to_date = DateField('to', validators=[validators.Optional()])
-
-    def validate_all_dates(self, field) -> None:
-        """Only one option may be selected."""
-        selected = int(field.data)
-        for fname in ['past_12', 'specific_year', 'date_range']:
-            selected += int(self.data.get(fname))
-        if selected > 1:
-            raise ValidationError('Only one date filter may be selected')
-
-    def validate_specific_year(self, field) -> None:
-        """If ``specific_year`` is selected, ``year`` must be set."""
-        if field.data and not self.data.get('year'):
+    def validate_filter_by(self, field) -> None:
+        """Ensure that related fields are filled."""
+        if field.data == 'specific_year' and not self.data.get('year'):
             raise ValidationError('Please select a year')
-
-    def validate_date_range(self, field) -> None:
-        """The field(s) ``from_date`` and/or ``to_date`` must be set."""
-        if not field.data:
-            return None
-
-        if not self.data.get('from_date') and not self.data.get('to_date'):
-            raise ValidationError('Must select start and/or end date(s)')
-        if self.data.get('from_date') and self.data.get('to_date'):
-            if self.data.get('from_date') >= self.data.get('to_date'):
-                raise ValidationError('End date must be later than start date')
-
-    def validate_year(self, field) -> None:
-        """May not be prior to 1991, or later than the current year."""
-        if field.data is None:
-            return None
-
-        start_of_time = date(year=1991, month=1, day=1)
-        if field.data < start_of_time or field.data > date.today():
-            raise ValidationError('Not a valid publication year')
+        elif field.data == 'date_range':
+            if not self.data.get('from_date') and not self.data.get('to_date'):
+                raise ValidationError('Must select start and/or end date(s)')
+            if self.data.get('from_date') and self.data.get('to_date'):
+                if self.data.get('from_date') >= self.data.get('to_date'):
+                    raise ValidationError(
+                        'End date must be later than start date'
+                    )
 
 
 class AdvancedSearchForm(Form):

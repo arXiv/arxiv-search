@@ -112,7 +112,7 @@
     </ul>
   </nav>
   {% if metadata.current_page + 1 > metadata.max_pages %}
-  <p class="has-text-right has-text-grey is-size-7  breathe-horizontal">
+  <p class="has-text-right has-text-grey is-size-7 breathe-horizontal">
     Only {{ metadata.max_pages }} pages are available. Please refine your search.
   </p>
   {% endif %}
@@ -137,7 +137,7 @@
     {% endif -%}
     {% if not result.is_current %}<span class="has-text-grey is-size-7">Version {{ result.version }} of {{ result.latest_version }}</span>{% endif %}
     </p>
-    <p class="title is-5">{{ result.title }}</p>
+    <p class="title is-5">{{ result.title_utf8 }}</p>
     <p class="authors">Authors:
       {% for author in result.authors[0:25] %}
       <a href="{{ url_for('ui.author_search') }}?surname={{ author.last_name }}&forename={{ author.first_name }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}

@@ -84,19 +84,14 @@ class TestSearchController(TestCase):
             'terms-0-field': 'title',
             'terms-0-term': 'foo'
         })
-        try:
+        with self.assertRaises(InternalServerError):
             response_data, code, headers = advanced.search(request_data)
-        except IndexConnectionError as e:
-            self.fail("IndexConnectionError should be handled (caught %s)" % e)
+
         self.assertEqual(mock_index.search.call_count, 1,
                          "A search should be attempted")
         call_args, call_kwargs = mock_index.search.call_args
         self.assertIsInstance(call_args[0], AdvancedQuery,
                               "An AdvancedQuery is passed to the search index")
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
-
-        self.assertIn('index_error', response_data,
-                      "index_error flag should be set in response data")
 
     @mock.patch('search.controllers.advanced.index')
     def test_index_raises_query_error(self, mock_index):
@@ -151,27 +146,13 @@ class TestAdvancedSearchForm(TestCase):
         form = AdvancedSearchForm(data)
         self.assertFalse(form.validate(), "Form should be invalid")
 
-    def test_only_one_date_selection_allowed(self):
-        """If the user selects more than one date option, form is invalid."""
-        data = MultiDict({
-            'terms-0-operator': 'AND',
-            'terms-0-field': 'title',
-            'terms-0-term': 'foo',
-            'date-past_12': True,
-            'date-specific_year': True,
-            'date-year': '2012'
-        })
-        form = AdvancedSearchForm(data)
-        self.assertFalse(form.validate())
-        self.assertEqual(len(form.errors), 1)
-
     def test_specific_year_must_be_specified(self):
         """If the user selects specific year, they must indicate a year."""
         data = MultiDict({
             'terms-0-operator': 'AND',
             'terms-0-field': 'title',
             'terms-0-term': 'foo',
-            'date-specific_year': True,
+            'date-filter_by': 'specific_year',
         })
         form = AdvancedSearchForm(data)
         self.assertFalse(form.validate())
@@ -181,7 +162,7 @@ class TestAdvancedSearchForm(TestCase):
             'terms-0-operator': 'AND',
             'terms-0-field': 'title',
             'terms-0-term': 'foo',
-            'date-specific_year': True,
+            'date-filter_by': 'specific_year',
             'date-year': '2012'
         })
         form = AdvancedSearchForm(data)
@@ -193,7 +174,7 @@ class TestAdvancedSearchForm(TestCase):
             'terms-0-operator': 'AND',
             'terms-0-field': 'title',
             'terms-0-term': 'foo',
-            'date-date_range': True,
+            'date-filter_by': 'date_range',
         })
         form = AdvancedSearchForm(data)
         self.assertFalse(form.validate())
@@ -203,7 +184,7 @@ class TestAdvancedSearchForm(TestCase):
             'terms-0-operator': 'AND',
             'terms-0-field': 'title',
             'terms-0-term': 'foo',
-            'date-date_range': True,
+            'date-filter_by': 'date_range',
             'date-from_date': '2012-02-05'
         })
         form = AdvancedSearchForm(data)
@@ -213,7 +194,7 @@ class TestAdvancedSearchForm(TestCase):
             'terms-0-operator': 'AND',
             'terms-0-field': 'title',
             'terms-0-term': 'foo',
-            'date-date_range': True,
+            'date-filter_by': 'date_range',
             'date-to_date': '2012-02-05'
         })
         form = AdvancedSearchForm(data)
@@ -225,7 +206,7 @@ class TestAdvancedSearchForm(TestCase):
             'terms-0-operator': 'AND',
             'terms-0-field': 'title',
             'terms-0-term': 'foo',
-            'date-specific_year': True,
+            'date-filter_by': 'specific_year',
             'date-year': '1990'
         })
         form = AdvancedSearchForm(data)
@@ -235,11 +216,23 @@ class TestAdvancedSearchForm(TestCase):
             'terms-0-operator': 'AND',
             'terms-0-field': 'title',
             'terms-0-term': 'foo',
-            'date-specific_year': True,
+            'date-filter_by': 'specific_year',
             'date-year': '1991'
         })
         form = AdvancedSearchForm(data)
         self.assertTrue(form.validate())
+
+    def test_input_whitespace_is_stripped(self):
+        """If query has padding whitespace, it should be removed."""
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': ' foo '
+        })
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid.")
+        self.assertEqual(form.terms[0].term.data, 'foo',
+                         "Whitespace should be stripped.")
 
 
 class TestUpdatequeryWithClassification(TestCase):
@@ -339,7 +332,7 @@ class TestUpdateQueryWithDates(TestCase):
 
     def test_past_12_is_selected(self):
         """Query selects the past twelve months."""
-        date_data = {'past_12': True}
+        date_data = {'filter_by': 'past_12'}
         q = advanced._update_query_with_dates(Query(), date_data)
         self.assertIsInstance(q, Query)
         self.assertIsInstance(q.date_range, DateRange)
@@ -352,7 +345,7 @@ class TestUpdateQueryWithDates(TestCase):
 
     def test_all_dates_is_selected(self):
         """Query does not select on date."""
-        date_data = {'all_dates': True}
+        date_data = {'filter_by': 'all_dates'}
         q = advanced._update_query_with_dates(AdvancedQuery(), date_data)
         self.assertIsInstance(q, AdvancedQuery)
         self.assertIsNone(q.date_range)
@@ -360,7 +353,7 @@ class TestUpdateQueryWithDates(TestCase):
     def test_specific_year_is_selected(self):
         """Start and end dates are set, one year apart."""
         date_data = {
-            'specific_year': True,
+            'filter_by': 'specific_year',
             'year': date(year=1999, month=1, day=1)
         }
         q = advanced._update_query_with_dates(AdvancedQuery(), date_data)
@@ -375,9 +368,9 @@ class TestUpdateQueryWithDates(TestCase):
         from_date = date(year=1999, month=7, day=3)
         to_date = date(year=1999, month=8, day=5)
         date_data = {
-            'date_range': True,
+            'filter_by': 'date_range',
             'from_date': from_date,
-            'to_date': to_date
+            'to_date': to_date,
         }
         q = advanced._update_query_with_dates(AdvancedQuery(), date_data)
         self.assertIsInstance(q, AdvancedQuery)

@@ -11,7 +11,7 @@ class Author:
 
     forename: str
     surname: str
-    fullname: str
+    fullname: str = field(default_factory=str)
 
     # TODO: gawd this is ugly.
     def __str__(self) -> str:
@@ -33,7 +33,7 @@ class Author:
 
 
 class AuthorList(list):
-    """Represents a list of authors."""
+    """Represents a list of author query parts."""
 
     def __str__(self) -> str:
         """Prints comma-delimited list of authors."""

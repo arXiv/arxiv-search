@@ -1,6 +1,6 @@
 """Core data structures internal to the search service."""
 
-from typing import Any, Iterable, NamedTuple, Optional, Type
+from typing import Any, Iterable, NamedTuple, Optional, Type, List, Dict
 from datetime import date, datetime
 import json
 from operator import attrgetter
@@ -18,12 +18,12 @@ class SchemaBase:
         """Return the string representation of the instance in JSON."""
         return json.dumps(self, default=lambda o: o.__dict__, indent=2)
 
-    def __str__(self) -> str:
-        """Build a string representation, for use in rendering."""
-        return '; '.join([
-            '%s: %s' % (attr, attrgetter(attr)(self))
-            for attr in fields(self) if attrgetter(attr)(self)
-        ])  # pylint: disable=E1101
+    # def __str__(self) -> str:
+    #     """Build a string representation, for use in rendering."""
+    #     return '; '.join([
+    #         '%s: %s' % (attr, attrgetter(attr)(self))
+    #         for attr in fields(self) if attrgetter(attr)(self)
+    #     ])  # pylint: disable=E1101
 
 
 class DocMeta(SchemaBase):
@@ -37,6 +37,9 @@ class DocMeta(SchemaBase):
 @dataclass
 class Fulltext(SchemaBase):
     """Fulltext content for an arXiv paper, including extraction metadata."""
+    content: str
+    version: str
+    created: datetime
 
 
 class DateRange(NamedTuple):
@@ -114,8 +117,42 @@ class SimpleQuery(Query):
     value: str = ''
 
 
+@dataclass
 class Document(SchemaBase):
     """A single search document, representing an arXiv paper."""
+
+    id: str
+    abstract: str
+    authors: List[Dict]
+    authors_freeform: str
+    owners: List[Dict]
+    submitted_date: str
+    submitted_date_all: List[str]
+    submitted_date_first: str
+    submitted_date_latest: str
+    modified_date: str
+    updated_date: str
+    announced_date_first: str
+    is_current: bool
+    is_withdrawn: bool
+    license: Dict[str, str]
+    paper_id: str
+    paper_id_v: str
+    title: str
+    title_utf8: str
+    source: Dict[str, Any]
+    version: int
+    submitter: Dict
+    report_num: str
+    proxy: bool
+    msc_class: List[str]
+    acm_class: List[str]
+    metadata_id: int
+    journal_ref: str
+    doi: str
+    comments: str
+    abs_categories: str
+    formats: List[str]
 
     # __schema__ = 'schema/Document.json'
     def __init__(self, **kwargs):
@@ -127,4 +164,6 @@ class Document(SchemaBase):
 class DocumentSet(SchemaBase):
     """A set of search results retrieved from the search index."""
 
+    metadata: Dict[str, Any]
+    results: List[Document]
     # __schema__ = 'schema/DocumentSet.json'

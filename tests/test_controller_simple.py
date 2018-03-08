@@ -52,23 +52,19 @@ class TestRetrieveDocument(TestCase):
         mock_index.IndexConnectionError = IndexConnectionError
         mock_index.QueryError = QueryError
 
-        def _raiseIndexConnectionError(*args, **kwargs):
-            raise IndexConnectionError('What now')
+        # def _raiseIndexConnectionError(*args, **kwargs):
+        #     raise IndexConnectionError('What now')
 
-        mock_index.get_document.side_effect = _raiseIndexConnectionError
+        mock_index.get_document.side_effect = IndexConnectionError
 
-        try:
+        with self.assertRaises(InternalServerError):
             response_data, code, headers = simple.retrieve_document('124.5678')
-        except IndexConnectionError as e:
-            self.fail("IndexConnectionError should be handled (caught %s)" % e)
         self.assertEqual(mock_index.get_document.call_count, 1,
                          "A search should be attempted")
         call_args, call_kwargs = mock_index.get_document.call_args
         self.assertIsInstance(call_args[0], str, "arXiv ID is passed")
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
 
-        self.assertIn('index_error', response_data,
-                      "index_error flag should be set in response data")
+        # self.assertEqual(code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @mock.patch('search.controllers.simple.index')
     def test_document_not_found(self, mock_index):
@@ -168,19 +164,14 @@ class TestSearchController(TestCase):
             'searchtype': 'title',
             'query': 'foo title'
         })
-        try:
+        with self.assertRaises(InternalServerError):
             response_data, code, headers = simple.search(request_data)
-        except IndexConnectionError as e:
-            self.fail("IndexConnectionError should be handled (caught %s)" % e)
+
         self.assertEqual(mock_index.search.call_count, 1,
                          "A search should be attempted")
         call_args, call_kwargs = mock_index.search.call_args
         self.assertIsInstance(call_args[0], SimpleQuery,
                               "An SimpleQuery is passed to the search index")
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
-
-        self.assertIn('index_error', response_data,
-                      "index_error flag should be set in response data")
 
     @mock.patch('search.controllers.simple.index')
     def test_index_raises_query_error(self, mock_index):
@@ -287,3 +278,13 @@ class TestQueryFromForm(TestCase):
         })
         form = SimpleSearchForm(data)
         self.assertFalse(form.validate(), "Form should be invalid")
+
+    def test_input_whitespace_is_stripped(self):
+        """If query has padding whitespace, it should be removed."""
+        data = MultiDict({
+            'searchtype': 'title',
+            'query': ' foo title '
+        })
+        form = SimpleSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid.")
+        self.assertEqual(form.query.data, 'foo title')

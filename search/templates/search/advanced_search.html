@@ -5,10 +5,10 @@
 {% macro select_field(field) %}
 <div class="field is-horizontal">
   <div class="control">
-    <label class="checkbox">
+    <div class="checkbox">
       {{ field|safe }}
       {{ field.label }}
-    </label>
+    </div>
     {% if field.errors %}
       <div class="help is-warning">
         {% for error in field.errors %}
@@ -38,7 +38,8 @@
           {% for entry in form.terms.entries %}
             <div class="field has-addons" data-toggle="fieldset-entry">
               <div class="control fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>
-                <span class="select" aria-label="Boolean operator">
+                <span class="select">
+                  <label for="terms-{{loop.index0}}-operator" class="hidden-label">Boolean operator</label>
                   {{ entry.operator(default='AND')|safe }}
                 </span>
               </div>
@@ -110,10 +111,10 @@
                 {# Physics is odd, since we allow archive selection as well. #}
                 <div class="field is-horizontal is-grouped">
                   <div class="control">
-                    <label class="checkbox">
+                    <div class="checkbox">
                       {{ form.classification.physics|safe }}
                       {{ form.classification.physics.label }}
-                    </label>
+                    </div>
                     {% if form.classification.physics.errors %}
                       <div class="help is-warning">
                         {% for error in form.classification.physics.errors %}
@@ -136,6 +137,11 @@
                     {% endif %}
                   </div>
                 </div>
+                <script>
+                  $('select#classification-physics_archives').change(function() {
+                    $('input#classification-physics').attr('checked', true);
+                  });
+                </script>
                 {{ select_field(form.classification.q_biology) }}
                 {{ select_field(form.classification.q_finance) }}
                 {{ select_field(form.classification.statistics) }}
@@ -144,36 +150,23 @@
           </fieldset>
           <fieldset class="fieldset {% if form.date.errors %}is-warning{% endif %}">
             <legend class="legend">Date</legend>
-            <div class="field is-horizontal">
-              <div class="control">
-                <label class="checkbox">
-                  {{ form.date.all_dates|safe }}
-                  {{ form.date.all_dates.label }}
-                </label>
-                {% if form.date.all_dates.errors %}
-                  <div class="help is-warning">
-                    {% for error in form.date.all_dates.errors %}
-                        {{ error }}
-                    {% endfor %}
-                  </div>
-                {% endif %}
+            {% if form.date.filter_by.errors %}
+              <div class="help is-warning">
+                {% for error in form.date.filter_by.errors %}
+                    {{ error }}
+                {% endfor %}
               </div>
-            </div>
-            {{ select_field(form.date.past_12) }}
+            {% endif %}
+            {% for field in form.date.filter_by %}
             <div class="field is-horizontal is-grouped">
               <div class="control">
-                <label class="checkbox">
-                  {{ form.date.specific_year|safe }}
-                  {{ form.date.specific_year.label }}
+                <label class="radio">
+                  {{ field|safe }}
+                  {{ field.label }}
                 </label>
-                {% if form.date.specific_year.errors %}
-                  <div class="help is-warning">
-                    {% for error in form.date.specific_year.errors %}
-                        {{ error }}
-                    {% endfor %}
-                  </div>
-                {% endif %}
               </div>
+              {# TODO: the JS bits here should be re-implemented elsewhere #}
+              {% if field.data == 'specific_year' %}
               <div class="control">
                 <label for="date-year" class="hidden-label">Enter four digit year</label>
                 {% if form.date.year.errors %}
@@ -181,68 +174,69 @@
                 {% else %}
                   {{ form.date.year(placeholder="YYYY", class="input is-small")|safe }}
                 {% endif %}
+                <script>
+                  $('#date-year').focus(function() {
+                    $('input[name="date-filter_by"]').attr('checked', false);
+                    $('input[value="specific_year"]').attr('checked', true);
+                  });
+                </script>
                 {% if form.date.year.errors %}
-                  <div class="help is-warning">
-                    {% for error in form.date.year.errors %}
-                        {{ error }}
-                    {% endfor %}
-                  </div>
+                <div class="help is-warning">
+                  {% for error in form.date.year.errors %}
+                  {{ error }}
+                  {% endfor %}
+                </div>
                 {% endif %}
               </div>
-
+              {% endif %}
             </div>
-            <div class="field is-horizontal is-grouped">
-              <div class="control">
-                <label class="checkbox">
-                  {{ form.date.date_range|safe }}
-                  {{ form.date.date_range.label }}
-                </label>
-                {% if form.date.date_range.errors %}
-                  <div class="help is-warning">
-                    {% for error in form.date.date_range.errors %}
-                        {{ error }}
-                    {% endfor %}
-                  </div>
-                {% endif %}
-              </div>
-            </div>
-            {# TODO: padding for from/to labels #}
+            {% endfor %}
             <div class="field is-horizontal is-grouped">
               <div class="control">
                 <div class="control">{{ form.date.from_date.label }}</div>
                 <div class="control">
-                    {% if form.date.from_date.errors %}
-                      {{ form.date.from_date(placeholder="YYYY-MM-DD", class="input is-small is-danger")|safe }}
-                    {% else %}
-                      {{ form.date.from_date(placeholder="YYYY-MM-DD", class="input is-small")|safe }}
-                    {% endif %}
+                  {% if form.date.from_date.errors %}
+                  {{ form.date.from_date(placeholder="YYYY-MM-DD", class="input is-small is-danger")|safe }}
+                  {% else %}
+                  {{ form.date.from_date(placeholder="YYYY-MM-DD", class="input is-small")|safe }}
+                  {% endif %}
                 </div>
                 {% if form.date.from_date.errors %}
-                  <div class="help is-warning">
-                    {% for error in form.date.from_date.errors %}
-                        {{ error }}
-                    {% endfor %}
-                  </div>
+                <div class="help is-warning">
+                  {% for error in form.date.from_date.errors %}
+                  {{ error }}
+                  {% endfor %}
+                </div>
                 {% endif %}
               </div>
               <div class="control">
                 <div class="control">{{ form.date.to_date.label }}</div>
                 <div class="control">
                   {% if form.date.to_date.errors %}
-                    {{ form.date.to_date(placeholder="YYYY-MM-DD", class="input is-small is-danger")|safe }}
+                  {{ form.date.to_date(placeholder="YYYY-MM-DD", class="input is-small is-danger")|safe }}
                   {% else %}
-                    {{ form.date.to_date(placeholder="YYYY-MM-DD", class="input is-small")|safe }}
+                  {{ form.date.to_date(placeholder="YYYY-MM-DD", class="input is-small")|safe }}
                   {% endif %}
                 </div>
                 {% if form.date.to_date.errors %}
-                  <div class="help is-warning">
-                    {% for error in form.date.to_date.errors %}
-                        {{ error }}
-                    {% endfor %}
-                  </div>
+                <div class="help is-warning">
+                  {% for error in form.date.to_date.errors %}
+                  {{ error }}
+                  {% endfor %}
+                </div>
                 {% endif %}
               </div>
             </div>
+            <script>
+              $('#date-to_date').focus(function() {
+                $('input[name="date-filter_by"]').attr('checked', false);
+                $('input[value="date_range"]').attr('checked', true);
+              });
+              $('#date-from_date').focus(function() {
+                $('input[name="date-filter_by"]').attr('checked', false);
+                $('input[value="date_range"]').attr('checked', true);
+              });
+            </script>
           </fieldset>
         </section>
         <section>
@@ -275,20 +269,23 @@
            <li>use ? to replace a single character or * to replace any number of characters</li>
            <li>can be used in any field, but not in the first character position</li>
           </ul>
-
         <p class="title is-6">Expressions:</p>
           <ul>
              <li>TeX expressions can be searched, enclosed in single $</li>
           </ul>
-        <p class="title is-6">Phrases</p>
+        <p class="title is-6">Phrases:</p>
           <ul>
             <li>Enclose phrases in double quotes for exact matches in title, abstract, and comments.</li>
             <li>All journal reference searches are considered literal searches. E.g. a search for <strong>Physica A</strong> will match all papers with journal references containing <em>Physica A</em>, but a search for <strong>Physica A, 245 (1997) 181</strong> will only return the paper with journal reference <em>Physica A, 245 (1997) 181</em>.</li>
           </ul>
-
         <p class="title is-6">Author Search:</p>
           <ul>
             <li>Diacritic character variants are automatically searched in the Author(s) field</li>
+          </ul>
+        <p class="title is-6">Dates:</p>
+          <ul>
+            <li>Search by date and sort by date will use a paper's submission date.</li>
+            <li>All versions of a paper are indexed and searchable, with the most recent version displayed first.</li>
           </ul>
       </div>
     </div>
@@ -299,7 +296,7 @@
 
 {% block title %}
     {% if not show_form and results %}
-        Showing {{ metadata.start }}&ndash;{{ metadata.start + metadata.page_size }} of {{ metadata.total }} results
+        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.start + metadata.page_size }} of {{ metadata.total }} results
     {% elif show_form %}
         Advanced Search
     {% else %}
@@ -310,7 +307,7 @@
 {% block within_content %}
   <div class="is-clearfix" style="height: 2.5em"> {# TODO - adjust this layout so that it matches across all forms less awkwardly #}
     <div class="is-pulled-right">
-      <a href="{{ url_for('ui.search') }}">Simple</a> | <a href="{{ url_for('ui.author_search') }}">Authors</a>
+      <a href="{{ url_for('ui.search') }}">Simple Search</a> | <a href="{{ url_for('ui.author_search') }}">Author Search</a>
     </div>
   </div>
 

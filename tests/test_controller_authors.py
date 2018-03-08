@@ -75,19 +75,14 @@ class TestSearchController(TestCase):
         request_data = MultiDict({
             'authors-0-surname': 'davis'
         })
-        try:
+        with self.assertRaises(InternalServerError):
             response_data, code, headers = authors.search(request_data)
-        except IndexConnectionError as e:
-            self.fail("IndexConnectionError should be handled (caught %s)" % e)
+
         self.assertEqual(mock_index.search.call_count, 1,
                          "A search should be attempted")
         call_args, call_kwargs = mock_index.search.call_args
         self.assertIsInstance(call_args[0], AuthorQuery,
                               "An AuthorQuery is passed to the search index")
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
-
-        self.assertIn('index_error', response_data,
-                      "index_error flag should be set in response data")
 
     @mock.patch('search.controllers.authors.index')
     def test_index_raises_query_error(self, mock_index):
@@ -229,3 +224,16 @@ class TestQueryFromForm(TestCase):
         self.assertIsInstance(query, AuthorQuery,
                               "Should return an instance of AuthorQuery")
         self.assertIsNone(query.order, "Order should be None")
+
+    def test_input_whitespace_is_stripped(self):
+        """If query has padding whitespace, it should be removed."""
+        data = MultiDict({
+            'authors-0-forename': ' david ',
+            'authors-0-surname': ' davis ',
+            'authors-1-fullname': ' franklin '
+        })
+        form = AuthorSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid.")
+        self.assertEqual(form.authors[0].forename.data, 'david')
+        self.assertEqual(form.authors[0].surname.data, 'davis')
+        self.assertEqual(form.authors[1].fullname.data, 'franklin')

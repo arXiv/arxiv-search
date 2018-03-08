@@ -1,14 +1,15 @@
 """Integration with search index."""
 
-import json
 import re
+import json
 from math import floor
 from datetime import datetime
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union, List
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
-                          SerializationError, TransportError
+                          SerializationError, TransportError, helpers
 from elasticsearch.connection import Urllib3HttpConnection
+from elasticsearch.helpers import BulkIndexError
 
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
@@ -71,6 +72,7 @@ def _wildcardEscape(querystring: str) -> Tuple[str, bool]:
         Query string with wildcard characters enclosed in literals escaped.
     bool
         If a non-literal wildcard character is present, returns True.
+
     """
     # This should get caught by the controller (form validation), but just
     # in case we should check for it here.
@@ -105,8 +107,9 @@ class SearchSession(object):
     # use SSL. Presumably we will use HTTP Auth, or something else.
 
     def __init__(self, host: str, index: str, port: int=9200,
-                 scheme: str='http', user: Optional[str]=None, password: Optional[str]=None,
-                 **extra: Any) -> None:
+                 scheme: str='http', user: Optional[str]=None,
+                 password: Optional[str]=None, mapping: Optional[str]=None,
+                 **extra) -> None:
         """
         Initialize the connection to Elasticsearch.
 
@@ -127,12 +130,15 @@ class SearchSession(object):
         ------
         IndexConnectionError
             Problem communicating with Elasticsearch host.
+
+
         """
         logger.debug('init ES session for index "%s" at %s:%s',
                      index, host, port)
         self.index = index
+        self.mapping = mapping
         use_ssl = True if scheme == 'https' else False
-        http_auth = '%s:%s' % (user, password) if user is not None else None
+        http_auth = '%s:%s' % (user, password) if user else None
         try:
             self.es = Elasticsearch([{'host': host, 'port': port,
                                       'scheme': scheme, 'use_ssl': use_ssl,
@@ -140,6 +146,7 @@ class SearchSession(object):
                                     connection_class=Urllib3HttpConnection,
                                     **extra)
         except ElasticsearchException as e:
+            logger.error('ElasticsearchException: %s', e)
             raise IndexConnectionError(
                 'Could not initialize ES session: %s' % e
             ) from e
@@ -149,7 +156,7 @@ class SearchSession(object):
     def _get_operator(obj: Any) -> str:
         if type(obj) is tuple:
             return SearchSession._get_operator(obj[0])
-        return obj.operator # type: ignore
+        return obj.operator     # type: ignore
 
     @staticmethod
     def _group_terms(query: Query) -> tuple:
@@ -164,7 +171,7 @@ class SearchSession(object):
                     i -= 1
                 i += 1
         assert len(terms) == 1
-        return terms[0] # type: ignore
+        return terms[0]     # type: ignore
 
     @staticmethod
     def _field_term_to_q(field: str, term: str) -> Q:
@@ -225,15 +232,17 @@ class SearchSession(object):
         """Generate a :class:`.Q` from grouped terms."""
         term_a_raw, operator, term_b_raw = term_pair
 
-        if isinstance(term_a_raw, tuple):
+        if type(term_a_raw) is tuple:
             term_a = SearchSession._grouped_terms_to_q(term_a_raw)
         else:
-            term_a = SearchSession._field_term_to_q(term_a_raw.field, term_a_raw.term)
+            term_a = SearchSession._field_term_to_q(term_a_raw.field,
+                                                    term_a_raw.term)
 
-        if isinstance(term_b_raw, tuple):
+        if type(term_b_raw) is tuple:
             term_b = SearchSession._grouped_terms_to_q(term_b_raw)
         else:
-            term_b = SearchSession._field_term_to_q(term_b_raw.field, term_b_raw.term)
+            term_b = SearchSession._field_term_to_q(term_b_raw.field,
+                                                    term_b_raw.term)
 
         if operator == 'OR':
             return term_a | term_b
@@ -400,6 +409,17 @@ class SearchSession(object):
         current_search = self._apply_sort(query, current_search)
         return current_search
 
+    def _try_create_index(self):
+        try:
+            logger.error('Index not found; attempting to create')
+            with open(self.mapping) as f:
+                mapping = json.load(f)
+            self.create_index(mapping)
+        except Exception as e:
+            raise IndexConnectionError(
+                'Could not create index: %s' % e
+            ) from e
+
     def create_index(self, mappings: dict) -> None:
         """
         Create the search index.
@@ -409,6 +429,7 @@ class SearchSession(object):
         mappings : dict
             See
             elastic.co/guide/en/elasticsearch/reference/current/mapping.html
+
         """
         logger.debug('create ES index "%s"', self.index)
         try:
@@ -441,14 +462,64 @@ class SearchSession(object):
             Problem communicating with Elasticsearch host.
         QueryError
             Problem serializing ``document`` for indexing.
+
         """
         try:
             ident = document.get('id', document['paper_id'])
             self.es.index(index=self.index, doc_type='document',
                           id=ident, body=document)
         except SerializationError as e:
+            logger.error("SerializationError: %s", e)
             raise IndexingError('Problem serializing document: %s' % e) from e
         except TransportError as e:
+            if e.error == 'index_not_found_exception':
+                self._try_create_index()
+            logger.error("TransportError: %s", e)
+            raise IndexConnectionError(
+                'Problem communicating with ES: %s' % e
+            ) from e
+
+    def bulk_add_documents(self, documents: List[Document],
+                           docs_per_chunk: int = 500) -> None:
+        """
+        Add documents to the search index using the bulk API.
+
+        Parameters
+        ----------
+        document : :class:`.Document`
+            Must be a valid search document, per ``schema/Document.json``.
+        docs_per_chunk: int
+            Number of documents to send to ES in a single chunk
+        Raises
+        ------
+        IndexConnectionError
+            Problem communicating with Elasticsearch host.
+        BulkIndexingError
+            Problem serializing ``document`` for indexing.
+
+        """
+        try:
+            actions = ({
+                '_index': self.index,
+                '_type': 'document',
+                '_id': document.get('id', document['paper_id']),
+                '_source': document
+            } for document in documents)
+
+            helpers.bulk(client=self.es, actions=actions,
+                         chunk_size=docs_per_chunk)
+
+        except SerializationError as e:
+            logger.error("SerializationError: %s", e)
+            raise IndexingError(
+                'Problem serializing documents: %s' % e) from e
+        except BulkIndexError as e:
+            logger.error("BulkIndexError: %s", e)
+            raise IndexingError('Problem with bulk indexing: %s' % e) from e
+        except TransportError as e:
+            logger.error("TransportError: %s", e)
+            if e.error == 'index_not_found_exception':
+                self._try_create_index()
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
@@ -474,17 +545,23 @@ class SearchSession(object):
             Problem communicating with the search index.
         QueryError
             Invalid query parameters.
+
         """
         try:
             record = self.es.get(index=self.index, doc_type='document',
                                  id=document_id)
         except SerializationError as e:
+            logger.error("SerializationError: %s", e)
             raise QueryError('Problem serializing document: %s' % e) from e
         except TransportError as e:
+            logger.error("TransportError: %s", e)
+            if e.error == 'index_not_found_exception':
+                self._try_create_index()
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
         if not record:
+            logger.error("No such document: %s", document_id)
             raise DocumentNotFound('No such document')
         return Document(record['_source'])
 
@@ -506,6 +583,7 @@ class SearchSession(object):
             Problem communicating with the search index.
         QueryError
             Invalid query parameters.
+
         """
         logger.debug('got current_search request %s', str(query))
         if isinstance(query, AdvancedQuery):
@@ -519,6 +597,9 @@ class SearchSession(object):
         try:
             results = current_search[query.page_start:query.page_end].execute()
         except TransportError as e:
+            logger.error("TransportError: %s", e)
+            if e.error == 'index_not_found_exception':
+                self._try_create_index()
             if e.error == 'parsing_exception':
                 raise QueryError(e.info) from e
             raise IndexConnectionError(
@@ -536,7 +617,7 @@ class SearchSession(object):
             logger.error(_message)
             raise OutsideAllowedRange(_message)
 
-        return DocumentSet({
+        return DocumentSet(**{
             'metadata': {
                 'start': query.page_start,
                 'total': results['hits']['total'],
@@ -545,7 +626,7 @@ class SearchSession(object):
                 'page_size': query.page_size,
                 'max_pages': max_pages
             },
-            'results': list(map(self._transform, results))
+            'results': [self._transform(raw) for raw in results]
         })
 
     def _transform(self, raw: Response) -> Document:
@@ -566,7 +647,7 @@ class SearchSession(object):
             result[key] = value
         # result = raw['_source']
         result['score'] = raw.meta.score
-        return Document(result)
+        return Document(**result)
 
 
 def init_app(app: object = None) -> None:
@@ -577,6 +658,7 @@ def init_app(app: object = None) -> None:
     config.setdefault('ELASTICSEARCH_INDEX', 'arxiv')
     config.setdefault('ELASTICSEARCH_USER', 'elastic')
     config.setdefault('ELASTICSEARCH_PASSWORD', 'changeme')
+    config.setdefault('ELASTICSEARCH_MAPPING', 'mappings/DocumentMapping.json')
 
 
 def get_session(app: object = None) -> SearchSession:
@@ -588,7 +670,9 @@ def get_session(app: object = None) -> SearchSession:
     index = config.get('ELASTICSEARCH_INDEX', 'arxiv')
     user = config.get('ELASTICSEARCH_USER', 'elastic')
     password = config.get('ELASTICSEARCH_PASSWORD', 'changeme')
-    return SearchSession(host, index, port, scheme, user, password)
+    mapping = config.get('ELASTICSEARCH_MAPPING',
+                         'mappings/DocumentMapping.json')
+    return SearchSession(host, index, port, scheme, user, password, mapping)
 
 
 def current_session() -> SearchSession:
@@ -597,8 +681,8 @@ def current_session() -> SearchSession:
     if not g:
         return get_session()
     if 'search' not in g:
-        g.search = get_session() #type: ignore
-    return g.search # type: ignore
+        g.search = get_session()    #type: ignore
+    return g.search     # type: ignore
 
 
 @wraps(SearchSession.search)
@@ -613,6 +697,12 @@ def add_document(document: Document) -> None:
     return current_session().add_document(document)
 
 
+@wraps(SearchSession.bulk_add_documents)
+def bulk_add_documents(documents: List[Document]) -> None:
+    """Add Documents."""
+    return current_session().bulk_add_documents(documents)
+
+
 @wraps(SearchSession.get_document)
 def get_document(document_id: int) -> Document:
     """Retrieve arxiv document by id."""
@@ -623,6 +713,6 @@ def ok() -> bool:
     """Health check."""
     try:
         current_session()
-    except:    # TODO: be more specific.
+    except Exception:    # TODO: be more specific.
         return False
     return True

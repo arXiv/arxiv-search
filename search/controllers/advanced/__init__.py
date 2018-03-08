@@ -7,9 +7,10 @@ from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
 from werkzeug.datastructures import MultiDict
-from werkzeug.exceptions import InternalServerError
+
 from arxiv import status
 
+from search.exceptions import InternalServerError
 from search.services import index, fulltext, metadata
 from search.process import query
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
@@ -77,13 +78,21 @@ def search(request_params: MultiDict) -> Response:
                 # There was a (hopefully transient) connection problem. Either
                 #  this will clear up relatively quickly (next request), or
                 #  there is a more serious outage.
-                response_data['index_error'] = True
+                logger.error('IndexConnectionError: %s', e)
+                raise InternalServerError(
+                    "There was a problem connecting to the search index. This "
+                    "is quite likely a transient issue, so please try your "
+                    "search again. If this problem persists, please report it "
+                    "to help@arxiv.org."
+                ) from e
             except index.QueryError as e:
                 # Base exception routers should pick this up and show bug page.
+                logger.error('QueryError: %s', e)
                 raise InternalServerError(
-                    'Encountered an error in search query'
+                    "There was a problem executing your query. Please try "
+                    "your search again.  If this problem persists, please "
+                    "report it to help@arxiv.org."
                 ) from e
-
             response_data['query'] = q
         else:
             logger.debug('form is invalid: %s', str(form.errors))
@@ -158,10 +167,10 @@ def _update_query_with_terms(q: AdvancedQuery, terms_data: list) \
 
 def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         -> AdvancedQuery:
-
-    if date_data.get('all_dates'):    # Nothing to do; all dates by default.
+    filter_by = date_data['filter_by']
+    if filter_by == 'all_dates':    # Nothing to do; all dates by default.
         return q
-    elif date_data.get('past_12'):
+    elif filter_by == 'past_12':
         one_year_ago = date.today() - relativedelta(months=12)
         q.date_range = DateRange(
             start_date=datetime(year=one_year_ago.year,
@@ -169,21 +178,21 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
                                 day=1, hour=0, minute=0, second=0,
                                 tzinfo=EASTERN)
         )
-    elif date_data.get('specific_year'):
+    elif filter_by == 'specific_year':
         q.date_range = DateRange(
             start_date=datetime(year=date_data['year'].year, month=1, day=1,
                                 hour=0, minute=0, second=0, tzinfo=EASTERN),
             end_date=datetime(year=date_data['year'].year + 1, month=1, day=1,
                               hour=0, minute=0, second=0, tzinfo=EASTERN),
         )
-    elif date_data.get('date_range'):
+    elif filter_by == 'date_range':
         if date_data['from_date']:
-            date_data['from_date'] = datetime.combine( #type: ignore
+            date_data['from_date'] = datetime.combine(  # type: ignore
                 date_data['from_date'],
                 datetime.min.time(),
                 tzinfo=EASTERN)
         if date_data['to_date']:
-            date_data['to_date'] = datetime.combine( # type: ignore
+            date_data['to_date'] = datetime.combine(    # type: ignore
                 date_data['to_date'],
                 datetime.min.time(),
                 tzinfo=EASTERN)

@@ -1,0 +1,20 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-body">
+    <div class="container">
+      <h1 class="title">
+        Four-Oh-Five
+      </h1>
+      <h2 class="subtitle">
+        Method Not Allowed
+      </h2>
+      <p>
+        {{ error.description|safe }}
+      </p>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}

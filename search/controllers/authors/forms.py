@@ -8,7 +8,7 @@ from wtforms import Form, BooleanField, StringField, SelectField, validators, \
 from wtforms.fields import HiddenField
 from wtforms import widgets
 
-from search.controllers.util import doesNotStartWithWildcard
+from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
 
 
 def validate_fullname(form: Form, field: StringField) -> None:
@@ -22,14 +22,18 @@ class AuthorForm(Form):
 
     # pylint: disable=missing-docstring,too-few-public-methods
 
-    forename = StringField("Forename", validators=[
-        validators.Length(min=1),
-        validators.Optional(strip_whitespace=True),
-        doesNotStartWithWildcard
-    ])
-    surname = StringField("Surname", validators=[doesNotStartWithWildcard])
-    fullname = StringField("Full name", validators=[validate_fullname,
-                                                    doesNotStartWithWildcard])
+    forename = StringField("Forename",
+                           validators=[
+                                validators.Length(min=1),
+                                validators.Optional(strip_whitespace=True),
+                                doesNotStartWithWildcard
+                           ],
+                           filters=[stripWhiteSpace])
+    surname = StringField("Surname", filters=[stripWhiteSpace],
+                          validators=[doesNotStartWithWildcard])
+    fullname = StringField("Full name", filters=[stripWhiteSpace],
+                           validators=[validate_fullname,
+                                       doesNotStartWithWildcard])
 
 
 class AuthorSearchForm(Form):
