@@ -2,6 +2,7 @@
 
 import re
 import json
+import urllib3
 from math import floor
 from datetime import datetime
 from typing import Tuple, List
@@ -302,7 +303,7 @@ class SearchSession(object):
 
     @classmethod
     def _get_sort_parameters(cls, query: Query) -> list:
-        if query.order is None:
+        if not query.order:
             return ['_score', '_doc']
         else:
             return [query.order, '_score', '_doc']
@@ -366,14 +367,16 @@ class SearchSession(object):
         if author.surname:
             _q = _Q('match', f'{field}__last_name__folded', author.surname)
             if author.forename:    # Try as both forename and initials.
-                _q_init = Q()
-                for i in author.forename.replace('.', ' ').split():
-                    _q_init &= _Q('match', f'{field}__initials__folded', i)
-                _q &= (
-                    _Q('match', f'{field}__first_name__folded',
-                       author.forename)
-                    | _q_init
-                )
+                _q_forename = _Q('match', f'{field}__first_name__folded',
+                                 author.forename)
+                initials = author.forename.replace('.', ' ').split()
+                if initials:
+                    _q_init = Q()
+                    for i in initials:
+                        _q_init &= _Q('match', f'{field}__initials__folded', i)
+                    _q &= (_q_forename | _q_init)
+                else:
+                    _q &= _q_forename
         if author.surname and author.fullname:
             _q |= _Q('match', f'{field}__full_name', author.fullname)
         elif author.fullname:
@@ -396,26 +399,36 @@ class SearchSession(object):
                   query=self._author_query_part(au, 'authors'))
                 | Q('nested', path='owners',
                     query=self._author_query_part(au, 'owners'))
-                | (_Q('match', 'submitter__name',
-                      f'{au.forename} {au.surname} {au.fullname}')
-                   & Q('match', **{'submitter__is_author': True}))
+                # TODO: revisit incorporating submitter in this search; as
+                # implemented, it overrides expected behavior of explicit
+                # forename/surname search.
+                # | (_Q('match', 'submitter__name',
+                #       f'{au.forename} {au.surname} {au.fullname}')
+                #    & Q('match', **{'submitter__is_author': True}))
             )
         current_search = current_search.query(q)
         current_search = self._apply_sort(query, current_search)
         return current_search
 
-    def _try_create_index(self):
-        try:
-            logger.error('Index not found; attempting to create')
-            with open(self.mapping) as f:
-                mapping = json.load(f)
-            self.create_index(mapping)
-        except Exception as e:
-            raise IndexConnectionError(
-                'Could not create index: %s' % e
-            ) from e
+    def cluster_available(self) -> bool:
+        """
+        Determine whether or not the ES cluster is available.
 
-    def create_index(self, mappings: dict) -> None:
+        Returns
+        -------
+        bool
+        """
+        try:
+            self.es.cluster.health(wait_for_status='yellow', request_timeout=1)
+            return True
+        except urllib3.exceptions.HTTPError as e:
+            logger.debug('Health check failed: %s', str(e))
+            return False
+        except Exception as e:
+            logger.debug('Health check failed: %s', str(e))
+            return False
+
+    def create_index(self) -> None:
         """
         Create the search index.
 
@@ -428,16 +441,21 @@ class SearchSession(object):
         """
         logger.debug('create ES index "%s"', self.index)
         try:
+            with open(self.mapping) as f:
+                mappings = json.load(f)
             self.es.indices.create(self.index, mappings)
         except TransportError as e:
             if e.error == 'resource_already_exists_exception':
                 logger.debug('Index already exists; move along')
+                return
             elif e.error == 'mapper_parsing_exception':
                 logger.error('Invalid document mapping; create index failed')
                 logger.debug(str(e.info))
                 raise MappingError('Invalid mapping: %s' % str(e.info)) from e
-            else:
-                raise RuntimeError('Unhandled exception: %s' % str(e)) from e
+            logger.error('Problem communicating with ES: %s' % e.error)
+            raise IndexConnectionError(
+                'Problem communicating with ES: %s' % e.error
+            ) from e
 
     def add_document(self, document: Document) -> None:
         """
@@ -459,8 +477,11 @@ class SearchSession(object):
             Problem serializing ``document`` for indexing.
 
         """
+        if not self.es.indices.exists(index=self.index):
+            self.create_index()
         try:
             ident = document.get('id', document['paper_id'])
+            logger.debug(f'{ident}: index document')
             self.es.index(index=self.index, doc_type='document',
                           id=ident, body=document)
         except SerializationError as e:
@@ -468,7 +489,7 @@ class SearchSession(object):
             raise IndexingError('Problem serializing document: %s' % e) from e
         except TransportError as e:
             if e.error == 'index_not_found_exception':
-                self._try_create_index()
+                self.create_index()
             logger.error("TransportError: %s", e)
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
@@ -493,6 +514,11 @@ class SearchSession(object):
             Problem serializing ``document`` for indexing.
 
         """
+        if not self.es.indices.exists(index=self.index):
+            logger.debug('index does not exist')
+            self.create_index()
+            logger.debug('created index')
+
         try:
             actions = ({
                 '_index': self.index,
@@ -503,6 +529,7 @@ class SearchSession(object):
 
             helpers.bulk(client=self.es, actions=actions,
                          chunk_size=docs_per_chunk)
+            logger.debug('added %i documents to index', len(documents))
 
         except SerializationError as e:
             logger.error("SerializationError: %s", e)
@@ -514,7 +541,7 @@ class SearchSession(object):
         except TransportError as e:
             logger.error("TransportError: %s", e)
             if e.error == 'index_not_found_exception':
-                self._try_create_index()
+                self.create_index()
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
@@ -551,7 +578,7 @@ class SearchSession(object):
         except TransportError as e:
             logger.error("TransportError: %s", e)
             if e.error == 'index_not_found_exception':
-                self._try_create_index()
+                self.create_index()
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
@@ -594,7 +621,7 @@ class SearchSession(object):
         except TransportError as e:
             logger.error("TransportError: %s", e)
             if e.error == 'index_not_found_exception':
-                self._try_create_index()
+                self.create_index()
             if e.error == 'parsing_exception':
                 raise QueryError(e.info) from e
             raise IndexConnectionError(
@@ -651,8 +678,8 @@ def init_app(app: object = None) -> None:
     config.setdefault('ELASTICSEARCH_HOST', 'localhost')
     config.setdefault('ELASTICSEARCH_PORT', '9200')
     config.setdefault('ELASTICSEARCH_INDEX', 'arxiv')
-    config.setdefault('ELASTICSEARCH_USER', 'elastic')
-    config.setdefault('ELASTICSEARCH_PASSWORD', 'changeme')
+    config.setdefault('ELASTICSEARCH_USER', None)
+    config.setdefault('ELASTICSEARCH_PASSWORD', None)
     config.setdefault('ELASTICSEARCH_MAPPING', 'mappings/DocumentMapping.json')
 
 
@@ -663,8 +690,8 @@ def get_session(app: object = None) -> SearchSession:
     port = config.get('ELASTICSEARCH_PORT', '9200')
     scheme = config.get('ELASTICSEARCH_SCHEME', 'http')
     index = config.get('ELASTICSEARCH_INDEX', 'arxiv')
-    user = config.get('ELASTICSEARCH_USER', 'elastic')
-    password = config.get('ELASTICSEARCH_PASSWORD', 'changeme')
+    user = config.get('ELASTICSEARCH_USER', None)
+    password = config.get('ELASTICSEARCH_PASSWORD', None)
     mapping = config.get('ELASTICSEARCH_MAPPING',
                          'mappings/DocumentMapping.json')
     return SearchSession(host, index, port, scheme, user, password, mapping)
@@ -702,6 +729,18 @@ def bulk_add_documents(documents: List[Document]) -> None:
 def get_document(document_id: int) -> Document:
     """Retrieve arxiv document by id."""
     return current_session().get_document(document_id)
+
+
+@wraps(SearchSession.cluster_available)
+def cluster_available() -> bool:
+    """Check whether the cluster is available."""
+    return current_session().cluster_available()
+
+
+@wraps(SearchSession.create_index)
+def create_index() -> bool:
+    """Create the search index."""
+    return current_session().create_index()
 
 
 def ok() -> bool:
