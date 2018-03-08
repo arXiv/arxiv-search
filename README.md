@@ -67,6 +67,12 @@ If all goes well... http://127.0.0.1:5000/ should render the basic search page.
 
 ## Testing & quality
 
+Install testing tools with...
+
+```bash
+pip install -r requirements/test.txt
+```
+
 ### Test suite
 Run the main test suite with...
 
