@@ -9,6 +9,7 @@ import jsonschema
 
 from dataclasses import dataclass, fields
 
+
 @dataclass(init=False)
 class SchemaBase:
     """Base for domain classes with standardized JSON and str representations."""
@@ -82,6 +83,7 @@ class ClassificationList(list):
         """Build a string representation, for use in rendering."""
         return ', '.join([str(item) for item in self])
 
+
 @dataclass
 class Query(SchemaBase):
     """Represents a search query originating from the UI or API."""
@@ -99,12 +101,14 @@ class Query(SchemaBase):
         """Get the approximate page number."""
         return 1 + int(round(self.page_start/self.page_size))
 
+
 @dataclass
 class SimpleQuery(Query):
     """A query on a single field with a single value."""
 
-    field: str = '' 
+    field: str = ''
     value: str = ''
+
 
 class Document(SchemaBase):
     """A single search document, representing an arXiv paper."""

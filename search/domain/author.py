@@ -4,6 +4,7 @@ from typing import NamedTuple
 
 from search.domain import Query
 
+
 @dataclass
 class Author:
     """Represents an author."""
@@ -41,6 +42,7 @@ class AuthorList(list):
         if len(self) > 1:
             return ' AND '.join([f"({str(au)})" for au in self])
         return str(self[0])
+
 
 @dataclass
 class AuthorQuery(Query):
