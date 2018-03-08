@@ -10,7 +10,7 @@ from search import logging
 from search.process import query
 from search.services import index, fulltext, metadata
 from search.util import parse_arxiv_id
-from search.domain import AuthorQuery, Author, AuthorList, Query
+from search.domain import AuthorQuery, Author, AuthorList, Query, asdict
 
 from .forms import AuthorSearchForm
 # from search.routes.ui import external_url_builder
@@ -69,7 +69,7 @@ def search(request_params: dict) -> Response:
                 # Execute the search. We'll use the results directly in
                 #  template rendering, so they get added directly to the
                 #  response content.
-                response_data.update(index.search(q))
+                response_data.update(asdict(index.search(q)))
             except index.IndexConnectionError as e:
                 # There was a (hopefully transient) connection problem. Either
                 #  this will clear up relatively quickly (next request), or

@@ -9,7 +9,7 @@ from werkzeug.exceptions import InternalServerError
 from arxiv import status
 
 from search.domain import Query, DateRange, FieldedSearchTerm, Classification,\
-    AdvancedQuery
+    AdvancedQuery, DocumentSet
 from search.controllers import advanced
 from search.controllers.advanced.forms import AdvancedSearchForm
 
@@ -34,6 +34,8 @@ class TestSearchController(TestCase):
     @mock.patch('search.controllers.advanced.index')
     def test_single_field_term(self, mock_index):
         """Form data and ``advanced`` param are present."""
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
         request_data = MultiDict({
             'advanced': True,
             'terms-0-operator': 'AND',

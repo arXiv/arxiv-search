@@ -14,7 +14,7 @@ from search.exceptions import InternalServerError
 from search.services import index, fulltext, metadata
 from search.process import query
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
-    Classification, FieldedSearchList, ClassificationList, Query
+    Classification, FieldedSearchList, ClassificationList, Query, asdict
 from search import logging
 from . import forms
 
@@ -73,7 +73,7 @@ def search(request_params: MultiDict) -> Response:
                 # Execute the search. We'll use the results directly in
                 #  template rendering, so they get added directly to the
                 #  response content.
-                response_data.update(index.search(q))
+                response_data.update(asdict(index.search(q)))
             except index.IndexConnectionError as e:
                 # There was a (hopefully transient) connection problem. Either
                 #  this will clear up relatively quickly (next request), or

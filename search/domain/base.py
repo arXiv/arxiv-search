@@ -135,6 +135,15 @@ class Query:
         """Get the approximate page number."""
         return 1 + int(round(self.page_start/self.page_size))
 
+    def __str__(self) -> str:
+        """Build a string representation, for use in rendering."""
+        print(fields(self))
+        return '; '.join([
+            '%s: %s' % (attr, attrgetter(attr)(self))
+            for attr in type(self).__dataclass_fields__.keys()
+            if attrgetter(attr)(self)
+        ])  # pylint: disable=E1101
+
 
 @dataclass
 class SimpleQuery(Query):
@@ -169,6 +178,8 @@ class Document:
     title_utf8: str = field(default_factory=str)
     source: Dict[str, Any] = field(default_factory=dict)
     version: int = 1
+    latest: str = field(default_factory=str)
+    latest_version: int = 0
     submitter: Dict = field(default_factory=dict)
     report_num: str = field(default_factory=str)
     proxy: bool = False
@@ -184,6 +195,14 @@ class Document:
     secondary_classification: ClassificationList = field(default_factory=ClassificationList)
 
     score: float = 1.0
+
+    def __post_init__(self):
+        """Set latest_version, if not already set."""
+        if not self.latest_version and self.latest:
+            if 'v' in self.latest:
+                self.latest_version = int(self.latest.split('v')[-1])
+            else:
+                self.latest_version = 1
 
     @classmethod
     def fields(cls):

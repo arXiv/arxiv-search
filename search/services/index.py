@@ -634,6 +634,8 @@ class SearchSession(object):
         # typing: ignore
         result = {}
         for key in Document.fields():
+            if not hasattr(raw, key):
+                continue
             value = getattr(raw, key)
             if key in ['submitted_date', 'submitted_date_first',
                        'submitted_date_latest']:

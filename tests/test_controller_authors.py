@@ -8,7 +8,7 @@ from werkzeug.exceptions import InternalServerError
 
 from arxiv import status
 
-from search.domain import Query, DateRange, AuthorQuery
+from search.domain import Query, DateRange, AuthorQuery, DocumentSet
 
 from search.controllers import authors
 from search.controllers.authors.forms import AuthorSearchForm
@@ -34,6 +34,7 @@ class TestSearchController(TestCase):
     @mock.patch('search.controllers.authors.index')
     def test_single_field_term(self, mock_index):
         """Form data and ``authors`` param are present."""
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
         request_data = MultiDict({
             'authors-0-surname': 'davis'
         })
