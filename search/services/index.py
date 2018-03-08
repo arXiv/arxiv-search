@@ -633,13 +633,13 @@ class SearchSession(object):
         """Transform an ES search result back into a :class:`.Document`."""
         # typing: ignore
         result = {}
-        for key in dir(raw):
+        for key in Document.fields():
             value = getattr(raw, key)
             if key in ['submitted_date', 'submitted_date_first',
                        'submitted_date_latest']:
                 try:
                     value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S%z')
-                except ValueError:
+                except (ValueError, TypeError):
                     logger.warning(
                         f'Could not parse {key}: {value} as datetime'
                     )
@@ -647,6 +647,7 @@ class SearchSession(object):
             result[key] = value
         # result = raw['_source']
         result['score'] = raw.meta.score
+
         return Document(**result)
 
 

@@ -7,16 +7,8 @@ from operator import attrgetter
 
 import jsonschema
 
-from dataclasses import dataclass, fields, field
+from dataclasses import dataclass, fields, field, asdict
 
-
-@dataclass(init=False)
-class SchemaBase:
-    """Base for domain classes with standardized JSON and str reprs."""
-
-    def json(self) -> str:
-        """Return the string representation of the instance in JSON."""
-        return json.dumps(self, default=lambda o: o.__dict__, indent=2)
 
     # def __str__(self) -> str:
     #     """Build a string representation, for use in rendering."""
@@ -27,7 +19,7 @@ class SchemaBase:
 
 
 @dataclass
-class DocMeta(SchemaBase):
+class DocMeta:
     """Metadata for an arXiv paper, retrieved from the core repository."""
 
     paper_id: str = field(default_factory=str)
@@ -68,7 +60,7 @@ class DocMeta(SchemaBase):
 
 
 @dataclass
-class Fulltext(SchemaBase):
+class Fulltext:
     """Fulltext content for an arXiv paper, including extraction metadata."""
 
     content: str
@@ -103,7 +95,7 @@ class DateRange(NamedTuple):
 class Classification(NamedTuple):
     """Represents an arxiv classification."""
 
-    group: str
+    group: Optional[str] = None
     archive: Optional[str] = None
     category: Optional[str] = None
 
@@ -126,8 +118,9 @@ class ClassificationList(list):
 
 
 @dataclass
-class Query(SchemaBase):
+class Query:
     """Represents a search query originating from the UI or API."""
+
     order: Optional[str] = None
     page_size: int = 25
     page_start: int = 0
@@ -151,51 +144,54 @@ class SimpleQuery(Query):
     value: str = ''
 
 
-@dataclass
-class Document(SchemaBase):
+@dataclass(init=True)
+class Document:
     """A single search document, representing an arXiv paper."""
 
-    id: str
-    abstract: str
-    authors: List[Dict]
-    authors_freeform: str
-    owners: List[Dict]
-    submitted_date: str
-    submitted_date_all: List[str]
-    submitted_date_first: str
-    submitted_date_latest: str
-    modified_date: str
-    updated_date: str
-    announced_date_first: str
-    is_current: bool
-    is_withdrawn: bool
-    license: Dict[str, str]
-    paper_id: str
-    paper_id_v: str
-    title: str
-    title_utf8: str
-    source: Dict[str, Any]
-    version: int
-    submitter: Dict
-    report_num: str
-    proxy: bool
-    msc_class: List[str]
-    acm_class: List[str]
-    metadata_id: int
-    journal_ref: str
-    doi: str
-    comments: str
-    abs_categories: str
-    formats: List[str]
+    id: str = field(default_factory=str)
+    abstract: str = field(default_factory=str)
+    authors: List[Dict] = field(default_factory=list)
+    authors_freeform: str = field(default_factory=str)
+    owners: List[Dict] = field(default_factory=list)
+    submitted_date: str = field(default_factory=str)
+    submitted_date_all: List[str] = field(default_factory=list)
+    submitted_date_first: str = field(default_factory=str)
+    submitted_date_latest: str = field(default_factory=str)
+    modified_date: str = field(default_factory=str)
+    updated_date: str = field(default_factory=str)
+    announced_date_first: str = field(default_factory=str)
+    is_current: bool = True
+    is_withdrawn: bool = False
+    license: Dict[str, str] = field(default_factory=dict)
+    paper_id: str = field(default_factory=str)
+    paper_id_v: str = field(default_factory=str)
+    title: str = field(default_factory=str)
+    title_utf8: str = field(default_factory=str)
+    source: Dict[str, Any] = field(default_factory=dict)
+    version: int = 1
+    submitter: Dict = field(default_factory=dict)
+    report_num: str = field(default_factory=str)
+    proxy: bool = False
+    msc_class: List[str] = field(default_factory=list)
+    acm_class: List[str] = field(default_factory=list)
+    metadata_id: int = -1
+    journal_ref: str = field(default_factory=str)
+    doi: str = field(default_factory=str)
+    comments: str = field(default_factory=str)
+    abs_categories: str = field(default_factory=str)
+    formats: List[str] = field(default_factory=list)
+    primary_classification: Classification = field(default_factory=Classification)
+    secondary_classification: ClassificationList = field(default_factory=ClassificationList)
 
-    # __schema__ = 'schema/Document.json'
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+    score: float = 1.0
+
+    @classmethod
+    def fields(cls):
+        return cls.__dataclass_fields__.keys()
 
 
 @dataclass
-class DocumentSet(SchemaBase):
+class DocumentSet:
     """A set of search results retrieved from the search index."""
 
     metadata: Dict[str, Any]

@@ -6,6 +6,7 @@ import click
 from search.factory import create_ui_web_app
 from search.agent import MetadataRecordProcessor, DocumentFailed, \
     IndexingFailed
+from search.domain import asdict
 
 app = create_ui_web_app()
 app.app_context().push()
@@ -60,7 +61,7 @@ def populate(print_indexable, paper_id, id_list):
             return
 
         if print_indexable:
-            click.echo(document.json())
+            click.echo(json.dumps(asdict(document))
         index_count += 1
         click.echo(doc['id'])
     click.echo(f'Indexed {index_count} documents')
