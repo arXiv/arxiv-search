@@ -11,6 +11,8 @@ import time
 import logging
 import json
 import os
+from typing import Any, Optional, Tuple
+
 import amazon_kclpy
 from amazon_kclpy import kcl
 from amazon_kclpy.v2 import processor
@@ -33,23 +35,23 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
     streams.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize checkpointing state and retry configuration."""
         self._SLEEP_SECONDS = 5
         self._CHECKPOINT_RETRIES = 5
         self._CHECKPOINT_FREQ = 60
-        self._largest_seq = (None, None)
+        self._largest_seq: Tuple[Optional[int], Optional[int]] = (None, None)
         self._largest_sub_seq = None
-        self._last_checkpoint_time = None
+        self._last_checkpoint_time: Optional[float] = None
 
-    def initialize(self, initialize_input):
+    def initialize(self, initialize_input: Any) -> None:
         """Called once by a KCLProcess before any calls to process_records."""
         self._largest_seq = (None, None)
         self._last_checkpoint_time = time.time()
 
     def checkpoint(self, checkpointer: amazon_kclpy.kcl.Checkpointer,
-                   sequence_number=None,
-                   sub_sequence_number=None) -> None:
+                   sequence_number: Optional[str]=None,
+                   sub_sequence_number: Optional[int]=None) -> None:
         """Make periodic checkpoints while processing records."""
         for n in range(0, self._CHECKPOINT_RETRIES):
             try:
@@ -84,8 +86,8 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
                                  " error was %s", e)
             time.sleep(self._SLEEP_SECONDS)
 
-    def should_update_sequence(self, sequence_number: int,
-                               sub_sequence_number: int) -> bool:
+    def should_update_sequence(self, sequence_number: Optional[int],
+                               sub_sequence_number: Optional[int]) -> bool:
         """
         Determine whether a new larger sequence number is available.
 
@@ -153,6 +155,8 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
                     self._largest_seq = (seq, sub_seq)
 
             # Checkpoints every self._CHECKPOINT_FREQ seconds
+            if self._last_checkpoint_time is None:
+                raise RuntimeError('last checkpoint time is not set')
             last_check = time.time() - self._last_checkpoint_time
             if last_check > self._CHECKPOINT_FREQ:
                 self.checkpoint(records.checkpointer,
