@@ -410,16 +410,6 @@ class SearchSession(object):
         current_search = self._apply_sort(query, current_search)
         return current_search
 
-    def _try_create_index(self):
-        try:
-            logger.error('Index not found; attempting to create')
-            self.create_index()
-        except Exception as e:
-            logger.error('Could not create index: %s', str(e))
-            raise IndexConnectionError(
-                'Could not create index: %s' % str(e)
-            ) from e
-
     def cluster_available(self) -> bool:
         """
         Determine whether or not the ES cluster is available.
@@ -457,13 +447,15 @@ class SearchSession(object):
         except TransportError as e:
             if e.error == 'resource_already_exists_exception':
                 logger.debug('Index already exists; move along')
+                return
             elif e.error == 'mapper_parsing_exception':
                 logger.error('Invalid document mapping; create index failed')
                 logger.debug(str(e.info))
                 raise MappingError('Invalid mapping: %s' % str(e.info)) from e
-            else:
-                logger.error('Failed to create index: %s', str(e))
-                raise RuntimeError('Unhandled exception: %s' % str(e)) from e
+            logger.error('Problem communicating with ES: %s' % e.error)
+            raise IndexConnectionError(
+                'Problem communicating with ES: %s' % e.error
+            ) from e
 
     def add_document(self, document: Document) -> None:
         """
@@ -486,7 +478,7 @@ class SearchSession(object):
 
         """
         if not self.indices.exists(index=self.index):
-            self._try_create_index()
+            self.create_index()
         try:
             ident = document.get('id', document['paper_id'])
             logger.debug(f'{ident}: index document')
@@ -497,7 +489,7 @@ class SearchSession(object):
             raise IndexingError('Problem serializing document: %s' % e) from e
         except TransportError as e:
             if e.error == 'index_not_found_exception':
-                self._try_create_index()
+                self.create_index()
             logger.error("TransportError: %s", e)
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
@@ -549,7 +541,7 @@ class SearchSession(object):
         except TransportError as e:
             logger.error("TransportError: %s", e)
             if e.error == 'index_not_found_exception':
-                self._try_create_index()
+                self.create_index()
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
@@ -586,7 +578,7 @@ class SearchSession(object):
         except TransportError as e:
             logger.error("TransportError: %s", e)
             if e.error == 'index_not_found_exception':
-                self._try_create_index()
+                self.create_index()
             raise IndexConnectionError(
                 'Problem communicating with ES: %s' % e
             ) from e
@@ -629,7 +621,7 @@ class SearchSession(object):
         except TransportError as e:
             logger.error("TransportError: %s", e)
             if e.error == 'index_not_found_exception':
-                self._try_create_index()
+                self.create_index()
             if e.error == 'parsing_exception':
                 raise QueryError(e.info) from e
             raise IndexConnectionError(

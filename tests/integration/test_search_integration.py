@@ -1,14 +1,23 @@
-"""Integration and search behavior tests."""
+"""
+Integration and search behavior tests.
+
+These tests evaluate the behavior of :mod:`.index` against a live Elasticsearch
+cluster.
+"""
 
 from unittest import TestCase
 import os
 import subprocess
 import time
+from datetime import datetime
+from pytz import timezone
 
-# os.environ['ELASTICSEARCH_HOST'] = os.environ.get('ELASTICSEARCH_SERVICE_HOST')
 from search.services import index
 from search.agent.consumer import MetadataRecordProcessor
-from search.domain import SimpleQuery, AuthorQuery, AuthorList, Author
+from search.domain import SimpleQuery, AuthorQuery, AuthorList, Author, \
+    AdvancedQuery, DateRange, FieldedSearchList, FieldedSearchTerm
+
+EASTERN = timezone('US/Eastern')
 
 
 class TestSearchIntegration(TestCase):
@@ -28,7 +37,7 @@ class TestSearchIntegration(TestCase):
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         cls.container = start_es.stdout.decode('ascii').strip()
 
-        print('\rWaiting for ES cluster to be available...')
+        print('Waiting for ES cluster to be available...')
         time.sleep(12)
         while True:
             time.sleep(5)
@@ -155,3 +164,58 @@ class TestSearchIntegration(TestCase):
         _ids = [r['id'] for r in document_set['results']]
         self.assertIn("1708.07156", _ids, "Wissink B. W should match")
         self.assertNotIn("1401.1012", _ids, "Wonmin Son should not match.")
+
+    def test_advanced_date_range_search(self):
+        """Scenario: date range search."""
+        search_year = 2015
+        query = AdvancedQuery(
+            raw_query='',
+            order='',
+            page_size=10,
+            date_range=DateRange(
+                start_date=datetime(year=2015, month=1, day=1, tzinfo=EASTERN),
+                end_date=datetime(year=2016, month=1, day=1, tzinfo=EASTERN)
+            )
+        )
+        document_set = index.search(query)
+        self.assertEqual(len(document_set['results']), 3,
+                         "Should be three results from 2015.")
+        _ids = [r['paper_id_v'] for r in document_set['results']]
+        self.assertIn("1509.08727v1", _ids,
+                      "Results should include older versions of papers.")
+        self.assertIn("1408.6682v2", _ids)
+        self.assertIn("1511.07473v1", _ids)
+
+    def test_advanced_multiple_search_terms(self):
+        """Scenario: multiple terms search success."""
+        query = AdvancedQuery(
+            raw_query='',
+            order='',
+            page_size=10,
+            terms=FieldedSearchList([
+                FieldedSearchTerm(operator='AND', field='author',
+                                  term='schroder'),
+                FieldedSearchTerm(operator='OR', field='title',
+                                  term='jqk'),
+            ])
+        )
+        document_set = index.search(query)
+        _ids = [r['id'] for r in document_set['results']]
+        self.assertEqual(len(document_set['results']), 2)
+        self.assertIn("1607.05107", _ids, "Schröder should match.")
+        self.assertIn("1509.08727", _ids, "Schroder should match.")
+
+    def test_advanced_multiple_search_terms_fails(self):
+        """Scenario: multiple terms with no results."""
+        query = AdvancedQuery(
+            raw_query='',
+            order='',
+            page_size=10,
+            terms=FieldedSearchList([
+                FieldedSearchTerm(operator='AND', field='author',
+                                  term='schroder'),
+                FieldedSearchTerm(operator='AND', field='title', term='jqk'),
+            ])
+        )
+        document_set = index.search(query)
+        self.assertEqual(len(document_set['results']), 0)
