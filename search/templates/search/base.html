@@ -2,16 +2,26 @@
 
 {% block addl_head %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css')}}" />
-  
+
   <script
     src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
     integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
     crossorigin="anonymous"></script>
 
   <script src="{{ url_for('static', filename='js/fieldset.js') }}"></script>
+  <style>.user-tools { display: none; }</style>
 {% endblock addl_head %}
 
 {% block content %}
+  <article class="message is-info">
+    <div class="message-header">
+      <p class="title is-4">Beta test in progress</p>
+    </div>
+    <div class="message-body">
+      <p>The search engine for arXiv has been rebuilt! Please let us know what you
+      think of this beta test: <a href="qualtrics">take the survey</a></p>
+    </div>
+  </article>
   <h1 class="title">{% block title %}Search{% endblock title %}</h1>
     <content>
       {% block within_content %}
