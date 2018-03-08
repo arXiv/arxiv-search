@@ -14,10 +14,10 @@ from werkzeug.exceptions import InternalServerError, NotFound
 from arxiv import status
 from search import logging
 
-from search.process import query
 from search.services import index, fulltext, metadata
 from search.util import parse_arxiv_id
 from search.domain import Query, SimpleQuery
+from search.controllers.util import paginate
 
 from .forms import SimpleSearchForm
 # from search.routes.ui import external_url_builder
@@ -85,7 +85,7 @@ def search(request_params: dict) -> Response:
         logger.debug('form is valid')
         q = _query_from_form(form)
         # Pagination is handled outside of the form.
-        q = query.paginate(q, request_params)
+        q = paginate(q, request_params)
         try:
             # Execute the search. We'll use the results directly in
             #  template rendering, so they get added directly to the

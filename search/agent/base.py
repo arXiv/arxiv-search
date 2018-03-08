@@ -1,10 +1,7 @@
 """
 Provides a base class for Kinesis record handling.
 
-TODO: This should move to arXiv-base, per ARXIVNG-281.
-
-http://docs.aws.amazon.com/streams/latest/dev/kinesis-record-processor-implementation-app-py.html
-https://github.com/awslabs/amazon-kinesis-client-python/blob/master/samples/sample_kclpy_app.py
+.. _todo: This should move to arXiv-base, per ARXIVNG-281.
 """
 
 import time

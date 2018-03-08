@@ -1,4 +1,14 @@
-"""Provides acces to paper metadata from the core arXiv repository."""
+"""
+Provides acces to paper metadata from the core arXiv repository.
+
+The primary entrypoint to this module is :func:`.retrieve`, which retrieves
+:class:`.DocMeta` for a published arXiv paper.
+
+:class:`.DocMetaSession` encapsulates configuration parameters and a connection
+to the docmeta endpoint(s) for thread-safety and efficiency. The functions
+mentioned above load the appropriate instance of :class:`.DocMetaSession`
+depending on the context of the request.
+"""
 
 import os
 from urllib.parse import urljoin

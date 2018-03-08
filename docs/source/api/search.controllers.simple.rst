@@ -1,5 +1,5 @@
-search\.controllers\.simple package
-===================================
+search.controllers.simple package
+=================================
 
 .. automodule:: search.controllers.simple
     :members:
@@ -9,8 +9,8 @@ search\.controllers\.simple package
 Submodules
 ----------
 
-search\.controllers\.simple\.forms module
------------------------------------------
+search.controllers.simple.forms module
+--------------------------------------
 
 .. automodule:: search.controllers.simple.forms
     :members:

@@ -19,10 +19,10 @@ from arxiv import status
 
 from search.exceptions import InternalServerError
 from search.services import index, fulltext, metadata
-from search.process import query
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
     Classification, FieldedSearchList, ClassificationList, Query
 from search import logging
+from search.controllers.util import paginate
 
 from . import forms
 
@@ -75,7 +75,7 @@ def search(request_params: MultiDict) -> Response:
             q = _query_from_form(form)
 
             # Pagination is handled outside of the form.
-            q = query.paginate(q, request_params)
+            q = paginate(q, request_params)
             try:
                 # Execute the search. We'll use the results directly in
                 #  template rendering, so they get added directly to the

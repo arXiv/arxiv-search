@@ -1,4 +1,20 @@
-"""Integration with search index."""
+"""
+Provides integration with an ElasticSearch cluster.
+
+The primary entrypoint to this module is :func:`.search`, which handles
+:class:`search.domain.Query` instances passed by controllers, and returns a
+:class:`.DocumentSet` containing search results. :func:`.get_document` is
+available for future use, e.g. as part of a search API.
+
+In addition, :func:`.add_document` and :func:`.bulk_add_documents` are provided
+for indexing (e.g. by the
+:mod:`search.agent.consumer.MetadataRecordProcessor`).
+
+:class:`.SearchSession` encapsulates configuration parameters and a connection
+to the Elasticsearch cluster for thread-safety. The functions mentioned above
+load the appropriate instance of :class:`.SearchSession` depending on the
+context of the request.
+"""
 
 import re
 import json
@@ -21,7 +37,13 @@ from search.domain import Document, DocumentSet, Query, DateRange, \
 
 logger = logging.getLogger(__name__)
 
+# TODO: make this configurable.
 MAX_RESULTS = 10_000
+"""This is the maximum result offset for pagination."""
+
+# We'll compile this ahead of time, since it gets called quite a lot.
+STRING_LITERAL = re.compile(r"(['\"][^'\"]*['\"])")
+"""Pattern for string literals (quoted) in search queries."""
 
 
 class MappingError(ValueError):
@@ -51,10 +73,6 @@ class DocumentNotFound(RuntimeError):
 
 class OutsideAllowedRange(RuntimeError):
     """A page outside of the allowed range has been requested."""
-
-
-# We'll compile this ahead of time, since it gets called quite a lot.
-STRING_LITERAL = re.compile(r"(['\"][^'\"]*['\"])")
 
 
 def _wildcardEscape(querystring: str) -> Tuple[str, bool]:
@@ -446,16 +464,16 @@ class SearchSession(object):
         Uses ``paper_id_v`` as the primary identifier for the document. If the
         document is already indexed, will quietly overwrite.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         document : :class:`.Document`
             Must be a valid search document, per ``schema/Document.json``.
 
         Raises
         ------
-        IndexConnectionError
+        :class:`.IndexConnectionError`
             Problem communicating with Elasticsearch host.
-        QueryError
+        :class:`.QueryError`
             Problem serializing ``document`` for indexing.
 
         """
@@ -635,12 +653,10 @@ class SearchSession(object):
                 try:
                     value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S%z')
                 except ValueError:
-                    logger.warning(
-                        f'Could not parse {key}: {value} as datetime'
-                    )
+                    # Don't let a malformed date stamp derail the whole search.
+                    logger.warning(f"Can't parse {key}: {value} as datetime")
                     pass
             result[key] = value
-        # result = raw['_source']
         result['score'] = raw.meta.score
         return Document(result)
 
@@ -656,6 +672,7 @@ def init_app(app: object = None) -> None:
     config.setdefault('ELASTICSEARCH_MAPPING', 'mappings/DocumentMapping.json')
 
 
+# TODO: consider making this private.
 def get_session(app: object = None) -> SearchSession:
     """Get a new session with the search index."""
     config = get_application_config(app)
@@ -670,6 +687,7 @@ def get_session(app: object = None) -> SearchSession:
     return SearchSession(host, index, port, scheme, user, password, mapping)
 
 
+# TODO: consider making this private.
 def current_session():
     """Get/create :class:`.SearchSession` for this context."""
     g = get_application_global()
