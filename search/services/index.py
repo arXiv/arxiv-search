@@ -647,7 +647,6 @@ class SearchSession(object):
                     )
                     pass
             result[key] = value
-        # result = raw['_source']
         result['score'] = raw.meta.score
 
         return Document(**result)

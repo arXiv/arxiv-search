@@ -1,7 +1,6 @@
 """Representations of authors, author lists, and author queries."""
 
 from dataclasses import dataclass, field
-from typing import NamedTuple
 
 from search.domain import Query
 

@@ -1,21 +1,17 @@
-"""Core data structures internal to the search service."""
+"""
+Core data structures internal to the search service.
+"""
 
-from typing import Any, Iterable, NamedTuple, Optional, Type, List, Dict
+from typing import Any, Iterable, Optional, Type, List, Dict
 from datetime import date, datetime
 import json
 from operator import attrgetter
-
+from pytz import timezone
 import jsonschema
 
 from dataclasses import dataclass, fields, field, asdict
 
-
-    # def __str__(self) -> str:
-    #     """Build a string representation, for use in rendering."""
-    #     return '; '.join([
-    #         '%s: %s' % (attr, attrgetter(attr)(self))
-    #         for attr in fields(self) if attrgetter(attr)(self)
-    #     ])  # pylint: disable=E1101
+EASTERN = timezone('US/Eastern')
 
 
 @dataclass
@@ -68,17 +64,15 @@ class Fulltext:
     created: datetime
 
 
-class DateRange(NamedTuple):
+@dataclass
+class DateRange:
     """Represents an open or closed date range."""
 
-    start_date: datetime = datetime(1990, 1, 1)
+    start_date: datetime = datetime(1990, 1, 1, tzinfo=EASTERN)
     """The day/time on which the range begins."""
 
-    end_date: datetime = datetime.now()
+    end_date: datetime = datetime.now(tz=EASTERN)
     """The day/time at (just before) which the range ends."""
-
-    # on_version = Property('field', str)
-    # """The date field on which to filter
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
@@ -92,7 +86,8 @@ class DateRange(NamedTuple):
         return _str
 
 
-class Classification(NamedTuple):
+@dataclass
+class Classification:
     """Represents an arxiv classification."""
 
     group: Optional[str] = None
