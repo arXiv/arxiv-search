@@ -143,7 +143,7 @@ class TestPrepare(TestCase):
         try:
             terms = self.session._group_terms(query)
         except AssertionError:
-           self.fail('Should result in a single group')
+            self.fail('Should result in a single group')
         self.assertEqual(expected, terms)
 
     def test_group_terms_all_and(self):
