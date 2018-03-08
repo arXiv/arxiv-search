@@ -21,9 +21,9 @@ class DocMeta:
     paper_id: str = field(default_factory=str)
     abstract: str = field(default_factory=str)
     abstract_utf8: str = field(default_factory=str)
-    authors_parsed: str = field(default_factory=str)
+    authors_parsed: List[Dict] = field(default_factory=list)
     authors_utf8: str = field(default_factory=str)
-    author_owners: str = field(default_factory=str)
+    author_owners: List[Dict] = field(default_factory=list)
     authors: str = field(default_factory=str)
     submitted_date: str = field(default_factory=str)
     submitted_date_all: List[str] = field(default_factory=list)
@@ -132,10 +132,9 @@ class Query:
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        print(fields(self))
         return '; '.join([
             '%s: %s' % (attr, attrgetter(attr)(self))
-            for attr in type(self).__dataclass_fields__.keys()
+            for attr in type(self).__dataclass_fields__.keys()   # type: ignore
             if attrgetter(attr)(self)
         ])  # pylint: disable=E1101
 
@@ -202,7 +201,7 @@ class Document:
     @classmethod
     def fields(cls):
         """Get the names of fields on this class."""
-        return cls.__dataclass_fields__.keys()  # typing: ignore
+        return cls.__dataclass_fields__.keys()  # type: ignore
 
 
 @dataclass

@@ -161,4 +161,5 @@ def to_search_document(metadata: DocMeta, fulltext: Optional[Fulltext] = None)\
         data[key] = value
     if fulltext:
         data['fulltext'] = fulltext.content
-    return Document(**data)
+    return Document(**data)     # type: ignore
+    # See https://github.com/python/mypy/issues/3937

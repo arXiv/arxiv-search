@@ -65,7 +65,8 @@ class FulltextSession(object):
         except json.decoder.JSONDecodeError as e:
             raise IOError('%s: could not decode response: %s' %
                           (document_id, e)) from e
-        return Fulltext(**data)
+        return Fulltext(**data)     # type: ignore
+        # See https://github.com/python/mypy/issues/3937
 
     def ok(self) -> bool:
         """Health check."""

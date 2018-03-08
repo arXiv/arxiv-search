@@ -121,7 +121,8 @@ class DocMetaSession(object):
             )
         logger.debug(f'{document_id}: response OK')
         try:
-            data = DocMeta(**response.json())
+            data = DocMeta(**response.json())   # type: ignore
+            # See https://github.com/python/mypy/issues/3937
         except json.decoder.JSONDecodeError as e:
             logger.error('JSONDecodeError: %s', e)
             raise BadResponse(

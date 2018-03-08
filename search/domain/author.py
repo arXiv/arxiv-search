@@ -1,7 +1,7 @@
 """Representations of authors, author lists, and author queries."""
 
 from dataclasses import dataclass, field
-from search.domain import Query
+from search.domain.base import Query
 
 
 @dataclass

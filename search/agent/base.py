@@ -99,9 +99,9 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
         bool
         """
         return (self._largest_seq == (None, None) or
-                sequence_number > self._largest_seq[0] or
-                (sequence_number == self._largest_seq[0] and
-                 sub_sequence_number > self._largest_seq[1]))
+                sequence_number > self._largest_seq[0] or   # type: ignore
+                (sequence_number == self._largest_seq[0] and   # type: ignore
+                 sub_sequence_number > self._largest_seq[1]))   # type: ignore
 
     def shutdown(self, shutdown: ShutdownInput) -> None:
         """

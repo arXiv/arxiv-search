@@ -2,11 +2,11 @@
 
 import json
 import os
-from typing import List
+from typing import List, Any
 from search import logging
 from search.services import metadata, index
 from search.process import transform
-from search.domain import DocMeta, Document
+from search.domain import DocMeta, Document, asdict
 from .base import BaseRecordProcessor, ProcessRecordsInput
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
     MAX_ERRORS = 5
     """Max number of individual document failures before aborting entirely."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize exception counter."""
         super(MetadataRecordProcessor, self).__init__(*args, **kwargs)  # type: ignore
         self._error_count = 0
@@ -66,7 +66,9 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             raise RuntimeError('No cached document')
 
         with open(cache_path) as f:
-            return DocMeta(json.load(f).items())
+            data: dict = json.load(f)
+            return DocMeta(**data)  # type: ignore
+            # See https://github.com/python/mypy/issues/3937
 
     def _to_cache(self, arxiv_id: str, docmeta: DocMeta) -> None:
         """
@@ -90,7 +92,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         cache_path = os.path.join(self._cache, fname)
         try:
             with open(cache_path, 'w') as f:
-                json.dump(dict(docmeta.items()), f)
+                json.dump(asdict(docmeta).items(), f)
         except Exception as e:
             raise RuntimeError(str(e)) from e
 
@@ -128,7 +130,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
         try:
             logger.debug(f'{arxiv_id}: requesting metadata')
-            docmeta = metadata.retrieve(arxiv_id)
+            docmeta: DocMeta = metadata.retrieve(arxiv_id)
 
         # TODO: use a context manager for retry?
         except metadata.ConnectionFailed as e:

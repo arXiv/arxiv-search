@@ -109,7 +109,7 @@ class SearchSession(object):
     def __init__(self, host: str, index: str, port: int=9200,
                  scheme: str='http', user: Optional[str]=None,
                  password: Optional[str]=None, mapping: Optional[str]=None,
-                 **extra) -> None:
+                 **extra: Any) -> None:
         """
         Initialize the connection to Elasticsearch.
 
@@ -159,7 +159,7 @@ class SearchSession(object):
         return obj.operator     # type: ignore
 
     @staticmethod
-    def _group_terms(query: Query) -> tuple:
+    def _group_terms(query: AdvancedQuery) -> tuple:
         """Group fielded search terms into a set of nested tuples."""
         terms = query.terms[:]
         for operator in ['NOT', 'AND', 'OR']:
@@ -255,7 +255,7 @@ class SearchSession(object):
             raise TypeError("Invalid operator for terms")
 
     @staticmethod
-    def _daterange_to_q(query: Query) -> Range:
+    def _daterange_to_q(query: AdvancedQuery) -> Range:
         if not query.date_range:
             return Q()
         params = {}
@@ -268,7 +268,7 @@ class SearchSession(object):
         return Q('range', submitted_date=params)
 
     @classmethod
-    def _fielded_terms_to_q(cls, query: Query) -> Match:
+    def _fielded_terms_to_q(cls, query: AdvancedQuery) -> Match:
         if len(query.terms) == 1:
             term = query.terms[0]
             return SearchSession._field_term_to_q(term.field, term.term)
@@ -294,7 +294,7 @@ class SearchSession(object):
         return q    # Q('nested', path=field, query=q)
 
     @classmethod
-    def _classifications_to_q(cls, query: Query) -> Match:
+    def _classifications_to_q(cls, query: AdvancedQuery) -> Match:
         if not query.primary_classification:
             return Q()
         q = cls._classification_to_q('primary_classification',
@@ -409,7 +409,9 @@ class SearchSession(object):
         current_search = self._apply_sort(query, current_search)
         return current_search
 
-    def _try_create_index(self):
+    def _try_create_index(self) -> None:
+        if not self.mapping:
+            raise MappingError('Mapping not set')
         try:
             logger.error('Index not found; attempting to create')
             with open(self.mapping) as f:
@@ -563,7 +565,8 @@ class SearchSession(object):
         if not record:
             logger.error("No such document: %s", document_id)
             raise DocumentNotFound('No such document')
-        return Document(**record['_source'])
+        return Document(**record['_source'])    # type: ignore
+        # See https://github.com/python/mypy/issues/3937
 
     def search(self, query: Query) -> DocumentSet:
         """
@@ -617,7 +620,7 @@ class SearchSession(object):
             logger.error(_message)
             raise OutsideAllowedRange(_message)
 
-        return DocumentSet(**{
+        return DocumentSet(**{  # type: ignore
             'metadata': {
                 'start': query.page_start,
                 'total': results['hits']['total'],
@@ -628,6 +631,7 @@ class SearchSession(object):
             },
             'results': [self._transform(raw) for raw in results]
         })
+        # See https://github.com/python/mypy/issues/3937
 
     def _transform(self, raw: Response) -> Document:
         """Transform an ES search result back into a :class:`.Document`."""
@@ -648,8 +652,8 @@ class SearchSession(object):
                     pass
             result[key] = value
         result['score'] = raw.meta.score
-
-        return Document(**result)
+        return Document(**result)   # type: ignore
+        # See https://github.com/python/mypy/issues/3937
 
 
 def init_app(app: object = None) -> None:
