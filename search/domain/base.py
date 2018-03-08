@@ -7,7 +7,7 @@ from operator import attrgetter
 
 import jsonschema
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, field
 
 
 @dataclass(init=False)
@@ -26,17 +26,51 @@ class SchemaBase:
     #     ])  # pylint: disable=E1101
 
 
+@dataclass
 class DocMeta(SchemaBase):
     """Metadata for an arXiv paper, retrieved from the core repository."""
 
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+    paper_id: str = field(default_factory=str)
+    abstract: str = field(default_factory=str)
+    abstract_utf8: str = field(default_factory=str)
+    authors_parsed: str = field(default_factory=str)
+    authors_utf8: str = field(default_factory=str)
+    author_owners: str = field(default_factory=str)
+    authors: str = field(default_factory=str)
+    submitted_date: str = field(default_factory=str)
+    submitted_date_all: List[str] = field(default_factory=list)
+    modified_date: str = field(default_factory=str)
+    updated_date: str = field(default_factory=str)
+    announced_date_first: str = field(default_factory=str)
+    is_current: bool = True
+    is_withdrawn: bool = False
+    license: Dict[str, str] = field(default_factory=dict)
+    primary_classification: Dict[str, str] = field(default_factory=dict)
+    secondary_classification: List[Dict[str, str]] = field(default_factory=list)
+    title: str = field(default_factory=str)
+    title_utf8: str = field(default_factory=str)
+    source: Dict[str, Any] = field(default_factory=dict)
+    version: int = -1
+    submitter: Dict[str, str] = field(default_factory=dict)
+    report_num: str = field(default_factory=str)
+    proxy: bool = False
+    msc_class: str = field(default_factory=str)
+    acm_class: str = field(default_factory=str)
+    metadata_id: int = -1
+    document_id: int = -1
+    journal_ref: str = field(default_factory=str)
+    journal_ref_utf8: str = field(default_factory=str)
+    doi: str = field(default_factory=str)
+    comments: str = field(default_factory=str)
+    comments_utf8: str = field(default_factory=str)
+    abs_categories: str = field(default_factory=str)
+    formats: List[str] = field(default_factory=list)
 
 
 @dataclass
 class Fulltext(SchemaBase):
     """Fulltext content for an arXiv paper, including extraction metadata."""
+
     content: str
     version: str
     created: datetime

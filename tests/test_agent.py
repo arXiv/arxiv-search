@@ -23,7 +23,7 @@ class TestIndexPaper(TestCase):
     def test_paper_has_one_version(self, mock_meta, mock_tx, mock_idx):
         """The arXiv paper has only one version."""
         mock_docmeta = DocMeta(version=1, paper_id='1234.56789', title='foo',
-                               created='2001-03-02T03:04:05-400')
+                               submitted_date='2001-03-02T03:04:05-400')
         mock_meta.retrieve.return_value = mock_docmeta
         mock_doc = Document(version=1, paper_id='1234.56789', title='foo',
                             submitted_date=['2001-03-02T03:04:05-400'])
@@ -39,11 +39,11 @@ class TestIndexPaper(TestCase):
     def test_paper_has_three_versions(self, mock_meta, mock_tx, mock_idx):
         """The arXiv paper has three versions."""
         mock_dm_1 = DocMeta(version=1, paper_id='1234.56789', title='foo',
-                            created='2001-03-02T03:04:05-400')
+                            submitted_date='2001-03-02T03:04:05-400')
         mock_dm_2 = DocMeta(version=2, paper_id='1234.56789', title='foo',
-                            created='2001-03-03T03:04:05-400')
+                            submitted_date='2001-03-03T03:04:05-400')
         mock_dm_3 = DocMeta(version=3, paper_id='1234.56789', title='foo',
-                            created='2001-03-04T03:04:05-400')
+                            submitted_date='2001-03-04T03:04:05-400')
         mock_meta.retrieve.side_effect = [mock_dm_3, mock_dm_1, mock_dm_2]
         mock_doc_1 = Document(version=1, paper_id='1234.56789', title='foo',
                               submitted_date=['2001-03-02T03:04:05-400'],
