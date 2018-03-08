@@ -1,13 +1,12 @@
 """Representations of authors, author lists, and author queries."""
 
 from dataclasses import dataclass, field
-
 from search.domain import Query
 
 
 @dataclass
 class Author:
-    """Represents an author."""
+    """An author query part, for use in an :class:`.AuthorQuery`."""
 
     forename: str
     surname: str
@@ -33,10 +32,10 @@ class Author:
 
 
 class AuthorList(list):
-    """Represents a list of author query parts."""
+    """A list of author query parts, for use in an :class:`AuthorQuery`."""
 
     def __str__(self) -> str:
-        """Prints comma-delimited list of authors."""
+        """Print a comma-delimited list of authors."""
         if len(self) == 0:
             return ''
         if len(self) > 1:
@@ -46,6 +45,6 @@ class AuthorList(list):
 
 @dataclass
 class AuthorQuery(Query):
-    """Represents an author query."""
+    """Represents a query by author name."""
 
     authors: AuthorList = field(default_factory=AuthorList)

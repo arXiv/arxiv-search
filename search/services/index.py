@@ -563,7 +563,7 @@ class SearchSession(object):
         if not record:
             logger.error("No such document: %s", document_id)
             raise DocumentNotFound('No such document')
-        return Document(record['_source'])
+        return Document(**record['_source'])
 
     def search(self, query: Query) -> DocumentSet:
         """

@@ -1,5 +1,5 @@
 """
-Core data structures internal to the search service.
+Base domain classes for search service.
 """
 
 from typing import Any, Iterable, Optional, Type, List, Dict
@@ -38,7 +38,7 @@ class DocMeta:
     title: str = field(default_factory=str)
     title_utf8: str = field(default_factory=str)
     source: Dict[str, Any] = field(default_factory=dict)
-    version: int = -1
+    version: int = 1
     submitter: Dict[str, str] = field(default_factory=dict)
     report_num: str = field(default_factory=str)
     proxy: bool = False
@@ -66,7 +66,7 @@ class Fulltext:
 
 @dataclass
 class DateRange:
-    """Represents an open or closed date range."""
+    """Represents an open or closed date range, for use in :class:`.Query`."""
 
     start_date: datetime = datetime(1990, 1, 1, tzinfo=EASTERN)
     """The day/time on which the range begins."""
@@ -88,7 +88,7 @@ class DateRange:
 
 @dataclass
 class Classification:
-    """Represents an arxiv classification."""
+    """Represents an arXiv classification for a paper."""
 
     group: Optional[str] = None
     archive: Optional[str] = None
@@ -105,7 +105,7 @@ class Classification:
 
 
 class ClassificationList(list):
-    """Represents a list of arxiv classifications."""
+    """Represents a list of arXiv classifications."""
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
@@ -142,7 +142,7 @@ class Query:
 
 @dataclass
 class SimpleQuery(Query):
-    """A query on a single field."""
+    """Represents a simple search query."""
 
     field: str = ''
     value: str = ''
@@ -150,7 +150,7 @@ class SimpleQuery(Query):
 
 @dataclass(init=True)
 class Document:
-    """A single search document, representing an arXiv paper."""
+    """A search document, representing an arXiv paper."""
 
     id: str = field(default_factory=str)
     abstract: str = field(default_factory=str)
@@ -201,7 +201,8 @@ class Document:
 
     @classmethod
     def fields(cls):
-        return cls.__dataclass_fields__.keys()
+        """Get the names of fields on this class."""
+        return cls.__dataclass_fields__.keys()  # typing: ignore
 
 
 @dataclass

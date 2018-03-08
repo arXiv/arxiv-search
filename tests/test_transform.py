@@ -13,19 +13,19 @@ class TestTransformMetdata(TestCase):
 
     def test_id(self):
         """Field ``id`` is populated from ``paper_id``."""
-        meta = {'paper_id': '1234.56789'}
+        meta = DocMeta(**{'paper_id': '1234.56789'})
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.id, '1234.56789')
 
     def test_abstract(self):
         """Field ``abstract`` is populated from ``abstract``."""
-        meta = {'paper_id': '1234.56789', 'abstract': 'abstract!'}
+        meta = DocMeta(**{'paper_id': '1234.56789', 'abstract': 'abstract!'})
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.abstract, 'abstract!')
 
     def test_authors(self):
         """Field ``authors`` is populated from ``authors_parsed``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'authors_parsed': [
                 {
@@ -33,7 +33,7 @@ class TestTransformMetdata(TestCase):
                     'last_name': 'Dole'
                 }
             ]
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.authors[0]['first_name'], 'B. Ivan')
         self.assertEqual(doc.authors[0]['last_name'], 'Dole')
@@ -45,13 +45,16 @@ class TestTransformMetdata(TestCase):
 
     def test_authors_freeform(self):
         """Field ``authors_freeform`` is populated from ``authors_utf8``."""
-        meta = {'paper_id': '1234.56789', 'authors_utf8': 'authors!'}
+        meta = DocMeta(**{
+            'paper_id': '1234.56789',
+            'authors_utf8': 'authors!'
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.authors_freeform, 'authors!')
 
     def test_owners(self):
         """Field ``owners`` is populated from ``author_owners``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'author_owners': [
                 {
@@ -59,7 +62,7 @@ class TestTransformMetdata(TestCase):
                     'last_name': 'Dole'
                 }
             ]
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.owners[0]['first_name'], 'B. Ivan')
         self.assertEqual(doc.owners[0]['last_name'], 'Dole')
@@ -71,22 +74,22 @@ class TestTransformMetdata(TestCase):
 
     def test_submitted_date(self):
         """Field ``submitted_date`` is populated from ``submitted_date``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'submitted_date': '2007-04-25T16:06:50-0400'
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.submitted_date, '2007-04-25T16:06:50-0400')
 
     def test_submitted_date_all(self):
         """``submitted_date_all`` is populated from ``submitted_date_all``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             "submitted_date_all": [
                 "2007-04-25T15:58:28-0400", "2007-04-25T16:06:50-0400"
             ],
             'is_current': True
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.submitted_date_all[0], '2007-04-25T15:58:28-0400')
         self.assertEqual(doc.submitted_date_all[1], '2007-04-25T16:06:50-0400')
@@ -97,37 +100,37 @@ class TestTransformMetdata(TestCase):
 
     def test_modified_date(self):
         """Field ``modified_date`` is populated from ``modified_date``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'modified_date': '2007-04-25T16:06:50-0400'
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.modified_date, '2007-04-25T16:06:50-0400')
 
     def test_updated_date(self):
         """Field ``updated_date`` is populated from ``updated_date``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'updated_date': '2007-04-25T16:06:50-0400'
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.updated_date, '2007-04-25T16:06:50-0400')
 
     def test_announced_date_first(self):
         """``announced_date_first`` populated from ``announced_date_first``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'announced_date_first': '2007-04'
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.announced_date_first, '2007-04')
 
     def test_is_withdrawn(self):
         """Field ``is_withdrawn`` is populated from ``is_withdrawn``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'is_withdrawn': False
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertFalse(doc.is_withdrawn)
 
@@ -138,18 +141,18 @@ class TestTransformMetdata(TestCase):
                      " distribute this article",
             "uri": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
         }
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'license': _license
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.license['uri'], _license['uri'])
         self.assertEqual(doc.license['label'], _license['label'])
 
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'license': {'uri': None, 'label': None}
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.license['uri'], transform.DEFAULT_LICENSE['uri'],
                          "The default license should be used")
@@ -159,17 +162,17 @@ class TestTransformMetdata(TestCase):
 
     def test_paper_version(self):
         """Field ``paper_id_v`` is populated from ``paper_id``."""
-        meta = {'paper_id': '1234.56789v5'}
+        meta = DocMeta(**{'paper_id': '1234.56789v5'})
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.paper_id_v, '1234.56789v5')
 
-        meta = {'paper_id': '1234.56789', 'version': 4}
+        meta = DocMeta(**{'paper_id': '1234.56789', 'version': 4})
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.paper_id_v, '1234.56789v4')
 
     def test_primary_classification(self):
         """``primary_classification`` set from ``primary_classification``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'primary_classification': {
                 "group": {
@@ -185,14 +188,14 @@ class TestTransformMetdata(TestCase):
                     "id": "astro-ph"
                 }
             }
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.primary_classification,
-                         meta['primary_classification'])
+                         meta.primary_classification)
 
     def test_secondary_classification(self):
         """``secondary_classification`` from ``secondary_classification``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'secondary_classification': [{
                 "group": {
@@ -208,45 +211,45 @@ class TestTransformMetdata(TestCase):
                     "id": "astro-ph"
                 }
             }]
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.secondary_classification,
-                         meta['secondary_classification'])
+                         meta.secondary_classification)
 
     def test_title(self):
         """Field ``title`` is populated from ``title``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'title': 'foo title'
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.title, 'foo title')
 
     def test_title_utf8(self):
         """Field ``title_utf8`` is populated from ``title_utf8``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'title_utf8': 'foö title'
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.title_utf8, 'foö title')
 
     def test_source(self):
         """Field ``source`` is populated from ``source``."""
         _source = {"flags": "1", "format": "pdf", "size_bytes": 1230119}
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'source': _source
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.source, _source)
 
     def test_version(self):
         """Field ``version`` is populated from ``version``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'version': 25
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.version, 25)
 
@@ -257,72 +260,72 @@ class TestTransformMetdata(TestCase):
             "name": "Sub Mitter",
             "name_utf8": "Süb Mitter"
         }
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'submitter': _submitter
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.submitter, _submitter)
 
     def test_report_num(self):
         """Field ``report_num`` is populated from ``report_num``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'report_num': "Physica A, 245 (1997) 181"
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.report_num, "Physica A, 245 (1997) 181")
 
     def test_proxy(self):
         """Field ``proxy`` is populated from ``proxy``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'proxy': True
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertTrue(doc.proxy)
 
     def test_metadata_id(self):
         """Field ``metadata_id`` is populated from ``metadata_id``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'metadata_id': '690776'
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.metadata_id, '690776')
 
     def test_msc_class(self):
         """Field ``msc_class`` is populated from ``msc_class``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'msc_class': "03B70,68Q60"
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.msc_class, ["03B70", "68Q60"])
 
     def test_acm_class(self):
         """Field ``acm_class`` is populated from ``acm_class``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'acm_class': "F.4.1; D.2.4"
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.acm_class, ["F.4.1", "D.2.4"])
 
     def test_metadata_id(self):
         """Field ``doi`` is populated from ``doi``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'doi': '10.1103/PhysRevD.76.104043'
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.doi, '10.1103/PhysRevD.76.104043')
 
     def test_metadata_id(self):
         """Field ``comments`` is populated from ``comments_utf8``."""
-        meta = {
+        meta = DocMeta(**{
             'paper_id': '1234.56789',
             'comments_utf8': 'comments!'
-        }
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.comments, 'comments!')
