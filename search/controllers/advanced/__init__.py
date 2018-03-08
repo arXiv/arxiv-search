@@ -148,18 +148,22 @@ def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
     ]
     for field, group in groups:
         if data.get(field):
+            # Fix for these typing issues is coming soon!
+            #  See: https://github.com/python/mypy/pull/4397
             q.primary_classification.append(
-                Classification(group=group, archive=group)
+                Classification(group=group, archive=group)  # type: ignore
             )
     if data.get('physics') and 'physics_archives' in data:
         if 'all' in data['physics_archives']:
             q.primary_classification.append(
-                Classification(group='physics')
+                Classification(group='physics')  # type: ignore
             )
         else:
             q.primary_classification.append(
-                Classification(group='physics',
-                               archive=data['physics_archives'])
+                Classification(     # type: ignore
+                    group='physics',
+                    archive=data['physics_archives']
+                )
             )
     return q
 
@@ -179,14 +183,16 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         return q
     elif filter_by == 'past_12':
         one_year_ago = date.today() - relativedelta(months=12)
-        q.date_range = DateRange(
+        # Fix for these typing issues is coming soon!
+        #  See: https://github.com/python/mypy/pull/4397
+        q.date_range = DateRange(   # type: ignore
             start_date=datetime(year=one_year_ago.year,
                                 month=one_year_ago.month,
                                 day=1, hour=0, minute=0, second=0,
                                 tzinfo=EASTERN)
         )
     elif filter_by == 'specific_year':
-        q.date_range = DateRange(
+        q.date_range = DateRange(   # type: ignore
             start_date=datetime(year=date_data['year'].year, month=1, day=1,
                                 hour=0, minute=0, second=0, tzinfo=EASTERN),
             end_date=datetime(year=date_data['year'].year + 1, month=1, day=1,
@@ -204,7 +210,7 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
                 datetime.min.time(),
                 tzinfo=EASTERN)
 
-        q.date_range = DateRange(
+        q.date_range = DateRange(   # type: ignore
             start_date=date_data['from_date'],
             end_date=date_data['to_date'],
         )

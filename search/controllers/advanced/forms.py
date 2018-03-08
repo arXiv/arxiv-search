@@ -90,7 +90,7 @@ class DateForm(Form):
                           validators=[validators.Optional(), yearInBounds])
     to_date = DateField('to', validators=[validators.Optional(), yearInBounds])
 
-    def validate_filter_by(self, field) -> None:
+    def validate_filter_by(self, field: RadioField) -> None:
         """Ensure that related fields are filled."""
         if field.data == 'specific_year' and not self.data.get('year'):
             raise ValidationError('Please select a year')

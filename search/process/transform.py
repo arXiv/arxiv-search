@@ -20,7 +20,7 @@ def _constructLicense(meta: DocMeta) -> dict:
     return meta.license
 
 
-def _strip_punctuation(s):
+def _strip_punctuation(s: str) -> str:
     return ''.join([c for c in s if c not in punctuation])
 
 
@@ -31,14 +31,14 @@ def _constructPaperVersion(meta: DocMeta) -> str:
     return '%sv%i' % (meta.paper_id, meta.version)
 
 
-def _constructMSCClass(meta: DocMeta) -> list:
+def _constructMSCClass(meta: DocMeta) -> Optional[list]:
     """Extract ``msc_class`` field as an array."""
     if not meta.msc_class:
         return None
     return [obj.strip() for obj in meta.msc_class.split(',')]
 
 
-def _constructACMClass(meta: DocMeta) -> list:
+def _constructACMClass(meta: DocMeta) -> Optional[list]:
     """Extract ``acm_class`` field as an array."""
     if not meta.acm_class:
         return None

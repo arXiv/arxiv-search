@@ -463,6 +463,8 @@ class SearchSession(object):
 
         """
         logger.debug('create ES index "%s"', self.index)
+        if not self.mapping or type(self.mapping) is not str:
+            raise IndexingError('Mapping not set')
         try:
             with open(self.mapping) as f:
                 mappings = json.load(f)
@@ -767,9 +769,9 @@ def cluster_available() -> bool:
 
 
 @wraps(SearchSession.create_index)
-def create_index() -> bool:
+def create_index() -> None:
     """Create the search index."""
-    return current_session().create_index()
+    current_session().create_index()
 
 
 def ok() -> bool:

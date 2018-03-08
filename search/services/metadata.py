@@ -80,7 +80,7 @@ class DocMetaSession(object):
         self._endpoints = cycle(endpoints)
 
     @property
-    def endpoint(self):
+    def endpoint(self) -> str:
         """Get a metadata endpoint."""
         logger.debug('get next endpoint')
         return self._endpoints.__next__()

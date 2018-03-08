@@ -63,9 +63,9 @@ def search(request_params: dict) -> Response:
     if 'query' in request_params:
         try:
             # first check if the URL includes an arXiv ID
-            arxiv_id = parse_arxiv_id(request_params['query'])
+            arxiv_id: Optional[str] = parse_arxiv_id(request_params['query'])
             # If so, redirect.
-            logger.debug(arxiv_id)
+            logger.debug(f"got arXiv ID: {arxiv_id}")
         except ValueError as e:
             logger.debug('No arXiv ID detected; fall back to form')
             arxiv_id = None

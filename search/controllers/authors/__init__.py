@@ -124,8 +124,10 @@ def _query_from_form(form: AuthorSearchForm) -> AuthorQuery:
     -------
     :class:`.AuthorQuery`
     """
-    q = AuthorQuery(authors=AuthorList([
-        Author(
+    # Fix for these typing issues is coming soon!
+    #  See: https://github.com/python/mypy/pull/4397
+    q = AuthorQuery(authors=AuthorList([    # type: ignore
+        Author(     # type: ignore
             forename=author['forename'],
             surname=author['surname'],
             fullname=author['fullname']
