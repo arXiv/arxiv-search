@@ -1,5 +1,5 @@
-search\.controllers package
-===========================
+search.controllers package
+==========================
 
 .. automodule:: search.controllers
     :members:
@@ -18,8 +18,8 @@ Subpackages
 Submodules
 ----------
 
-search\.controllers\.util module
---------------------------------
+search.controllers.util module
+------------------------------
 
 .. automodule:: search.controllers.util
     :members:

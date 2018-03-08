@@ -1,4 +1,11 @@
-"""Controller for advanced search."""
+"""
+Handle requests to support the advanced search feature.
+
+The primary entrypoint to this module is :func:`.search`, which handles
+GET requests to the author search endpoint. It uses
+:class:`.AdvancedSearchForm` to generate form HTML, validate request
+parameters, and produce informative error messages for the user.
+"""
 
 from typing import Tuple, Dict, Any, Optional
 
@@ -12,10 +19,11 @@ from arxiv import status
 
 from search.exceptions import InternalServerError
 from search.services import index, fulltext, metadata
-from search.process import query
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
     Classification, FieldedSearchList, ClassificationList, Query, asdict
 from search import logging
+from search.controllers.util import paginate
+
 from . import forms
 
 logger = logging.getLogger(__name__)
@@ -49,8 +57,7 @@ def search(request_params: MultiDict) -> Response:
     ------
     InternalServerError
         Raised when there is an unrecoverable error while interacting with the
-        search index. This should be handled in the base routes, to display a
-        "bug" error page to the user.
+        search index.
     """
     logger.debug('search request from advanced form')
     response_data: Dict[str, Any] = {}
@@ -68,7 +75,7 @@ def search(request_params: MultiDict) -> Response:
             q = _query_from_form(form)
 
             # Pagination is handled outside of the form.
-            q = query.paginate(q, request_params)
+            q = paginate(q, request_params)
             try:
                 # Execute the search. We'll use the results directly in
                 #  template rendering, so they get added directly to the

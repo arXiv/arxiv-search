@@ -68,14 +68,6 @@ class FulltextSession(object):
         return Fulltext(**data)     # type: ignore
         # See https://github.com/python/mypy/issues/3937
 
-    def ok(self) -> bool:
-        """Health check."""
-        try:
-            return requests.head(self.endpoint).ok
-        except IOError:
-            pass
-        return False
-
 
 def init_app(app: object = None) -> None:
     """Set default configuration parameters for an application instance."""
@@ -106,9 +98,3 @@ def current_session() -> FulltextSession:
 def retrieve(document_id: str) -> Fulltext:
     """Retrieve an arxiv document by id."""
     return current_session().retrieve(document_id)
-
-
-@wraps(FulltextSession.ok)
-def ok() -> bool:
-    """Return a 200 OK."""
-    return current_session().ok()

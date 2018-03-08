@@ -2,7 +2,7 @@
 
 import json
 import os
-from typing import List, Any
+from typing import List, Any, Optional
 from search import logging
 from search.services import metadata, index
 from search.process import transform

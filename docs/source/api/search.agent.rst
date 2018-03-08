@@ -1,5 +1,5 @@
-search\.agent package
-=====================
+search.agent package
+====================
 
 .. automodule:: search.agent
     :members:
@@ -9,16 +9,16 @@ search\.agent package
 Submodules
 ----------
 
-search\.agent\.base module
---------------------------
+search.agent.base module
+------------------------
 
 .. automodule:: search.agent.base
     :members:
     :undoc-members:
     :show-inheritance:
 
-search\.agent\.consumer module
-------------------------------
+search.agent.consumer module
+----------------------------
 
 .. automodule:: search.agent.consumer
     :members:

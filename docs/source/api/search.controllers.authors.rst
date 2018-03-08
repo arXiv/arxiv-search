@@ -1,5 +1,5 @@
-search\.controllers\.authors package
-====================================
+search.controllers.authors package
+==================================
 
 .. automodule:: search.controllers.authors
     :members:
@@ -9,8 +9,8 @@ search\.controllers\.authors package
 Submodules
 ----------
 
-search\.controllers\.authors\.forms module
-------------------------------------------
+search.controllers.authors.forms module
+---------------------------------------
 
 .. automodule:: search.controllers.authors.forms
     :members:

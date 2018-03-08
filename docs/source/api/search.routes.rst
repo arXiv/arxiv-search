@@ -1,5 +1,5 @@
-search\.routes package
-======================
+search.routes package
+=====================
 
 .. automodule:: search.routes
     :members:
@@ -9,16 +9,8 @@ search\.routes package
 Submodules
 ----------
 
-search\.routes\.external\_api module
-------------------------------------
-
-.. automodule:: search.routes.external_api
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search\.routes\.ui module
--------------------------
+search.routes.ui module
+-----------------------
 
 .. automodule:: search.routes.ui
     :members:

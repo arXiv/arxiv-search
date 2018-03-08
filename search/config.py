@@ -6,10 +6,6 @@ Docstrings are from the `Flask configuration documentation
 """
 import os
 
-
-VERSION = '0.2'
-"""The application version, used to sign extracted references."""
-
 ON = 'yes'
 OFF = 'no'
 
@@ -42,55 +38,12 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'asdf1234')
 the secret key
 """
 
-SESSION_COOKIE_NAME = os.environ.get('SESSION_COOKIE_NAME', 'references')
-"""
-the name of the session cookie
-"""
-
-SESSION_COOKIE_DOMAIN = os.environ.get('SESSION_COOKIE_DOMAIN', None)
-"""
-the domain for the session cookie. If this is not set, the cookie will be valid
-for all subdomains of SERVER_NAME.
-"""
-
-SESSION_COOKIE_PATH = os.environ.get('SESSION_COOKIE_PATH', None)
-"""
-the path for the session cookie. If this is not set the cookie will be valid
-for all of APPLICATION_ROOT or if that is not set for '/'.
-"""
-
-SESSION_COOKIE_HTTPONLY = os.environ.get('SESSION_COOKIE_HTTPONLY') != OFF
-"""
-controls if the cookie should be set with the httponly flag. Defaults to True.
-"""
-
-SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE') == ON
-"""
-controls if the cookie should be set with the secure flag. Defaults to False.
-"""
-
-PERMANENT_SESSION_LIFETIME = \
-    int(os.environ.get('PERMANENT_SESSION_LIFETIME', '3600'))
-"""
-the lifetime of a permanent session as datetime.timedelta object. Starting with
-Flask 0.8 this can also be an integer representing seconds.
-"""
-
-SESSION_REFRESH_EACH_REQUEST = \
-    os.environ.get('SESSION_REFRESH_EACH_REQUEST') != OFF
-"""
-this flag controls how permanent sessions are refreshed. If set to True (which
-is the default) then the cookie is refreshed each request which automatically
-bumps the lifetime. If set to False a set-cookie header is only sent if the
-session is modified. Non permanent sessions are not affected by this.
-"""
-
 USE_X_SENDFILE = os.environ.get('USE_X_SENDFILE') == ON
 """
 enable/disable x-sendfile
 """
 
-LOGGER_NAME = os.environ.get('LOGGER_NAME', 'references')
+LOGGER_NAME = os.environ.get('LOGGER_NAME', 'search')
 """
 the name of the logger
 """
@@ -103,7 +56,7 @@ logging in debug mode, 'production' will only log in production and 'never'
 disables it entirely.
 """
 
-SERVER_NAME = os.environ.get('REFLINK_SERVER_NAME', None)
+SERVER_NAME = os.environ.get('SEARCH_SERVER_NAME', None)
 """
 the name and port number of the server. Required for subdomain support
 (e.g.: 'myapp.dev:5000') Note that localhost does not support subdomains so
@@ -207,15 +160,13 @@ AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', 'nope')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', 'nope')
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
-INSTANCE_CREDENTIALS = os.environ.get('INSTANCE_CREDENTIALS', 'true')
-CREDENTIALS_ROLE = os.environ.get('CREDENTIALS_ROLE', 'arxiv-search')
-CREDENTIALS_URL = os.environ.get(
-    'CREDENTIALS_URL',
-    'http://169.254.169.254/latest/meta-data/iam/security-credentials'
-)
-
 LOGFILE = os.environ.get('LOGFILE')
-LOGLEVEL = os.environ.get('LOGLEVEL', 20)
+LOGLEVEL = os.environ.get('LOGLEVEL', 40)
+"""
+Log level for search service.
+
+See `<https://docs.python.org/3/library/logging.html#logging-levels>`_ .
+"""
 
 ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_SERVICE_HOST', 'localhost')
 ELASTICSEARCH_PORT = os.environ.get('ELASTICSEARCH_SERVICE_PORT', '9200')
@@ -226,10 +177,16 @@ ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'arxiv')
 ELASTICSEARCH_USER = os.environ.get('ELASTICSEARCH_USER', None)
 ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD', None)
 
-
 METADATA_ENDPOINT = os.environ.get('METADATA_ENDPOINT',
                                    'https://arxiv.org/docmeta/')
+"""
+Location of endpoint(s) for metadata retrieval.
+
+Multiple endpoints may be provided with comma delimitation.
+"""
+
 METADATA_VERIFY_CERT = os.environ.get('METADATA_VERIFY_CERT', 'True')
+"""If ``False``, SSL certificate verification will be disabled."""
 
 FULLTEXT_ENDPOINT = os.environ.get('FULLTEXT_ENDPOINT',
                                    'https://fulltext.arxiv.org/fulltext/')

@@ -1,12 +1,11 @@
-"""wtforms representations for a simple search."""
+"""Provides form rendering and validation for the simple search feature."""
 
 from datetime import date
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
-    FormField, SelectMultipleField, DateField, ValidationError, FieldList
-
+    FormField, SelectMultipleField, DateField, ValidationError, FieldList, \
+    widgets
 from wtforms.fields import HiddenField
-from wtforms import widgets
 
 from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
 
