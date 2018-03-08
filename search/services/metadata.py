@@ -130,18 +130,6 @@ class DocMetaSession(object):
         logger.debug(f'{document_id}: response decoded; done!')
         return data
 
-    def ok(self) -> bool:
-        """Health check."""
-        logger.debug('check health of metadata service at %s', self.endpoint)
-        try:
-            r = requests.head(self.endpoint, verify=self._verify_cert)
-            logger.debug('response from metadata endpoint:  %i: %s',
-                         r.status_code, r.content)
-            return r.ok
-        except IOError as e:
-            logger.error('IOError: %s', e)
-            return False
-
 
 def init_app(app: object = None) -> None:
     """Set default configuration parameters for an application instance."""
@@ -174,9 +162,3 @@ def current_session():
 def retrieve(document_id: str) -> DocMeta:
     """Retrieve an arxiv document by id."""
     return current_session().retrieve(document_id)
-
-
-@wraps(DocMetaSession.ok)
-def ok() -> bool:
-    """Return a 200 OK."""
-    return current_session().ok()

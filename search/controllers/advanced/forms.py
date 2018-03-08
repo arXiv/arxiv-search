@@ -1,4 +1,4 @@
-"""wtforms representations for an advanced search."""
+"""Provides form rendering and validation for the advanced search feature."""
 
 from datetime import date
 from typing import Callable, Optional

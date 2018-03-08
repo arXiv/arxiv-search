@@ -1,4 +1,11 @@
-"""Search controllers."""
+"""
+Handle requests to support the simple search feature.
+
+The primary entrypoint to this module is :func:`.search`, which handles
+GET requests to the base search endpoint. It uses :class:`.SimpleSearchForm`
+to generate form HTML, validate request parameters, and produce informative
+error messages for the user.
+"""
 
 from typing import Tuple, Dict, Any, Optional
 
@@ -20,14 +27,9 @@ logger = logging.getLogger(__name__)
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
 
-def health() -> Response:
-    """Check integrations."""
-    return {'index': index.ok()}, status.HTTP_200_OK, {}
-
-
 def search(request_params: dict) -> Response:
     """
-    Perform a simple search using a single parameter.
+    Perform a simple search.
 
     This supports requests from both the form-based view (provided here) AND
     from the mini search widget displayed on all arXiv.org pages.
@@ -47,6 +49,12 @@ def search(request_params: dict) -> Response:
         HTTP status code.
     dict
         Headers to add to the response.
+
+    Raises
+    ------
+    :class:`.InternalServerError`
+        Raised when there is a problem communicating with ES, or there was an
+        unexpected problem executing the query.
     """
     logger.debug('simple search form')
     response_data = {}  # type: Dict[str, Any]

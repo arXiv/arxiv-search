@@ -702,12 +702,3 @@ def bulk_add_documents(documents: List[Document]) -> None:
 def get_document(document_id: int) -> Document:
     """Retrieve arxiv document by id."""
     return current_session().get_document(document_id)
-
-
-def ok() -> bool:
-    """Health check."""
-    try:
-        current_session()
-    except Exception:    # TODO: be more specific.
-        return False
-    return True

@@ -1,4 +1,11 @@
-"""Controllers for author search."""
+"""
+Handle requests to support the author name search feature.
+
+The primary entrypoint to this module is :func:`.search`, which handles
+GET requests to the author search endpoint. It uses :class:`.AuthorSearchForm`
+to generate form HTML, validate request parameters, and produce informative
+error messages for the user.
+"""
 
 from typing import Tuple, Dict, Any, Optional
 
@@ -40,6 +47,12 @@ def search(request_params: dict) -> Response:
         HTTP status code.
     dict
         Extra headers to add to the response.
+
+    Raises
+    ------
+    :class:`.InternalServerError`
+        Raised when there is a problem communicating with ES, or there was an
+        unexpected problem executing the query.
     """
     logger.debug('search request from advanced form')
     response_data = {}

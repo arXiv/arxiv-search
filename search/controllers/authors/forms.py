@@ -1,4 +1,4 @@
-"""wtforms representations for an author."""
+"""Provides form rendering and validation for the author name search feature."""
 
 from datetime import date
 
