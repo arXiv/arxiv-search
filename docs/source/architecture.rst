@@ -37,7 +37,7 @@ Key Requirements
 
 - UI: The overall flavor of the search views should be substantially
   similar to the classic views, but with styling improvements that improve
-  readability/usability.
+  readability, usability, and accessibility.
 
 Quality Goals
 =============
@@ -54,7 +54,7 @@ Quality Goals
   - Error rate: parity with classic search.
   - Request rate: support request volume of existing search * safety factor 3.
 
-- Meet or exceed WCAG 2.0 level A for accessibility.
+- Accessibility: meet or exceed WCAG 2.0 level A for accessibility.
 
 Constraints
 ===========

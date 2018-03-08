@@ -1,11 +1,27 @@
-"""Integration with search index."""
+"""
+Provides integration with an ElasticSearch cluster.
+
+The primary entrypoint to this module is :func:`.search`, which handles
+:class:`search.domain.Query` instances passed by controllers, and returns a
+:class:`.DocumentSet` containing search results. :func:`.get_document` is
+available for future use, e.g. as part of a search API.
+
+In addition, :func:`.add_document` and :func:`.bulk_add_documents` are provided
+for indexing (e.g. by the
+:mod:`search.agent.consumer.MetadataRecordProcessor`).
+
+:class:`.SearchSession` encapsulates configuration parameters and a connection
+to the Elasticsearch cluster for thread-safety. The functions mentioned above
+load the appropriate instance of :class:`.SearchSession` depending on the
+context of the request.
+"""
 
 import re
 import json
 import urllib3
 from math import floor
 from datetime import datetime
-from typing import Tuple, List
+from typing import Any, Optional, Tuple, Union, List
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError, helpers
@@ -14,15 +30,22 @@ from elasticsearch.helpers import BulkIndexError
 
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
+from elasticsearch_dsl.response import Response
 
 from search.context import get_application_config, get_application_global
 from search import logging
 from search.domain import Document, DocumentSet, Query, DateRange, \
-    Classification, AdvancedQuery, SimpleQuery, AuthorQuery, Author
+    Classification, AdvancedQuery, SimpleQuery, AuthorQuery, Author, asdict
 
 logger = logging.getLogger(__name__)
 
+# TODO: make this configurable.
 MAX_RESULTS = 10_000
+"""This is the maximum result offset for pagination."""
+
+# We'll compile this ahead of time, since it gets called quite a lot.
+STRING_LITERAL = re.compile(r"(['\"][^'\"]*['\"])")
+"""Pattern for string literals (quoted) in search queries."""
 
 
 class MappingError(ValueError):
@@ -52,10 +75,6 @@ class DocumentNotFound(RuntimeError):
 
 class OutsideAllowedRange(RuntimeError):
     """A page outside of the allowed range has been requested."""
-
-
-# We'll compile this ahead of time, since it gets called quite a lot.
-STRING_LITERAL = re.compile(r"(['\"][^'\"]*['\"])")
 
 
 def _wildcardEscape(querystring: str) -> Tuple[str, bool]:
@@ -107,8 +126,9 @@ class SearchSession(object):
     # use SSL. Presumably we will use HTTP Auth, or something else.
 
     def __init__(self, host: str, index: str, port: int=9200,
-                 scheme: str='http', user: str=None, password: str=None,
-                 mapping: str=None, **extra) -> None:
+                 scheme: str='http', user: Optional[str]=None,
+                 password: Optional[str]=None, mapping: Optional[str]=None,
+                 **extra: Any) -> None:
         """
         Initialize the connection to Elasticsearch.
 
@@ -150,14 +170,15 @@ class SearchSession(object):
                 'Could not initialize ES session: %s' % e
             ) from e
 
+    # TODO: Verify type of `SearchSession._get_operator(obj)`
     @staticmethod
-    def _get_operator(obj):
-        if isinstance(obj, tuple):
+    def _get_operator(obj: Any) -> str:
+        if type(obj) is tuple:
             return SearchSession._get_operator(obj[0])
-        return obj.operator
+        return obj.operator     # type: ignore
 
     @staticmethod
-    def _group_terms(query: Query) -> tuple:
+    def _group_terms(query: AdvancedQuery) -> tuple:
         """Group fielded search terms into a set of nested tuples."""
         terms = query.terms[:]
         for operator in ['NOT', 'AND', 'OR']:
@@ -169,7 +190,7 @@ class SearchSession(object):
                     i -= 1
                 i += 1
         assert len(terms) == 1
-        return terms[0]
+        return terms[0]     # type: ignore
 
     @staticmethod
     def _field_term_to_q(field: str, term: str) -> Q:
@@ -226,19 +247,21 @@ class SearchSession(object):
         return _Q("match", field, term)
 
     @staticmethod
-    def _grouped_terms_to_q(term_pair: tuple) -> Bool:
+    def _grouped_terms_to_q(term_pair: tuple) -> Q:
         """Generate a :class:`.Q` from grouped terms."""
-        term_a, operator, term_b = term_pair
+        term_a_raw, operator, term_b_raw = term_pair
 
-        if isinstance(term_a, tuple):
-            term_a = SearchSession._grouped_terms_to_q(term_a)
+        if type(term_a_raw) is tuple:
+            term_a = SearchSession._grouped_terms_to_q(term_a_raw)
         else:
-            term_a = SearchSession._field_term_to_q(term_a.field, term_a.term)
+            term_a = SearchSession._field_term_to_q(term_a_raw.field,
+                                                    term_a_raw.term)
 
-        if isinstance(term_b, tuple):
-            term_b = SearchSession._grouped_terms_to_q(term_b)
+        if type(term_b_raw) is tuple:
+            term_b = SearchSession._grouped_terms_to_q(term_b_raw)
         else:
-            term_b = SearchSession._field_term_to_q(term_b.field, term_b.term)
+            term_b = SearchSession._field_term_to_q(term_b_raw.field,
+                                                    term_b_raw.term)
 
         if operator == 'OR':
             return term_a | term_b
@@ -247,11 +270,11 @@ class SearchSession(object):
         elif operator == 'NOT':
             return term_a & ~term_b
         else:
-            # TODO: Discuss whether to throw an exception.
-            return None
+            # TODO: Confirm proper exception.
+            raise TypeError("Invalid operator for terms")
 
     @staticmethod
-    def _daterange_to_q(query: Query) -> Range:
+    def _daterange_to_q(query: AdvancedQuery) -> Range:
         if not query.date_range:
             return Q()
         params = {}
@@ -264,7 +287,7 @@ class SearchSession(object):
         return Q('range', submitted_date=params)
 
     @classmethod
-    def _fielded_terms_to_q(cls, query: Query) -> Match:
+    def _fielded_terms_to_q(cls, query: AdvancedQuery) -> Match:
         if len(query.terms) == 1:
             term = query.terms[0]
             return SearchSession._field_term_to_q(term.field, term.term)
@@ -290,7 +313,7 @@ class SearchSession(object):
         return q    # Q('nested', path=field, query=q)
 
     @classmethod
-    def _classifications_to_q(cls, query: Query) -> Match:
+    def _classifications_to_q(cls, query: AdvancedQuery) -> Match:
         if not query.primary_classification:
             return Q()
         q = cls._classification_to_q('primary_classification',
@@ -440,6 +463,8 @@ class SearchSession(object):
 
         """
         logger.debug('create ES index "%s"', self.index)
+        if not self.mapping or type(self.mapping) is not str:
+            raise IndexingError('Mapping not set')
         try:
             with open(self.mapping) as f:
                 mappings = json.load(f)
@@ -464,23 +489,23 @@ class SearchSession(object):
         Uses ``paper_id_v`` as the primary identifier for the document. If the
         document is already indexed, will quietly overwrite.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         document : :class:`.Document`
             Must be a valid search document, per ``schema/Document.json``.
 
         Raises
         ------
-        IndexConnectionError
+        :class:`.IndexConnectionError`
             Problem communicating with Elasticsearch host.
-        QueryError
+        :class:`.QueryError`
             Problem serializing ``document`` for indexing.
 
         """
         if not self.es.indices.exists(index=self.index):
             self.create_index()
         try:
-            ident = document.get('id', document['paper_id'])
+            ident = document.id if document.id else document.paper_id
             logger.debug(f'{ident}: index document')
             self.es.index(index=self.index, doc_type='document',
                           id=ident, body=document)
@@ -523,8 +548,8 @@ class SearchSession(object):
             actions = ({
                 '_index': self.index,
                 '_type': 'document',
-                '_id': document.get('id', document['paper_id']),
-                '_source': document
+                '_id': document.id if document.id else document.paper_id,
+                '_source': asdict(document)
             } for document in documents)
 
             helpers.bulk(client=self.es, actions=actions,
@@ -585,7 +610,8 @@ class SearchSession(object):
         if not record:
             logger.error("No such document: %s", document_id)
             raise DocumentNotFound('No such document')
-        return Document(record['_source'])
+        return Document(**record['_source'])    # type: ignore
+        # See https://github.com/python/mypy/issues/3937
 
     def search(self, query: Query) -> DocumentSet:
         """
@@ -639,7 +665,7 @@ class SearchSession(object):
             logger.error(_message)
             raise OutsideAllowedRange(_message)
 
-        return DocumentSet({
+        return DocumentSet(**{  # type: ignore
             'metadata': {
                 'start': query.page_start,
                 'total': results['hits']['total'],
@@ -648,28 +674,31 @@ class SearchSession(object):
                 'page_size': query.page_size,
                 'max_pages': max_pages
             },
-            'results': list(map(self._transform, results))
+            'results': [self._transform(raw) for raw in results]
         })
+        # See https://github.com/python/mypy/issues/3937
 
-    def _transform(self, raw) -> Document:
+    def _transform(self, raw: Response) -> Document:
         """Transform an ES search result back into a :class:`.Document`."""
         # typing: ignore
         result = {}
-        for key in dir(raw):
+        for key in Document.fields():
+            if not hasattr(raw, key):
+                continue
             value = getattr(raw, key)
             if key in ['submitted_date', 'submitted_date_first',
                        'submitted_date_latest']:
                 try:
                     value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S%z')
-                except ValueError:
+                except (ValueError, TypeError):
                     logger.warning(
                         f'Could not parse {key}: {value} as datetime'
                     )
                     pass
             result[key] = value
-        # result = raw['_source']
         result['score'] = raw.meta.score
-        return Document(result)
+        return Document(**result)   # type: ignore
+        # See https://github.com/python/mypy/issues/3937
 
 
 def init_app(app: object = None) -> None:
@@ -683,6 +712,7 @@ def init_app(app: object = None) -> None:
     config.setdefault('ELASTICSEARCH_MAPPING', 'mappings/DocumentMapping.json')
 
 
+# TODO: consider making this private.
 def get_session(app: object = None) -> SearchSession:
     """Get a new session with the search index."""
     config = get_application_config(app)
@@ -697,14 +727,15 @@ def get_session(app: object = None) -> SearchSession:
     return SearchSession(host, index, port, scheme, user, password, mapping)
 
 
-def current_session():
+# TODO: consider making this private.
+def current_session() -> SearchSession:
     """Get/create :class:`.SearchSession` for this context."""
     g = get_application_global()
     if not g:
         return get_session()
     if 'search' not in g:
-        g.search = get_session()
-    return g.search
+        g.search = get_session()    #type: ignore
+    return g.search     # type: ignore
 
 
 @wraps(SearchSession.search)
@@ -738,9 +769,9 @@ def cluster_available() -> bool:
 
 
 @wraps(SearchSession.create_index)
-def create_index() -> bool:
+def create_index() -> None:
     """Create the search index."""
-    return current_session().create_index()
+    current_session().create_index()
 
 
 def ok() -> bool:

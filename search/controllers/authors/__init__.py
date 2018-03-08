@@ -1,4 +1,11 @@
-"""Controllers for author search."""
+"""
+Handle requests to support the author name search feature.
+
+The primary entrypoint to this module is :func:`.search`, which handles
+GET requests to the author search endpoint. It uses :class:`.AuthorSearchForm`
+to generate form HTML, validate request parameters, and produce informative
+error messages for the user.
+"""
 
 from typing import Tuple, Dict, Any, Optional
 
@@ -7,13 +14,11 @@ from werkzeug.exceptions import InternalServerError
 from arxiv import status
 from search import logging
 
-from search.process import query
 from search.services import index, fulltext, metadata
 from search.util import parse_arxiv_id
-from search.domain import AuthorQuery, Author, AuthorList, Query
-
+from search.domain import AuthorQuery, Author, AuthorList, Query, asdict
+from search.controllers.util import paginate
 from .forms import AuthorSearchForm
-# from search.routes.ui import external_url_builder
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +45,12 @@ def search(request_params: dict) -> Response:
         HTTP status code.
     dict
         Extra headers to add to the response.
+
+    Raises
+    ------
+    :class:`.InternalServerError`
+        Raised when there is a problem communicating with ES, or there was an
+        unexpected problem executing the query.
     """
     logger.debug('search request from advanced form')
     response_data = {}
@@ -64,12 +75,12 @@ def search(request_params: dict) -> Response:
             q = _query_from_form(form)
 
             # Pagination is handled outside of the form.
-            q = query.paginate(q, request_params)
+            q = paginate(q, request_params)
             try:
                 # Execute the search. We'll use the results directly in
                 #  template rendering, so they get added directly to the
                 #  response content.
-                response_data.update(index.search(q))
+                response_data.update(asdict(index.search(q)))
             except index.IndexConnectionError as e:
                 # There was a (hopefully transient) connection problem. Either
                 #  this will clear up relatively quickly (next request), or
@@ -113,8 +124,10 @@ def _query_from_form(form: AuthorSearchForm) -> AuthorQuery:
     -------
     :class:`.AuthorQuery`
     """
-    q = AuthorQuery(authors=AuthorList([
-        Author(
+    # Fix for these typing issues is coming soon!
+    #  See: https://github.com/python/mypy/pull/4397
+    q = AuthorQuery(authors=AuthorList([    # type: ignore
+        Author(     # type: ignore
             forename=author['forename'],
             surname=author['surname'],
             fullname=author['fullname']

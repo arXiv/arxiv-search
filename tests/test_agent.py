@@ -23,7 +23,7 @@ class TestIndexPaper(TestCase):
     def test_paper_has_one_version(self, mock_meta, mock_tx, mock_idx):
         """The arXiv paper has only one version."""
         mock_docmeta = DocMeta(version=1, paper_id='1234.56789', title='foo',
-                               created='2001-03-02T03:04:05-400')
+                               submitted_date='2001-03-02T03:04:05-400')
         mock_meta.retrieve.return_value = mock_docmeta
         mock_doc = Document(version=1, paper_id='1234.56789', title='foo',
                             submitted_date=['2001-03-02T03:04:05-400'])
@@ -33,24 +33,17 @@ class TestIndexPaper(TestCase):
 
         mock_idx.bulk_add_documents.assert_called_once_with([mock_doc])
 
-        # indexed = mock_idx.bulk_add_documents.call_args[0][0]
-        # self.assertTrue(indexed.is_current,
-        #                 "Should be flagged as the most recent version")
-        # self.assertEqual(len(indexed.submitted_date), 1,
-        #                  "Only the submission date of the current version"
-        #                  " should be included")
-
     @mock.patch('search.agent.consumer.index')
     @mock.patch('search.agent.consumer.transform')
     @mock.patch('search.agent.consumer.metadata')
     def test_paper_has_three_versions(self, mock_meta, mock_tx, mock_idx):
         """The arXiv paper has three versions."""
         mock_dm_1 = DocMeta(version=1, paper_id='1234.56789', title='foo',
-                            created='2001-03-02T03:04:05-400')
+                            submitted_date='2001-03-02T03:04:05-400')
         mock_dm_2 = DocMeta(version=2, paper_id='1234.56789', title='foo',
-                            created='2001-03-03T03:04:05-400')
+                            submitted_date='2001-03-03T03:04:05-400')
         mock_dm_3 = DocMeta(version=3, paper_id='1234.56789', title='foo',
-                            created='2001-03-04T03:04:05-400')
+                            submitted_date='2001-03-04T03:04:05-400')
         mock_meta.retrieve.side_effect = [mock_dm_3, mock_dm_1, mock_dm_2]
         mock_doc_1 = Document(version=1, paper_id='1234.56789', title='foo',
                               submitted_date=['2001-03-02T03:04:05-400'],
@@ -154,17 +147,6 @@ class TestTransformToDocument(TestCase):
     def setUp(self):
         """Initialize a :class:`.MetadataRecordProcessor`."""
         self.processor = consumer.MetadataRecordProcessor()
-
-    @mock.patch('search.agent.consumer.transform')
-    def test_transform_returns_document(self, mock_transform):
-        """The transform module returns a :class:`.Document`."""
-        document = Document()
-        mock_transform.to_search_document.return_value = document
-        self.assertEqual(
-            self.processor._transform_to_document(DocMeta()),
-            document,
-            "The search document is returned."
-        )
 
     @mock.patch('search.agent.consumer.transform')
     def test_transform_raises_exception(self, mock_transform):

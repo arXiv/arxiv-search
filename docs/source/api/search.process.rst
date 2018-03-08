@@ -1,5 +1,5 @@
-search\.process package
-=======================
+search.process package
+======================
 
 .. automodule:: search.process
     :members:
@@ -9,16 +9,16 @@ search\.process package
 Submodules
 ----------
 
-search\.process\.query module
------------------------------
+search.process.query module
+---------------------------
 
 .. automodule:: search.process.query
     :members:
     :undoc-members:
     :show-inheritance:
 
-search\.process\.transform module
----------------------------------
+search.process.transform module
+-------------------------------
 
 .. automodule:: search.process.transform
     :members:

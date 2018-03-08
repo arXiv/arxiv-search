@@ -36,8 +36,7 @@ class TestSearch(TestCase):
         mock_Search.__getitem__.return_value = mock_Search
 
         query = AdvancedQuery(
-            raw_query='fooquery',
-            order='',
+            order='relevance',
             page_size=10,
             date_range=DateRange(
                 start_date=datetime.now() - timedelta(days=5),
@@ -73,12 +72,12 @@ class TestSearch(TestCase):
         )
         document_set = index.search(query)
         self.assertIsInstance(document_set, DocumentSet)
-        self.assertEqual(document_set['metadata']['start'], 0)
-        self.assertEqual(document_set['metadata']['total'], 53)
-        self.assertEqual(document_set['metadata']['current_page'], 1)
-        self.assertEqual(document_set['metadata']['total_pages'], 6)
-        self.assertEqual(document_set['metadata']['page_size'], 10)
-        self.assertEqual(len(document_set['results']), 1)
+        self.assertEqual(document_set.metadata['start'], 0)
+        self.assertEqual(document_set.metadata['total'], 53)
+        self.assertEqual(document_set.metadata['current_page'], 1)
+        self.assertEqual(document_set.metadata['total_pages'], 6)
+        self.assertEqual(document_set.metadata['page_size'], 10)
+        self.assertEqual(len(document_set.results), 1)
 
     @mock.patch('search.services.index.Search')
     @mock.patch('search.services.index.Elasticsearch')
@@ -99,19 +98,18 @@ class TestSearch(TestCase):
         mock_Search.__getitem__.return_value = mock_Search
 
         query = AuthorQuery(
-            raw_query='fooquery',
             order='',
             page_size=10,
             authors=AuthorList([Author(forename="Bob", surname="Dole")])
         )
         document_set = index.search(query)
         self.assertIsInstance(document_set, DocumentSet)
-        self.assertEqual(document_set['metadata']['start'], 0)
-        self.assertEqual(document_set['metadata']['total'], 53)
-        self.assertEqual(document_set['metadata']['current_page'], 1)
-        self.assertEqual(document_set['metadata']['total_pages'], 6)
-        self.assertEqual(document_set['metadata']['page_size'], 10)
-        self.assertEqual(len(document_set['results']), 1)
+        self.assertEqual(document_set.metadata['start'], 0)
+        self.assertEqual(document_set.metadata['total'], 53)
+        self.assertEqual(document_set.metadata['current_page'], 1)
+        self.assertEqual(document_set.metadata['total_pages'], 6)
+        self.assertEqual(document_set.metadata['page_size'], 10)
+        self.assertEqual(len(document_set.results), 1)
 
     @mock.patch('search.services.index.Search')
     @mock.patch('search.services.index.Elasticsearch')
@@ -132,20 +130,19 @@ class TestSearch(TestCase):
         mock_Search.__getitem__.return_value = mock_Search
 
         query = SimpleQuery(
-            raw_query='fooquery',
-            order='',
+            order='relevance',
             page_size=10,
             field='title',
             value='foo title'
         )
         document_set = index.search(query)
         self.assertIsInstance(document_set, DocumentSet)
-        self.assertEqual(document_set['metadata']['start'], 0)
-        self.assertEqual(document_set['metadata']['total'], 53)
-        self.assertEqual(document_set['metadata']['current_page'], 1)
-        self.assertEqual(document_set['metadata']['total_pages'], 6)
-        self.assertEqual(document_set['metadata']['page_size'], 10)
-        self.assertEqual(len(document_set['results']), 1)
+        self.assertEqual(document_set.metadata['start'], 0)
+        self.assertEqual(document_set.metadata['total'], 53)
+        self.assertEqual(document_set.metadata['current_page'], 1)
+        self.assertEqual(document_set.metadata['total_pages'], 6)
+        self.assertEqual(document_set.metadata['page_size'], 10)
+        self.assertEqual(len(document_set.results), 1)
 
 
 class TestWildcardSearch(TestCase):
@@ -255,18 +252,14 @@ class TestPrepare(TestCase):
         """Get a :class:`.index.SearchSession` instance."""
         self.session = index.current_session()
 
-    def test_to_es_dsl_returns_a_search(self):
-        """Return a :class:`.Search`."""
-        self.assertIsInstance(self.session._prepare(AdvancedQuery()), Search)
-
     def test_group_terms(self):
         """:meth:`._group_terms` groups terms using logical precedence."""
-        query = AdvancedQuery({'terms': FieldedSearchList([
+        query = AdvancedQuery(terms=FieldedSearchList([
             FieldedSearchTerm(operator=None, field='title', term='muon'),
             FieldedSearchTerm(operator='OR', field='title', term='gluon'),
             FieldedSearchTerm(operator='NOT', field='title', term='foo'),
             FieldedSearchTerm(operator='AND', field='title', term='boson'),
-        ])})
+        ]))
         expected = (
             FieldedSearchTerm(operator=None, field='title', term='muon'),
             'OR',
@@ -288,11 +281,11 @@ class TestPrepare(TestCase):
 
     def test_group_terms_all_and(self):
         """:meth:`._group_terms` groups terms using logical precedence."""
-        query = AdvancedQuery({'terms': FieldedSearchList([
+        query = AdvancedQuery(terms=FieldedSearchList([
             FieldedSearchTerm(operator=None, field='title', term='muon'),
             FieldedSearchTerm(operator='AND', field='title', term='gluon'),
             FieldedSearchTerm(operator='AND', field='title', term='foo'),
-        ])})
+        ]))
         expected = (
             (
               FieldedSearchTerm(operator=None, field='title', term='muon'),
@@ -307,40 +300,3 @@ class TestPrepare(TestCase):
         except AssertionError:
             self.fail('Should result in a single group')
         self.assertEqual(expected, terms)
-
-    def test_daterange_to_q(self):
-        """:meth:`._daterange_to_q` builds a Range from :class:`.DateRange`."""
-        query = AdvancedQuery({
-            'date_range': DateRange({
-                'start_date': datetime(year=1996, month=2, day=5,
-                                       hour=0, minute=0, second=0,
-                                       tzinfo=EASTERN),
-                'end_date': datetime(year=1996, month=3, day=5,
-                                     hour=0, minute=0, second=0,
-                                     tzinfo=EASTERN),
-            })
-        })
-        q = self.session._daterange_to_q(query)
-        self.assertIsInstance(q, Range)
-        expected = Range(submitted_date={
-            'gte': '1996-02-05T00:00:00-0456',
-            'lt': '1996-03-05T00:00:00-0456'
-        })
-        self.assertEqual(q, expected)
-
-    def test_classifications_to_q(self):
-        query = AdvancedQuery({
-            'primary_classification': [Classification({
-                'group': 'physics',
-                'archive': 'physics',
-                'category': 'astro-ph'
-            })]
-        })
-        q = self.session._classifications_to_q(query)
-        self.assertIsInstance(q, Bool)
-        expected = Bool(must=[
-            Match(primary_classification__group__id='physics'),
-            Match(primary_classification__archive__id='physics'),
-            Match(primary_classification__category__id='astro-ph')
-        ])
-        self.assertEqual(q, expected)

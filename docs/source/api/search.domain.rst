@@ -1,5 +1,5 @@
-search\.domain package
-======================
+search.domain package
+=====================
 
 .. automodule:: search.domain
     :members:
@@ -9,24 +9,24 @@ search\.domain package
 Submodules
 ----------
 
-search\.domain\.advanced module
--------------------------------
+search.domain.advanced module
+-----------------------------
 
 .. automodule:: search.domain.advanced
     :members:
     :undoc-members:
     :show-inheritance:
 
-search\.domain\.author module
------------------------------
+search.domain.author module
+---------------------------
 
 .. automodule:: search.domain.author
     :members:
     :undoc-members:
     :show-inheritance:
 
-search\.domain\.base module
----------------------------
+search.domain.base module
+-------------------------
 
 .. automodule:: search.domain.base
     :members:

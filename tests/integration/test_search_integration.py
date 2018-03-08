@@ -80,7 +80,6 @@ class TestSearchIntegration(TestCase):
         # And selected field to search is "All fields"
         # When a user performs a search...
         query = SimpleQuery(
-            raw_query='?searchtype=all&query=flux%20capacitor',
             order='',
             page_size=10,
             field='all',
@@ -89,8 +88,8 @@ class TestSearchIntegration(TestCase):
         document_set = index.search(query)
         # All entries contain a metadata field that contains either "flux"
         # or "capacitor".
-        self.assertEqual(len(document_set['results']), 3)
-        for item in document_set['results']:
+        self.assertEqual(len(document_set.results), 3)
+        for item in document_set.results:
             self.assertTrue("flux" in str(item) or "capacitor" in str(item),
                             "Should have a metadata field that contains either"
                             " 'flux' or 'capacitor'.")
@@ -101,67 +100,62 @@ class TestSearchIntegration(TestCase):
 
         # A search for a TeX expression should match similar metadata strings.
         query = SimpleQuery(
-            raw_query='?searchtype=all&query=λ',
             order='',
             page_size=10,
             field='all',
             value='λ'
         )
         document_set = index.search(query)
-        self.assertEqual(len(document_set['results']), 1)
-        self.assertEqual(document_set['results'][0]['id'], "1403.6219")
+        self.assertEqual(len(document_set.results), 1)
+        self.assertEqual(document_set.results[0].id, "1403.6219")
 
     def test_simple_search_for_texism(self):
         """Scenario: simple search for TeX terms."""
         query = SimpleQuery(
-            raw_query='?query=%24z_1%24&searchtype=all',
             order='',
             page_size=10,
             field='all',
             value='$z_1$'
         )
         document_set = index.search(query)
-        self.assertEqual(len(document_set['results']), 1)
-        self.assertEqual(document_set['results'][0]['id'], "1404.3450")
+        self.assertEqual(len(document_set.results), 1)
+        self.assertEqual(document_set.results[0].id, "1404.3450")
 
     def test_simple_search_for_texism2(self):
         """Scenario: simple search for TeX terms."""
         query = SimpleQuery(
-            raw_query='?query=%24%5Clambda%24&searchtype=all',
             order='',
             page_size=10,
             field='all',
             value='$\lambda$'
         )
         document_set = index.search(query)
-        self.assertEqual(len(document_set['results']), 2)
+        self.assertEqual(len(document_set.results), 2)
 
     def test_author_search_with_folding(self):
         """Scenario: searching for a surname."""
         query = AuthorQuery(
-            raw_query='?authors-0-surname=schröder&size=25',
             order='',
             page_size=10,
             authors=AuthorList([Author(surname="schröder")])
         )
         document_set = index.search(query)
-        self.assertEqual(len(document_set['results']), 2)
-        self.assertIn("1607.05107", [r['id'] for r in document_set['results']],
+        self.assertEqual(len(document_set.results), 2)
+        self.assertIn("1607.05107", [r.id for r in document_set.results],
                       "Schröder should match.")
-        self.assertIn("1509.08727", [r['id'] for r in document_set['results']],
+        self.assertIn("1509.08727", [r.id for r in document_set.results],
                       "Schroder should match.")
 
     def test_author_search_with_forename(self):
         """Scenario: searching with surname and forename."""
         query = AuthorQuery(
-            raw_query='',
             order='',
             page_size=10,
             authors=AuthorList([Author(surname="w", forename="w")])
         )
         document_set = index.search(query)
-        self.assertEqual(len(document_set['results']), 1)
-        _ids = [r['id'] for r in document_set['results']]
+        self.assertEqual(len(document_set.results), 1)
+        _ids = [r.id for r in document_set.results]
         self.assertIn("1708.07156", _ids, "Wissink B. W should match")
         self.assertNotIn("1401.1012", _ids, "Wonmin Son should not match.")
 
@@ -169,7 +163,6 @@ class TestSearchIntegration(TestCase):
         """Scenario: date range search."""
         search_year = 2015
         query = AdvancedQuery(
-            raw_query='',
             order='',
             page_size=10,
             date_range=DateRange(
@@ -178,9 +171,9 @@ class TestSearchIntegration(TestCase):
             )
         )
         document_set = index.search(query)
-        self.assertEqual(len(document_set['results']), 3,
+        self.assertEqual(len(document_set.results), 3,
                          "Should be three results from 2015.")
-        _ids = [r['paper_id_v'] for r in document_set['results']]
+        _ids = [r.paper_id_v for r in document_set.results]
         self.assertIn("1509.08727v1", _ids,
                       "Results should include older versions of papers.")
         self.assertIn("1408.6682v2", _ids)
@@ -189,7 +182,6 @@ class TestSearchIntegration(TestCase):
     def test_advanced_multiple_search_terms(self):
         """Scenario: multiple terms search success."""
         query = AdvancedQuery(
-            raw_query='',
             order='',
             page_size=10,
             terms=FieldedSearchList([
@@ -200,15 +192,14 @@ class TestSearchIntegration(TestCase):
             ])
         )
         document_set = index.search(query)
-        _ids = [r['id'] for r in document_set['results']]
-        self.assertEqual(len(document_set['results']), 2)
+        _ids = [r.id for r in document_set.results]
+        self.assertEqual(len(document_set.results), 2)
         self.assertIn("1607.05107", _ids, "Schröder should match.")
         self.assertIn("1509.08727", _ids, "Schroder should match.")
 
     def test_advanced_multiple_search_terms_fails(self):
         """Scenario: multiple terms with no results."""
         query = AdvancedQuery(
-            raw_query='',
             order='',
             page_size=10,
             terms=FieldedSearchList([
@@ -218,4 +209,4 @@ class TestSearchIntegration(TestCase):
             ])
         )
         document_set = index.search(query)
-        self.assertEqual(len(document_set['results']), 0)
+        self.assertEqual(len(document_set.results), 0)

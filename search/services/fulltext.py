@@ -65,15 +65,8 @@ class FulltextSession(object):
         except json.decoder.JSONDecodeError as e:
             raise IOError('%s: could not decode response: %s' %
                           (document_id, e)) from e
-        return Fulltext(data)
-
-    def ok(self) -> bool:
-        """Health check."""
-        try:
-            return requests.head(self.endpoint).ok
-        except IOError:
-            pass
-        return False
+        return Fulltext(**data)     # type: ignore
+        # See https://github.com/python/mypy/issues/3937
 
 
 def init_app(app: object = None) -> None:
@@ -91,23 +84,17 @@ def get_session(app: object = None) -> FulltextSession:
     return FulltextSession(endpoint)
 
 
-def current_session():
+def current_session() -> FulltextSession:
     """Get/create :class:`.FulltextSession` for this context."""
     g = get_application_global()
     if not g:
         return get_session()
     if 'fulltext' not in g:
-        g.fulltext = get_session()
-    return g.fulltext
+        g.fulltext = get_session() # type: ignore
+    return g.fulltext # type: ignore
 
 
 @wraps(FulltextSession.retrieve)
 def retrieve(document_id: str) -> Fulltext:
     """Retrieve an arxiv document by id."""
     return current_session().retrieve(document_id)
-
-
-@wraps(FulltextSession.ok)
-def ok() -> bool:
-    """Return a 200 OK."""
-    return current_session().ok()

@@ -31,23 +31,6 @@ class TestRetrieveExistantContent(unittest.TestCase):
         args, _ = mock_get.call_args
         self.assertTrue(args[0].startswith(base))
 
-    @mock.patch('search.services.fulltext.requests.get')
-    def test_returns_dict(self, mock_get):
-        """:func:`.fulltext.retrieve` returns a ``dict``."""
-        response = mock.MagicMock()
-        type(response).json = mock.MagicMock(return_value={
-            'content': 'The whole story',
-            'version': 0.1,
-            'created': '2017-08-30T08:24:58.525923'
-        })
-        response.status_code = 200
-        mock_get.return_value = response
-        try:
-            data = fulltext.retrieve('1234.5678v3')
-        except Exception as e:
-            self.fail('Choked on valid response: %s' % e)
-        self.assertIsInstance(data, dict)
-
 
 class TestRetrieveNonexistantRecord(unittest.TestCase):
     """Fulltext content is not available for a paper."""

@@ -1,16 +1,19 @@
 """Represents fielded search terms, with multiple operators."""
 
-from .base import Property, DateRange, Query, ClassificationList
+from .base import DateRange, Query, ClassificationList
+
+from dataclasses import dataclass, field
+from typing import NamedTuple, Optional
 
 
-class FieldedSearchTerm(dict):
+class FieldedSearchTerm(NamedTuple):
     """Represents a fielded search term."""
 
-    operator = Property('operator', str)
-    field = Property('field', str)
-    term = Property('term', str)
+    operator: str
+    field: str
+    term: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         return f'{self.operator} {self.field}={self.term}'
 
@@ -18,11 +21,12 @@ class FieldedSearchTerm(dict):
 class FieldedSearchList(list):
     """Represents a list of fielded search terms."""
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         return '; '.join([str(item) for item in self])
 
 
+@dataclass
 class AdvancedQuery(Query):
     """
     Represents an advanced query.
@@ -30,7 +34,6 @@ class AdvancedQuery(Query):
     An advanced query contains fielded search terms and boolean operators.
     """
 
-    date_range = Property('date_range', DateRange)
-    primary_classification = Property('primary_classification',
-                                      ClassificationList)
-    terms = Property('terms', FieldedSearchList, FieldedSearchList())
+    date_range: Optional[DateRange] = None
+    primary_classification: ClassificationList = field(default_factory=ClassificationList)
+    terms: FieldedSearchList = field(default_factory=FieldedSearchList)

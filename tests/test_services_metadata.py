@@ -74,23 +74,6 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
             self.fail('Did not call requests.get as expected: %s' % e)
         self.assertTrue(args[0].startswith(base[1]))
 
-    @mock.patch('search.services.metadata.requests.get')
-    def test_returns_dict(self, mock_get):
-        """:func:`.metadata.retrieve` returns a ``dict``."""
-        response = mock.MagicMock()
-        with open('tests/data/docmeta.json') as f:
-            mock_content = json.load(f)
-
-        type(response).json = mock.MagicMock(return_value=mock_content)
-        response.status_code = 200
-        mock_get.return_value = response
-
-        try:
-            data = metadata.retrieve('1602.00123')
-        except Exception as e:
-            self.fail('Choked on valid response: %s' % e)
-        self.assertIsInstance(data, dict)
-
 
 class TestRetrieveNonexistantRecord(unittest.TestCase):
     """Metadata is not available for a paper."""
