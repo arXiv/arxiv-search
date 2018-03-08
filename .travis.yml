@@ -8,8 +8,8 @@ os:
 python:
   - "3.6"
 script:
-  - pip install -r requirements.txt
-  - pip install nose2 coverage coveralls
+  - pip install -r requirements/prod.txt
+  - pip install -r requirements/test.txt
   - nose2 --with-coverage
 after_success:
   - pip install pylint pydocstyle mypy
