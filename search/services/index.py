@@ -19,7 +19,7 @@ from elasticsearch_dsl.response import Response
 from search.context import get_application_config, get_application_global
 from search import logging
 from search.domain import Document, DocumentSet, Query, DateRange, \
-    Classification, AdvancedQuery, SimpleQuery, AuthorQuery, Author
+    Classification, AdvancedQuery, SimpleQuery, AuthorQuery, Author, asdict
 
 logger = logging.getLogger(__name__)
 
@@ -529,7 +529,7 @@ class SearchSession(object):
                 '_index': self.index,
                 '_type': 'document',
                 '_id': document.id if document.id else document.paper_id,
-                '_source': document
+                '_source': asdict(document)
             } for document in documents)
 
             helpers.bulk(client=self.es, actions=actions,

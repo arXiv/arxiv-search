@@ -9,9 +9,15 @@ from operator import attrgetter
 from pytz import timezone
 import jsonschema
 
-from dataclasses import dataclass, fields, field, asdict
+from dataclasses import dataclass, fields, field
+from dataclasses import asdict as _asdict
 
 EASTERN = timezone('US/Eastern')
+
+
+def asdict(obj: Any) -> dict:
+    """Coerce a dataclass object to a dict."""
+    return {key: value for key, value in _asdict(obj).items() if value}
 
 
 @dataclass

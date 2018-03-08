@@ -8,8 +8,8 @@ from search.domain.base import Query
 class Author:
     """An author query part, for use in an :class:`.AuthorQuery`."""
 
-    forename: str
-    surname: str
+    forename: str = field(default_factory=str)
+    surname: str = field(default_factory=str)
     fullname: str = field(default_factory=str)
 
     # TODO: gawd this is ugly.
