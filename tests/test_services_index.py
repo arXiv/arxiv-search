@@ -119,10 +119,6 @@ class TestPrepare(TestCase):
         """Get a :class:`.index.SearchSession` instance."""
         self.session = index.current_session()
 
-    def test_to_es_dsl_returns_a_search(self):
-        """Return a :class:`.Search`."""
-        self.assertIsInstance(self.session._prepare(AdvancedQuery()), Search)
-
     def test_group_terms(self):
         """:meth:`._group_terms` groups terms using logical precedence."""
         query = AdvancedQuery({'terms': FieldedSearchList([
@@ -144,10 +140,10 @@ class TestPrepare(TestCase):
               FieldedSearchTerm(operator='AND', field='title', term='boson')
             )
         )
-        try:
-            terms = self.session._group_terms(query)
-        except AssertionError:
-            self.fail('Should result in a single group')
+        #try:
+        terms = self.session._group_terms(query)
+        #except AssertionError:
+        #    self.fail('Should result in a single group')
         self.assertEqual(expected, terms)
 
     def test_group_terms_all_and(self):
@@ -212,11 +208,11 @@ class TestPrepare(TestCase):
 
     def test_classifications_to_q(self):
         query = AdvancedQuery({
-            'primary_classification': [Classification({
-                'group': 'physics',
-                'archive': 'physics',
-                'category': 'astro-ph'
-            })]
+            'primary_classification': [Classification(
+                group='physics',
+                archive='physics',
+                category='astro-ph'
+            )]
         })
         q = self.session._classifications_to_q(query)
         self.assertIsInstance(q, Bool)
