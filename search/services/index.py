@@ -465,7 +465,7 @@ class SearchSession(object):
 
         """
         try:
-            ident = document.get('id', document['paper_id'])
+            ident = document.id if document.id else document.paper_id
             self.es.index(index=self.index, doc_type='document',
                           id=ident, body=document)
         except SerializationError as e:
@@ -502,7 +502,7 @@ class SearchSession(object):
             actions = ({
                 '_index': self.index,
                 '_type': 'document',
-                '_id': document.get('id', document['paper_id']),
+                '_id': document.id if document.id else document.paper_id,
                 '_source': document
             } for document in documents)
 
