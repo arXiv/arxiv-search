@@ -1,6 +1,4 @@
-"""
-Base domain classes for search service.
-"""
+"""Base domain classes for search service."""
 
 from typing import Any, Iterable, Optional, Type, List, Dict
 from datetime import date, datetime
