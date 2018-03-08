@@ -191,12 +191,16 @@ class Document:
     comments: str = field(default_factory=str)
     abs_categories: str = field(default_factory=str)
     formats: List[str] = field(default_factory=list)
-    primary_classification: Classification = field(default_factory=Classification)
-    secondary_classification: ClassificationList = field(default_factory=ClassificationList)
+    primary_classification: Classification = field(
+        default_factory=Classification
+    )
+    secondary_classification: ClassificationList = field(
+        default_factory=ClassificationList
+    )
 
     score: float = 1.0
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Set latest_version, if not already set."""
         if not self.latest_version and self.latest:
             if 'v' in self.latest:
@@ -205,7 +209,7 @@ class Document:
                 self.latest_version = 1
 
     @classmethod
-    def fields(cls):
+    def fields(cls) -> List[str]:
         """Get the names of fields on this class."""
         return cls.__dataclass_fields__.keys()  # type: ignore
 

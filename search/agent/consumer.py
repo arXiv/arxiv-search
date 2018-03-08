@@ -30,7 +30,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         """Initialize exception counter."""
         super(MetadataRecordProcessor, self).__init__(*args, **kwargs)  # type: ignore
         self._error_count = 0
-        self._cache: str = None
+        self._cache: Optional[str] = None
 
     def init_cache(self, cache_dir: str) -> None:
         """Configure the processor to use a local cache for docmeta."""
