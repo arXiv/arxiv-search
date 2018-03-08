@@ -3,7 +3,7 @@
 FROM arxiv/base
 
 # Add Python consumer and configuration.
-ADD requirements.txt /opt/arxiv/
+ADD requirements/prod.txt /opt/arxiv/requirements.txt
 ADD app.py /opt/arxiv/
 RUN pip install -U pip
 RUN pip install -r /opt/arxiv/requirements.txt
