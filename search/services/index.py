@@ -668,6 +668,8 @@ class SearchSession(object):
         return DocumentSet(**{  # type: ignore
             'metadata': {
                 'start': query.page_start,
+                'end': min(query.page_start + query.page_size,
+                           results['hits']['total']),
                 'total': results['hits']['total'],
                 'current_page': query.page,
                 'total_pages': N_pages,
