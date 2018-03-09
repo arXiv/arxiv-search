@@ -1,6 +1,7 @@
 """Controller helpers."""
 
 from wtforms import Form, StringField, validators
+from search.domain import Query
 
 
 def doesNotStartWithWildcard(form: Form, field: StringField) -> None:
@@ -16,3 +17,21 @@ def stripWhiteSpace(value: str) -> str:
     if not value:
         return value
     return value.strip()
+
+
+def paginate(query: Query, data: dict) -> Query:
+    """
+    Update pagination parameters on a :class:`.Query` from request parameters.
+
+    Parameters
+    ----------
+    query : :class:`.Query`
+    data : dict
+
+    Returns
+    -------
+    :class:`.Query`
+    """
+    query.page_start = int(data.get('start', 0))
+    query.page_size = int(data.get('size', 25))
+    return query

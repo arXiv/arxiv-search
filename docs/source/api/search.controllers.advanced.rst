@@ -1,5 +1,5 @@
-search\.controllers\.advanced package
-=====================================
+search.controllers.advanced package
+===================================
 
 .. automodule:: search.controllers.advanced
     :members:
@@ -9,8 +9,8 @@ search\.controllers\.advanced package
 Submodules
 ----------
 
-search\.controllers\.advanced\.forms module
--------------------------------------------
+search.controllers.advanced.forms module
+----------------------------------------
 
 .. automodule:: search.controllers.advanced.forms
     :members:

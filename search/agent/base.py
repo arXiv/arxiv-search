@@ -1,16 +1,15 @@
 """
 Provides a base class for Kinesis record handling.
 
-TODO: This should move to arXiv-base, per ARXIVNG-281.
-
-http://docs.aws.amazon.com/streams/latest/dev/kinesis-record-processor-implementation-app-py.html
-https://github.com/awslabs/amazon-kinesis-client-python/blob/master/samples/sample_kclpy_app.py
+.. _todo: This should move to arXiv-base, per ARXIVNG-281.
 """
 
 import time
 import logging
 import json
 import os
+from typing import Any, Optional, Tuple
+
 import amazon_kclpy
 from amazon_kclpy import kcl
 from amazon_kclpy.v2 import processor
@@ -33,23 +32,23 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
     streams.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize checkpointing state and retry configuration."""
         self._SLEEP_SECONDS = 5
         self._CHECKPOINT_RETRIES = 5
         self._CHECKPOINT_FREQ = 60
-        self._largest_seq = (None, None)
+        self._largest_seq: Tuple[Optional[int], Optional[int]] = (None, None)
         self._largest_sub_seq = None
-        self._last_checkpoint_time = None
+        self._last_checkpoint_time: Optional[float] = None
 
-    def initialize(self, initialize_input):
+    def initialize(self, initialize_input: Any) -> None:
         """Called once by a KCLProcess before any calls to process_records."""
         self._largest_seq = (None, None)
         self._last_checkpoint_time = time.time()
 
     def checkpoint(self, checkpointer: amazon_kclpy.kcl.Checkpointer,
-                   sequence_number=None,
-                   sub_sequence_number=None) -> None:
+                   sequence_number: Optional[str]=None,
+                   sub_sequence_number: Optional[int]=None) -> None:
         """Make periodic checkpoints while processing records."""
         for n in range(0, self._CHECKPOINT_RETRIES):
             try:
@@ -84,8 +83,8 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
                                  " error was %s", e)
             time.sleep(self._SLEEP_SECONDS)
 
-    def should_update_sequence(self, sequence_number: int,
-                               sub_sequence_number: int) -> bool:
+    def should_update_sequence(self, sequence_number: Optional[int],
+                               sub_sequence_number: Optional[int]) -> bool:
         """
         Determine whether a new larger sequence number is available.
 
@@ -99,9 +98,9 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
         bool
         """
         return (self._largest_seq == (None, None) or
-                sequence_number > self._largest_seq[0] or
+                sequence_number > self._largest_seq[0] or   # type: ignore
                 (sequence_number == self._largest_seq[0] and
-                 sub_sequence_number > self._largest_seq[1]))
+                 sub_sequence_number > self._largest_seq[1]))   # type: ignore
 
     def shutdown(self, shutdown: ShutdownInput) -> None:
         """
@@ -153,6 +152,8 @@ class BaseRecordProcessor(processor.RecordProcessorBase):
                     self._largest_seq = (seq, sub_seq)
 
             # Checkpoints every self._CHECKPOINT_FREQ seconds
+            if self._last_checkpoint_time is None:
+                raise RuntimeError('last checkpoint time is not set')
             last_check = time.time() - self._last_checkpoint_time
             if last_check > self._CHECKPOINT_FREQ:
                 self.checkpoint(records.checkpointer,

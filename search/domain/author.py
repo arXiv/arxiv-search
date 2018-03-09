@@ -1,17 +1,19 @@
 """Representations of authors, author lists, and author queries."""
 
-from search.domain import Query, Property, Base     # type: ignore
+from dataclasses import dataclass, field
+from search.domain.base import Query
 
 
-class Author(Base):
-    """Represents a query part for an author."""
+@dataclass
+class Author:
+    """An author query part, for use in an :class:`.AuthorQuery`."""
 
-    forename = Property('forename', str)
-    surname = Property('surname', str)
-    fullname = Property('fullname', str)
+    forename: str = field(default_factory=str)
+    surname: str = field(default_factory=str)
+    fullname: str = field(default_factory=str)
 
     # TODO: gawd this is ugly.
-    def __str__(self):
+    def __str__(self) -> str:
         """Print the author name."""
         if self.fullname and self.surname:
             if self.forename:
@@ -30,10 +32,10 @@ class Author(Base):
 
 
 class AuthorList(list):
-    """Represents a list of author query parts."""
+    """A list of author query parts, for use in an :class:`AuthorQuery`."""
 
-    def __str__(self):
-        """Prints comma-delimited list of authors."""
+    def __str__(self) -> str:
+        """Print a comma-delimited list of authors."""
         if len(self) == 0:
             return ''
         if len(self) > 1:
@@ -41,7 +43,8 @@ class AuthorList(list):
         return str(self[0])
 
 
+@dataclass
 class AuthorQuery(Query):
-    """Represents an author query."""
+    """Represents a query by author name."""
 
-    authors = Property('authors', AuthorList)
+    authors: AuthorList = field(default_factory=AuthorList)

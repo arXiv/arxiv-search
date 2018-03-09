@@ -1,4 +1,11 @@
-"""Search controllers."""
+"""
+Handle requests to support the simple search feature.
+
+The primary entrypoint to this module is :func:`.search`, which handles
+GET requests to the base search endpoint. It uses :class:`.SimpleSearchForm`
+to generate form HTML, validate request parameters, and produce informative
+error messages for the user.
+"""
 
 from typing import Tuple, Dict, Any, Optional
 
@@ -7,10 +14,10 @@ from arxiv.base.exceptions import InternalServerError, NotFound
 from arxiv import status
 from search import logging
 
-from search.process import query
 from search.services import index, fulltext, metadata
 from search.util import parse_arxiv_id
-from search.domain import Query, SimpleQuery
+from search.domain import Query, SimpleQuery, asdict
+from search.controllers.util import paginate
 
 from .forms import SimpleSearchForm
 # from search.routes.ui import external_url_builder
@@ -20,14 +27,9 @@ logger = logging.getLogger(__name__)
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
 
-def health() -> Response:
-    """Check integrations."""
-    return {'index': index.ok()}, status.HTTP_200_OK, {}
-
-
 def search(request_params: dict) -> Response:
     """
-    Perform a simple search using a single parameter.
+    Perform a simple search.
 
     This supports requests from both the form-based view (provided here) AND
     from the mini search widget displayed on all arXiv.org pages.
@@ -47,6 +49,12 @@ def search(request_params: dict) -> Response:
         HTTP status code.
     dict
         Headers to add to the response.
+
+    Raises
+    ------
+    :class:`.InternalServerError`
+        Raised when there is a problem communicating with ES, or there was an
+        unexpected problem executing the query.
     """
     logger.debug('simple search form')
     response_data = {}  # type: Dict[str, Any]
@@ -55,9 +63,9 @@ def search(request_params: dict) -> Response:
     if 'query' in request_params:
         try:
             # first check if the URL includes an arXiv ID
-            arxiv_id = parse_arxiv_id(request_params['query'])
+            arxiv_id: Optional[str] = parse_arxiv_id(request_params['query'])
             # If so, redirect.
-            logger.debug(arxiv_id)
+            logger.debug(f"got arXiv ID: {arxiv_id}")
         except ValueError as e:
             logger.debug('No arXiv ID detected; fall back to form')
             arxiv_id = None
@@ -77,12 +85,12 @@ def search(request_params: dict) -> Response:
         logger.debug('form is valid')
         q = _query_from_form(form)
         # Pagination is handled outside of the form.
-        q = query.paginate(q, request_params)
+        q = paginate(q, request_params)
         try:
             # Execute the search. We'll use the results directly in
             #  template rendering, so they get added directly to the
             #  response content.
-            response_data.update(index.search(q))
+            response_data.update(asdict(index.search(q)))
         except index.IndexConnectionError as e:
             # There was a (hopefully transient) connection problem. Either
             #  this will clear up relatively quickly (next request), or

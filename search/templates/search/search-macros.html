@@ -145,7 +145,7 @@
       {% if result.authors | length > 25 %}, et al. ({{ result.authors | length - 25 }} additional authors not shown){% endif %}
     </p>
     <p>Submitted on {{ result.submitted_date.strftime('%d %B, %Y at %H:%M:%S %Z') }}. {% if result.latest %}<span class="has-text-weight-bold">Latest version: <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a></span>{% endif %}</p>
-    <p class="comments">Comments: {{ result.comments }}</p>
+    {% if result.comments %}<p class="comments">Comments: {{ result.comments }}</p>{% endif %}
     {% if result.journal_ref %}
       <p class="comments">Journal Reference: {{ result.journal_ref }}</p>
     {% endif %}

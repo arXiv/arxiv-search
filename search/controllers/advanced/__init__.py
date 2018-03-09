@@ -1,4 +1,11 @@
-"""Controller for advanced search."""
+"""
+Handle requests to support the advanced search feature.
+
+The primary entrypoint to this module is :func:`.search`, which handles
+GET requests to the author search endpoint. It uses
+:class:`.AdvancedSearchForm` to generate form HTML, validate request
+parameters, and produce informative error messages for the user.
+"""
 
 from typing import Tuple, Dict, Any, Optional
 
@@ -12,10 +19,11 @@ from arxiv import status
 
 from arxiv.base.exceptions import InternalServerError
 from search.services import index, fulltext, metadata
-from search.process import query
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
-    Classification, FieldedSearchList, ClassificationList, Query
+    Classification, FieldedSearchList, ClassificationList, Query, asdict
 from search import logging
+from search.controllers.util import paginate
+
 from . import forms
 
 logger = logging.getLogger(__name__)
@@ -49,8 +57,7 @@ def search(request_params: MultiDict) -> Response:
     ------
     InternalServerError
         Raised when there is an unrecoverable error while interacting with the
-        search index. This should be handled in the base routes, to display a
-        "bug" error page to the user.
+        search index.
     """
     logger.debug('search request from advanced form')
     response_data: Dict[str, Any] = {}
@@ -68,12 +75,12 @@ def search(request_params: MultiDict) -> Response:
             q = _query_from_form(form)
 
             # Pagination is handled outside of the form.
-            q = query.paginate(q, request_params)
+            q = paginate(q, request_params)
             try:
                 # Execute the search. We'll use the results directly in
                 #  template rendering, so they get added directly to the
                 #  response content.
-                response_data.update(index.search(q))
+                response_data.update(asdict(index.search(q)))
             except index.IndexConnectionError as e:
                 # There was a (hopefully transient) connection problem. Either
                 #  this will clear up relatively quickly (next request), or
@@ -141,18 +148,22 @@ def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
     ]
     for field, group in groups:
         if data.get(field):
+            # Fix for these typing issues is coming soon!
+            #  See: https://github.com/python/mypy/pull/4397
             q.primary_classification.append(
-                Classification(group=group, archive=group)
+                Classification(group=group, archive=group)  # type: ignore
             )
     if data.get('physics') and 'physics_archives' in data:
         if 'all' in data['physics_archives']:
             q.primary_classification.append(
-                Classification(group='physics')
+                Classification(group='physics')  # type: ignore
             )
         else:
             q.primary_classification.append(
-                Classification(group='physics',
-                               archive=data['physics_archives'])
+                Classification(     # type: ignore
+                    group='physics',
+                    archive=data['physics_archives']
+                )
             )
     return q
 
@@ -172,14 +183,16 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         return q
     elif filter_by == 'past_12':
         one_year_ago = date.today() - relativedelta(months=12)
-        q.date_range = DateRange(
+        # Fix for these typing issues is coming soon!
+        #  See: https://github.com/python/mypy/pull/4397
+        q.date_range = DateRange(   # type: ignore
             start_date=datetime(year=one_year_ago.year,
                                 month=one_year_ago.month,
                                 day=1, hour=0, minute=0, second=0,
                                 tzinfo=EASTERN)
         )
     elif filter_by == 'specific_year':
-        q.date_range = DateRange(
+        q.date_range = DateRange(   # type: ignore
             start_date=datetime(year=date_data['year'].year, month=1, day=1,
                                 hour=0, minute=0, second=0, tzinfo=EASTERN),
             end_date=datetime(year=date_data['year'].year + 1, month=1, day=1,
@@ -187,7 +200,7 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
         )
     elif filter_by == 'date_range':
         if date_data['from_date']:
-            date_data['from_date'] = datetime.combine(  # type: ignore
+            date_data['from_date'] = datetime.combine(    # type: ignore
                 date_data['from_date'],
                 datetime.min.time(),
                 tzinfo=EASTERN)
@@ -197,7 +210,7 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
                 datetime.min.time(),
                 tzinfo=EASTERN)
 
-        q.date_range = DateRange(
+        q.date_range = DateRange(   # type: ignore
             start_date=date_data['from_date'],
             end_date=date_data['to_date'],
         )

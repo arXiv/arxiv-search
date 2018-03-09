@@ -8,7 +8,7 @@ from werkzeug.exceptions import InternalServerError, NotFound
 
 from arxiv import status
 
-from search.domain import Query, DateRange, SimpleQuery
+from search.domain import Query, DateRange, SimpleQuery, DocumentSet
 
 from search.controllers import simple
 from search.controllers.simple.forms import SimpleSearchForm
@@ -121,6 +121,7 @@ class TestSearchController(TestCase):
     @mock.patch('search.controllers.simple.index')
     def test_single_field_term(self, mock_index):
         """Form data are present."""
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
         request_data = MultiDict({
             'searchtype': 'title',
             'query': 'foo title'

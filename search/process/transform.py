@@ -15,35 +15,34 @@ DEFAULT_LICENSE = {
 
 def _constructLicense(meta: DocMeta) -> dict:
     """Get the document license, or set the default."""
-    if 'license' not in meta or not meta['license'] \
-            or not meta['license']['uri']:
+    if not meta.license or not meta.license['uri']:
         return DEFAULT_LICENSE
-    return meta['license']
+    return meta.license
 
 
-def _strip_punctuation(s):
+def _strip_punctuation(s: str) -> str:
     return ''.join([c for c in s if c not in punctuation])
 
 
 def _constructPaperVersion(meta: DocMeta) -> str:
     """Generate a version-qualified paper ID."""
-    if 'v' in meta['paper_id']:
-        return meta['paper_id']
-    return '%sv%i' % (meta['paper_id'], meta.get('version', 1))
+    if 'v' in meta.paper_id:
+        return meta.paper_id
+    return '%sv%i' % (meta.paper_id, meta.version)
 
 
-def _constructMSCClass(meta: DocMeta) -> list:
+def _constructMSCClass(meta: DocMeta) -> Optional[list]:
     """Extract ``msc_class`` field as an array."""
-    if 'msc_class' not in meta or not meta['msc_class']:
+    if not meta.msc_class:
         return None
-    return [obj.strip() for obj in meta['msc_class'].split(',')]
+    return [obj.strip() for obj in meta.msc_class.split(',')]
 
 
-def _constructACMClass(meta: DocMeta) -> list:
+def _constructACMClass(meta: DocMeta) -> Optional[list]:
     """Extract ``acm_class`` field as an array."""
-    if 'acm_class' not in meta or not meta['acm_class']:
+    if not meta.acm_class:
         return None
-    return [obj.strip() for obj in meta['acm_class'].split(';')]
+    return [obj.strip() for obj in meta.acm_class.split(';')]
 
 
 def _transformAuthor(author: dict) -> dict:
@@ -54,25 +53,23 @@ def _transformAuthor(author: dict) -> dict:
 
 
 def _constructAuthors(meta: DocMeta) -> List[Dict]:
-    return [_transformAuthor(author)
-            for author in meta.get("authors_parsed", [])]
+    return [_transformAuthor(author) for author in meta.authors_parsed]
 
 
 def _constructAuthorOwners(meta: DocMeta) -> List[Dict]:
-    return [_transformAuthor(author)
-            for author in meta.get("author_owners", [])]
+    return [_transformAuthor(author) for author in meta.author_owners]
 
 
 def _getFirstSubDate(meta: DocMeta) -> Optional[str]:
-    if 'submitted_date_all' not in meta or not meta['submitted_date_all']:
+    if not meta.submitted_date_all:
         return None
-    return meta['submitted_date_all'][0]
+    return meta.submitted_date_all[0]
 
 
 def _getLastSubDate(meta: DocMeta) -> Optional[str]:
-    if 'submitted_date_all' not in meta or not meta['submitted_date_all']:
+    if not meta.submitted_date_all:
         return None
-    return meta['submitted_date_all'][-1]
+    return meta.submitted_date_all[-1]
 
 
 TransformType = Union[str, Callable]
@@ -84,8 +81,7 @@ _transformations: List[Tuple[str, TransformType]] = [
     ("owners", _constructAuthorOwners),
     ("submitted_date", "submitted_date"),
     ("submitted_date_all",
-     lambda meta: meta.get('submitted_date_all', [])
-     if meta.get('is_current') else None),
+     lambda meta: meta.submitted_date_all if meta.is_current else None),
     ("submitted_date_first", _getFirstSubDate),
     ("submitted_date_latest", _getLastSubDate),
     ("modified_date", "modified_date"),
@@ -154,15 +150,16 @@ def to_search_document(metadata: DocMeta, fulltext: Optional[Fulltext] = None)\
     ------
     ValueError
     """
-    document = Document()
+    data = {}
     for key, source in _transformations:
         if isinstance(source, str):
-            value = metadata.get(source)
+            value = getattr(metadata, source, None)
         elif hasattr(source, '__call__'):
             value = source(metadata)
         if not value and key not in _required:
             continue
-        document[key] = value
+        data[key] = value
     if fulltext:
-        document['fulltext'] = fulltext.get('content', '')
-    return document
+        data['fulltext'] = fulltext.content
+    return Document(**data)     # type: ignore
+    # See https://github.com/python/mypy/issues/3937

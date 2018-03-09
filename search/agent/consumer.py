@@ -2,11 +2,11 @@
 
 import json
 import os
-from typing import List
+from typing import List, Any, Optional
 from search import logging
 from search.services import metadata, index
 from search.process import transform
-from search.domain import DocMeta, Document
+from search.domain import DocMeta, Document, asdict
 from .base import BaseRecordProcessor, ProcessRecordsInput
 
 logger = logging.getLogger(__name__)
@@ -26,11 +26,11 @@ class MetadataRecordProcessor(BaseRecordProcessor):
     MAX_ERRORS = 5
     """Max number of individual document failures before aborting entirely."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize exception counter."""
         super(MetadataRecordProcessor, self).__init__(*args, **kwargs)  # type: ignore
         self._error_count = 0
-        self._cache: str
+        self._cache: Optional[str] = None
 
     def init_cache(self, cache_dir: str) -> None:
         """Configure the processor to use a local cache for docmeta."""
@@ -66,7 +66,9 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             raise RuntimeError('No cached document')
 
         with open(cache_path) as f:
-            return DocMeta(json.load(f).items())
+            data: dict = json.load(f)
+            return DocMeta(**data)  # type: ignore
+            # See https://github.com/python/mypy/issues/3937
 
     def _to_cache(self, arxiv_id: str, docmeta: DocMeta) -> None:
         """
@@ -90,7 +92,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         cache_path = os.path.join(self._cache, fname)
         try:
             with open(cache_path, 'w') as f:
-                json.dump(dict(docmeta.items()), f)
+                json.dump(asdict(docmeta).items(), f)
         except Exception as e:
             raise RuntimeError(str(e)) from e
 
@@ -128,7 +130,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
         try:
             logger.debug(f'{arxiv_id}: requesting metadata')
-            docmeta = metadata.retrieve(arxiv_id)
+            docmeta: DocMeta = metadata.retrieve(arxiv_id)
 
         # TODO: use a context manager for retry?
         except metadata.ConnectionFailed as e:
@@ -244,6 +246,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             try:
                 index.bulk_add_documents(documents)
             except index.IndexConnectionError as e:   # Nope, not happening.
+                logger.error(f'Could not bulk index documents: {e}')
                 raise IndexingFailed('Could not bulk index documents') from e
         except Exception as e:
             logger.error('unhandled exception from index service')
@@ -283,9 +286,12 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         try:
             documents = []
             for arxiv_id in arxiv_ids:
+                logger.debug(f'{arxiv_id}: get metadata')
                 docmeta = self._get_metadata(arxiv_id)
+                logger.debug(f'{arxiv_id}: transform to indexable document')
                 document = MetadataRecordProcessor._transform_to_document(
-                    docmeta)
+                    docmeta
+                )
                 current_version = docmeta.version
                 logger.debug(f'current version is {current_version}')
                 if current_version is not None and current_version > 1:
@@ -302,6 +308,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
                         # Add a reference to the most recent version.
                         ver_document.latest = f'{arxiv_id}v{current_version}'
+                        ver_document.latest_version = current_version
 
                         # Set the primary document ID to the version-specied
                         # arXiv identifier, to avoid clobbering the latest
@@ -312,10 +319,12 @@ class MetadataRecordProcessor(BaseRecordProcessor):
                 # Finally, ensure the most recent version gets indexed.
                 document.is_current = True
                 documents.append(document)
+            logger.debug('add to index in bulk')
             MetadataRecordProcessor._bulk_add_to_index(documents)
         except (DocumentFailed, IndexingFailed) as e:
             # We just pass these along so that process_record() can keep track.
             # TODO: Ensure this is the correct behavior.
+            logger.debug(f'{arxiv_id}: Document failed: {e}')
             raise e
 
     # Experimental generator
@@ -395,4 +404,5 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             logger.debug(f'{arxiv_id}: failed to index document')
             self._error_count += 1
         except IndexingFailed as e:
+            logger.error('Indexing failed: {e}')
             raise

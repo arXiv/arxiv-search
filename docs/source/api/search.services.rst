@@ -1,5 +1,5 @@
-search\.services package
-========================
+search.services package
+=======================
 
 .. automodule:: search.services
     :members:
@@ -9,24 +9,24 @@ search\.services package
 Submodules
 ----------
 
-search\.services\.fulltext module
----------------------------------
+search.services.fulltext module
+-------------------------------
 
 .. automodule:: search.services.fulltext
     :members:
     :undoc-members:
     :show-inheritance:
 
-search\.services\.index module
-------------------------------
+search.services.index module
+----------------------------
 
 .. automodule:: search.services.index
     :members:
     :undoc-members:
     :show-inheritance:
 
-search\.services\.metadata module
----------------------------------
+search.services.metadata module
+-------------------------------
 
 .. automodule:: search.services.metadata
     :members:
