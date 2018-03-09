@@ -2,7 +2,7 @@
 
 from typing import Tuple, Dict, Any, Optional
 
-from werkzeug.exceptions import InternalServerError, NotFound
+from arxiv.base.exceptions import InternalServerError, NotFound
 
 from arxiv import status
 from search import logging
