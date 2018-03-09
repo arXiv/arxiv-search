@@ -12,7 +12,7 @@
 {% endblock addl_head %}
 
 {% block content %}
-  <article class="message is-link">
+  <article class="message is-link is-pulled-right" style="max-width: max-content;">
     <div class="message-header">
       <p class="title is-4 has-text-white">Beta test in progress</p>
     </div>
@@ -21,7 +21,7 @@
       think in this very quick survey.</a></p>
     </div>
   </article>
-  <h1 class="title">{% block title %}Search{% endblock title %}</h1>
+  <h1 class="title is-clearfix">{% block title %}Search{% endblock title %}</h1>
     <content class="beta">
       {% block within_content %}
         Specific results here
