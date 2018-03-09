@@ -11,7 +11,7 @@ from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
 
 from arxiv import status
 from search import logging
-from search.exceptions import InternalServerError
+from arxiv.base.exceptions import InternalServerError
 from search.controllers import simple, advanced, authors
 
 logger = logging.getLogger(__name__)
