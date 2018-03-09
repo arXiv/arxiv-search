@@ -34,7 +34,7 @@ def search() -> Union[str, Response]:
     response, code, headers = simple.search(request.args)
     logger.debug(f"controller returned code: {code}")
     if code == status.HTTP_200_OK:
-        return render_template("search/search.html", **response)
+        return render_template("search/search.html", **response, pagetitle="Search")
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
           or code == status.HTTP_303_SEE_OTHER):
         return redirect(headers['Location'], code=code)
@@ -45,14 +45,14 @@ def search() -> Union[str, Response]:
 def advanced_search() -> Union[str, Response]:
     """Advanced search interface."""
     response, code, headers = advanced.search(request.args)
-    return render_template("search/advanced_search.html", **response)
+    return render_template("search/advanced_search.html", **response, pagetitle="Advanced Search")
 
 
 @blueprint.route('authors', methods=['GET'])
 def author_search() -> Union[str, Response]:
     """Author search interface."""
     response, code, headers = authors.search(request.args.copy())
-    return render_template("search/author_search.html", **response)
+    return render_template("search/author_search.html", **response, pagetitle="Author Search")
 
 
 # TODO: we need something more robust here; this is just to get us rolling.
