@@ -1,11 +1,11 @@
-"""Tests exception handling in :mod:`search.exceptions`."""
+"""Tests exception handling in :mod:`arxiv.base.exceptions`."""
 
 from unittest import TestCase, mock
 from flask import Flask
 
 from arxiv import status
 from search.factory import create_ui_web_app
-from search.exceptions import InternalServerError
+from arxiv.base.exceptions import InternalServerError
 from search.services.index import IndexConnectionError, QueryError
 
 

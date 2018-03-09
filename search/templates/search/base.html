@@ -2,7 +2,7 @@
 
 {% block addl_head %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css')}}" />
-  
+
   <script
     src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
     integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
@@ -12,8 +12,17 @@
 {% endblock addl_head %}
 
 {% block content %}
+  <article class="message is-link">
+    <div class="message-header">
+      <p class="title is-4 has-text-white">Beta test in progress</p>
+    </div>
+    <div class="message-body">
+      <p>The search engine for arXiv has been rebuilt! <a href="https://cornell.qualtrics.com/jfe/form/SV_57IWKevpvsUiFq5">Please let us know what you
+      think in this very quick survey.</a></p>
+    </div>
+  </article>
   <h1 class="title">{% block title %}Search{% endblock title %}</h1>
-    <content>
+    <content class="beta">
       {% block within_content %}
         Specific results here
       {% endblock within_content %}
