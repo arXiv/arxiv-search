@@ -92,7 +92,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         cache_path = os.path.join(self._cache, fname)
         try:
             with open(cache_path, 'w') as f:
-                json.dump(asdict(docmeta).items(), f)
+                json.dump(asdict(docmeta), f)
         except Exception as e:
             raise RuntimeError(str(e)) from e
 
