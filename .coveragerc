@@ -9,3 +9,4 @@ omit =
     create_index.py
     bulk_index.py
     shard_ids_for_index.py
+    search/config.py

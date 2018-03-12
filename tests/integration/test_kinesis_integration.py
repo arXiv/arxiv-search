@@ -18,6 +18,11 @@ from search.services import index
 from search.agent.consumer import MetadataRecordProcessor
 from search.domain import Document
 
+import urllib3
+
+# We disable certificate validation for testing.
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 class TestKinesisIntegration(TestCase):
     """Verifies indexing agent behavior against local Kinesis system."""

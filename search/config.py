@@ -33,20 +33,12 @@ debug execution which might be useful to debug production applications (but
 also very risky).
 """
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'asdf1234')
-"""
-the secret key
-"""
 
 USE_X_SENDFILE = os.environ.get('USE_X_SENDFILE') == ON
-"""
-enable/disable x-sendfile
-"""
+"""Enable/disable x-sendfile"""
 
 LOGGER_NAME = os.environ.get('LOGGER_NAME', 'search')
-"""
-the name of the logger
-"""
+"""The name of the logger."""
 
 LOGGER_HANDLER_POLICY = os.environ.get('LOGGER_HANDLER_POLICY', 'always')
 """
