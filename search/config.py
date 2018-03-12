@@ -148,6 +148,7 @@ be useful to figure out why templates cannot be found or wrong templates appear
 to be loaded.
 """
 
+# AWS credentials.
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', 'nope')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', 'nope')
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')

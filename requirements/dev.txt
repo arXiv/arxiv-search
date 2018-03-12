@@ -12,3 +12,4 @@ arxiv-base==0.3
 pytz==2017.3
 amazon-kclpy==1.4.4
 dataclasses==0.4
+boto3==1.6.6
