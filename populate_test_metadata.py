@@ -51,8 +51,8 @@ def populate(print_indexable, paper_id, id_list):
             return
 
         arxiv_id = doc.get('id')
-        m = re.search(r'^(.*)(v[\d]+)?$', arxiv_id)
-        arxiv_id = m.group(0)
+        m = re.search(r'^(?P<paper_id>.*?)(v[\d]+)?$', arxiv_id)
+        arxiv_id = m.group('paper_id')
         try:
             document = processor.index_paper(arxiv_id)
         except DocumentFailed:
