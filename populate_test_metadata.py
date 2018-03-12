@@ -3,6 +3,7 @@
 import json
 import os
 import click
+import re
 from search.factory import create_ui_web_app
 from search.agent import MetadataRecordProcessor, DocumentFailed, \
     IndexingFailed
@@ -50,8 +51,9 @@ def populate(print_indexable, paper_id, id_list):
             return
 
         arxiv_id = doc.get('id')
-        if 'v' in arxiv_id:
-            arxiv_id = arxiv_id.split('v')[0]
+        m = re.search(r'^(?P<paper_id>.+?)(v[\d]+)?$', arxiv_id)
+        if m and m.group('paper_id'):
+            arxiv_id = m.group('paper_id')
         try:
             document = processor.index_paper(arxiv_id)
         except DocumentFailed:
