@@ -2,6 +2,7 @@
 
 import os
 import click
+import re
 from search.factory import create_ui_web_app
 from search.agent import MetadataRecordProcessor, DocumentFailed, \
     IndexingFailed
@@ -61,8 +62,8 @@ def populate(paper_id, id_list, alt_cache_dir, prefetch_metadata, no_index):
 
     docs = []
     for arxiv_id in TO_INDEX:
-        if 'v' in arxiv_id:
-            arxiv_id = arxiv_id.split('v')[0]
+        m = re.search(r'^(.*)(v[\d]+)?$', arxiv_id)
+        arxiv_id = m.group(0)
         docs.append(arxiv_id)
 
     # TODO: currently only works for latest version
