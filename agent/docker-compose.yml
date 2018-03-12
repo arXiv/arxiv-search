@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  search-agent:
+    build:
+      context: ../
+      dockerfile: Dockerfile-agent
+    container_name: search-agent
+    environment:
+      AWS_ACCESS_KEY_ID: "foo"
+      AWS_SECRET_ACCESS_KEY: "bar"
+      CLOUDWATCH_ENDPOINT: "https://search-test-localstack:4582"
+      DYNAMODB_ENDPOINT: "https://search-test-localstack:4569"
+      KINESIS_ENDPOINT: "https://search-test-localstack:4568"
+      ELASTICSEARCH_SERVICE_HOST: "search-test-localstack"
+      ELASTICSEARCH_SERVICE_PORT: "4578"
+      ELASTICSEARCH_PORT_4571_PROTO: "https"
+      ELASTICSEARCH_USER: ""
+      ELASTICSEARCH_PASSWORD: ""
+      ELASTICSEARCH_VERIFY: "false"
+      KINESIS_VERIFY: "false"
+      DYNAMODB_VERIFY: "false"
+      CLOUDWATCH_VERIFY: "false"
+      LOGLEVEL: 10
+      LOGFILE: "/var/log/search-agent-processor.log"
+      MODE: "test"
+      JAVA_FLAGS: "-Dcom.amazonaws.sdk.disableCertChecking"
+      AWS_CBOR_DISABLE: "true"
+      AGENT_CHECKPOINT_FREQ: "1"
+      AGENT_SLEEP_SECONDS: "1"
+    networks:
+      - search-test
+    depends_on:
+      - search-test-localstack
+  search-test-localstack:
+    image: atlassianlabs/localstack
+    container_name: search-test-localstack
+    networks:
+      - search-test
+    ports:
+      - "5582:4582"
+      - "5568:4568"
+      - "5569:4569"
+      - "5578:4578"
+    environment:
+      USE_SSL: 'true'
+      DEBUG: 'true'
+
+networks:
+  search-test:

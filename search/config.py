@@ -176,6 +176,9 @@ ELASTICSEARCH_SCHEME = os.environ.get(
 ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'arxiv')
 ELASTICSEARCH_USER = os.environ.get('ELASTICSEARCH_USER', None)
 ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD', None)
+ELASTICSEARCH_VERIFY = os.environ.get('ELASTICSEARCH_VERIFY', 'true')
+"""Indicates whether SSL certificate verification for ES should be enforced."""
+
 
 METADATA_ENDPOINT = os.environ.get('METADATA_ENDPOINT',
                                    'https://arxiv.org/docmeta/')
@@ -190,3 +193,14 @@ METADATA_VERIFY_CERT = os.environ.get('METADATA_VERIFY_CERT', 'True')
 
 FULLTEXT_ENDPOINT = os.environ.get('FULLTEXT_ENDPOINT',
                                    'https://fulltext.arxiv.org/fulltext/')
+
+
+# Settings for the indexing agent.
+KINESIS_ENDPOINT = os.environ.get('KINESIS_ENDPOINT')
+"""Can be used to set an alternate endpoint, e.g. for testing."""
+
+KINESIS_VERIFY = os.environ.get('KINESIS_VERIFY', "true")
+"""Indicates whether SSL certificate verification should be enforced."""
+
+KINESIS_STREAM = os.environ.get('KINESIS_STREAM', 'MetadataIsAvailable')
+"""Name of the stream to which the indexing agent subscribes."""

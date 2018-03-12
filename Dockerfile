@@ -2,7 +2,7 @@
 
 FROM arxiv/base
 
-# Add Python consumer and configuration.
+# Add Python application and configuration.
 ADD requirements/prod.txt /opt/arxiv/requirements.txt
 ADD app.py /opt/arxiv/
 RUN pip install -U pip
