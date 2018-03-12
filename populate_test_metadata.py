@@ -61,7 +61,7 @@ def populate(print_indexable, paper_id, id_list):
             return
 
         if print_indexable:
-            click.echo(json.dumps(asdict(document))
+            click.echo(json.dumps(asdict(document)))
         index_count += 1
         click.echo(doc['id'])
     click.echo(f'Indexed {index_count} documents')
