@@ -63,7 +63,8 @@ def populate(paper_id, id_list, alt_cache_dir, prefetch_metadata, no_index):
     docs = []
     for arxiv_id in TO_INDEX:
         m = re.search(r'^(?P<paper_id>.+?)(v[\d]+)?$', arxiv_id)
-        arxiv_id = m.group('paper_id')
+        if m and m.group('paper_id'):
+            arxiv_id = m.group('paper_id')
         docs.append(arxiv_id)
 
     # TODO: currently only works for latest version

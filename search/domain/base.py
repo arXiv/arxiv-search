@@ -202,7 +202,7 @@ class Document:
         """Set latest_version, if not already set."""
         if not self.latest_version and self.latest:
             m = re.match(r'^(.+?)(?:v(?P<version>[\d]+))?$', self.latest)
-            if m.group('version'):
+            if m and m.group('version'):
                 self.latest_version = int(m.group('version'))
             else:
                 self.latest_version = 1
