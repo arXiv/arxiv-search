@@ -190,3 +190,12 @@ METADATA_VERIFY_CERT = os.environ.get('METADATA_VERIFY_CERT', 'True')
 
 FULLTEXT_ENDPOINT = os.environ.get('FULLTEXT_ENDPOINT',
                                    'https://fulltext.arxiv.org/fulltext/')
+
+"""
+Name of S3 bucket to use for static assets.
+"""
+FLASKS3_ACTIVE = os.environ.get('FLASKS3_ACTIVE', 0)
+FLASKS3_BUCKET_NAME = os.environ.get('FLASKS3_BUCKET_NAME', 'some_bucket')
+FLASKS3_CDN_DOMAIN = os.environ.get('FLASKS3_CDN_DOMAIN', 'static.arxiv.org')
+FLASKS3_USE_HTTPS = os.environ.get('FLASKS3_USE_HTTPS', 1)
+FLASKS3_FORCE_MIMETYPE = os.environ.get('FLASKS3_FORCE_MIMETYPE', 1)
