@@ -11,21 +11,25 @@
 .is-monospace {
   font-family: monospace; }
 
+.pagination {
+  margin-top: 3rem;
+  margin-bottom: 2rem; }
+
 .pagination-list {
-  margin: 0; }
+  margin: 0 !important; }
 
 .breathe-vertical {
-  margin-top: 5em;
-  margin-bottom: 5em; }
+  margin-top: 4rem;
+  margin-bottom: 4rem; }
 
 @media screen and (min-width: 769px) {
   .breathe-horizontal {
-    margin-left: 5em !important;
-    margin-right: 5em !important; } }
+    margin-left: 5rem !important;
+    margin-right: 5rem !important; } }
 @media screen and (min-width: 980px) {
   .breathe-horizontal {
-    margin-left: 10em !important;
-    margin-right: 10em !important; } }
+    margin-left: 10rem !important;
+    margin-right: 10rem !important; } }
 
 .pagination-list li {
   list-style: none; }
