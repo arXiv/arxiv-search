@@ -33,9 +33,26 @@ class TestSearchIntegration(TestCase):
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
         )
         start_es = subprocess.run(
-            "docker run -d -p 9200:9200 arxiv/elasticsearch",
+            "docker run -d -p 9201:9200 arxiv/elasticsearch",
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        cls.container = start_es.stdout.decode('ascii').strip()
+        cls.es_container = start_es.stdout.decode('ascii').strip()
+        os.environ['ELASTICSEARCH_SERVICE_HOST'] = 'localhost'
+        os.environ['ELASTICSEARCH_SERVICE_PORT'] = "9201"
+        os.environ['ELASTICSEARCH_PORT_9201_PROTO'] = "http"
+        os.environ['ELASTICSEARCH_VERIFY'] = 'false'
+
+        # Build and start the docmeta stub.
+        build_docmeta = subprocess.run(
+            "docker build ./"
+            " -t arxiv/search-metadata"
+            " -f ./Dockerfile-metadata",
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        )
+        start_docmeta = subprocess.run(
+            "docker run -d -p 9000:8000 arxiv/search-metadata",
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        cls.md_container = start_docmeta.stdout.decode('ascii').strip()
+        os.environ['METADATA_ENDPOINT'] = 'http://localhost:9000/docmeta/'
 
         print('Waiting for ES cluster to be available...')
         time.sleep(12)
@@ -60,16 +77,20 @@ class TestSearchIntegration(TestCase):
             "1708.07156",    # w w
             "1401.1012",     # Wonmin Son
         ]
-        cls.cache_dir = os.path.abspath('tests/data/examples')
+        # cls.cache_dir = os.path.abspath('tests/data/examples')
         cls.processor = MetadataRecordProcessor()
-        cls.processor.init_cache(cls.cache_dir)
+        # cls.processor.init_cache(cls.cache_dir)
         cls.processor.index_papers(to_index)
         time.sleep(5)    # Give a few seconds for docs to be available.
 
     @classmethod
     def tearDownClass(cls):
         """Tear down Elasticsearch once all tests have run."""
-        stop_es = subprocess.run(f"docker rm -f {cls.container}",
+        stop_es = subprocess.run(f"docker rm -f {cls.es_container}",
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 shell=True)
+        stop_md = subprocess.run(f"docker rm -f {cls.md_container}",
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  shell=True)

@@ -14,4 +14,7 @@ script:
 after_success:
   - pip install pylint pydocstyle mypy
   - ./lintstats.sh
+  - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD";
+    docker build . -t arxiv/search arxiv/search:${TRAVIS_COMMIT};
+    docker push arxiv/search:${TRAVIS_COMMIT}
   - coveralls

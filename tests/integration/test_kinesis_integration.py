@@ -34,6 +34,8 @@ class TestKinesisIntegration(TestCase):
         os.environ['ELASTICSEARCH_SERVICE_PORT'] = "5578"
         os.environ['ELASTICSEARCH_PORT_5578_PROTO'] = "https"
         os.environ['ELASTICSEARCH_VERIFY'] = 'false'
+        os.environ['METADATA_ENDPOINT'] = 'http://search-metadata:8000/docmeta/'
+        os.environ['METADATA_CACHE_DIR'] = os.path.abspath('tests/data/examples')
 
         # Use docker compose to build and start the indexing agent, along with
         # localstack (which provides Kinesis, Elasticsearch Service, DynamodB).

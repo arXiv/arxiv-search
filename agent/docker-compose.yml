@@ -1,6 +1,14 @@
 version: '3'
 
 services:
+  search-metadata:
+    build:
+      context: ../
+      dockerfile: Dockerfile-metadata
+    container_name: search-metadata
+    networks:
+      - search-test
+
   search-agent:
     build:
       context: ../
@@ -12,6 +20,7 @@ services:
       CLOUDWATCH_ENDPOINT: "https://search-test-localstack:4582"
       DYNAMODB_ENDPOINT: "https://search-test-localstack:4569"
       KINESIS_ENDPOINT: "https://search-test-localstack:4568"
+      METADATA_ENDPOINT: "http://search-metadata:8000/docmeta/"
       ELASTICSEARCH_SERVICE_HOST: "search-test-localstack"
       ELASTICSEARCH_SERVICE_PORT: "4578"
       ELASTICSEARCH_PORT_4571_PROTO: "https"
@@ -32,6 +41,7 @@ services:
       - search-test
     depends_on:
       - search-test-localstack
+      - search-metadata
   search-test-localstack:
     image: atlassianlabs/localstack
     container_name: search-test-localstack

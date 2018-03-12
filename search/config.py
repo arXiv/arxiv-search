@@ -181,12 +181,14 @@ Location of endpoint(s) for metadata retrieval.
 Multiple endpoints may be provided with comma delimitation.
 """
 
+METADATA_CACHE_DIR = os.environ.get('METADATA_CACHE_DIR')
+"""Cache directory for metadata documents."""
+
 METADATA_VERIFY_CERT = os.environ.get('METADATA_VERIFY_CERT', 'True')
 """If ``False``, SSL certificate verification will be disabled."""
 
 FULLTEXT_ENDPOINT = os.environ.get('FULLTEXT_ENDPOINT',
                                    'https://fulltext.arxiv.org/fulltext/')
-
 
 # Settings for the indexing agent.
 KINESIS_ENDPOINT = os.environ.get('KINESIS_ENDPOINT')
