@@ -91,7 +91,7 @@ If there is an active `mypy` GitHub issue (i.e. it's a bug/limitation in mypy)
 relevant to missed check, link that for later follow-up.
 
 ```bash
-mypy --ignore-missing-imports -p search
+mypy -p search
 ```
 
 ### Documentation style
