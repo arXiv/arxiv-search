@@ -1,0 +1,22 @@
+language: python
+sudo: required
+services:
+  - docker
+cache: pip
+os:
+  - linux
+python:
+  - "3.6"
+script:
+  - pip install -r requirements/prod.txt
+  - pip install -r requirements/test.txt
+  - nose2 -vvv --with-coverage
+after_success:
+  - pip install pylint pydocstyle mypy
+  - ./lintstats.sh
+  - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
+  - docker build . -t arxiv/search:${TRAVIS_COMMIT};
+    docker push arxiv/search:${TRAVIS_COMMIT}
+  - docker build . -t arxiv/search-agent:${TRAVIS_COMMIT} -f ./Dockerfile-agent;
+    docker push arxiv/search-agent:${TRAVIS_COMMIT}
+  - coveralls

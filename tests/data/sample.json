@@ -1,0 +1,2429 @@
+{
+    "sample": [
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/astro-ph/0311033v4",
+            "id": "astro-ph/0311033v4"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0809.2702v1",
+            "id": "0809.2702v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0803.3453v1",
+            "id": "0803.3453v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0710.2374v1",
+            "id": "0710.2374v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0704.3437v2",
+            "id": "0704.3437v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/astro-ph/0611319v1",
+            "id": "astro-ph/0611319v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/astro-ph/0301161v2",
+            "id": "astro-ph/0301161v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/astro-ph/0510845v1",
+            "id": "astro-ph/0510845v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0809.2637v1",
+            "id": "0809.2637v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0806.3643v1",
+            "id": "0806.3643v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0803.3506v1",
+            "id": "0803.3506v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0801.0451v1",
+            "id": "0801.0451v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0708.1190v2",
+            "id": "0708.1190v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0810.4994v2",
+            "id": "0810.4994v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0812.3444v1",
+            "id": "0812.3444v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0811.4574v1",
+            "id": "0811.4574v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0811.1099v1",
+            "id": "0811.1099v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0807.1067v2",
+            "id": "0807.1067v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0804.2904v2",
+            "id": "0804.2904v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0809.2637v1",
+            "id": "0809.2637v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0807.3556v2",
+            "id": "0807.3556v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0808.0244v1",
+            "id": "0808.0244v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0807.1845v1",
+            "id": "0807.1845v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0806.3643v1",
+            "id": "0806.3643v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0806.0099v1",
+            "id": "0806.0099v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0710.2737v3",
+            "id": "0710.2737v3"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0804.2495v1",
+            "id": "0804.2495v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0803.3506v1",
+            "id": "0803.3506v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0802.4296v1",
+            "id": "0802.4296v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0712.3795v2",
+            "id": "0712.3795v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0801.3286v1",
+            "id": "0801.3286v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0801.0451v1",
+            "id": "0801.0451v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0711.0418v2",
+            "id": "0711.0418v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0810.3580v2",
+            "id": "0810.3580v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0812.2882v4",
+            "id": "0812.2882v4"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0810.4994v2",
+            "id": "0810.4994v2"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0809.1212v3",
+            "id": "0809.1212v3"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0812.3444v1",
+            "id": "0812.3444v1"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0806.3760v4",
+            "id": "0806.3760v4"
+        },
+        {
+            "archive": "astro-ph",
+            "uri": "http://arxiv.org/abs/0811.4574v1",
+            "id": "0811.4574v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9302029v2",
+            "id": "cond-mat/9302029v2"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/hep-th/9902053v2",
+            "id": "hep-th/9902053v2"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9508004v1",
+            "id": "cond-mat/9508004v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/quant-ph/9808058v2",
+            "id": "quant-ph/9808058v2"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9609107v1",
+            "id": "cond-mat/9609107v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9508007v1",
+            "id": "cond-mat/9508007v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/hep-th/9312155v1",
+            "id": "hep-th/9312155v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0110551v1",
+            "id": "cond-mat/0110551v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0006114v2",
+            "id": "cond-mat/0006114v2"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9805269v2",
+            "id": "cond-mat/9805269v2"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9705095v5",
+            "id": "cond-mat/9705095v5"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9609103v1",
+            "id": "cond-mat/9609103v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9603088v1",
+            "id": "cond-mat/9603088v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9508003v1",
+            "id": "cond-mat/9508003v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9411106v1",
+            "id": "cond-mat/9411106v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9312066v1",
+            "id": "cond-mat/9312066v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/physics/0301061v2",
+            "id": "physics/0301061v2"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0206561v1",
+            "id": "cond-mat/0206561v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0110551v1",
+            "id": "cond-mat/0110551v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0102286v1",
+            "id": "cond-mat/0102286v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0006114v2",
+            "id": "cond-mat/0006114v2"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/hep-th/9910262v1",
+            "id": "hep-th/9910262v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9805269v2",
+            "id": "cond-mat/9805269v2"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9807406v1",
+            "id": "cond-mat/9807406v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9705095v5",
+            "id": "cond-mat/9705095v5"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9704145v1",
+            "id": "cond-mat/9704145v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9609103v1",
+            "id": "cond-mat/9609103v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9602100v3",
+            "id": "cond-mat/9602100v3"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9603088v1",
+            "id": "cond-mat/9603088v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/adap-org/9511003v1",
+            "id": "adap-org/9511003v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9508003v1",
+            "id": "cond-mat/9508003v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9503167v1",
+            "id": "cond-mat/9503167v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9411106v1",
+            "id": "cond-mat/9411106v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9405017v2",
+            "id": "cond-mat/9405017v2"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9312066v1",
+            "id": "cond-mat/9312066v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/9303020v1",
+            "id": "cond-mat/9303020v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0308561v1",
+            "id": "cond-mat/0308561v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0305309v1",
+            "id": "cond-mat/0305309v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0301544v1",
+            "id": "cond-mat/0301544v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0210298v1",
+            "id": "cond-mat/0210298v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/gr-qc/0108072v2",
+            "id": "gr-qc/0108072v2"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0202536v1",
+            "id": "cond-mat/0202536v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/quant-ph/0110142v1",
+            "id": "quant-ph/0110142v1"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0103540v3",
+            "id": "cond-mat/0103540v3"
+        },
+        {
+            "archive": "cond-mat",
+            "uri": "http://arxiv.org/abs/cond-mat/0102240v1",
+            "id": "cond-mat/0102240v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1801.01865v1",
+            "id": "1801.01865v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1711.07558v1",
+            "id": "1711.07558v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1710.00221v1",
+            "id": "1710.00221v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1706.03209v2",
+            "id": "1706.03209v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1705.07888v1",
+            "id": "1705.07888v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1703.03443v1",
+            "id": "1703.03443v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1612.06727v1",
+            "id": "1612.06727v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1609.03613v2",
+            "id": "1609.03613v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1604.03487v3",
+            "id": "1604.03487v3"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1304.3384v3",
+            "id": "1304.3384v3"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1106.4826v3",
+            "id": "1106.4826v3"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1312.5646v3",
+            "id": "1312.5646v3"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1412.4976v3",
+            "id": "1412.4976v3"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1506.05329v1",
+            "id": "1506.05329v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1410.6757v5",
+            "id": "1410.6757v5"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1412.7546v1",
+            "id": "1412.7546v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1405.0292v2",
+            "id": "1405.0292v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1404.6639v2",
+            "id": "1404.6639v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1404.4046v1",
+            "id": "1404.4046v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1308.2863v3",
+            "id": "1308.2863v3"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1308.0523v2",
+            "id": "1308.0523v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1307.6232v1",
+            "id": "1307.6232v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1304.4124v1",
+            "id": "1304.4124v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1109.2789v3",
+            "id": "1109.2789v3"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1210.5182v1",
+            "id": "1210.5182v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1707.07235v2",
+            "id": "1707.07235v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1710.07751v2",
+            "id": "1710.07751v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1706.10157v2",
+            "id": "1706.10157v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1709.00271v1",
+            "id": "1709.00271v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1707.08911v1",
+            "id": "1707.08911v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1706.08846v1",
+            "id": "1706.08846v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1705.07361v1",
+            "id": "1705.07361v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1704.01400v3",
+            "id": "1704.01400v3"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1703.01387v2",
+            "id": "1703.01387v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1702.00206v1",
+            "id": "1702.00206v1"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1609.01685v2",
+            "id": "1609.01685v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1610.07211v2",
+            "id": "1610.07211v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1507.08264v6",
+            "id": "1507.08264v6"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1606.04349v2",
+            "id": "1606.04349v2"
+        },
+        {
+            "archive": "gr-qc",
+            "uri": "http://arxiv.org/abs/1607.05063v1",
+            "id": "1607.05063v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1801.01846v1",
+            "id": "1801.01846v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1704.02688v1",
+            "id": "1704.02688v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1604.08211v1",
+            "id": "1604.08211v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1505.05038v1",
+            "id": "1505.05038v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1405.3871v2",
+            "id": "1405.3871v2"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1302.0960v2",
+            "id": "1302.0960v2"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1205.3164v1",
+            "id": "1205.3164v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1106.4320v1",
+            "id": "1106.4320v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1002.4538v1",
+            "id": "1002.4538v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/0807.1612v1",
+            "id": "0807.1612v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/hep-ex/0607018v1",
+            "id": "hep-ex/0607018v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/hep-ex/0408035v1",
+            "id": "hep-ex/0408035v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/hep-ex/0206043v1",
+            "id": "hep-ex/0206043v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/hep-ph/0003306v1",
+            "id": "hep-ph/0003306v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/hep-ph/9601308v1",
+            "id": "hep-ph/9601308v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1704.02722v1",
+            "id": "1704.02722v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1505.00700v4",
+            "id": "1505.00700v4"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1604.08221v1",
+            "id": "1604.08221v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1508.04466v2",
+            "id": "1508.04466v2"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1709.07497v1",
+            "id": "1709.07497v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1707.01796v1",
+            "id": "1707.01796v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1704.02722v1",
+            "id": "1704.02722v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1701.02288v1",
+            "id": "1701.02288v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1712.02825v1",
+            "id": "1712.02825v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1709.03148v2",
+            "id": "1709.03148v2"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1711.04608v1",
+            "id": "1711.04608v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1708.00212v2",
+            "id": "1708.00212v2"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1710.05600v1",
+            "id": "1710.05600v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1509.07525v3",
+            "id": "1509.07525v3"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1706.03017v2",
+            "id": "1706.03017v2"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1707.01080v2",
+            "id": "1707.01080v2"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1708.06938v1",
+            "id": "1708.06938v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1703.02508v2",
+            "id": "1703.02508v2"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1707.01988v1",
+            "id": "1707.01988v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1712.07469v1",
+            "id": "1712.07469v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1711.06461v2",
+            "id": "1711.06461v2"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1712.02825v1",
+            "id": "1712.02825v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1712.00327v1",
+            "id": "1712.00327v1"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1709.03148v2",
+            "id": "1709.03148v2"
+        },
+        {
+            "archive": "hep-ex",
+            "uri": "http://arxiv.org/abs/1711.07261v1",
+            "id": "1711.07261v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1801.01703v1",
+            "id": "1801.01703v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1511.01852v1",
+            "id": "1511.01852v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1210.7849v2",
+            "id": "1210.7849v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1010.5629v3",
+            "id": "1010.5629v3"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/0710.2565v1",
+            "id": "0710.2565v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1511.01908v1",
+            "id": "1511.01908v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1701.01551v1",
+            "id": "1701.01551v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1708.08979v3",
+            "id": "1708.08979v3"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1703.07091v2",
+            "id": "1703.07091v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1401.5862v3",
+            "id": "1401.5862v3"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1611.00280v1",
+            "id": "1611.00280v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1606.07617v1",
+            "id": "1606.07617v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1706.01473v2",
+            "id": "1706.01473v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1710.05699v1",
+            "id": "1710.05699v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1708.08979v3",
+            "id": "1708.08979v3"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1610.08265v2",
+            "id": "1610.08265v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1703.07091v2",
+            "id": "1703.07091v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1611.09696v2",
+            "id": "1611.09696v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1401.5862v3",
+            "id": "1401.5862v3"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1606.04193v4",
+            "id": "1606.04193v4"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1611.00280v1",
+            "id": "1611.00280v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1609.00181v1",
+            "id": "1609.00181v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1708.00142v3",
+            "id": "1708.00142v3"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1710.00991v2",
+            "id": "1710.00991v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1706.01473v2",
+            "id": "1706.01473v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1710.08287v1",
+            "id": "1710.08287v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1710.05699v1",
+            "id": "1710.05699v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1709.10447v1",
+            "id": "1709.10447v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1708.08979v3",
+            "id": "1708.08979v3"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1708.01415v1",
+            "id": "1708.01415v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1610.08265v2",
+            "id": "1610.08265v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1607.04422v3",
+            "id": "1607.04422v3"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1703.07091v2",
+            "id": "1703.07091v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1703.09728v1",
+            "id": "1703.09728v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1611.09696v2",
+            "id": "1611.09696v2"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1701.08959v1",
+            "id": "1701.08959v1"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1401.5862v3",
+            "id": "1401.5862v3"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1610.05519v3",
+            "id": "1610.05519v3"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1606.04193v4",
+            "id": "1606.04193v4"
+        },
+        {
+            "archive": "hep-lat",
+            "uri": "http://arxiv.org/abs/1611.04791v1",
+            "id": "1611.04791v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1801.01871v1",
+            "id": "1801.01871v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1710.08254v1",
+            "id": "1710.08254v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1706.09022v1",
+            "id": "1706.09022v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1607.01956v3",
+            "id": "1607.01956v3"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1610.05259v1",
+            "id": "1610.05259v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1510.06815v2",
+            "id": "1510.06815v2"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1606.09576v1",
+            "id": "1606.09576v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1509.07551v1",
+            "id": "1509.07551v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1411.4724v3",
+            "id": "1411.4724v3"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1407.0657v2",
+            "id": "1407.0657v2"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1408.2843v1",
+            "id": "1408.2843v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1710.07121v1",
+            "id": "1710.07121v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1709.00416v1",
+            "id": "1709.00416v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1701.06586v3",
+            "id": "1701.06586v3"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1704.07684v1",
+            "id": "1704.07684v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1610.07526v3",
+            "id": "1610.07526v3"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1612.03803v1",
+            "id": "1612.03803v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1506.01354v3",
+            "id": "1506.01354v3"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1605.09383v2",
+            "id": "1605.09383v2"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1606.00754v1",
+            "id": "1606.00754v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1711.10623v1",
+            "id": "1711.10623v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1608.03205v4",
+            "id": "1608.03205v4"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1710.07121v1",
+            "id": "1710.07121v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1709.09989v1",
+            "id": "1709.09989v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1709.00416v1",
+            "id": "1709.00416v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1708.00328v1",
+            "id": "1708.00328v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1701.06586v3",
+            "id": "1701.06586v3"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1705.09169v1",
+            "id": "1705.09169v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1704.07684v1",
+            "id": "1704.07684v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1703.08468v1",
+            "id": "1703.08468v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1610.07526v3",
+            "id": "1610.07526v3"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1609.05050v2",
+            "id": "1609.05050v2"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1612.03803v1",
+            "id": "1612.03803v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1611.04827v1",
+            "id": "1611.04827v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1506.01354v3",
+            "id": "1506.01354v3"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1609.03689v1",
+            "id": "1609.03689v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1605.09383v2",
+            "id": "1605.09383v2"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1607.01165v1",
+            "id": "1607.01165v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1606.00754v1",
+            "id": "1606.00754v1"
+        },
+        {
+            "archive": "hep-ph",
+            "uri": "http://arxiv.org/abs/1605.00206v1",
+            "id": "1605.00206v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1706.04621v3",
+            "id": "1706.04621v3"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1710.05919v1",
+            "id": "1710.05919v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1710.05923v1",
+            "id": "1710.05923v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1708.08315v1",
+            "id": "1708.08315v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1706.07474v1",
+            "id": "1706.07474v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1704.04807v2",
+            "id": "1704.04807v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1702.05103v1",
+            "id": "1702.05103v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1609.09381v3",
+            "id": "1609.09381v3"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1610.00225v1",
+            "id": "1610.00225v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1603.00172v2",
+            "id": "1603.00172v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/math/9903034v2",
+            "id": "math/9903034v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1602.05672v2",
+            "id": "1602.05672v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1512.05410v1",
+            "id": "1512.05410v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1510.03778v1",
+            "id": "1510.03778v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1502.02998v2",
+            "id": "1502.02998v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1505.06760v1",
+            "id": "1505.06760v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1407.8268v2",
+            "id": "1407.8268v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1407.2567v3",
+            "id": "1407.2567v3"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1410.4519v1",
+            "id": "1410.4519v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1402.2476v2",
+            "id": "1402.2476v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1305.3877v3",
+            "id": "1305.3877v3"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1303.3050v2",
+            "id": "1303.3050v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1312.2623v1",
+            "id": "1312.2623v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1306.6307v2",
+            "id": "1306.6307v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1307.2624v1",
+            "id": "1307.2624v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1212.6635v3",
+            "id": "1212.6635v3"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1207.6679v2",
+            "id": "1207.6679v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1211.2238v1",
+            "id": "1211.2238v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1206.2855v3",
+            "id": "1206.2855v3"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1202.4322v2",
+            "id": "1202.4322v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1109.4672v4",
+            "id": "1109.4672v4"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1112.6173v1",
+            "id": "1112.6173v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1110.3416v1",
+            "id": "1110.3416v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1107.5521v1",
+            "id": "1107.5521v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1105.1498v1",
+            "id": "1105.1498v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1102.3679v1",
+            "id": "1102.3679v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1705.04861v3",
+            "id": "1705.04861v3"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1708.02256v2",
+            "id": "1708.02256v2"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1710.05923v1",
+            "id": "1710.05923v1"
+        },
+        {
+            "archive": "hep-th",
+            "uri": "http://arxiv.org/abs/1707.00747v2",
+            "id": "1707.00747v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1801.00866v2",
+            "id": "1801.00866v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1601.07404v2",
+            "id": "1601.07404v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1401.1738v2",
+            "id": "1401.1738v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1102.2107v3",
+            "id": "1102.2107v3"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1010.5031v1",
+            "id": "1010.5031v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/0802.1229v1",
+            "id": "0802.1229v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/math-ph/0310025v2",
+            "id": "math-ph/0310025v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1606.06878v1",
+            "id": "1606.06878v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1507.07447v1",
+            "id": "1507.07447v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1408.1355v1",
+            "id": "1408.1355v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1208.1374v2",
+            "id": "1208.1374v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1110.2004v2",
+            "id": "1110.2004v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1110.4799v1",
+            "id": "1110.4799v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1010.5032v1",
+            "id": "1010.5032v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/0908.1507v1",
+            "id": "0908.1507v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/0802.1243v1",
+            "id": "0802.1243v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/math-ph/0412056v5",
+            "id": "math-ph/0412056v5"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/math-ph/0405009v1",
+            "id": "math-ph/0405009v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/quant-ph/0109013v2",
+            "id": "quant-ph/0109013v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1704.05839v2",
+            "id": "1704.05839v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1612.02508v1",
+            "id": "1612.02508v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1606.06878v1",
+            "id": "1606.06878v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1510.00045v2",
+            "id": "1510.00045v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1507.07447v1",
+            "id": "1507.07447v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1312.4284v2",
+            "id": "1312.4284v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1408.1355v1",
+            "id": "1408.1355v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1402.1626v1",
+            "id": "1402.1626v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1208.1374v2",
+            "id": "1208.1374v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1210.1302v2",
+            "id": "1210.1302v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1110.2004v2",
+            "id": "1110.2004v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1111.2037v2",
+            "id": "1111.2037v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1110.4799v1",
+            "id": "1110.4799v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1101.0187v3",
+            "id": "1101.0187v3"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1010.5032v1",
+            "id": "1010.5032v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/1004.1435v1",
+            "id": "1004.1435v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/0908.1507v1",
+            "id": "0908.1507v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/0709.1751v2",
+            "id": "0709.1751v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/0802.1243v1",
+            "id": "0802.1243v1"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/math-ph/0703048v2",
+            "id": "math-ph/0703048v2"
+        },
+        {
+            "archive": "math-ph",
+            "uri": "http://arxiv.org/abs/math-ph/0412056v5",
+            "id": "math-ph/0412056v5"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1801.01764v1",
+            "id": "1801.01764v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1508.07922v3",
+            "id": "1508.07922v3"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1312.6300v3",
+            "id": "1312.6300v3"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1204.4058v2",
+            "id": "1204.4058v2"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1003.3427v1",
+            "id": "1003.3427v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/nucl-th/0701077v1",
+            "id": "nucl-th/0701077v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/nucl-ex/0305004v2",
+            "id": "nucl-ex/0305004v2"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1509.07472v4",
+            "id": "1509.07472v4"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1410.2177v3",
+            "id": "1410.2177v3"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1404.6046v2",
+            "id": "1404.6046v2"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1305.2518v1",
+            "id": "1305.2518v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1703.05639v1",
+            "id": "1703.05639v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1609.09342v1",
+            "id": "1609.09342v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1509.07472v4",
+            "id": "1509.07472v4"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1510.07036v1",
+            "id": "1510.07036v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1410.2177v3",
+            "id": "1410.2177v3"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1410.6770v1",
+            "id": "1410.6770v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1404.6046v2",
+            "id": "1404.6046v2"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1311.0122v1",
+            "id": "1311.0122v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1305.2518v1",
+            "id": "1305.2518v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1211.3761v1",
+            "id": "1211.3761v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1206.3115v1",
+            "id": "1206.3115v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1709.01731v1",
+            "id": "1709.01731v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1705.10003v1",
+            "id": "1705.10003v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1606.03179v3",
+            "id": "1606.03179v3"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1510.06459v2",
+            "id": "1510.06459v2"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1609.09608v1",
+            "id": "1609.09608v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1505.04723v2",
+            "id": "1505.04723v2"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1710.07966v2",
+            "id": "1710.07966v2"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1710.03767v1",
+            "id": "1710.03767v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1709.01731v1",
+            "id": "1709.01731v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1707.07206v1",
+            "id": "1707.07206v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1705.10003v1",
+            "id": "1705.10003v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1704.03249v2",
+            "id": "1704.03249v2"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1606.03179v3",
+            "id": "1606.03179v3"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1702.00398v1",
+            "id": "1702.00398v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1510.06459v2",
+            "id": "1510.06459v2"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1608.02912v3",
+            "id": "1608.02912v3"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1609.09608v1",
+            "id": "1609.09608v1"
+        },
+        {
+            "archive": "nucl-ex",
+            "uri": "http://arxiv.org/abs/1608.04655v1",
+            "id": "1608.04655v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1801.01870v1",
+            "id": "1801.01870v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1603.02700v2",
+            "id": "1603.02700v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1602.02768v1",
+            "id": "1602.02768v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1409.5232v2",
+            "id": "1409.5232v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1401.0079v1",
+            "id": "1401.0079v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1612.01066v3",
+            "id": "1612.01066v3"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1608.07086v1",
+            "id": "1608.07086v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1602.02833v1",
+            "id": "1602.02833v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1508.05700v1",
+            "id": "1508.05700v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1409.5070v2",
+            "id": "1409.5070v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1407.5918v1",
+            "id": "1407.5918v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1401.0090v1",
+            "id": "1401.0090v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1304.1244v2",
+            "id": "1304.1244v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1212.2584v1",
+            "id": "1212.2584v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1203.4769v2",
+            "id": "1203.4769v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1111.2691v1",
+            "id": "1111.2691v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1105.1756v2",
+            "id": "1105.1756v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1010.1541v2",
+            "id": "1010.1541v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1003.3337v1",
+            "id": "1003.3337v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/0801.0956v2",
+            "id": "0801.0956v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/0803.2866v2",
+            "id": "0803.2866v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/0711.3554v1",
+            "id": "0711.3554v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1704.01763v2",
+            "id": "1704.01763v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1705.07971v1",
+            "id": "1705.07971v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1612.01066v3",
+            "id": "1612.01066v3"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1611.08023v1",
+            "id": "1611.08023v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1608.07086v1",
+            "id": "1608.07086v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1604.05435v2",
+            "id": "1604.05435v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1602.02833v1",
+            "id": "1602.02833v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1511.04054v1",
+            "id": "1511.04054v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1508.05700v1",
+            "id": "1508.05700v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1503.07963v2",
+            "id": "1503.07963v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1409.5070v2",
+            "id": "1409.5070v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1410.0372v2",
+            "id": "1410.0372v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1407.5918v1",
+            "id": "1407.5918v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1402.3234v2",
+            "id": "1402.3234v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1401.0090v1",
+            "id": "1401.0090v1"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1706.00455v3",
+            "id": "1706.00455v3"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1705.01110v2",
+            "id": "1705.01110v2"
+        },
+        {
+            "archive": "nucl-th",
+            "uri": "http://arxiv.org/abs/1708.07966v1",
+            "id": "1708.07966v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/0211094v2",
+            "id": "physics/0211094v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/nlin/0205009v1",
+            "id": "nlin/0205009v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/0001066v3",
+            "id": "physics/0001066v3"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/9807089v1",
+            "id": "cond-mat/9807089v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/0205008v2",
+            "id": "physics/0205008v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0101018v2",
+            "id": "cond-mat/0101018v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0008081v1",
+            "id": "cond-mat/0008081v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/9908054v1",
+            "id": "physics/9908054v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/9807101v1",
+            "id": "cond-mat/9807101v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/9611189v1",
+            "id": "cond-mat/9611189v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0301306v1",
+            "id": "cond-mat/0301306v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0209686v1",
+            "id": "cond-mat/0209686v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/0205008v2",
+            "id": "physics/0205008v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0104065v2",
+            "id": "cond-mat/0104065v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0101018v2",
+            "id": "cond-mat/0101018v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0102065v1",
+            "id": "cond-mat/0102065v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0008081v1",
+            "id": "cond-mat/0008081v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0002230v1",
+            "id": "cond-mat/0002230v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/9908054v1",
+            "id": "physics/9908054v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/9902022v1",
+            "id": "physics/9902022v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/9807101v1",
+            "id": "cond-mat/9807101v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/9709219v2",
+            "id": "cond-mat/9709219v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/9611189v1",
+            "id": "cond-mat/9611189v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/chao-dyn/9311008v1",
+            "id": "chao-dyn/9311008v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0306011v1",
+            "id": "cond-mat/0306011v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/0303099v1",
+            "id": "physics/0303099v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0301306v1",
+            "id": "cond-mat/0301306v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0211505v1",
+            "id": "cond-mat/0211505v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0209686v1",
+            "id": "cond-mat/0209686v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0207236v1",
+            "id": "cond-mat/0207236v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/0205008v2",
+            "id": "physics/0205008v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/0202034v1",
+            "id": "physics/0202034v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0104065v2",
+            "id": "cond-mat/0104065v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0102426v2",
+            "id": "cond-mat/0102426v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0101018v2",
+            "id": "cond-mat/0101018v2"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0104116v1",
+            "id": "cond-mat/0104116v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0102065v1",
+            "id": "cond-mat/0102065v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/physics/0010041v1",
+            "id": "physics/0010041v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0008081v1",
+            "id": "cond-mat/0008081v1"
+        },
+        {
+            "archive": "q-bio",
+            "uri": "http://arxiv.org/abs/cond-mat/0003479v3",
+            "id": "cond-mat/0003479v3"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1801.01863v1",
+            "id": "1801.01863v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1711.05383v1",
+            "id": "1711.05383v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1709.07907v1",
+            "id": "1709.07907v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1707.05946v1",
+            "id": "1707.05946v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1705.04516v1",
+            "id": "1705.04516v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1607.02364v3",
+            "id": "1607.02364v3"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1512.06565v2",
+            "id": "1512.06565v2"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1609.07380v1",
+            "id": "1609.07380v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1711.05394v1",
+            "id": "1711.05394v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1710.07199v1",
+            "id": "1710.07199v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1709.07913v1",
+            "id": "1709.07913v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1711.09913v2",
+            "id": "1711.09913v2"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1711.10423v1",
+            "id": "1711.10423v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1609.05206v3",
+            "id": "1609.05206v3"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1710.11071v2",
+            "id": "1710.11071v2"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1701.01973v10",
+            "id": "1701.01973v10"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1710.02343v1",
+            "id": "1710.02343v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1709.07987v1",
+            "id": "1709.07987v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1709.02620v1",
+            "id": "1709.02620v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1708.06729v1",
+            "id": "1708.06729v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1704.01865v2",
+            "id": "1704.01865v2"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.05749v1",
+            "id": "1712.05749v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1711.09913v2",
+            "id": "1711.09913v2"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.05779v2",
+            "id": "1712.05779v2"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1801.00568v1",
+            "id": "1801.00568v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1801.00060v1",
+            "id": "1801.00060v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.05779v2",
+            "id": "1712.05779v2"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.09501v1",
+            "id": "1712.09501v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1711.02323v3",
+            "id": "1711.02323v3"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.08419v1",
+            "id": "1712.08419v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.07859v1",
+            "id": "1712.07859v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.07451v1",
+            "id": "1712.07451v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.06860v1",
+            "id": "1712.06860v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.06349v1",
+            "id": "1712.06349v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1705.03544v3",
+            "id": "1705.03544v3"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.05286v1",
+            "id": "1712.05286v1"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1611.03882v2",
+            "id": "1611.03882v2"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1706.04751v2",
+            "id": "1706.04751v2"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1706.00485v3",
+            "id": "1706.00485v3"
+        },
+        {
+            "archive": "quant-ph",
+            "uri": "http://arxiv.org/abs/1712.03193v1",
+            "id": "1712.03193v1"
+        }
+    ]
+}

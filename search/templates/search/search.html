@@ -1,0 +1,82 @@
+{%- extends "search/base.html" %}
+
+{% import "search/search-macros.html" as search_macros %}
+
+{% block title %}
+    {% if results %}
+        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.end }} of {{ metadata.total }} results for {{ query.field }}: {{ query.value }}
+    {% else %}
+        Search
+    {% endif %}
+{% endblock title %}
+
+{% block within_content %}
+  <form method="GET" action="{{ url_for('ui.search') }}" {% if not query and not results %} class="breathe-vertical" {% endif %} aria-role="search">
+    <div class="field has-addons-tablet">
+      <div class="control is-expanded">
+        <label for="query" class="hidden-label">Search term or terms</label>
+        {% if form.query.errors %}
+          {{ form.query(class="input is-medium is-warning", placeholder="Search term...")|safe }}
+        {% else %}
+          {{ form.query(class="input is-medium", placeholder="Search term...")|safe }}
+        {% endif %}
+        {% if form.query.errors %}
+          <div class="help is-warning">
+            {% for error in form.query.errors %}
+                {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      <div class="select control is-medium">
+        {{ form.searchtype.label(class="is-hidden") }}
+        {{ form.searchtype(class="is-medium")|safe }}
+      </div>
+      <div class="control">
+          <button class="button is-link is-medium">Search</button>
+      </div>
+    </div>
+    <div class="is-clearfix" style="height: 2.5em"> {# TODO - adjust this layout so that it matches across all forms less awkwardly #}
+      <div class="is-pulled-right">
+        <a href="{{ url_for('ui.advanced_search') }}">Advanced Search</a> | <a href="{{ url_for('ui.author_search') }}">Author Search</a>
+      </div>
+    </div>
+  </form>
+
+  {% if not results %}
+    {% if query %}
+      <p class="is-size-4 has-text-warning">
+        Sorry, your query for <span class="is-warning">{{ query.field }}: {{ query.value }}</span> produced no results.
+      </p>
+    {% endif %}
+    <div class="box">
+      <h2 class="title is-5">Tips</h2>
+      <p class="title is-6">Wildcards:</p>
+        <ul>
+         <li>use ? to replace a single character or * to replace any number of characters</li>
+         <li>can be used in any field, but not in the first character position</li>
+        </ul>
+
+      <p class="title is-6">Expressions:</p>
+        <ul>
+           <li>TeX expressions can be searched, enclosed in single $</li>
+        </ul>
+      <p class="title is-6">Phrases</p>
+        <ul>
+          <li>Enclose phrases in double quotes for exact matches in title, abstract, and comments.</li>
+          <li>All journal reference searches are considered literal searches. E.g. a search for <strong>Physica A</strong> will match all papers with journal references containing <em>Physica A</em>, but a search for <strong>Physica A, 245 (1997) 181</strong> will only return the paper with journal reference <em>Physica A, 245 (1997) 181</em>.</li>
+        </ul>
+
+      <p class="title is-6">Author Search:</p>
+        <ul>
+          <li>Diacritic character variants are automatically searched in the Author(s) field</li>
+        </ul>
+    </div>
+  {% endif %}
+
+  {% if results %}
+      {{ search_macros.size_and_order(form, url_for('ui.search')) }}
+      {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
+  {% endif %}
+
+{% endblock %}

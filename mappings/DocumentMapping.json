@@ -1,0 +1,415 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "simple": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase"
+          ]
+        },
+        "folding": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "icu_folding",
+            "lowercase"
+          ]
+        },
+        "tex_analyzer": {
+          "type": "custom",
+          "tokenizer": "tex_tokenizer"
+        }
+      },
+      "tokenizer": {
+        "tex_tokenizer": {
+          "type": "pattern",
+          "pattern": "\\$([^\\$]+)\\$",
+          "group": 1
+        }
+      },
+      "normalizer": {
+        "simple": {
+          "filter": [
+            "lowercase"
+          ]
+        },
+        "folding": {
+          "filter": [
+            "icu_folding",
+            "lowercase"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "document": {
+      "dynamic": "false",
+      "properties": {
+        "abs_categories": {
+          "type": "keyword"
+        },
+        "abstract": {
+          "type": "text",
+          "analyzer": "standard",
+          "fields": {
+            "english": {
+              "type": "text",
+              "analyzer": "english"
+            },
+            "tex": {
+              "type": "text",
+              "analyzer": "tex_analyzer"
+            }
+          }
+        },
+        "acm_class": {
+          "type": "keyword"
+        },
+        "authors": {
+          "type": "nested",
+          "properties": {
+            "first_name": {
+              "type": "keyword",
+              "normalizer": "simple",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
+            },
+            "last_name": {
+              "type": "keyword",
+              "normalizer": "simple",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
+            },
+            "initials": {
+              "type": "keyword",
+              "normalizer": "simple",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
+            },
+            "full_name": {
+              "type": "text",
+              "analyzer": "folding"
+            },
+            "suffix": {
+              "type": "keyword"
+            },
+            "author_id": {
+              "type": "keyword"
+            },
+            "orcid": {
+              "type": "keyword"
+            },
+            "affiliation": {
+              "type": "text"
+            }
+          }
+        },
+        "owners": {
+          "type": "nested",
+          "properties": {
+            "first_name": {
+              "type": "keyword",
+              "normalizer": "simple",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
+            },
+            "last_name": {
+              "type": "keyword",
+              "normalizer": "simple",
+              "fields": {
+                "folded": {
+                  "type": "keyword",
+                  "normalizer": "folding"
+                }
+              }
+            },
+            "full_name": {
+              "type": "text",
+              "analyzer": "folding"
+            },
+            "suffix": {
+              "type": "keyword"
+            },
+            "author_id": {
+              "type": "keyword"
+            },
+            "orcid": {
+              "type": "keyword"
+            },
+            "affiliation": {
+              "type": "text"
+            }
+          }
+        },
+        "comments": {
+          "type": "text",
+          "analyzer": "simple",
+          "search_analyzer": "standard",
+          "search_quote_analyzer": "simple"
+        },
+        "submitted_date": {
+          "type": "date",
+          "format": "strict_date_time_no_millis"
+        },
+        "submitted_date_latest": {
+          "type": "date",
+          "format": "strict_date_time_no_millis"
+        },
+        "submitted_date_first": {
+          "type": "date",
+          "format": "strict_date_time_no_millis"
+        },
+        "submitted_date_all": {
+          "type": "date",
+          "format": "strict_date_time_no_millis"
+        },
+        "updated_date": {
+          "type": "date",
+          "format": "strict_date_time_no_millis"
+        },
+        "modified_date": {
+          "type": "date",
+          "format": "strict_date_time_no_millis"
+        },
+        "announced_date_first": {
+          "type": "date",
+          "format": "year_month"
+        },
+        "doi": {
+          "type": "keyword"
+        },
+        "formats": {
+          "type": "keyword"
+        },
+        "document_id": {
+          "type": "integer"
+        },
+        "is_current": {
+          "type": "boolean"
+        },
+        "latest": {
+          "type": "keyword"
+        },
+        "latest_version": {
+          "type": "integer"
+        },
+        "is_withdrawn": {
+          "type": "boolean"
+        },
+        "journal_ref": {
+          "type": "text",
+          "analyzer": "simple"
+        },
+        "report_num": {
+          "type": "text",
+          "analyzer": "simple"
+        },
+        "license": {
+          "properties": {
+            "uri": {
+              "type": "keyword"
+            },
+            "label": {
+              "type": "keyword"
+            }
+          }
+        },
+        "metadata_id": {
+          "type": "keyword"
+        },
+        "msc_class": {
+          "type": "keyword"
+        },
+        "paper_id": {
+          "type": "keyword"
+        },
+        "paper_id_v": {
+          "type": "keyword"
+        },
+        "primary_classification": {
+          "type": "object",
+          "properties": {
+            "group": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "archive": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "category": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "secondary_classification": {
+          "type": "nested",
+          "properties": {
+            "group": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "archive": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "category": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "keyword"
+                },
+                "name": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "proxy": {
+          "type": "keyword"
+        },
+        "source": {
+          "properties": {
+            "flags": {
+              "type": "keyword"
+            },
+            "format": {
+              "type": "keyword"
+            },
+            "size_bytes": {
+              "type": "integer"
+            }
+          }
+        },
+        "submitter": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "text",
+              "analyzer": "folding"
+            },
+            "submitter_id": {
+              "type": "integer"
+            },
+            "is_author": {
+              "type": "boolean"
+            },
+            "author_id": {
+              "type": "keyword"
+            },
+            "orcid": {
+              "type": "keyword"
+            }
+          }
+        },
+        "title": {
+          "type": "text",
+          "analyzer": "simple",
+          "search_analyzer": "standard",
+          "search_quote_analyzer": "simple",
+          "fields": {
+            "english": {
+              "type": "text",
+              "analyzer": "english",
+              "search_analyzer": "english",
+              "search_quote_analyzer": "simple"
+            },
+            "tex": {
+              "type": "text",
+              "analyzer": "tex_analyzer",
+              "search_analyzer": "tex_analyzer",
+              "search_quote_analyzer": "simple"
+            },
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "title_utf8": {
+          "type": "text",
+          "analyzer": "simple",
+          "search_analyzer": "standard",
+          "search_quote_analyzer": "simple",
+          "fields": {
+            "english": {
+              "type": "text",
+              "analyzer": "english"
+            },
+            "tex": {
+              "type": "text",
+              "analyzer": "tex_analyzer"
+            },
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "version": {
+          "type": "integer"
+        },
+        "fulltext": {
+          "type": "text"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+# arxiv/search-agent
+#
+# The indexing agent is responsible for updating the search index as new
+#  article metadata becomes available. Subscribes to a Kinesis stream for
+#  notifications about new metadata.
+#
+# See ``./agent/docker-compose.yml`` for an example of local deployment with
+# localstack and Elasticsearch.
+
+FROM arxiv/base
+
+RUN yum install -y java
+
+# Add Python consumer and configuration.
+ADD requirements/prod.txt /opt/arxiv/requirements.txt
+ADD app.py /opt/arxiv/
+RUN pip install -U pip
+RUN pip install -r /opt/arxiv/requirements.txt
+RUN pip install localstack boto3
+
+ENV PATH "/opt/arxiv:${PATH}"
+
+ADD schema /opt/arxiv/schema
+ADD mappings /opt/arxiv/mappings
+ADD search /opt/arxiv/search
+ADD agent/agent.properties /opt/arxiv/agent.properties
+ADD agent/test.properties /opt/arxiv/test.properties
+ADD agent/run_consumer.py /opt/arxiv/run_consumer.py
+ADD agent/pre_start_agent.py /opt/arxiv/pre_start_agent.py
+ADD agent/start_agent.sh /opt/arxiv/start_agent.sh
+
+ENV ELASTICSEARCH_SERVICE_HOST 127.0.0.1
+ENV ELASTICSEARCH_SERVICE_PORT 9200
+ENV ELASTICSEARCH_PORT_9200_PROTO http
+ENV ELASTICSEARCH_INDEX arxiv
+ENV ELASTICSEARCH_USER elastic
+ENV ELASTICSEARCH_PASSWORD changeme
+ENV METADATA_ENDPOINT https://arxiv.org/docmeta/
+ENV LOGLEVEL 10
+
+ENV AWS_ACCESS_KEY_ID ""
+ENV AWS_SECRET_ACCESS_KEY ""
+
+# Set `-Dcom.amazonaws.sdk.disableCertChecking` for testing
+ENV JAVA_FLAGS ""
+
+# Set `true` when testing with localstack.
+ENV AWS_CBOR_DISABLE false
+
+# Set to `test` when testing with localstack.
+ENV MODE "agent"
+
+WORKDIR /opt/arxiv
+
+CMD python3.6 /opt/arxiv/pre_start_agent.py; /bin/bash /opt/arxiv/start_agent.sh

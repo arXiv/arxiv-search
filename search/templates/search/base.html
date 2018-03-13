@@ -1,0 +1,32 @@
+{%- extends "base/base.html" %}
+
+{% block addl_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css')}}" />
+
+  <script
+    src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
+    crossorigin="anonymous"></script>
+
+  <script src="{{ url_for('static', filename='js/fieldset.js') }}"></script>
+{% endblock addl_head %}
+
+{% block content %}
+  <article class="message is-link is-pulled-right" style="max-width: max-content;">
+    <div class="message-header">
+      <p class="title is-4 has-text-white">Beta test in progress</p>
+    </div>
+    <div class="message-body">
+      <p>We have made improvements to the search engine, author search and
+        advanced search interface!<br />
+        <a href="https://cornell.qualtrics.com/jfe/form/SV_57IWKevpvsUiFq5">Please let us know what you
+      think in this very quick survey.</a></p>
+    </div>
+  </article>
+  <h1 class="title is-clearfix">{% block title %}Search{% endblock title %}</h1>
+    <content class="beta">
+      {% block within_content %}
+        Specific results here
+      {% endblock within_content %}
+    </content>
+{% endblock content %}

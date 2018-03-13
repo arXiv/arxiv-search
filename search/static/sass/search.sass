@@ -1,0 +1,117 @@
+.content
+  .arxiv-result
+    margin-bottom: 1.25em
+    p
+      margin-bottom: .25em
+    span.tag
+      height: 1.65em
+    .list-title
+      font-size: 1.05em
+
+/* may want to move this section up to baseui */
+
+.is-monospace
+  font-family: monospace
+
+.pagination
+  margin-top: 3rem
+  margin-bottom: 2rem
+
+.pagination-list
+  margin: 0 !important
+
+.breathe-vertical
+  margin-top: 4rem
+  margin-bottom: 4rem
+
+.breathe-horizontal
+  @media screen and (min-width: 769px)
+    margin-left: 5rem !important
+    margin-right: 5rem !important
+  @media screen and (min-width: 980px)
+    margin-left: 10rem !important
+    margin-right: 10rem !important
+
+.pagination-list li
+  list-style: none
+
+.pagination-list li + li // fixes override from content li + li
+  margin: 0
+
+.fieldset
+  border: 1px solid #DBDBDB // $grey-lighter
+  border-radius: 2px // $radius-small
+  padding: .5em 1em 1em 1em
+  margin: 1em 0
+
+.fieldset.is-warning
+  border: 1px solid #d47500
+
+.legend
+  font-weight: 600 // $weight-semibold
+  background-color: inherit
+  padding: 0 .5em
+  margin-left: -.5em
+
+.is-baseline
+  align-items: baseline
+
+.hidden-label
+  border: 0
+  clip: rect(0,0,0,0)
+  height: 1px
+  width: 0
+  margin: -1px
+  overflow: hidden
+  padding: 0
+  position: absolute
+
+/* TODO fold into base as an extension of bulma's default has-addons class */
+.field
+  &.has-addons-tablet
+    .control
+      &:not(:last-child)
+        margin-bottom: .5rem
+    @media screen and (min-width: 769px)
+      display: flex
+      justify-content: flex-start
+      .control
+        &:not(:last-child)
+          margin-right: -1px
+          margin-bottom: 0
+        &:first-child
+          .button,
+          .input,
+          .select select
+            border-bottom-left-radius: 3px
+            border-top-left-radius: 3px
+        &:last-child
+          .button,
+          .input,
+          .select select
+            border-bottom-right-radius: 3px
+            border-top-right-radius: 3px
+        .button,
+        .input,
+        .select select
+          border-radius: 0
+          &:hover,
+          &.is-hovered
+            z-index: 2
+          &:focus,
+          &.is-focused,
+          &:active,
+          &.is-active
+            z-index: 3
+            &:hover
+              z-index: 4
+        &.is-expanded
+          flex-grow: 1
+      &.has-addons-centered
+        justify-content: center
+      &.has-addons-right
+        justify-content: flex-end
+      &.has-addons-fullwidth
+        .control
+          flex-grow: 1
+          flex-shrink: 0

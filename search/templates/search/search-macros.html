@@ -1,0 +1,160 @@
+{% macro size_and_order(form, action_uri) %}
+<div class="level breathe-horizontal">
+  <div class="level-left">
+    <form method="GET" action="{{ action_uri }}">
+      <div style="display: none;">
+        {% for field in form %}
+          {% if field != form.size and field != form.order %}
+            {{ field }}
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="box field is-grouped is-grouped-multiline level-item">
+        <div class="control">
+          <span class="select is-small">
+            {{ form.size|safe }}
+          </span>
+          {{ form.size.label }}.
+        </div>
+        <div class="control">
+          {{ form.order.label }}
+          <span class="select is-small">
+            {{ form.order|safe }}
+          </span>
+        </div>
+        <div class="control">
+          <button class="button is-small is-link">Go</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{%- endmacro -%}
+
+{% macro pagination(metadata, url_for_page) -%}
+  <nav class="pagination is-small is-centered breathe-horizontal" role="navigation" aria-label="pagination">
+    {% if metadata.current_page > 1 %}
+    <a href="{{ url_for_page(metadata.current_page - 1, metadata.page_size) }}"
+      class="pagination-previous">Previous
+    </a>
+    {% else %}
+    <a href=""
+      class="pagination-previous is-invisible">Previous
+    </a>
+    {% endif %}
+    {% if metadata.current_page < metadata.total_pages %}
+      <a href="{% if metadata.current_page + 1 <= metadata.max_pages %}{{ url_for_page(metadata.current_page + 1, metadata.page_size) }}{% endif %}"
+        class="pagination-next" {% if metadata.current_page + 1 > metadata.max_pages %}disabled="true"{% endif %}>Next
+      </a>
+    {% else %}
+    <a href=""
+      class="pagination-next is-invisible">Next
+    </a>
+    {% endif %}
+    <ul class="pagination-list">
+
+      <li>
+        <a href="{{ url_for_page(1, metadata.page_size) }}"
+          class="pagination-link {% if metadata.current_page == 1 %}is-current{% endif %}"
+          aria-label="Goto page 1">1
+        </a>
+      </li>
+
+      {% if metadata.total_pages < 8 %}
+        {% for p in range(2, metadata.total_pages + 1) %}
+        <li>
+          <a href="{{ url_for_page(p, metadata.page_size) }}"
+            class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
+            aria-label="Page {{ p }}"
+            aria-current="page">{{ p }}
+          </a>
+        </li>
+        {% endfor %}
+      {% else %}
+        {% if metadata.current_page <= 3 %}                             {# Close to the start page #}
+          {% for p in range(2, 6) %}
+          <li>
+            <a href="{{ url_for_page(p, metadata.page_size) }}"
+              class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
+              aria-label="Page {{ p }}"
+              aria-current="page">{{ p }}
+            </a>
+          </li>
+          {% endfor %}
+          <li><span class="pagination-ellipsis">&hellip;</span></li>
+        {% elif (metadata.total_pages + 1 - metadata.current_page) <= 3 %}  {# Close to the end page #}
+          <li><span class="pagination-ellipsis">&hellip;</span></li>
+          {% for p in range(metadata.total_pages - 4, metadata.total_pages + 1) %}
+          <li>
+            <a href="{{ url_for_page(p, metadata.page_size) }}"
+              class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
+              aria-label="Page {{ p }}"
+              aria-current="page">{{ p }}
+            </a>
+          </li>
+          {% endfor %}
+        {% else %}                                                       {# Somewhere in the middle #}
+          <li><span class="pagination-ellipsis">&hellip;</span></li>
+          {% for p in range(metadata.current_page - 1, metadata.current_page + 2) %}
+          {% if p <= metadata.max_pages %}
+          <li>
+            <a href="{{ url_for_page(p, metadata.page_size) }}"
+              class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
+              aria-label="Page {{ p }}"
+              aria-current="page">{{ p }}
+            </a>
+          </li>
+          {% endif %}
+          {% endfor %}
+          <li><span class="pagination-ellipsis">&hellip;</span></li>
+        {% endif %}
+      {% endif %}
+    </ul>
+  </nav>
+  {% if metadata.current_page + 1 > metadata.max_pages %}
+  <p class="has-text-right has-text-grey is-size-7 breathe-horizontal">
+    Only {{ metadata.max_pages }} pages are available. Please refine your search.
+  </p>
+  {% endif %}
+{%- endmacro %}
+
+
+{% macro search_results(form, results, metadata, external_url, url_for_page) %}
+
+{% if metadata.total_pages > 1 %}
+  {{ pagination(metadata, url_for_page) }}
+{% endif %}
+
+<ol class="breathe-horizontal" start="{{ metadata.start + 1}}"> {# Start index is 0-based. #}
+
+{% for result in results %}
+  <li class="arxiv-result">
+    <p class="list-title"><a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id_v) }}">arXiv: {{ result.paper_id_v }}</a> [<a href="{{ external_url('browse', 'pdf', paper_id=result.paper_id) }}">pdf</a>] <span class="tag is-small is-link">{{ result.primary_classification.category.id }}</span>
+    {% if result.secondary_category %}
+      {% for secondary in result.secondary_category %}
+        <span class="tag is-small is-grey">{{ secondary.archive }} {{ secondary.category }}</span>
+      {% endfor %}
+    {% endif -%}
+    {% if not result.is_current %}<span class="has-text-grey is-size-7">Version {{ result.version }} of {{ result.latest_version }}</span>{% endif %}
+    </p>
+    <p class="title is-5">{{ result.title_utf8 }}</p>
+    <p class="authors">Authors:
+      {% for author in result.authors[0:25] %}
+      <a href="{{ url_for('ui.author_search') }}?surname={{ author.last_name }}&forename={{ author.first_name }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}
+      {% endfor -%}
+      {% if result.authors | length > 25 %}, et al. ({{ result.authors | length - 25 }} additional authors not shown){% endif %}
+    </p>
+    <p>Submitted on {{ result.submitted_date.strftime('%d %B, %Y at %H:%M:%S %Z') }}. {% if result.latest %}<span class="has-text-weight-bold">Latest version: <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a></span>{% endif %}</p>
+    {% if result.comments %}<p class="comments">Comments: {{ result.comments }}</p>{% endif %}
+    {% if result.journal_ref %}
+      <p class="comments">Journal Reference: {{ result.journal_ref }}</p>
+    {% endif %}
+  </li>
+{% endfor %}
+</ol>
+
+{% if metadata.total_pages > 1 %}
+  {{ pagination(metadata, url_for_page) }}
+{% endif %}
+
+{%- endmacro -%}

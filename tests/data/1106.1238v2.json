@@ -1,0 +1,2409 @@
+{
+  "source": {
+    "flags": "",
+    "format": "tex",
+    "size_bytes": 7121882
+  },
+  "abs_categories": "physics.ins-det hep-ex",
+  "comments": "33 pages, 32 figures, Submitted and accepted by NIM A. Editor: Prof. Chang Kee Jung, Department of Physics and Astronomy, SUNY Stony Brook, chang.jung@sunysb.edu, 631-632-8108 Submit Edited to remove line numbers",
+  "formats": ["pdf", "ps", "other"],
+  "is_current": true,
+  "author_owners": [{
+    "author_id": "mcfarland_k_1",
+    "last_name": "McFarland",
+    "first_name": "Kevin S."
+  }, {
+    "author_id": "dilodovico_f_1",
+    "orcid": "0000-0003-3952-2175",
+    "last_name": "DiLodovico",
+    "first_name": "Francesca"
+  }, {
+    "last_name": "Paolone",
+    "first_name": "Vittorio"
+  }, {
+    "author_id": "yokoyama_m_1",
+    "orcid": "0000-0003-2742-0251",
+    "last_name": "Yokoyama",
+    "first_name": "Masashi"
+  }, {
+    "author_id": "popov_b_1",
+    "last_name": "Popov",
+    "first_name": "Boris A."
+  }, {
+    "last_name": "Rubbia",
+    "first_name": "Andre"
+  }, {
+    "suffix": "PhD",
+    "last_name": "Berardi",
+    "first_name": "Vincenzo"
+  }, {
+    "author_id": "oser_s_1",
+    "last_name": "Oser",
+    "first_name": "Scott"
+  }, {
+    "author_id": "dumarchez_j_1",
+    "last_name": "Dumarchez",
+    "first_name": "Jacques"
+  }, {
+    "author_id": "takeuchi_y_1",
+    "last_name": "Takeuchi",
+    "first_name": "Yasuo"
+  }, {
+    "author_id": "weber_a_1",
+    "orcid": "0000-0002-8222-6681",
+    "last_name": "Weber",
+    "first_name": "Alfons"
+  }, {
+    "author_id": "barr_g_1",
+    "last_name": "Barr",
+    "first_name": "Giles"
+  }, {
+    "last_name": "Nakayama",
+    "first_name": "Shoei"
+  }, {
+    "author_id": "wilson_r_2",
+    "last_name": "Wilson",
+    "first_name": "Robert"
+  }, {
+    "author_id": "wascko_m_1",
+    "last_name": "Wascko",
+    "first_name": "Morgan"
+  }, {
+    "last_name": "Sacco",
+    "first_name": "Roberto"
+  }, {
+    "last_name": "Marco",
+    "first_name": "Laveder"
+  }, {
+    "author_id": "khabibullin_m_1",
+    "last_name": "Khabibullin",
+    "first_name": "Marat"
+  }, {
+    "author_id": "andreopoulos_c_1",
+    "last_name": "Andreopoulos",
+    "first_name": "Constantinos"
+  }, {
+    "author_id": "mccauley_n_1",
+    "last_name": "McCauley",
+    "first_name": "Neil"
+  }, {
+    "orcid": "0000-0002-2308-4986",
+    "last_name": "Strauss",
+    "first_name": "Thomas"
+  }, {
+    "suffix": "Dr",
+    "last_name": "Still",
+    "first_name": "Benjamin"
+  }, {
+    "author_id": "johnson_r_2",
+    "orcid": "0000-0003-4385-9045",
+    "last_name": "Johnson",
+    "first_name": "Rob"
+  }, {
+    "suffix": "Dr",
+    "last_name": "Perkin",
+    "first_name": "Jonathan"
+  }, {
+    "orcid": "0000-0003-0320-3623",
+    "last_name": "Sanchez",
+    "first_name": "Federico"
+  }, {
+    "author_id": "beznosko_d_1",
+    "suffix": "Dr",
+    "last_name": "Beznosko",
+    "first_name": "Dmitriy"
+  }, {
+    "author_id": "lux_t_1",
+    "last_name": "Lux",
+    "first_name": "Thorsten"
+  }, {
+    "author_id": "taylor_i_1",
+    "last_name": "Taylor",
+    "first_name": "Ian"
+  }, {
+    "last_name": "de Perio",
+    "first_name": "Patrick"
+  }, {
+    "author_id": "uchida_y_1",
+    "orcid": "0000-0002-8677-9945",
+    "last_name": "Uchida",
+    "first_name": "Yoshi"
+  }, {
+    "author_id": "das_r_2",
+    "last_name": "Das",
+    "first_name": "Rajarshi"
+  }, {
+    "last_name": "Ruterbories",
+    "first_name": "Daniel"
+  }, {
+    "author_id": "kurjata_r_1",
+    "orcid": "0000-0001-8547-910X",
+    "last_name": "Kurjata",
+    "first_name": "Robert"
+  }, {
+    "author_id": "brookroberge_d_1",
+    "last_name": "Brook-Roberge",
+    "first_name": "Daniel"
+  }, {
+    "author_id": "jovermanas_g_1",
+    "last_name": "Jover-Manas",
+    "first_name": "Gabriel"
+  }, {
+    "author_id": "short_s_1",
+    "last_name": "Short",
+    "first_name": "Samantha"
+  }, {
+    "author_id": "dealtry_t_1",
+    "orcid": "0000-0003-2256-9444",
+    "last_name": "Dealtry",
+    "first_name": "Thomas"
+  }, {
+    "last_name": "Berns",
+    "first_name": "Hans"
+  }, {
+    "last_name": "Davis",
+    "first_name": "Scott"
+  }, {
+    "author_id": "ludovici_l_1",
+    "last_name": "Ludovici",
+    "first_name": "Lucio"
+  }, {
+    "author_id": "whitehead_l_1",
+    "orcid": "0000-0002-3327-2534",
+    "last_name": "Whitehead",
+    "first_name": "Leigh"
+  }, {
+    "author_id": "scully_d_1",
+    "last_name": "Scully",
+    "first_name": "Daniel"
+  }, {
+    "author_id": "scott_m_2",
+    "orcid": "0000-0002-1759-4453",
+    "last_name": "Scott",
+    "first_name": "Mark"
+  }, {
+    "author_id": "nicholls_t_1",
+    "last_name": "Nicholls",
+    "first_name": "Timothy"
+  }, {
+    "last_name": "Pearce",
+    "first_name": "Geoffrey"
+  }, {
+    "suffix": "Dr.",
+    "last_name": "Murdoch",
+    "first_name": "Matthew"
+  }, {
+    "author_id": "touramanis_c_1",
+    "orcid": "0000-0001-5191-2171",
+    "last_name": "Touramanis",
+    "first_name": "Christos"
+  }, {
+    "author_id": "licciardi_c_1",
+    "last_name": "Licciardi",
+    "first_name": "Caio"
+  }, {
+    "last_name": "Assylbekov",
+    "first_name": "Shamil"
+  }, {
+    "author_id": "berger_b_1",
+    "last_name": "Berger",
+    "first_name": "Bruce E."
+  }, {
+    "last_name": "Giffin",
+    "first_name": "Spencer"
+  }, {
+    "last_name": "Thompson",
+    "first_name": "Lee"
+  }, {
+    "last_name": "Masliah",
+    "first_name": "Patrick"
+  }, {
+    "author_id": "poutissou_r_1",
+    "orcid": "0000-0003-0930-4353",
+    "last_name": "Poutissou",
+    "first_name": "Renee"
+  }, {
+    "last_name": "Kirby",
+    "first_name": "Brian"
+  }, {
+    "orcid": "0000-0002-1709-538X",
+    "last_name": "Marino",
+    "first_name": "Alysia"
+  }, {
+    "last_name": "Imber",
+    "first_name": "James"
+  }, {
+    "last_name": "Lagoda",
+    "first_name": "Justyna"
+  }, {
+    "last_name": "Albert",
+    "first_name": "Joshua"
+  }, {
+    "author_id": "litchfield_p_1",
+    "last_name": "Litchfield",
+    "first_name": "Phillip"
+  }, {
+    "last_name": "Ariga",
+    "first_name": "Tomoko"
+  }, {
+    "orcid": "0000-0003-0818-7335",
+    "last_name": "Stamoulis",
+    "first_name": "Panagiotis"
+  }, {
+    "orcid": "0000-0002-5732-2161",
+    "last_name": "Myslik",
+    "first_name": "Jordan"
+  }],
+  "primary_classification": {
+    "group": {
+      "name": "Physics",
+      "id": "physics"
+    },
+    "archive": {
+      "name": "Physics",
+      "id": "physics"
+    },
+    "category": {
+      "name": "Instrumentation and Detectors",
+      "id": "physics.ins-det"
+    }
+  },
+  "updated": "2012-08-27T14:28:42-0400",
+  "doi": "10.1016/j.nima.2011.06.067",
+  "acm_class": null,
+  "authors_utf8": "T2K Collaboration K. Abe (19), N. Abgrall (46), H. Aihara (27), Y. Ajima (21), J.B. Albert (57), D. Allan (47), P.-A. Amaudruz (1), C. Andreopoulos (47), B. Andrieu (11), M.D. Anerella (55), C. Angelsen (47), S. Aoki (22), O. Araoka (21), J. Argyriades (46), A. Ariga (44), T. Ariga (44), S. Assylbekov (56), J.P.A.M. de André (10), D. Autiero (9), A. Badertscher (45), O. Ballester (43), M. Barbi (4), G.J. Barker (53), P. Baron (8), G. Barr (66), L. Bartoszek (61), M. Batkiewicz (36), F. Bay (44), S. Bentham (49), V. Berardi (65), B.E. Berger (56), H. Berns (64), I. Bertram (49), M. Besnier (10), J. Beucher (8), D. Beznosko (59), S. Bhadra (7), P. Birney (6,1), D. Bishop (1), E. Blackmore (1), F.d.M. Blaszczyk (8), J. Blocki (36), A. Blondel (46), A. Bodek (63), C. Bojechko (6), J. Bouchez (8, deceased), T. Boussuge (8), S.B. Boyd (53), M. Boyer (8), N. Braam (6), R. Bradford (63), A. Bravar (46), K. Briggs (53), J.D. Brinson (58), C. Bronner (10), D.G. Brook-Roberge (3), M. Bryant (3), N. Buchanan (56), H. Budd (63), M. Cadabeschi (5), R.G. Calland (52), D. Calvet (8), J. Caravaca Rodríguez (43), J. Carroll (52), S.L. Cartwright (51), A. Carver (53), R. Castillo (43), M.G. Catanesi (65), C. Cavata (8), A. Cazes (9), A. Cervera (42), J.P. Charrier (8), C. Chavez (52), S. Choi (33), S. Chollet (10), G. Christodoulou (52), P. Colas (8), J. Coleman (52), W. Coleman (58), G. Collazuol (15), K. Connolly (64), P. Cooke (52), A. Curioni (45), A. Dabrowska (36), I. Danko (62), R. Das (56), G.S. Davies (49), S. Davis (64), M. Day (63), X. De La Broise (8), P. de Perio (5), G. De Rosa (14), T. Dealtry (66,47), A. Debraine (10), E. Delagnes (8), A. Delbart (8), C. Densham (47), F. Di Lodovico (50), S. Di Luise (45), P. Dinh Tran (10), J. Dobson (48), J. Doornbos (1), U. Dore (13), O. Drapier (10), F. Druillole (8), F. Dufour (46), J. Dumarchez (11), T. Durkin (47), S. Dytman (62), M. Dziewiecki (37), M. Dziomba (64), B. Ellison (58), S. Emery (8), A. Ereditato (44), J.E. Escallier (55), L. Escudero (42), L.S. Esposito (45), W. Faszer (1), M. Fechner (57), A. Ferrero (46), A. Finch (49), C. Fisher (1), M. Fitton (47), R. Flight (63), D. Forbush (64), E. Frank (44), K. Fransham (6), Y. Fujii (21), Y. Fukuda (24), M. Gallop (1), V. Galymov (7), G.L. Ganetis (55), F.C. Gannaway (50), A. Gaudin (6), J. Gaweda (43), A. Gendotti (45), M. George (50), S. Giffin (4), C. Giganti (43,8), K. Gilje (59), I. Giomataris (8), J. Giraud (8), A.K. Ghosh (55), T. Golan (40), M. Goldhaber (55, deceased), J.J. Gomez-Cadenas (42), S. Gomi (23), M. Gonin (10), M. Goyette (1), A. Grant (67), N. Grant (47), F. Grañena (43), S. Greenwood (48), P. Gumplinger (1), P. Guzowski (48), M.D. Haigh (66), K. Hamano (1), C. Hansen (42), T. Hara (22), P.F. Harrison (53), B. Hartfiel (58), M. Hartz (7,5), T. Haruyama (21), R. Hasanen (6), T. Hasegawa (21), N.C. Hastings (4), S. Hastings (3), A. Hatzikoutelis (49), K. Hayashi (21), Y. Hayato (19), T.D.J. Haycock (51), C. Hearty (3), R.L. Helmer (1), R. Henderson (1), S. Herlant (8), N. Higashi (21), J. Hignight (59), K. Hiraide (23), E. Hirose (21), J. Holeczek (38), N. Honkanen (6), S. Horikawa (45), A. Hyndman (50), A.K. Ichikawa (23), K. Ieki (23), M. Ieva (43), M. Iida (21), M. Ikeda (23), J. Ilic (47), J. Imber (59), T. Ishida (21), C. Ishihara (26), T. Ishii (21), S.J. Ives (48), M. Iwasaki (27), K. Iyogi (19), A. Izmaylov (41), B. Jamieson (3), R.A. Johnson (61), K.K. Joo (28), G. Jover-Manas (43), C.K. Jung (59), H. Kaji (26), T. Kajita (26), H. Kakuno (27), J. Kameda (19), K. Kaneyuki (26, deceased), D. Karlen (6,1), K. Kasami (21), V. Kasey (48), I. Kato (1), H. Kawamuko (23), E. Kearns (54), L. Kellet (52), M. Khabibullin (41), M. Khaleeq (48), N. Khan (1), A. Khotjantsev (41), D. Kielczewska (39), T. Kikawa (23), J.Y. Kim (28), S.-B. Kim (33), N. Kimura (21), B. Kirby (3), J. Kisiel (38), P. Kitching (2), T. Kobayashi (21), G. Kogan (48), S. Koike (21), T. Komorowski (49), A. Konaka (1), L.L. Kormos (49), A. Korzenev (46), K. Koseki (21), Y. Koshio (19), Y. Kouzuma (19), K. Kowalik (35), V. Kravtsov (56), I. Kreslo (44), W. Kropp (60), H. Kubo (23), J. Kubota (23), Y. Kudenko (41), N. Kulkarni (58), L. Kurchaninov (1), Y. Kurimoto (23), R. Kurjata (37), Y. Kurosawa (23), T. Kutter (58), J. Lagoda (35), K. Laihem (12), R. Langstaff (6,1), M. Laveder (15), T.B. Lawson (51), P.T. Le (59), A. Le Coguie (8), M. Le Ross (1), K.P. Lee (26), M. Lenckowski (6,1), C. Licciardi (4), I.T. Lim (28), T. Lindner (3), R.P. Litchfield (53,23), A. Longhin (8), G.D. Lopez (59), P. Lu (3), L. Ludovici (13), T. Lux (43), M. Macaire (8), L. Magaletti (65), K. Mahn (1), Y. Makida (21), C.J. Malafis (59), M. Malek (48), S. Manly (63), A. Marchionni (45), C. Mark (1), A.D. Marino (61,5), A.J. Marone (55), J. Marteau (9), J.F. Martin (5), T. Maruyama (21), T. Maryon (49), J. Marzec (37), P. Masliah (48), E.L. Mathie (4), C. Matsumura (25), K. Matsuoka (23), V. Matveev (41), K. Mavrokoridis (52), E. Mazzucato (8), N. McCauley (52), K.S. McFarland (63), C. McGrew (59), T. McLachlan (26), I. Mercer (49), M. Messina (44), W. Metcalf (58), C. Metelko (47), M. Mezzetto (15), P. Mijakowski (35), C.A. Miller (1), A. Minamino (23), O. Mineev (41), S. Mine (60), R.E. Minvielle (58), G. Mituka (26), M. Miura (19), K. Mizouchi (1), J.-P. Mols (8), L. Monfregola (42), E. Monmarthe (8), F. Moreau (10), B. Morgan (53), S. Moriyama (19), D. Morris (1), A. Muir (67), A. Murakami (23), J.F. Muratore (55), M. Murdoch (52), S. Murphy (46), J. Myslik (6), G. Nagashima (59), T. Nakadaira (21), M. Nakahata (19), T. Nakamoto (21), K. Nakamura (21), S. Nakayama (19), T. Nakaya (23), D. Naples (62), B. Nelson (59), T.C. Nicholls (47), K. Nishikawa (21), H. Nishino (26), K. Nitta (23), F. Nizery (8), J.A. Nowak (58), M. Noy (48), Y. Obayashi (19), T. Ogitsu (21), H. Ohhata (21), T. Okamura (21), K. Okumura (26), T. Okusawa (25), C. Ohlmann (1), K. Olchanski (1), R. Openshaw (1), S.M. Oser (3), M. Otani (23), R.A. Owen (50), Y. Oyama (21), T. Ozaki (25), M.Y. Pac (29), V. Palladino (14), V. Paolone (62), P. Paul (59), D. Payne (52), G.F. Pearce (47), C. Pearson (1), J.D. Perkin (51), M. Pfleger (6), F. Pierre (8, deceased), D. Pierrepont (8), P. Plonski (37), P. Poffenberger (6), E. Poplawska (50), B. Popov (11), M. Posiadala (39), J.-M. Poutissou (1), R. Poutissou (1), R. Preece (47), P. Przewlocki (35), W. Qian (47), J.L. Raaf (54), E. Radicioni (65), K. Ramos (59), P. Ratoff (49), T.M. Raufer (47), M. Ravonel (46), M. Raymond (48), F. Retiere (1), D. Richards (53), J.-L. Ritou (8), A. Robert (11), P.A. Rodrigues (63), E. Rondio (35), M. Roney (6), M. Rooney (47), D. Ross (1), B. Rossi (44), S. Roth (12), A. Rubbia (45), D. Ruterbories (56), R. Sacco (50), S. Sadler (51), K. Sakashita (21), F. Sanchez (43), A. Sarrat (8), K. Sasaki (21), P. Schaack (48), J. Schmidt (59), K. Scholberg (57), J. Schwehr (56), M. Scott (48), D.I. Scully (53), Y. Seiya (25), T. Sekiguchi (21), H. Sekiya (19), G. Sheffer (1), M. Shibata (21), Y. Shimizu (26), M. Shiozawa (19), S. Short (48), M. Siyad (47), D. Smith (58), R.J. Smith (66), M. Smy (60), J. Sobczyk (40), H. Sobel (60), S. Sooriyakumaran (1), M. Sorel (42), J. Spitz (61), A. Stahl (12), P. Stamoulis (42), O. Star (1), J. Statter (49), L. Stawnyczy (7), J. Steinmann (12), J. Steffens (59), B. Still (50), M. Stodulski (36), J. Stone (54), C. Strabel (45), T. Strauss (45), R. Sulej (35,37), P. Sutcliffe (52), A. Suzuki (22), K. Suzuki (23), S. Suzuki (21), S.Y. Suzuki (21), Y. Suzuki (21), Y. Suzuki (19), J. Swierblewski (36), T. Szeglowski (38), M. Szeptycka (35), R. Tacik (4), M. Tada (21), A.S. Tadepalli (59), M. Taguchi (23), S. Takahashi (23), A. Takeda (19), Y. Takenaga (19), Y. Takeuchi (22), H.A. Tanaka (3), K. Tanaka (21), M. Tanaka (21), M.M. Tanaka (21), N. Tanimoto (26), K. Tashiro (25), I.J. Taylor (59,48), A. Terashima (21), D. Terhorst (12), R. Terri (50), L.F. Thompson (51), A. Thorley (52), M. Thorpe (47), W. Toki (56,59), T. Tomaru (21), Y. Totsuka (21, deceased), C. Touramanis (52), T. Tsukamoto (21), V. Tvaskis (6), M. Tzanov (58,61), Y. Uchida (48), K. Ueno (19), M. Usseglio (8), A. Vacheret (48), M. Vagins (60), J.F. Van Schalkwyk (48), J.-C. Vanel (10), G. Vasseur (8), O. Veledar (51), P. Vincent (1), T. Wachala (36), A.V. Waldron (66), C.W. Walter (57), P.J. Wanderer (55), M.A. Ward (51), G.P. Ward (51), D. Wark (47,48), D. Warner (56), M.O. Wascko (48), A. Weber (66,47), R. Wendell (57), J. Wendland (3), N. West (66), L.H. Whitehead (53), G. Wikström (46), R.J. Wilkes (64), M.J. Wilking (1), Z. Williamson (66), J.R. Wilson (50), R.J. Wilson (56), K. Wong (1), T. Wongjirad (57), S. Yamada (19), Y. Yamada (21), A. Yamamoto (21), K. Yamamoto (25), Y. Yamanoi (21), H. Yamaoka (21), C. Yanagisawa (59), T. Yano (22), S. Yen (1), N. Yershov (41), M. Yokoyama (27), A. Zalewska (36), J. Zalipska (3), K. Zaremba (37), M. Ziembicki (37), E.D. Zimmerman (61), M. Zito (8), J. Zmuda (40) ((2) University of Alberta, (35) The Andrzej Soltan Institute for Nuclear Studies, (44) University of Bern, (54) Boston University, (3) University of British Columbia, (55) Brookhaven National Laboratory, (60) University of California, Irvine, (8) IRFU, CEA Saclay, (28) Chonnam National University, (61) University of Colorado at Boulder, (56) Colorado State University, (29) Dongshin University, (57) Duke University, (10) Ecole Polytechnique, IN2P3-CNRS, (45) ETH Zurich, (46) University of Geneva, (36) H. Niewodniczanski Institute of Nuclear Physics PAN, (21) High Energy Accelerator Research Organization (KEK), (43) Institut de Fisica d'Altes Energies (IFAE), (42) IFIC (CSIC & University of Valencia), (48) Imperial College London, (65) INFN Sezione di Bari and Università e Politecnico di Bari, (14) INFN Sezione di Napoli and Università di Napoli, (15) INFN Sezione di Padova and Università di Padova, (13) INFN Sezione di Roma and Università di Roma \"La Sapienza'', (41) Institute for Nuclear Research of the Russian Academy of Sciences, (22) Kobe University, (23) Kyoto University, (49) Lancaster University, (52) University of Liverpool, (58) Louisiana State University, (9) Université de Lyon, Université Claude Bernard Lyon 1, (24) Miyagi University of Education, (59) State University of New York at Stony Brook, (25) Osaka City University, (66) Oxford University, (11) UPMC, Université Paris Diderot, (62) University of Pittsburgh, (50) Queen Mary University of London, (4) University of Regina, (63) University of Rochester, (12) RWTH Aachen University, (33) Seoul National University, (51) University of Sheffield, (38) University of Silesia, (67) STFC, Daresbury Laboratory, (47) STFC, Rutherford Appleton Laboratory, (27) University of Tokyo, (19) University of Tokyo, (26) University of Tokyo, (5) University of Toronto, (1) TRIUMF, (6) University of Victoria, (39) University of Warsaw, (37) Warsaw University of Technology, (53) University of Warwick, (64) University of Washington, (40) Wroclaw University, (7) York University)",
+  "metadata_id": 1004297,
+  "authors": "T2K Collaboration K. Abe (19), N. Abgrall (46), H. Aihara (27), Y. Ajima (21), J.B. Albert (57), D. Allan (47), P.-A. Amaudruz (1), C. Andreopoulos (47), B. Andrieu (11), M.D. Anerella (55), C. Angelsen (47), S. Aoki (22), O. Araoka (21), J. Argyriades (46), A. Ariga (44), T. Ariga (44), S. Assylbekov (56), J.P.A.M. de Andr\\'e (10), D. Autiero (9), A. Badertscher (45), O. Ballester (43), M. Barbi (4), G.J. Barker (53), P. Baron (8), G. Barr (66), L. Bartoszek (61), M. Batkiewicz (36), F. Bay (44), S. Bentham (49), V. Berardi (65), B.E. Berger (56), H. Berns (64), I. Bertram (49), M. Besnier (10), J. Beucher (8), D. Beznosko (59), S. Bhadra (7), P. Birney (6,1), D. Bishop (1), E. Blackmore (1), F.d.M. Blaszczyk (8), J. Blocki (36), A. Blondel (46), A. Bodek (63), C. Bojechko (6), J. Bouchez (8, deceased), T. Boussuge (8), S.B. Boyd (53), M. Boyer (8), N. Braam (6), R. Bradford (63), A. Bravar (46), K. Briggs (53), J.D. Brinson (58), C. Bronner (10), D.G. Brook-Roberge (3), M. Bryant (3), N. Buchanan (56), H. Budd (63), M. Cadabeschi (5), R.G. Calland (52), D. Calvet (8), J. Caravaca Rodr\\'iguez (43), J. Carroll (52), S.L. Cartwright (51), A. Carver (53), R. Castillo (43), M.G. Catanesi (65), C. Cavata (8), A. Cazes (9), A. Cervera (42), J.P. Charrier (8), C. Chavez (52), S. Choi (33), S. Chollet (10), G. Christodoulou (52), P. Colas (8), J. Coleman (52), W. Coleman (58), G. Collazuol (15), K. Connolly (64), P. Cooke (52), A. Curioni (45), A. Dabrowska (36), I. Danko (62), R. Das (56), G.S. Davies (49), S. Davis (64), M. Day (63), X. De La Broise (8), P. de Perio (5), G. De Rosa (14), T. Dealtry (66,47), A. Debraine (10), E. Delagnes (8), A. Delbart (8), C. Densham (47), F. Di Lodovico (50), S. Di Luise (45), P. Dinh Tran (10), J. Dobson (48), J. Doornbos (1), U. Dore (13), O. Drapier (10), F. Druillole (8), F. Dufour (46), J. Dumarchez (11), T. Durkin (47), S. Dytman (62), M. Dziewiecki (37), M. Dziomba (64), B. Ellison (58), S. Emery (8), A. Ereditato (44), J.E. Escallier (55), L. Escudero (42), L.S. Esposito (45), W. Faszer (1), M. Fechner (57), A. Ferrero (46), A. Finch (49), C. Fisher (1), M. Fitton (47), R. Flight (63), D. Forbush (64), E. Frank (44), K. Fransham (6), Y. Fujii (21), Y. Fukuda (24), M. Gallop (1), V. Galymov (7), G.L. Ganetis (55), F.C. Gannaway (50), A. Gaudin (6), J. Gaweda (43), A. Gendotti (45), M. George (50), S. Giffin (4), C. Giganti (43,8), K. Gilje (59), I. Giomataris (8), J. Giraud (8), A.K. Ghosh (55), T. Golan (40), M. Goldhaber (55, deceased), J.J. Gomez-Cadenas (42), S. Gomi (23), M. Gonin (10), M. Goyette (1), A. Grant (67), N. Grant (47), F. Gra\\~nena (43), S. Greenwood (48), P. Gumplinger (1), P. Guzowski (48), M.D. Haigh (66), K. Hamano (1), C. Hansen (42), T. Hara (22), P.F. Harrison (53), B. Hartfiel (58), M. Hartz (7,5), T. Haruyama (21), R. Hasanen (6), T. Hasegawa (21), N.C. Hastings (4), S. Hastings (3), A. Hatzikoutelis (49), K. Hayashi (21), Y. Hayato (19), T.D.J. Haycock (51), C. Hearty (3), R.L. Helmer (1), R. Henderson (1), S. Herlant (8), N. Higashi (21), J. Hignight (59), K. Hiraide (23), E. Hirose (21), J. Holeczek (38), N. Honkanen (6), S. Horikawa (45), A. Hyndman (50), A.K. Ichikawa (23), K. Ieki (23), M. Ieva (43), M. Iida (21), M. Ikeda (23), J. Ilic (47), J. Imber (59), T. Ishida (21), C. Ishihara (26), T. Ishii (21), S.J. Ives (48), M. Iwasaki (27), K. Iyogi (19), A. Izmaylov (41), B. Jamieson (3), R.A. Johnson (61), K.K. Joo (28), G. Jover-Manas (43), C.K. Jung (59), H. Kaji (26), T. Kajita (26), H. Kakuno (27), J. Kameda (19), K. Kaneyuki (26, deceased), D. Karlen (6,1), K. Kasami (21), V. Kasey (48), I. Kato (1), H. Kawamuko (23), E. Kearns (54), L. Kellet (52), M. Khabibullin (41), M. Khaleeq (48), N. Khan (1), A. Khotjantsev (41), D. Kielczewska (39), T. Kikawa (23), J.Y. Kim (28), S.-B. Kim (33), N. Kimura (21), B. Kirby (3), J. Kisiel (38), P. Kitching (2), T. Kobayashi (21), G. Kogan (48), S. Koike (21), T. Komorowski (49), A. Konaka (1), L.L. Kormos (49), A. Korzenev (46), K. Koseki (21), Y. Koshio (19), Y. Kouzuma (19), K. Kowalik (35), V. Kravtsov (56), I. Kreslo (44), W. Kropp (60), H. Kubo (23), J. Kubota (23), Y. Kudenko (41), N. Kulkarni (58), L. Kurchaninov (1), Y. Kurimoto (23), R. Kurjata (37), Y. Kurosawa (23), T. Kutter (58), J. Lagoda (35), K. Laihem (12), R. Langstaff (6,1), M. Laveder (15), T.B. Lawson (51), P.T. Le (59), A. Le Coguie (8), M. Le Ross (1), K.P. Lee (26), M. Lenckowski (6,1), C. Licciardi (4), I.T. Lim (28), T. Lindner (3), R.P. Litchfield (53,23), A. Longhin (8), G.D. Lopez (59), P. Lu (3), L. Ludovici (13), T. Lux (43), M. Macaire (8), L. Magaletti (65), K. Mahn (1), Y. Makida (21), C.J. Malafis (59), M. Malek (48), S. Manly (63), A. Marchionni (45), C. Mark (1), A.D. Marino (61,5), A.J. Marone (55), J. Marteau (9), J.F. Martin (5), T. Maruyama (21), T. Maryon (49), J. Marzec (37), P. Masliah (48), E.L. Mathie (4), C. Matsumura (25), K. Matsuoka (23), V. Matveev (41), K. Mavrokoridis (52), E. Mazzucato (8), N. McCauley (52), K.S. McFarland (63), C. McGrew (59), T. McLachlan (26), I. Mercer (49), M. Messina (44), W. Metcalf (58), C. Metelko (47), M. Mezzetto (15), P. Mijakowski (35), C.A. Miller (1), A. Minamino (23), O. Mineev (41), S. Mine (60), R.E. Minvielle (58), G. Mituka (26), M. Miura (19), K. Mizouchi (1), J.-P. Mols (8), L. Monfregola (42), E. Monmarthe (8), F. Moreau (10), B. Morgan (53), S. Moriyama (19), D. Morris (1), A. Muir (67), A. Murakami (23), J.F. Muratore (55), M. Murdoch (52), S. Murphy (46), J. Myslik (6), G. Nagashima (59), T. Nakadaira (21), M. Nakahata (19), T. Nakamoto (21), K. Nakamura (21), S. Nakayama (19), T. Nakaya (23), D. Naples (62), B. Nelson (59), T.C. Nicholls (47), K. Nishikawa (21), H. Nishino (26), K. Nitta (23), F. Nizery (8), J.A. Nowak (58), M. Noy (48), Y. Obayashi (19), T. Ogitsu (21), H. Ohhata (21), T. Okamura (21), K. Okumura (26), T. Okusawa (25), C. Ohlmann (1), K. Olchanski (1), R. Openshaw (1), S.M. Oser (3), M. Otani (23), R.A. Owen (50), Y. Oyama (21), T. Ozaki (25), M.Y. Pac (29), V. Palladino (14), V. Paolone (62), P. Paul (59), D. Payne (52), G.F. Pearce (47), C. Pearson (1), J.D. Perkin (51), M. Pfleger (6), F. Pierre (8, deceased), D. Pierrepont (8), P. Plonski (37), P. Poffenberger (6), E. Poplawska (50), B. Popov (11), M. Posiadala (39), J.-M. Poutissou (1), R. Poutissou (1), R. Preece (47), P. Przewlocki (35), W. Qian (47), J.L. Raaf (54), E. Radicioni (65), K. Ramos (59), P. Ratoff (49), T.M. Raufer (47), M. Ravonel (46), M. Raymond (48), F. Retiere (1), D. Richards (53), J.-L. Ritou (8), A. Robert (11), P.A. Rodrigues (63), E. Rondio (35), M. Roney (6), M. Rooney (47), D. Ross (1), B. Rossi (44), S. Roth (12), A. Rubbia (45), D. Ruterbories (56), R. Sacco (50), S. Sadler (51), K. Sakashita (21), F. Sanchez (43), A. Sarrat (8), K. Sasaki (21), P. Schaack (48), J. Schmidt (59), K. Scholberg (57), J. Schwehr (56), M. Scott (48), D.I. Scully (53), Y. Seiya (25), T. Sekiguchi (21), H. Sekiya (19), G. Sheffer (1), M. Shibata (21), Y. Shimizu (26), M. Shiozawa (19), S. Short (48), M. Siyad (47), D. Smith (58), R.J. Smith (66), M. Smy (60), J. Sobczyk (40), H. Sobel (60), S. Sooriyakumaran (1), M. Sorel (42), J. Spitz (61), A. Stahl (12), P. Stamoulis (42), O. Star (1), J. Statter (49), L. Stawnyczy (7), J. Steinmann (12), J. Steffens (59), B. Still (50), M. Stodulski (36), J. Stone (54), C. Strabel (45), T. Strauss (45), R. Sulej (35,37), P. Sutcliffe (52), A. Suzuki (22), K. Suzuki (23), S. Suzuki (21), S.Y. Suzuki (21), Y. Suzuki (21), Y. Suzuki (19), J. Swierblewski (36), T. Szeglowski (38), M. Szeptycka (35), R. Tacik (4), M. Tada (21), A.S. Tadepalli (59), M. Taguchi (23), S. Takahashi (23), A. Takeda (19), Y. Takenaga (19), Y. Takeuchi (22), H.A. Tanaka (3), K. Tanaka (21), M. Tanaka (21), M.M. Tanaka (21), N. Tanimoto (26), K. Tashiro (25), I.J. Taylor (59,48), A. Terashima (21), D. Terhorst (12), R. Terri (50), L.F. Thompson (51), A. Thorley (52), M. Thorpe (47), W. Toki (56,59), T. Tomaru (21), Y. Totsuka (21, deceased), C. Touramanis (52), T. Tsukamoto (21), V. Tvaskis (6), M. Tzanov (58,61), Y. Uchida (48), K. Ueno (19), M. Usseglio (8), A. Vacheret (48), M. Vagins (60), J.F. Van Schalkwyk (48), J.-C. Vanel (10), G. Vasseur (8), O. Veledar (51), P. Vincent (1), T. Wachala (36), A.V. Waldron (66), C.W. Walter (57), P.J. Wanderer (55), M.A. Ward (51), G.P. Ward (51), D. Wark (47,48), D. Warner (56), M.O. Wascko (48), A. Weber (66,47), R. Wendell (57), J. Wendland (3), N. West (66), L.H. Whitehead (53), G. Wikstr\\\"om (46), R.J. Wilkes (64), M.J. Wilking (1), Z. Williamson (66), J.R. Wilson (50), R.J. Wilson (56), K. Wong (1), T. Wongjirad (57), S. Yamada (19), Y. Yamada (21), A. Yamamoto (21), K. Yamamoto (25), Y. Yamanoi (21), H. Yamaoka (21), C. Yanagisawa (59), T. Yano (22), S. Yen (1), N. Yershov (41), M. Yokoyama (27), A. Zalewska (36), J. Zalipska (3), K. Zaremba (37), M. Ziembicki (37), E.D. Zimmerman (61), M. Zito (8), J. Zmuda (40) ((2) University of Alberta, (35) The Andrzej Soltan Institute for Nuclear Studies, (44) University of Bern, (54) Boston University, (3) University of British Columbia, (55) Brookhaven National Laboratory, (60) University of California, Irvine, (8) IRFU, CEA Saclay, (28) Chonnam National University, (61) University of Colorado at Boulder, (56) Colorado State University, (29) Dongshin University, (57) Duke University, (10) Ecole Polytechnique, IN2P3-CNRS, (45) ETH Zurich, (46) University of Geneva, (36) H. Niewodniczanski Institute of Nuclear Physics PAN, (21) High Energy Accelerator Research Organization (KEK), (43) Institut de Fisica d'Altes Energies (IFAE), (42) IFIC (CSIC & University of Valencia), (48) Imperial College London, (65) INFN Sezione di Bari and Universit\\`a e Politecnico di Bari, (14) INFN Sezione di Napoli and Universit\\`a di Napoli, (15) INFN Sezione di Padova and Universit\\`a di Padova, (13) INFN Sezione di Roma and Universit\\`a di Roma \"La Sapienza'', (41) Institute for Nuclear Research of the Russian Academy of Sciences, (22) Kobe University, (23) Kyoto University, (49) Lancaster University, (52) University of Liverpool, (58) Louisiana State University, (9) Universit\\'e de Lyon, Universit\\'e Claude Bernard Lyon 1, (24) Miyagi University of Education, (59) State University of New York at Stony Brook, (25) Osaka City University, (66) Oxford University, (11) UPMC, Universit\\'e Paris Diderot, (62) University of Pittsburgh, (50) Queen Mary University of London, (4) University of Regina, (63) University of Rochester, (12) RWTH Aachen University, (33) Seoul National University, (51) University of Sheffield, (38) University of Silesia, (67) STFC, Daresbury Laboratory, (47) STFC, Rutherford Appleton Laboratory, (27) University of Tokyo, (19) University of Tokyo, (26) University of Tokyo, (5) University of Toronto, (1) TRIUMF, (6) University of Victoria, (39) University of Warsaw, (37) Warsaw University of Technology, (53) University of Warwick, (64) University of Washington, (40) Wroclaw University, (7) York University)",
+  "secondary_classification": [{
+    "group": {
+      "name": "Physics",
+      "id": "physics"
+    },
+    "archive": {
+      "name": "High Energy Physics - Experiment",
+      "id": "hep-ex"
+    },
+    "category": {
+      "name": "High Energy Physics - Experiment",
+      "id": "hep-ex"
+    }
+  }],
+  "report_num": null,
+  "modtime": "2012-08-27T14:28:42-0400",
+  "version": 2,
+  "document_id": 695153,
+  "abstract_utf8": "The T2K experiment is a long-baseline neutrino oscillation experiment. Its main goal is to measure the last unknown lepton sector mixing angle θ_{13} by observing ν_e appearance in a ν_μ beam. It also aims to make a precision measurement of the known oscillation parameters, Δm^{2}_{23} and sin^{2} 2θ_{23}, via ν_μ disappearance studies. Other goals of the experiment include various neutrino cross section measurements and sterile neutrino searches. The experiment uses an intense proton beam generated by the J-PARC accelerator in Tokai, Japan, and is composed of a neutrino beamline, a near detector complex (ND280), and a far detector (Super-Kamiokande) located 295 km away from J-PARC. This paper provides a comprehensive review of the instrumentation aspect of the T2K experiment and a summary of the vital information for each subsystem.",
+  "msc_class": null,
+  "license": {
+    "label": "arXiv.org perpetual, non-exclusive license to distribute this article",
+    "uri": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+  },
+  "journal_ref_utf8": null,
+  "created": "2011-06-08T18:12:05-0400",
+  "authors_parsed": [{
+    "last_name": "T2K Collaboration",
+    "first_name": ""
+  }, {
+    "affiliation": ["University of Geneva"],
+    "last_name": "Abgrall",
+    "first_name": "N."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Aihara",
+    "first_name": "H."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Ajima",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["Duke University"],
+    "last_name": "Albert",
+    "first_name": "J. B."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Allan",
+    "first_name": "D."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Amaudruz",
+    "first_name": "P. -A."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Andreopoulos",
+    "first_name": "C."
+  }, {
+    "affiliation": ["UPMC, Université Paris Diderot"],
+    "last_name": "Andrieu",
+    "first_name": "B."
+  }, {
+    "affiliation": ["Brookhaven National Laboratory"],
+    "last_name": "Anerella",
+    "first_name": "M. D."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Angelsen",
+    "first_name": "C."
+  }, {
+    "affiliation": ["Kobe University"],
+    "last_name": "Aoki",
+    "first_name": "S."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Araoka",
+    "first_name": "O."
+  }, {
+    "affiliation": ["University of Geneva"],
+    "last_name": "Argyriades",
+    "first_name": "J."
+  }, {
+    "affiliation": ["University of Bern"],
+    "last_name": "Ariga",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of Bern"],
+    "last_name": "Ariga",
+    "first_name": "T."
+  }, {
+    "affiliation": ["Colorado State University"],
+    "last_name": "Assylbekov",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Ecole Polytechnique, IN2P3-CNRS"],
+    "last_name": "de André",
+    "first_name": "J. P. A. M."
+  }, {
+    "affiliation": ["Université de Lyon, Université Claude Bernard Lyon 1"],
+    "last_name": "Autiero",
+    "first_name": "D."
+  }, {
+    "affiliation": ["ETH Zurich"],
+    "last_name": "Badertscher",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Institut de Fisica d'Altes Energies"],
+    "last_name": "Ballester",
+    "first_name": "O."
+  }, {
+    "affiliation": ["University of Regina"],
+    "last_name": "Barbi",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Warwick"],
+    "last_name": "Barker",
+    "first_name": "G. J."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Baron",
+    "first_name": "P."
+  }, {
+    "affiliation": ["Oxford University"],
+    "last_name": "Barr",
+    "first_name": "G."
+  }, {
+    "affiliation": ["University of Colorado at Boulder"],
+    "last_name": "Bartoszek",
+    "first_name": "L."
+  }, {
+    "affiliation": ["H. Niewodniczanski Institute of Nuclear Physics PAN"],
+    "last_name": "Batkiewicz",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Bern"],
+    "last_name": "Bay",
+    "first_name": "F."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Bentham",
+    "first_name": "S."
+  }, {
+    "affiliation": ["INFN Sezione di Bari and Università e Politecnico di Bari"],
+    "last_name": "Berardi",
+    "first_name": "V."
+  }, {
+    "affiliation": ["Colorado State University"],
+    "last_name": "Berger",
+    "first_name": "B. E."
+  }, {
+    "affiliation": ["University of Washington"],
+    "last_name": "Berns",
+    "first_name": "H."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Bertram",
+    "first_name": "I."
+  }, {
+    "affiliation": ["Ecole Polytechnique, IN2P3-CNRS"],
+    "last_name": "Besnier",
+    "first_name": "M."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Beucher",
+    "first_name": "J."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Beznosko",
+    "first_name": "D."
+  }, {
+    "affiliation": ["York University"],
+    "last_name": "Bhadra",
+    "first_name": "S."
+  }, {
+    "affiliation": ["University of Victoria", "TRIUMF"],
+    "last_name": "Birney",
+    "first_name": "P."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Bishop",
+    "first_name": "D."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Blackmore",
+    "first_name": "E."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Blaszczyk",
+    "first_name": "F. d. M."
+  }, {
+    "affiliation": ["H. Niewodniczanski Institute of Nuclear Physics PAN"],
+    "last_name": "Blocki",
+    "first_name": "J."
+  }, {
+    "affiliation": ["University of Geneva"],
+    "last_name": "Blondel",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of Rochester"],
+    "last_name": "Bodek",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Bojechko",
+    "first_name": "C."
+  }, {
+    "affiliation": ["8, deceased"],
+    "last_name": "Bouchez",
+    "first_name": "J."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Boussuge",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Warwick"],
+    "last_name": "Boyd",
+    "first_name": "S. B."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Boyer",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Braam",
+    "first_name": "N."
+  }, {
+    "affiliation": ["University of Rochester"],
+    "last_name": "Bradford",
+    "first_name": "R."
+  }, {
+    "affiliation": ["University of Geneva"],
+    "last_name": "Bravar",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of Warwick"],
+    "last_name": "Briggs",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Louisiana State University"],
+    "last_name": "Brinson",
+    "first_name": "J. D."
+  }, {
+    "affiliation": ["Ecole Polytechnique, IN2P3-CNRS"],
+    "last_name": "Bronner",
+    "first_name": "C."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Brook-Roberge",
+    "first_name": "D. G."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Bryant",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Colorado State University"],
+    "last_name": "Buchanan",
+    "first_name": "N."
+  }, {
+    "affiliation": ["University of Rochester"],
+    "last_name": "Budd",
+    "first_name": "H."
+  }, {
+    "affiliation": ["University of Toronto"],
+    "last_name": "Cadabeschi",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Calland",
+    "first_name": "R. G."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Calvet",
+    "first_name": "D."
+  }, {
+    "affiliation": ["Institut de Fisica d'Altes Energies"],
+    "last_name": "Rodríguez",
+    "first_name": "J. Caravaca"
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Carroll",
+    "first_name": "J."
+  }, {
+    "affiliation": ["University of Sheffield"],
+    "last_name": "Cartwright",
+    "first_name": "S. L."
+  }, {
+    "affiliation": ["University of Warwick"],
+    "last_name": "Carver",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Institut de Fisica d'Altes Energies"],
+    "last_name": "Castillo",
+    "first_name": "R."
+  }, {
+    "affiliation": ["INFN Sezione di Bari and Università e Politecnico di Bari"],
+    "last_name": "Catanesi",
+    "first_name": "M. G."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Cavata",
+    "first_name": "C."
+  }, {
+    "affiliation": ["Université de Lyon, Université Claude Bernard Lyon 1"],
+    "last_name": "Cazes",
+    "first_name": "A."
+  }, {
+    "affiliation": ["IFIC"],
+    "last_name": "Cervera",
+    "first_name": "A."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Charrier",
+    "first_name": "J. P."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Chavez",
+    "first_name": "C."
+  }, {
+    "affiliation": ["Seoul National University"],
+    "last_name": "Choi",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Ecole Polytechnique, IN2P3-CNRS"],
+    "last_name": "Chollet",
+    "first_name": "S."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Christodoulou",
+    "first_name": "G."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Colas",
+    "first_name": "P."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Coleman",
+    "first_name": "J."
+  }, {
+    "affiliation": ["Louisiana State University"],
+    "last_name": "Coleman",
+    "first_name": "W."
+  }, {
+    "affiliation": ["INFN Sezione di Padova and Università di Padova"],
+    "last_name": "Collazuol",
+    "first_name": "G."
+  }, {
+    "affiliation": ["University of Washington"],
+    "last_name": "Connolly",
+    "first_name": "K."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Cooke",
+    "first_name": "P."
+  }, {
+    "affiliation": ["ETH Zurich"],
+    "last_name": "Curioni",
+    "first_name": "A."
+  }, {
+    "affiliation": ["H. Niewodniczanski Institute of Nuclear Physics PAN"],
+    "last_name": "Dabrowska",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of Pittsburgh"],
+    "last_name": "Danko",
+    "first_name": "I."
+  }, {
+    "affiliation": ["Colorado State University"],
+    "last_name": "Das",
+    "first_name": "R."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Davies",
+    "first_name": "G. S."
+  }, {
+    "affiliation": ["University of Washington"],
+    "last_name": "Davis",
+    "first_name": "S."
+  }, {
+    "affiliation": ["University of Rochester"],
+    "last_name": "Day",
+    "first_name": "M."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "De La Broise",
+    "first_name": "X."
+  }, {
+    "affiliation": ["University of Toronto"],
+    "last_name": "de Perio",
+    "first_name": "P."
+  }, {
+    "affiliation": ["INFN Sezione di Napoli and Università di Napoli"],
+    "last_name": "De Rosa",
+    "first_name": "G."
+  }, {
+    "affiliation": ["Oxford University", "STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Dealtry",
+    "first_name": "T."
+  }, {
+    "affiliation": ["Ecole Polytechnique, IN2P3-CNRS"],
+    "last_name": "Debraine",
+    "first_name": "A."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Delagnes",
+    "first_name": "E."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Delbart",
+    "first_name": "A."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Densham",
+    "first_name": "C."
+  }, {
+    "affiliation": ["Queen Mary University of London"],
+    "last_name": "Di Lodovico",
+    "first_name": "F."
+  }, {
+    "affiliation": ["ETH Zurich"],
+    "last_name": "Di Luise",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Ecole Polytechnique, IN2P3-CNRS"],
+    "last_name": "Tran",
+    "first_name": "P. Dinh"
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Dobson",
+    "first_name": "J."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Doornbos",
+    "first_name": "J."
+  }, {
+    "affiliation": ["INFN Sezione di Roma and Università di Roma \"La Sapienza''"],
+    "last_name": "Dore",
+    "first_name": "U."
+  }, {
+    "affiliation": ["Ecole Polytechnique, IN2P3-CNRS"],
+    "last_name": "Drapier",
+    "first_name": "O."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Druillole",
+    "first_name": "F."
+  }, {
+    "affiliation": ["University of Geneva"],
+    "last_name": "Dufour",
+    "first_name": "F."
+  }, {
+    "affiliation": ["UPMC, Université Paris Diderot"],
+    "last_name": "Dumarchez",
+    "first_name": "J."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Durkin",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Pittsburgh"],
+    "last_name": "Dytman",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Warsaw University of Technology"],
+    "last_name": "Dziewiecki",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Washington"],
+    "last_name": "Dziomba",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Louisiana State University"],
+    "last_name": "Ellison",
+    "first_name": "B."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Emery",
+    "first_name": "S."
+  }, {
+    "affiliation": ["University of Bern"],
+    "last_name": "Ereditato",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Brookhaven National Laboratory"],
+    "last_name": "Escallier",
+    "first_name": "J. E."
+  }, {
+    "affiliation": ["IFIC"],
+    "last_name": "Escudero",
+    "first_name": "L."
+  }, {
+    "affiliation": ["ETH Zurich"],
+    "last_name": "Esposito",
+    "first_name": "L. S."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Faszer",
+    "first_name": "W."
+  }, {
+    "affiliation": ["Duke University"],
+    "last_name": "Fechner",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Geneva"],
+    "last_name": "Ferrero",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Finch",
+    "first_name": "A."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Fisher",
+    "first_name": "C."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Fitton",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Rochester"],
+    "last_name": "Flight",
+    "first_name": "R."
+  }, {
+    "affiliation": ["University of Washington"],
+    "last_name": "Forbush",
+    "first_name": "D."
+  }, {
+    "affiliation": ["University of Bern"],
+    "last_name": "Frank",
+    "first_name": "E."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Fransham",
+    "first_name": "K."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Fujii",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["Miyagi University of Education"],
+    "last_name": "Fukuda",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Gallop",
+    "first_name": "M."
+  }, {
+    "affiliation": ["York University"],
+    "last_name": "Galymov",
+    "first_name": "V."
+  }, {
+    "affiliation": ["Brookhaven National Laboratory"],
+    "last_name": "Ganetis",
+    "first_name": "G. L."
+  }, {
+    "affiliation": ["Queen Mary University of London"],
+    "last_name": "Gannaway",
+    "first_name": "F. C."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Gaudin",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Institut de Fisica d'Altes Energies"],
+    "last_name": "Gaweda",
+    "first_name": "J."
+  }, {
+    "affiliation": ["ETH Zurich"],
+    "last_name": "Gendotti",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Queen Mary University of London"],
+    "last_name": "George",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Regina"],
+    "last_name": "Giffin",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Institut de Fisica d'Altes Energies", "IRFU, CEA Saclay"],
+    "last_name": "Giganti",
+    "first_name": "C."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Gilje",
+    "first_name": "K."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Giomataris",
+    "first_name": "I."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Giraud",
+    "first_name": "J."
+  }, {
+    "affiliation": ["Brookhaven National Laboratory"],
+    "last_name": "Ghosh",
+    "first_name": "A. K."
+  }, {
+    "affiliation": ["Wroclaw University"],
+    "last_name": "Golan",
+    "first_name": "T."
+  }, {
+    "affiliation": ["55, deceased"],
+    "last_name": "Goldhaber",
+    "first_name": "M."
+  }, {
+    "affiliation": ["IFIC"],
+    "last_name": "Gomez-Cadenas",
+    "first_name": "J. J."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Gomi",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Ecole Polytechnique, IN2P3-CNRS"],
+    "last_name": "Gonin",
+    "first_name": "M."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Goyette",
+    "first_name": "M."
+  }, {
+    "affiliation": ["STFC, Daresbury Laboratory"],
+    "last_name": "Grant",
+    "first_name": "A."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Grant",
+    "first_name": "N."
+  }, {
+    "affiliation": ["Institut de Fisica d'Altes Energies"],
+    "last_name": "Grañena",
+    "first_name": "F."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Greenwood",
+    "first_name": "S."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Gumplinger",
+    "first_name": "P."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Guzowski",
+    "first_name": "P."
+  }, {
+    "affiliation": ["Oxford University"],
+    "last_name": "Haigh",
+    "first_name": "M. D."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Hamano",
+    "first_name": "K."
+  }, {
+    "affiliation": ["IFIC"],
+    "last_name": "Hansen",
+    "first_name": "C."
+  }, {
+    "affiliation": ["Kobe University"],
+    "last_name": "Hara",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Warwick"],
+    "last_name": "Harrison",
+    "first_name": "P. F."
+  }, {
+    "affiliation": ["Louisiana State University"],
+    "last_name": "Hartfiel",
+    "first_name": "B."
+  }, {
+    "affiliation": ["York University", "University of Toronto"],
+    "last_name": "Hartz",
+    "first_name": "M."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Haruyama",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Hasanen",
+    "first_name": "R."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Hasegawa",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Regina"],
+    "last_name": "Hastings",
+    "first_name": "N. C."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Hastings",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Hatzikoutelis",
+    "first_name": "A."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Hayashi",
+    "first_name": "K."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Hayato",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["University of Sheffield"],
+    "last_name": "Haycock",
+    "first_name": "T. D. J."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Hearty",
+    "first_name": "C."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Helmer",
+    "first_name": "R. L."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Henderson",
+    "first_name": "R."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Herlant",
+    "first_name": "S."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Higashi",
+    "first_name": "N."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Hignight",
+    "first_name": "J."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Hiraide",
+    "first_name": "K."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Hirose",
+    "first_name": "E."
+  }, {
+    "affiliation": ["University of Silesia"],
+    "last_name": "Holeczek",
+    "first_name": "J."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Honkanen",
+    "first_name": "N."
+  }, {
+    "affiliation": ["ETH Zurich"],
+    "last_name": "Horikawa",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Queen Mary University of London"],
+    "last_name": "Hyndman",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Ichikawa",
+    "first_name": "A. K."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Ieki",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Institut de Fisica d'Altes Energies"],
+    "last_name": "Ieva",
+    "first_name": "M."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Iida",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Ikeda",
+    "first_name": "M."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Ilic",
+    "first_name": "J."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Imber",
+    "first_name": "J."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Ishida",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Ishihara",
+    "first_name": "C."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Ishii",
+    "first_name": "T."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Ives",
+    "first_name": "S. J."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Iwasaki",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Iyogi",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Institute for Nuclear Research of the Russian Academy of Sciences"],
+    "last_name": "Izmaylov",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Jamieson",
+    "first_name": "B."
+  }, {
+    "affiliation": ["University of Colorado at Boulder"],
+    "last_name": "Johnson",
+    "first_name": "R. A."
+  }, {
+    "affiliation": ["Chonnam National University"],
+    "last_name": "Joo",
+    "first_name": "K. K."
+  }, {
+    "affiliation": ["Institut de Fisica d'Altes Energies"],
+    "last_name": "Jover-Manas",
+    "first_name": "G."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Jung",
+    "first_name": "C. K."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Kaji",
+    "first_name": "H."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Kajita",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Kakuno",
+    "first_name": "H."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Kameda",
+    "first_name": "J."
+  }, {
+    "affiliation": ["26, deceased"],
+    "last_name": "Kaneyuki",
+    "first_name": "K."
+  }, {
+    "affiliation": ["University of Victoria", "TRIUMF"],
+    "last_name": "Karlen",
+    "first_name": "D."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Kasami",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Kasey",
+    "first_name": "V."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Kato",
+    "first_name": "I."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Kawamuko",
+    "first_name": "H."
+  }, {
+    "affiliation": ["Boston University"],
+    "last_name": "Kearns",
+    "first_name": "E."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Kellet",
+    "first_name": "L."
+  }, {
+    "affiliation": ["Institute for Nuclear Research of the Russian Academy of Sciences"],
+    "last_name": "Khabibullin",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Khaleeq",
+    "first_name": "M."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Khan",
+    "first_name": "N."
+  }, {
+    "affiliation": ["Institute for Nuclear Research of the Russian Academy of Sciences"],
+    "last_name": "Khotjantsev",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of Warsaw"],
+    "last_name": "Kielczewska",
+    "first_name": "D."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Kikawa",
+    "first_name": "T."
+  }, {
+    "affiliation": ["Chonnam National University"],
+    "last_name": "Kim",
+    "first_name": "J. Y."
+  }, {
+    "affiliation": ["Seoul National University"],
+    "last_name": "Kim",
+    "first_name": "S. -B."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Kimura",
+    "first_name": "N."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Kirby",
+    "first_name": "B."
+  }, {
+    "affiliation": ["University of Silesia"],
+    "last_name": "Kisiel",
+    "first_name": "J."
+  }, {
+    "affiliation": ["University of Alberta"],
+    "last_name": "Kitching",
+    "first_name": "P."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Kobayashi",
+    "first_name": "T."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Kogan",
+    "first_name": "G."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Koike",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Komorowski",
+    "first_name": "T."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Konaka",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Kormos",
+    "first_name": "L. L."
+  }, {
+    "affiliation": ["University of Geneva"],
+    "last_name": "Korzenev",
+    "first_name": "A."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Koseki",
+    "first_name": "K."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Koshio",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Kouzuma",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["The Andrzej Soltan Institute for Nuclear Studies"],
+    "last_name": "Kowalik",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Colorado State University"],
+    "last_name": "Kravtsov",
+    "first_name": "V."
+  }, {
+    "affiliation": ["University of Bern"],
+    "last_name": "Kreslo",
+    "first_name": "I."
+  }, {
+    "affiliation": ["University of California, Irvine"],
+    "last_name": "Kropp",
+    "first_name": "W."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Kubo",
+    "first_name": "H."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Kubota",
+    "first_name": "J."
+  }, {
+    "affiliation": ["Institute for Nuclear Research of the Russian Academy of Sciences"],
+    "last_name": "Kudenko",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["Louisiana State University"],
+    "last_name": "Kulkarni",
+    "first_name": "N."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Kurchaninov",
+    "first_name": "L."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Kurimoto",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["Warsaw University of Technology"],
+    "last_name": "Kurjata",
+    "first_name": "R."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Kurosawa",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["Louisiana State University"],
+    "last_name": "Kutter",
+    "first_name": "T."
+  }, {
+    "affiliation": ["The Andrzej Soltan Institute for Nuclear Studies"],
+    "last_name": "Lagoda",
+    "first_name": "J."
+  }, {
+    "affiliation": ["RWTH Aachen University"],
+    "last_name": "Laihem",
+    "first_name": "K."
+  }, {
+    "affiliation": ["University of Victoria", "TRIUMF"],
+    "last_name": "Langstaff",
+    "first_name": "R."
+  }, {
+    "affiliation": ["INFN Sezione di Padova and Università di Padova"],
+    "last_name": "Laveder",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Sheffield"],
+    "last_name": "Lawson",
+    "first_name": "T. B."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Le",
+    "first_name": "P. T."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Coguie",
+    "first_name": "A. Le"
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Ross",
+    "first_name": "M. Le"
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Lee",
+    "first_name": "K. P."
+  }, {
+    "affiliation": ["University of Victoria", "TRIUMF"],
+    "last_name": "Lenckowski",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Regina"],
+    "last_name": "Licciardi",
+    "first_name": "C."
+  }, {
+    "affiliation": ["Chonnam National University"],
+    "last_name": "Lim",
+    "first_name": "I. T."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Lindner",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Warwick", "Kyoto University"],
+    "last_name": "Litchfield",
+    "first_name": "R. P."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Longhin",
+    "first_name": "A."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Lopez",
+    "first_name": "G. D."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Lu",
+    "first_name": "P."
+  }, {
+    "affiliation": ["INFN Sezione di Roma and Università di Roma \"La Sapienza''"],
+    "last_name": "Ludovici",
+    "first_name": "L."
+  }, {
+    "affiliation": ["Institut de Fisica d'Altes Energies"],
+    "last_name": "Lux",
+    "first_name": "T."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Macaire",
+    "first_name": "M."
+  }, {
+    "affiliation": ["INFN Sezione di Bari and Università e Politecnico di Bari"],
+    "last_name": "Magaletti",
+    "first_name": "L."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Mahn",
+    "first_name": "K."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Makida",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Malafis",
+    "first_name": "C. J."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Malek",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Rochester"],
+    "last_name": "Manly",
+    "first_name": "S."
+  }, {
+    "affiliation": ["ETH Zurich"],
+    "last_name": "Marchionni",
+    "first_name": "A."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Mark",
+    "first_name": "C."
+  }, {
+    "affiliation": ["University of Colorado at Boulder", "University of Toronto"],
+    "last_name": "Marino",
+    "first_name": "A. D."
+  }, {
+    "affiliation": ["Brookhaven National Laboratory"],
+    "last_name": "Marone",
+    "first_name": "A. J."
+  }, {
+    "affiliation": ["Université de Lyon, Université Claude Bernard Lyon 1"],
+    "last_name": "Marteau",
+    "first_name": "J."
+  }, {
+    "affiliation": ["University of Toronto"],
+    "last_name": "Martin",
+    "first_name": "J. F."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Maruyama",
+    "first_name": "T."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Maryon",
+    "first_name": "T."
+  }, {
+    "affiliation": ["Warsaw University of Technology"],
+    "last_name": "Marzec",
+    "first_name": "J."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Masliah",
+    "first_name": "P."
+  }, {
+    "affiliation": ["University of Regina"],
+    "last_name": "Mathie",
+    "first_name": "E. L."
+  }, {
+    "affiliation": ["Osaka City University"],
+    "last_name": "Matsumura",
+    "first_name": "C."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Matsuoka",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Institute for Nuclear Research of the Russian Academy of Sciences"],
+    "last_name": "Matveev",
+    "first_name": "V."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Mavrokoridis",
+    "first_name": "K."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Mazzucato",
+    "first_name": "E."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "McCauley",
+    "first_name": "N."
+  }, {
+    "affiliation": ["University of Rochester"],
+    "last_name": "McFarland",
+    "first_name": "K. S."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "McGrew",
+    "first_name": "C."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "McLachlan",
+    "first_name": "T."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Mercer",
+    "first_name": "I."
+  }, {
+    "affiliation": ["University of Bern"],
+    "last_name": "Messina",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Louisiana State University"],
+    "last_name": "Metcalf",
+    "first_name": "W."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Metelko",
+    "first_name": "C."
+  }, {
+    "affiliation": ["INFN Sezione di Padova and Università di Padova"],
+    "last_name": "Mezzetto",
+    "first_name": "M."
+  }, {
+    "affiliation": ["The Andrzej Soltan Institute for Nuclear Studies"],
+    "last_name": "Mijakowski",
+    "first_name": "P."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Miller",
+    "first_name": "C. A."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Minamino",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Institute for Nuclear Research of the Russian Academy of Sciences"],
+    "last_name": "Mineev",
+    "first_name": "O."
+  }, {
+    "affiliation": ["University of California, Irvine"],
+    "last_name": "Mine",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Louisiana State University"],
+    "last_name": "Minvielle",
+    "first_name": "R. E."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Mituka",
+    "first_name": "G."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Miura",
+    "first_name": "M."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Mizouchi",
+    "first_name": "K."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Mols",
+    "first_name": "J. -P."
+  }, {
+    "affiliation": ["IFIC"],
+    "last_name": "Monfregola",
+    "first_name": "L."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Monmarthe",
+    "first_name": "E."
+  }, {
+    "affiliation": ["Ecole Polytechnique, IN2P3-CNRS"],
+    "last_name": "Moreau",
+    "first_name": "F."
+  }, {
+    "affiliation": ["University of Warwick"],
+    "last_name": "Morgan",
+    "first_name": "B."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Moriyama",
+    "first_name": "S."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Morris",
+    "first_name": "D."
+  }, {
+    "affiliation": ["STFC, Daresbury Laboratory"],
+    "last_name": "Muir",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Murakami",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Brookhaven National Laboratory"],
+    "last_name": "Muratore",
+    "first_name": "J. F."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Murdoch",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Geneva"],
+    "last_name": "Murphy",
+    "first_name": "S."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Myslik",
+    "first_name": "J."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Nagashima",
+    "first_name": "G."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Nakadaira",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Nakahata",
+    "first_name": "M."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Nakamoto",
+    "first_name": "T."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Nakamura",
+    "first_name": "K."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Nakayama",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Nakaya",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Pittsburgh"],
+    "last_name": "Naples",
+    "first_name": "D."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Nelson",
+    "first_name": "B."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Nicholls",
+    "first_name": "T. C."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Nishikawa",
+    "first_name": "K."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Nishino",
+    "first_name": "H."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Nitta",
+    "first_name": "K."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Nizery",
+    "first_name": "F."
+  }, {
+    "affiliation": ["Louisiana State University"],
+    "last_name": "Nowak",
+    "first_name": "J. A."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Noy",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Obayashi",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Ogitsu",
+    "first_name": "T."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Ohhata",
+    "first_name": "H."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Okamura",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Okumura",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Osaka City University"],
+    "last_name": "Okusawa",
+    "first_name": "T."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Ohlmann",
+    "first_name": "C."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Olchanski",
+    "first_name": "K."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Openshaw",
+    "first_name": "R."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Oser",
+    "first_name": "S. M."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Otani",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Queen Mary University of London"],
+    "last_name": "Owen",
+    "first_name": "R. A."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Oyama",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["Osaka City University"],
+    "last_name": "Ozaki",
+    "first_name": "T."
+  }, {
+    "affiliation": ["Dongshin University"],
+    "last_name": "Pac",
+    "first_name": "M. Y."
+  }, {
+    "affiliation": ["INFN Sezione di Napoli and Università di Napoli"],
+    "last_name": "Palladino",
+    "first_name": "V."
+  }, {
+    "affiliation": ["University of Pittsburgh"],
+    "last_name": "Paolone",
+    "first_name": "V."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Paul",
+    "first_name": "P."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Payne",
+    "first_name": "D."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Pearce",
+    "first_name": "G. F."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Pearson",
+    "first_name": "C."
+  }, {
+    "affiliation": ["University of Sheffield"],
+    "last_name": "Perkin",
+    "first_name": "J. D."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Pfleger",
+    "first_name": "M."
+  }, {
+    "affiliation": ["8, deceased"],
+    "last_name": "Pierre",
+    "first_name": "F."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Pierrepont",
+    "first_name": "D."
+  }, {
+    "affiliation": ["Warsaw University of Technology"],
+    "last_name": "Plonski",
+    "first_name": "P."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Poffenberger",
+    "first_name": "P."
+  }, {
+    "affiliation": ["Queen Mary University of London"],
+    "last_name": "Poplawska",
+    "first_name": "E."
+  }, {
+    "affiliation": ["UPMC, Université Paris Diderot"],
+    "last_name": "Popov",
+    "first_name": "B."
+  }, {
+    "affiliation": ["University of Warsaw"],
+    "last_name": "Posiadala",
+    "first_name": "M."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Poutissou",
+    "first_name": "J. -M."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Poutissou",
+    "first_name": "R."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Preece",
+    "first_name": "R."
+  }, {
+    "affiliation": ["The Andrzej Soltan Institute for Nuclear Studies"],
+    "last_name": "Przewlocki",
+    "first_name": "P."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Qian",
+    "first_name": "W."
+  }, {
+    "affiliation": ["Boston University"],
+    "last_name": "Raaf",
+    "first_name": "J. L."
+  }, {
+    "affiliation": ["INFN Sezione di Bari and Università e Politecnico di Bari"],
+    "last_name": "Radicioni",
+    "first_name": "E."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Ramos",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Ratoff",
+    "first_name": "P."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Raufer",
+    "first_name": "T. M."
+  }, {
+    "affiliation": ["University of Geneva"],
+    "last_name": "Ravonel",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Raymond",
+    "first_name": "M."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Retiere",
+    "first_name": "F."
+  }, {
+    "affiliation": ["University of Warwick"],
+    "last_name": "Richards",
+    "first_name": "D."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Ritou",
+    "first_name": "J. -L."
+  }, {
+    "affiliation": ["UPMC, Université Paris Diderot"],
+    "last_name": "Robert",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of Rochester"],
+    "last_name": "Rodrigues",
+    "first_name": "P. A."
+  }, {
+    "affiliation": ["The Andrzej Soltan Institute for Nuclear Studies"],
+    "last_name": "Rondio",
+    "first_name": "E."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Roney",
+    "first_name": "M."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Rooney",
+    "first_name": "M."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Ross",
+    "first_name": "D."
+  }, {
+    "affiliation": ["University of Bern"],
+    "last_name": "Rossi",
+    "first_name": "B."
+  }, {
+    "affiliation": ["RWTH Aachen University"],
+    "last_name": "Roth",
+    "first_name": "S."
+  }, {
+    "affiliation": ["ETH Zurich"],
+    "last_name": "Rubbia",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Colorado State University"],
+    "last_name": "Ruterbories",
+    "first_name": "D."
+  }, {
+    "affiliation": ["Queen Mary University of London"],
+    "last_name": "Sacco",
+    "first_name": "R."
+  }, {
+    "affiliation": ["University of Sheffield"],
+    "last_name": "Sadler",
+    "first_name": "S."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Sakashita",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Institut de Fisica d'Altes Energies"],
+    "last_name": "Sanchez",
+    "first_name": "F."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Sarrat",
+    "first_name": "A."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Sasaki",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Schaack",
+    "first_name": "P."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Schmidt",
+    "first_name": "J."
+  }, {
+    "affiliation": ["Duke University"],
+    "last_name": "Scholberg",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Colorado State University"],
+    "last_name": "Schwehr",
+    "first_name": "J."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Scott",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Warwick"],
+    "last_name": "Scully",
+    "first_name": "D. I."
+  }, {
+    "affiliation": ["Osaka City University"],
+    "last_name": "Seiya",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Sekiguchi",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Sekiya",
+    "first_name": "H."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Sheffer",
+    "first_name": "G."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Shibata",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Shimizu",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Shiozawa",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Short",
+    "first_name": "S."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Siyad",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Louisiana State University"],
+    "last_name": "Smith",
+    "first_name": "D."
+  }, {
+    "affiliation": ["Oxford University"],
+    "last_name": "Smith",
+    "first_name": "R. J."
+  }, {
+    "affiliation": ["University of California, Irvine"],
+    "last_name": "Smy",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Wroclaw University"],
+    "last_name": "Sobczyk",
+    "first_name": "J."
+  }, {
+    "affiliation": ["University of California, Irvine"],
+    "last_name": "Sobel",
+    "first_name": "H."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Sooriyakumaran",
+    "first_name": "S."
+  }, {
+    "affiliation": ["IFIC"],
+    "last_name": "Sorel",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Colorado at Boulder"],
+    "last_name": "Spitz",
+    "first_name": "J."
+  }, {
+    "affiliation": ["RWTH Aachen University"],
+    "last_name": "Stahl",
+    "first_name": "A."
+  }, {
+    "affiliation": ["IFIC"],
+    "last_name": "Stamoulis",
+    "first_name": "P."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Star",
+    "first_name": "O."
+  }, {
+    "affiliation": ["Lancaster University"],
+    "last_name": "Statter",
+    "first_name": "J."
+  }, {
+    "affiliation": ["York University"],
+    "last_name": "Stawnyczy",
+    "first_name": "L."
+  }, {
+    "affiliation": ["RWTH Aachen University"],
+    "last_name": "Steinmann",
+    "first_name": "J."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Steffens",
+    "first_name": "J."
+  }, {
+    "affiliation": ["Queen Mary University of London"],
+    "last_name": "Still",
+    "first_name": "B."
+  }, {
+    "affiliation": ["H. Niewodniczanski Institute of Nuclear Physics PAN"],
+    "last_name": "Stodulski",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Boston University"],
+    "last_name": "Stone",
+    "first_name": "J."
+  }, {
+    "affiliation": ["ETH Zurich"],
+    "last_name": "Strabel",
+    "first_name": "C."
+  }, {
+    "affiliation": ["ETH Zurich"],
+    "last_name": "Strauss",
+    "first_name": "T."
+  }, {
+    "affiliation": ["The Andrzej Soltan Institute for Nuclear Studies", "Warsaw University of Technology"],
+    "last_name": "Sulej",
+    "first_name": "R."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Sutcliffe",
+    "first_name": "P."
+  }, {
+    "affiliation": ["Kobe University"],
+    "last_name": "Suzuki",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Suzuki",
+    "first_name": "K."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Suzuki",
+    "first_name": "S."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Suzuki",
+    "first_name": "S. Y."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Suzuki",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Suzuki",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["H. Niewodniczanski Institute of Nuclear Physics PAN"],
+    "last_name": "Swierblewski",
+    "first_name": "J."
+  }, {
+    "affiliation": ["University of Silesia"],
+    "last_name": "Szeglowski",
+    "first_name": "T."
+  }, {
+    "affiliation": ["The Andrzej Soltan Institute for Nuclear Studies"],
+    "last_name": "Szeptycka",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Regina"],
+    "last_name": "Tacik",
+    "first_name": "R."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Tada",
+    "first_name": "M."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Tadepalli",
+    "first_name": "A. S."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Taguchi",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Kyoto University"],
+    "last_name": "Takahashi",
+    "first_name": "S."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Takeda",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Takenaga",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["Kobe University"],
+    "last_name": "Takeuchi",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Tanaka",
+    "first_name": "H. A."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Tanaka",
+    "first_name": "K."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Tanaka",
+    "first_name": "M."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Tanaka",
+    "first_name": "M. M."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Tanimoto",
+    "first_name": "N."
+  }, {
+    "affiliation": ["Osaka City University"],
+    "last_name": "Tashiro",
+    "first_name": "K."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook", "Imperial College London"],
+    "last_name": "Taylor",
+    "first_name": "I. J."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Terashima",
+    "first_name": "A."
+  }, {
+    "affiliation": ["RWTH Aachen University"],
+    "last_name": "Terhorst",
+    "first_name": "D."
+  }, {
+    "affiliation": ["Queen Mary University of London"],
+    "last_name": "Terri",
+    "first_name": "R."
+  }, {
+    "affiliation": ["University of Sheffield"],
+    "last_name": "Thompson",
+    "first_name": "L. F."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Thorley",
+    "first_name": "A."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Thorpe",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Colorado State University", "State University of New York at Stony Brook"],
+    "last_name": "Toki",
+    "first_name": "W."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Tomaru",
+    "first_name": "T."
+  }, {
+    "affiliation": ["21, deceased"],
+    "last_name": "Totsuka",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["University of Liverpool"],
+    "last_name": "Touramanis",
+    "first_name": "C."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Tsukamoto",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Victoria"],
+    "last_name": "Tvaskis",
+    "first_name": "V."
+  }, {
+    "affiliation": ["Louisiana State University", "University of Colorado at Boulder"],
+    "last_name": "Tzanov",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Uchida",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Ueno",
+    "first_name": "K."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Usseglio",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Vacheret",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of California, Irvine"],
+    "last_name": "Vagins",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Van Schalkwyk",
+    "first_name": "J. F."
+  }, {
+    "affiliation": ["Ecole Polytechnique, IN2P3-CNRS"],
+    "last_name": "Vanel",
+    "first_name": "J. -C."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Vasseur",
+    "first_name": "G."
+  }, {
+    "affiliation": ["University of Sheffield"],
+    "last_name": "Veledar",
+    "first_name": "O."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Vincent",
+    "first_name": "P."
+  }, {
+    "affiliation": ["H. Niewodniczanski Institute of Nuclear Physics PAN"],
+    "last_name": "Wachala",
+    "first_name": "T."
+  }, {
+    "affiliation": ["Oxford University"],
+    "last_name": "Waldron",
+    "first_name": "A. V."
+  }, {
+    "affiliation": ["Duke University"],
+    "last_name": "Walter",
+    "first_name": "C. W."
+  }, {
+    "affiliation": ["Brookhaven National Laboratory"],
+    "last_name": "Wanderer",
+    "first_name": "P. J."
+  }, {
+    "affiliation": ["University of Sheffield"],
+    "last_name": "Ward",
+    "first_name": "M. A."
+  }, {
+    "affiliation": ["University of Sheffield"],
+    "last_name": "Ward",
+    "first_name": "G. P."
+  }, {
+    "affiliation": ["STFC, Rutherford Appleton Laboratory", "Imperial College London"],
+    "last_name": "Wark",
+    "first_name": "D."
+  }, {
+    "affiliation": ["Colorado State University"],
+    "last_name": "Warner",
+    "first_name": "D."
+  }, {
+    "affiliation": ["Imperial College London"],
+    "last_name": "Wascko",
+    "first_name": "M. O."
+  }, {
+    "affiliation": ["Oxford University", "STFC, Rutherford Appleton Laboratory"],
+    "last_name": "Weber",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Duke University"],
+    "last_name": "Wendell",
+    "first_name": "R."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Wendland",
+    "first_name": "J."
+  }, {
+    "affiliation": ["Oxford University"],
+    "last_name": "West",
+    "first_name": "N."
+  }, {
+    "affiliation": ["University of Warwick"],
+    "last_name": "Whitehead",
+    "first_name": "L. H."
+  }, {
+    "affiliation": ["University of Geneva"],
+    "last_name": "Wikström",
+    "first_name": "G."
+  }, {
+    "affiliation": ["University of Washington"],
+    "last_name": "Wilkes",
+    "first_name": "R. J."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Wilking",
+    "first_name": "M. J."
+  }, {
+    "affiliation": ["Oxford University"],
+    "last_name": "Williamson",
+    "first_name": "Z."
+  }, {
+    "affiliation": ["Queen Mary University of London"],
+    "last_name": "Wilson",
+    "first_name": "J. R."
+  }, {
+    "affiliation": ["Colorado State University"],
+    "last_name": "Wilson",
+    "first_name": "R. J."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Wong",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Duke University"],
+    "last_name": "Wongjirad",
+    "first_name": "T."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Yamada",
+    "first_name": "S."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Yamada",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Yamamoto",
+    "first_name": "A."
+  }, {
+    "affiliation": ["Osaka City University"],
+    "last_name": "Yamamoto",
+    "first_name": "K."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Yamanoi",
+    "first_name": "Y."
+  }, {
+    "affiliation": ["High Energy Accelerator Research Organization"],
+    "last_name": "Yamaoka",
+    "first_name": "H."
+  }, {
+    "affiliation": ["State University of New York at Stony Brook"],
+    "last_name": "Yanagisawa",
+    "first_name": "C."
+  }, {
+    "affiliation": ["Kobe University"],
+    "last_name": "Yano",
+    "first_name": "T."
+  }, {
+    "affiliation": ["TRIUMF"],
+    "last_name": "Yen",
+    "first_name": "S."
+  }, {
+    "affiliation": ["Institute for Nuclear Research of the Russian Academy of Sciences"],
+    "last_name": "Yershov",
+    "first_name": "N."
+  }, {
+    "affiliation": ["University of Tokyo"],
+    "last_name": "Yokoyama",
+    "first_name": "M."
+  }, {
+    "affiliation": ["H. Niewodniczanski Institute of Nuclear Physics PAN"],
+    "last_name": "Zalewska",
+    "first_name": "A."
+  }, {
+    "affiliation": ["University of British Columbia"],
+    "last_name": "Zalipska",
+    "first_name": "J."
+  }, {
+    "affiliation": ["Warsaw University of Technology"],
+    "last_name": "Zaremba",
+    "first_name": "K."
+  }, {
+    "affiliation": ["Warsaw University of Technology"],
+    "last_name": "Ziembicki",
+    "first_name": "M."
+  }, {
+    "affiliation": ["University of Colorado at Boulder"],
+    "last_name": "Zimmerman",
+    "first_name": "E. D."
+  }, {
+    "affiliation": ["IRFU, CEA Saclay"],
+    "last_name": "Zito",
+    "first_name": "M."
+  }, {
+    "affiliation": ["Wroclaw University"],
+    "last_name": "Zmuda",
+    "first_name": "J."
+  }],
+  "is_withdrawn": false,
+  "comments_utf8": "33 pages, 32 figures, Submitted and accepted by NIM A. Editor: Prof. Chang Kee Jung, Department of Physics and Astronomy, SUNY Stony Brook, chang.jung@sunysb.edu, 631-632-8108 Submit Edited to remove line numbers",
+  "abstract": "The T2K experiment is a long-baseline neutrino oscillation experiment. Its main goal is to measure the last unknown lepton sector mixing angle {\\theta}_{13} by observing {\\nu}_e appearance in a {\\nu}_{\\mu} beam. It also aims to make a precision measurement of the known oscillation parameters, {\\Delta}m^{2}_{23} and sin^{2} 2{\\theta}_{23}, via {\\nu}_{\\mu} disappearance studies. Other goals of the experiment include various neutrino cross section measurements and sterile neutrino searches. The experiment uses an intense proton beam generated by the J-PARC accelerator in Tokai, Japan, and is composed of a neutrino beamline, a near detector complex (ND280), and a far detector (Super-Kamiokande) located 295 km away from J-PARC. This paper provides a comprehensive review of the instrumentation aspect of the T2K experiment and a summary of the vital information for each subsystem.",
+  "title": "The T2K Experiment",
+  "journal_ref": null,
+  "proxy": null,
+  "submitter": {
+    "author_id": "taylor_i_1",
+    "is_author": true,
+    "email": "itaylor@nngroup.physics.sunysb.edu",
+    "name": "Ian Taylor",
+    "name_utf8": "Ian Taylor"
+  },
+  "paper_id": "1106.1238"
+}
