@@ -74,10 +74,10 @@ def _getLastSubDate(meta: DocMeta) -> Optional[str]:
 
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType]] = [
-    ('id', 'paper_id'),
-    ('abstract', 'abstract'),
-    ('authors', _constructAuthors),
-    ('authors_freeform', "authors_utf8"),
+    ("id", "paper_id"),
+    ("abstract", "abstract"),
+    ("authors", _constructAuthors),
+    ("authors_freeform", "authors_utf8"),
     ("owners", _constructAuthorOwners),
     ("submitted_date", "submitted_date"),
     ("submitted_date_all",
@@ -90,8 +90,8 @@ _transformations: List[Tuple[str, TransformType]] = [
     ("is_current", "is_current"),
     ("is_withdrawn", "is_withdrawn"),
     ("license", _constructLicense),
-    ('paper_id', 'paper_id'),
-    ('paper_id_v', _constructPaperVersion),
+    ("paper_id", "paper_id"),
+    ("paper_id_v", _constructPaperVersion),
     ("primary_classification", "primary_classification"),
     ("secondary_classification", "secondary_classification"),
     ("title", "title"),
