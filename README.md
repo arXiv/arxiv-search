@@ -65,6 +65,16 @@ manually restart to see those changes take effect.
 
 If all goes well... http://127.0.0.1:5000/ should render the basic search page.
 
+## Deploying static assets to S3
+
+Assets in search/static can be deployed to S3 using the included
+``upload_static_assets.py`` script that leverages the ``Flask-S3 plugin``
+<https://flask-s3.readthedocs.io/en/latest/>`_. Note that this requires AWS
+credentials that have appropriate permissions for the specified bucket.
+
+To enable the S3-based URLs for the static assets in the templates, simply
+set ``FLASKS3_ACTIVE=1`` when starting the Flask dev server.
+
 ## Testing & quality
 
 Install testing tools with...
