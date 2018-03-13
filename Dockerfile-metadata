@@ -1,6 +1,13 @@
 # Provides a stub service for metadata endpoint. This is for integration
 # testing only. It should probably be replaced with something a bit lighter
 # weight, e.g. using something mockito-esque.
+#
+# To run:
+#
+# $ build . -t metadata-stub -f ./Dockerfile-metadata
+# $ docker run -it -p 8000:8000 metadata-stub
+#
+# Should start uWSGI listening on http://localhost:8000
 
 FROM arxiv/base
 

@@ -5,5 +5,9 @@
 #
 # As of version 0.1, this is here for local development purposes only and is
 # not deployed in production.
+#
+# To run, use the ``docker-compose.yml`` config in this directory to spin up
+# alongside Elasticsearch.
+
 
 FROM docker.elastic.co/kibana/kibana:6.1.1

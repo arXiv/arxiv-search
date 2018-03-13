@@ -1,6 +1,16 @@
 # arxiv/eleasticsearch
 #
 # Runs Elasticsearch 6.1.1, with additional plugins.
+#
+# To run, use the ``docker-compose.yml`` config in this directory to spin up
+# alongside Kibana. Or:
+#
+# $ docker build . -t arxiv/elasticsearch -f ./Dockerfil-elasticsearch
+# $ docker run -it -p 9200:9200 -p 9300:9300 \
+# >     -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" \
+# >     arxiv/elasticsearch
+#
+# ES should be available on tcp://localhost:9200.
 
 FROM docker.elastic.co/elasticsearch/elasticsearch:6.1.1
 

@@ -2,7 +2,10 @@
 #
 # The indexing agent is responsible for updating the search index as new
 #  article metadata becomes available. Subscribes to a Kinesis stream for
-#  notifications about new metadata. 
+#  notifications about new metadata.
+#
+# See ``./agent/docker-compose.yml`` for an example of local deployment with
+# localstack and Elasticsearch.
 
 FROM arxiv/base
 
