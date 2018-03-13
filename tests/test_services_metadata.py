@@ -16,6 +16,7 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
     def test_calls_metadata_endpoint(self, mock_get):
         """:func:`.metadata.retrieve` calls passed endpoint with GET."""
         base = 'https://asdf.com/'
+        os.environ['METADATA_ENDPOINT'] = base
 
         response = mock.MagicMock()
         with open('tests/data/docmeta.json') as f:
@@ -25,8 +26,7 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
         response.status_code = 200
         mock_get.return_value = response
 
-        docmeta_session = metadata.current_session()
-        docmeta_session._endpoints = cycle([base])
+        docmeta_session = metadata.get_session()
 
         try:
             docmeta_session.retrieve('1602.00123')
@@ -44,6 +44,7 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
         base = ['https://asdf.com/', 'https://asdf2.com/']
         os.environ['METADATA_ENDPOINT'] = ','.join(base)
         os.environ['METADATA_VERIFY_CERT'] = 'False'
+
         response = mock.MagicMock()
         with open('tests/data/docmeta.json') as f:
             mock_content = json.load(f)
@@ -52,7 +53,7 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
         response.status_code = 200
         mock_get.return_value = response
 
-        docmeta_session = metadata.current_session()
+        docmeta_session = metadata.get_session()
 
         try:
             docmeta_session.retrieve('1602.00123')
@@ -62,7 +63,10 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
             args, _ = mock_get.call_args
         except Exception as e:
             self.fail('Did not call requests.get as expected: %s' % e)
-        self.assertTrue(args[0].startswith(base[0]))
+
+        self.assertTrue(
+            args[0].startswith(base[0]), "Expected call to %s" % base[0]
+        )
 
         try:
             docmeta_session.retrieve('1602.00124')
@@ -72,7 +76,10 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
             args, _ = mock_get.call_args
         except Exception as e:
             self.fail('Did not call requests.get as expected: %s' % e)
-        self.assertTrue(args[0].startswith(base[1]))
+        print(args)
+        self.assertTrue(
+            args[0].startswith(base[1]), "Expected call to %s" % base[1]
+        )
 
 
 class TestRetrieveNonexistantRecord(unittest.TestCase):

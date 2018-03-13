@@ -23,6 +23,9 @@ import urllib3
 class TestKinesisIntegration(TestCase):
     """Verifies indexing agent behavior against local Kinesis system."""
 
+    # Set __test__ = False to disable this TestCase.
+    # __test__ = False
+
     @classmethod
     def setUpClass(cls):
         """Spin up localstack and search agent."""
@@ -36,8 +39,7 @@ class TestKinesisIntegration(TestCase):
         os.environ['METADATA_ENDPOINT'] = 'http://search-metadata:8000/docmeta/'
         os.environ['METADATA_CACHE_DIR'] = os.path.abspath('tests/data/examples')
 
-        app = create_ui_web_app()
-        app.app_context().push()
+        cls.app = create_ui_web_app()
 
         print('Build indexing agent')
         # Use docker compose to build and start the indexing agent, along with
@@ -58,12 +60,13 @@ class TestKinesisIntegration(TestCase):
         time.sleep(12)      # Give localstack a chance to spin up.
 
         # When ES is available, create the index.
-        while True:
-            time.sleep(5)
-            if index.cluster_available():
-                time.sleep(2)
-                index.create_index()
-                break
+        with cls.app.app_context():
+            while True:
+                time.sleep(5)
+                if index.cluster_available():
+                    time.sleep(2)
+                    index.create_index()
+                    break
 
         # Get a connection to the Kinesis stream.
         config = Config(read_timeout=1, connect_timeout=1)
@@ -96,12 +99,13 @@ class TestKinesisIntegration(TestCase):
             "docker-compose kill", stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, shell=True, cwd="agent/"
         )
+        del cls.app
 
     def test_verify_notification_results_in_indexing(self):
         """Agent indexes documents for which notifications are produced."""
         # We disable certificate validation for testing.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        
+
         to_index = [
             "1712.04442",    # flux capacitor
             "1511.07473",    # flux capacitor
@@ -125,10 +129,10 @@ class TestKinesisIntegration(TestCase):
                 StreamName='MetadataIsAvailable', Data=data, PartitionKey='0'
             )
         time.sleep(5)    # Give a few seconds for messages to propagate.
-
-        for document_id in to_index:
-            try:
-                doc = index.get_document(document_id)
-            except index.DocumentNotFound:
-                self.fail('Document {document_id} not indexed')
-            self.assertIsInstance(doc, Document)
+        with self.app.app_context():
+            for document_id in to_index:
+                try:
+                    doc = index.get_document(document_id)
+                except index.DocumentNotFound:
+                    self.fail('Document {document_id} not indexed')
+                self.assertIsInstance(doc, Document)
