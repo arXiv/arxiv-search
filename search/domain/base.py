@@ -1,13 +1,12 @@
 """Base domain classes for search service."""
 
-from typing import Any, Iterable, Optional, Type, List, Dict
-from datetime import date, datetime
-import json
+from typing import Any, Optional, List, Dict
+from datetime import datetime
 from operator import attrgetter
 from pytz import timezone
-import jsonschema
+import re
 
-from dataclasses import dataclass, fields, field
+from dataclasses import dataclass, field
 from dataclasses import asdict as _asdict
 
 EASTERN = timezone('US/Eastern')
@@ -38,7 +37,8 @@ class DocMeta:
     is_withdrawn: bool = False
     license: Dict[str, str] = field(default_factory=dict)
     primary_classification: Dict[str, str] = field(default_factory=dict)
-    secondary_classification: List[Dict[str, str]] = field(default_factory=list)
+    secondary_classification: List[Dict[str, str]] = \
+        field(default_factory=list)
     title: str = field(default_factory=str)
     title_utf8: str = field(default_factory=str)
     source: Dict[str, Any] = field(default_factory=dict)
@@ -201,8 +201,9 @@ class Document:
     def __post_init__(self) -> None:
         """Set latest_version, if not already set."""
         if not self.latest_version and self.latest:
-            if 'v' in self.latest:
-                self.latest_version = int(self.latest.split('v')[-1])
+            m = re.match(r'^(.+?)(?:v(?P<version>[\d]+))?$', self.latest)
+            if m and m.group('version'):
+                self.latest_version = int(m.group('version'))
             else:
                 self.latest_version = 1
 

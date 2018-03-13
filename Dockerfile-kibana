@@ -1,6 +1,3 @@
 # Run Kibana 6.1.x with additional plugins
 
 FROM docker.elastic.co/kibana/kibana:6.1.1
-
-# install plugins
-#RUN /usr/share/kibana/bin/kibana-plugin install x-pack

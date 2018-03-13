@@ -9,14 +9,6 @@ search.process package
 Submodules
 ----------
 
-search.process.query module
----------------------------
-
-.. automodule:: search.process.query
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 search.process.transform module
 -------------------------------
 

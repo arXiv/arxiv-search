@@ -45,14 +45,6 @@ search.converter module
     :undoc-members:
     :show-inheritance:
 
-search.exceptions module
-------------------------
-
-.. automodule:: search.exceptions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 search.factory module
 ---------------------
 

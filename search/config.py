@@ -199,3 +199,14 @@ KINESIS_VERIFY = os.environ.get('KINESIS_VERIFY', "true")
 
 KINESIS_STREAM = os.environ.get('KINESIS_STREAM', 'MetadataIsAvailable')
 """Name of the stream to which the indexing agent subscribes."""
+
+"""
+Flask-S3 plugin settings.
+
+See `<https://flask-s3.readthedocs.io/en/latest/>`_.
+"""
+FLASKS3_BUCKET_NAME = os.environ.get('FLASKS3_BUCKET_NAME', 'some_bucket')
+FLASKS3_CDN_DOMAIN = os.environ.get('FLASKS3_CDN_DOMAIN', 'static.arxiv.org')
+FLASKS3_USE_HTTPS = os.environ.get('FLASKS3_USE_HTTPS', 1)
+FLASKS3_FORCE_MIMETYPE = os.environ.get('FLASKS3_FORCE_MIMETYPE', 1)
+FLASKS3_ACTIVE = os.environ.get('FLASKS3_ACTIVE', 0)

@@ -2,5 +2,9 @@
 
 FROM docker.elastic.co/elasticsearch/elasticsearch:6.1.1
 
-# install plugins
+# Install plugins.
+#
+# This adds the International Components for Unicode analyzer, which is not
+# bundled with ES by default. For more information, see
+# https://www.elastic.co/guide/en/elasticsearch/plugins/master/analysis-icu.html
 RUN /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-icu
