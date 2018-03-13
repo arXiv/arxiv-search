@@ -1,6 +1,5 @@
 """Responsible for transforming metadata & fulltext into a search document."""
 
-from datetime import datetime
 from string import punctuation
 from typing import Callable, Dict, List, Optional, Tuple, Union
 from search.domain import Document, DocMeta, Fulltext
@@ -73,62 +72,42 @@ def _getLastSubDate(meta: DocMeta) -> Optional[str]:
 
 
 TransformType = Union[str, Callable]
-_transformations: List[Tuple[str, TransformType]] = [
-    ("id", "paper_id"),
-    ("abstract", "abstract"),
-    ("authors", _constructAuthors),
-    ("authors_freeform", "authors_utf8"),
-    ("owners", _constructAuthorOwners),
-    ("submitted_date", "submitted_date"),
+_transformations: List[Tuple[str, TransformType, bool]] = [
+    ("id", "paper_id", True),
+    ("abstract", "abstract", False),
+    ("authors", _constructAuthors, True),
+    ("authors_freeform", "authors_utf8", False),
+    ("owners", _constructAuthorOwners, False),
+    ("submitted_date", "submitted_date", True),
     ("submitted_date_all",
-     lambda meta: meta.submitted_date_all if meta.is_current else None),
-    ("submitted_date_first", _getFirstSubDate),
-    ("submitted_date_latest", _getLastSubDate),
-    ("modified_date", "modified_date"),
-    ("updated_date", "updated_date"),
-    ("announced_date_first", "announced_date_first"),
-    ("is_current", "is_current"),
-    ("is_withdrawn", "is_withdrawn"),
-    ("license", _constructLicense),
-    ("paper_id", "paper_id"),
-    ("paper_id_v", _constructPaperVersion),
-    ("primary_classification", "primary_classification"),
-    ("secondary_classification", "secondary_classification"),
-    ("title", "title"),
-    ("title_utf8", "title_utf8"),
-    ("source", "source"),
-    ("version", "version"),
-    ("submitter", "submitter"),
-    ("report_num", "report_num"),
-    ("proxy", "proxy"),
-    ("msc_class", _constructMSCClass),
-    ("metadata_id", "metadata_id"),
-    ("journal_ref", "journal_ref_utf8"),
-    ("doi", "doi"),
-    ("comments", "comments_utf8"),
-    ("acm_class", _constructACMClass),
-    ("abs_categories", "abs_categories"),
-    ("formats", "formats")
-]
-
-# TODO: it would be nice if we didn't need this.
-_required = [
-    "abstract",
-    "authors",
-    "date_created",
-    "date_modified",
-    "date_updated",
-    "is_current",
-    "is_withdrawn",
-    "license",
-    "paper_id",
-    "paper_id_v",
-    "primary_category",
-    "primary_archive",
-    "primary_group",
-    "title",
-    "source",
-    "version"
+     lambda meta: meta.submitted_date_all if meta.is_current else None, True),
+    ("submitted_date_first", _getFirstSubDate, True),
+    ("submitted_date_latest", _getLastSubDate, True),
+    ("modified_date", "modified_date", True),
+    ("updated_date", "updated_date", True),
+    ("announced_date_first", "announced_date_first", False),
+    ("is_current", "is_current", True),
+    ("is_withdrawn", "is_withdrawn", False),
+    ("license", _constructLicense, True),
+    ("paper_id", "paper_id", True),
+    ("paper_id_v", _constructPaperVersion, True),
+    ("primary_classification", "primary_classification", True),
+    ("secondary_classification", "secondary_classification", True),
+    ("title", "title", True),
+    ("title_utf8", "title_utf8", True),
+    ("source", "source", True),
+    ("version", "version", True),
+    ("submitter", "submitter", False),
+    ("report_num", "report_num", False),
+    ("proxy", "proxy", False),
+    ("msc_class", _constructMSCClass, False),
+    ("metadata_id", "metadata_id", False),
+    ("journal_ref", "journal_ref_utf8", False),
+    ("doi", "doi", False),
+    ("comments", "comments_utf8", False),
+    ("acm_class", _constructACMClass, False),
+    ("abs_categories", "abs_categories", False),
+    ("formats", "formats", True)
 ]
 
 
@@ -149,14 +128,15 @@ def to_search_document(metadata: DocMeta, fulltext: Optional[Fulltext] = None)\
     Raises
     ------
     ValueError
+
     """
     data = {}
-    for key, source in _transformations:
+    for key, source, is_required in _transformations:
         if isinstance(source, str):
             value = getattr(metadata, source, None)
         elif hasattr(source, '__call__'):
             value = source(metadata)
-        if not value and key not in _required:
+        if not value and not is_required:
             continue
         data[key] = value
     if fulltext:
