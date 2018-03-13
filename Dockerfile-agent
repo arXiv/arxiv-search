@@ -30,6 +30,7 @@ ENV ELASTICSEARCH_INDEX arxiv
 ENV ELASTICSEARCH_USER elastic
 ENV ELASTICSEARCH_PASSWORD changeme
 ENV METADATA_ENDPOINT https://arxiv.org/docmeta/
+ENV LOGLEVEL 10
 
 ENV AWS_ACCESS_KEY_ID ""
 ENV AWS_SECRET_ACCESS_KEY ""
@@ -45,5 +46,4 @@ ENV MODE "agent"
 
 WORKDIR /opt/arxiv
 
-CMD ["/bin/bash", "/opt/arxiv/start_agent.sh"]
-#CMD /bin/bash
+CMD python3.6 /opt/arxiv/pre_start_agent.py; /bin/bash /opt/arxiv/start_agent.sh

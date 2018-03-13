@@ -1,6 +1,4 @@
-"""
-Test integration with Kinesis for the indexing agent.
-"""
+"""Test integration with Kinesis for the indexing agent."""
 
 from unittest import TestCase
 import os
@@ -14,14 +12,12 @@ from botocore.exceptions import ClientError
 from botocore.vendored.requests.exceptions import ConnectTimeout
 from botocore.client import Config
 
+from search.factory import create_ui_web_app
 from search.services import index
 from search.agent.consumer import MetadataRecordProcessor
 from search.domain import Document
 
 import urllib3
-
-# We disable certificate validation for testing.
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class TestKinesisIntegration(TestCase):
@@ -30,19 +26,27 @@ class TestKinesisIntegration(TestCase):
     @classmethod
     def setUpClass(cls):
         """Spin up localstack and search agent."""
+        # We disable certificate validation for testing.
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
         os.environ['ELASTICSEARCH_SERVICE_HOST'] = 'localhost'
-        os.environ['ELASTICSEARCH_SERVICE_PORT'] = "5578"
-        os.environ['ELASTICSEARCH_PORT_5578_PROTO'] = "https"
+        os.environ['ELASTICSEARCH_SERVICE_PORT'] = "9202"
+        os.environ['ELASTICSEARCH_PORT_9202_PROTO'] = "http"
         os.environ['ELASTICSEARCH_VERIFY'] = 'false'
         os.environ['METADATA_ENDPOINT'] = 'http://search-metadata:8000/docmeta/'
         os.environ['METADATA_CACHE_DIR'] = os.path.abspath('tests/data/examples')
 
+        app = create_ui_web_app()
+        app.app_context().push()
+
+        print('Build indexing agent')
         # Use docker compose to build and start the indexing agent, along with
         # localstack (which provides Kinesis, Elasticsearch Service, DynamodB).
         build_agent = subprocess.run(
             "docker-compose build", stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, shell=True, cwd="agent/"
         )
+        print('Start indexing agent and ES stack')
         start_agent = subprocess.run(
             "docker-compose up -d", stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, shell=True, cwd="agent/"
@@ -95,6 +99,9 @@ class TestKinesisIntegration(TestCase):
 
     def test_verify_notification_results_in_indexing(self):
         """Agent indexes documents for which notifications are produced."""
+        # We disable certificate validation for testing.
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        
         to_index = [
             "1712.04442",    # flux capacitor
             "1511.07473",    # flux capacitor

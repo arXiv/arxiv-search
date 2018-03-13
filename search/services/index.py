@@ -152,15 +152,19 @@ class SearchSession(object):
 
 
         """
-        logger.debug('init ES session for index "%s" at %s:%s',
-                     index, host, port)
         self.index = index
         self.mapping = mapping
         use_ssl = True if scheme == 'https' else False
         http_auth = '%s:%s' % (user, password) if user else None
+
+        logger.debug(
+            f'init ES session for index "{index}" at {scheme}://{host}:{port}'
+            f' with verify={verify} and ssl={use_ssl}'
+        )
+
         try:
             self.es = Elasticsearch([{'host': host, 'port': port,
-                                      'scheme': scheme, 'use_ssl': use_ssl,
+                                      'use_ssl': use_ssl,
                                       'http_auth': http_auth,
                                       'verify_certs': verify}],
                                     connection_class=Urllib3HttpConnection,

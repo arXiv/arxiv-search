@@ -223,7 +223,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             except index.IndexConnectionError as e:   # Nope, not happening.
                 raise IndexingFailed('Could not index document') from e
         except Exception as e:
-            logger.error('unhandled exception from index service')
+            logger.error(f'Unhandled exception from index service: {e}')
             raise IndexingFailed('Unhandled exception') from e
 
     @staticmethod
@@ -252,7 +252,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
                 logger.error(f'Could not bulk index documents: {e}')
                 raise IndexingFailed('Could not bulk index documents') from e
         except Exception as e:
-            logger.error('unhandled exception from index service')
+            logger.error(f'Unhandled exception from index service: {e}')
             raise IndexingFailed('Unhandled exception') from e
 
     def index_paper(self, arxiv_id: str) -> None:
@@ -407,5 +407,5 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             logger.debug(f'{arxiv_id}: failed to index document')
             self._error_count += 1
         except IndexingFailed as e:
-            logger.error('Indexing failed: {e}')
+            logger.error(f'Indexing failed: {e}')
             raise
