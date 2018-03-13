@@ -12,7 +12,12 @@ mapped to localhost.
 ```bash
 docker-compose up
 ```
-Kibana will be available at http://127.0.0.1:5601/
+Kibana will be available at http://127.0.0.1:5601/. The containers started by
+docker-compose can be stopped with ``docker-compose down`` from the same
+directory.
+
+Make sure that you have a recent version of ``docker-compose``; this is
+confirmed to work with version 1.18.
 
 Note that connection configuration variables for the search service are set in
 ``search/config.py``, where they are read from the environment. The arXiv
