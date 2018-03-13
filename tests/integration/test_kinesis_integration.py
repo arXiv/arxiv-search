@@ -24,7 +24,7 @@ class TestKinesisIntegration(TestCase):
     """Verifies indexing agent behavior against local Kinesis system."""
 
     # Set __test__ = False to disable this TestCase.
-    # __test__ = False
+    __test__ = int(os.environ.get('TEST_LEVEL', '1')) >= 2
 
     @classmethod
     def setUpClass(cls):

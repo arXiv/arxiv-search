@@ -8,7 +8,7 @@ flask==0.12.2
 elasticsearch==6.1.1
 elasticsearch-dsl==6.1.0
 wtforms==2.1
-arxiv-base==0.3
+arxiv-base==0.4
 pytz==2017.3
 amazon-kclpy==1.4.4
 dataclasses==0.4

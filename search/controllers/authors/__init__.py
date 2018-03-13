@@ -9,13 +9,12 @@ error messages for the user.
 
 from typing import Tuple, Dict, Any, Optional
 
-from arxiv.base.exceptions import InternalServerError
+from werkzeug.exceptions import InternalServerError
 
-from arxiv import status
+from arxiv import status, identifier
+
 from search import logging
-
 from search.services import index, fulltext, metadata
-from search.util import parse_arxiv_id
 from search.domain import AuthorQuery, Author, AuthorList, Query, asdict
 from search.controllers.util import paginate
 from .forms import AuthorSearchForm

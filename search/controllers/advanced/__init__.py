@@ -17,7 +17,7 @@ from werkzeug.datastructures import MultiDict
 
 from arxiv import status
 
-from arxiv.base.exceptions import InternalServerError
+from werkzeug.exceptions import InternalServerError
 from search.services import index, fulltext, metadata
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
     Classification, FieldedSearchList, ClassificationList, Query, asdict

@@ -5,7 +5,7 @@ from flask import Flask
 
 from arxiv import status
 from search.factory import create_ui_web_app
-from arxiv.base.exceptions import InternalServerError
+from werkzeug.exceptions import InternalServerError
 from search.services.index import IndexConnectionError, QueryError
 
 

@@ -7,7 +7,6 @@ from flask import Flask
 from arxiv.base import Base
 from search.routes import ui
 from search.services import index
-from search.converter import ArXivConverter
 
 
 def create_ui_web_app() -> Flask:
@@ -18,7 +17,6 @@ def create_ui_web_app() -> Flask:
 
     app = Flask('search')
     app.config.from_pyfile('config.py')
-    app.url_map.converters['arxiv'] = ArXivConverter
 
     index.init_app(app)
 
