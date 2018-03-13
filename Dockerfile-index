@@ -1,4 +1,7 @@
-# Process for indexing papers by arXiv ID.
+# arxiv/search-index
+#
+# Runtime for bulk indexing of a large number of records. This is not used in
+# version 0.1, but is available for exploratory work in Kubernetes.
 #
 # Expects a path to a list of newline-delimited arXiv IDs (versionless).
 #

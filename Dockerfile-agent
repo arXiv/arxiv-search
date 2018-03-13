@@ -1,5 +1,8 @@
+# arxiv/search-agent
+#
 # The indexing agent is responsible for updating the search index as new
-#  article metadata becomes available.
+#  article metadata becomes available. Subscribes to a Kinesis stream for
+#  notifications about new metadata. 
 
 FROM arxiv/base
 

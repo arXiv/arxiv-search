@@ -1,4 +1,7 @@
-# Run the Flask development server
+# arxiv/search
+#
+# Defines the runtime for the arXiv search service, which provides the main
+# UIs (and, eventually, APIs) for search.
 
 FROM arxiv/base
 

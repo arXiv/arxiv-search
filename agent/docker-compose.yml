@@ -1,3 +1,10 @@
+# Provides local instances of collaborating services for testing the
+# indexing agent.
+#
+# - Localstack (provides Kinesis, DynamoDB).
+# - Elasticsearch.
+# - Metadata: stub for docmeta service (see ../Dockerfile-metadata).
+---
 version: '3'
 
 services:
@@ -6,7 +13,6 @@ services:
       context: ../
       dockerfile: Dockerfile-elasticsearch
     container_name: search-test-elasticsearch
-    # environment:  ['http.host=0.0.0.0', 'transport.host=127.0.0.1', 'ELASTIC_PASSWORD=${ELASTIC_PASSWORD}']
     environment:
       http.host: '0.0.0.0'
       transport.host: '127.0.0.1'

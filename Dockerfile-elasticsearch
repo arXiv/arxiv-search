@@ -1,4 +1,6 @@
-# Run Elasticsearch 6.1.x with additional plugins
+# arxiv/eleasticsearch
+#
+# Runs Elasticsearch 6.1.1, with additional plugins.
 
 FROM docker.elastic.co/elasticsearch/elasticsearch:6.1.1
 

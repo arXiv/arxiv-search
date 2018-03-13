@@ -1,4 +1,6 @@
-# Stub for metadata endpoint.
+# Provides a stub service for metadata endpoint. This is for integration
+# testing only. It should probably be replaced with something a bit lighter
+# weight, e.g. using something mockito-esque.
 
 FROM arxiv/base
 
@@ -16,7 +18,6 @@ ENV METADATA_DIR /opt/arxiv/examples
 EXPOSE 8000
 
 WORKDIR /opt/arxiv
-#CMD /bin/bash
+
 ENTRYPOINT ["/usr/bin/uwsgi"]
 CMD ["--http-socket", ":8000", "-w docmeta.py", "-M", "-t 3000", "--manage-script-name", "--processes", "8", "--threads", "1", "--async", "100", "--ugreen", "--mount", "/=docmeta.py"]
-#CMD /bin/bash
