@@ -128,7 +128,7 @@ class SearchSession(object):
     def __init__(self, host: str, index: str, port: int=9200,
                  scheme: str='http', user: Optional[str]=None,
                  password: Optional[str]=None, mapping: Optional[str]=None,
-                 **extra: Any) -> None:
+                 verify: bool=True, **extra: Any) -> None:
         """
         Initialize the connection to Elasticsearch.
 
@@ -152,16 +152,21 @@ class SearchSession(object):
 
 
         """
-        logger.debug('init ES session for index "%s" at %s:%s',
-                     index, host, port)
         self.index = index
         self.mapping = mapping
         use_ssl = True if scheme == 'https' else False
         http_auth = '%s:%s' % (user, password) if user else None
+
+        logger.debug(
+            f'init ES session for index "{index}" at {scheme}://{host}:{port}'
+            f' with verify={verify} and ssl={use_ssl}'
+        )
+
         try:
             self.es = Elasticsearch([{'host': host, 'port': port,
-                                      'scheme': scheme, 'use_ssl': use_ssl,
-                                      'http_auth': http_auth}],
+                                      'use_ssl': use_ssl,
+                                      'http_auth': http_auth,
+                                      'verify_certs': verify}],
                                     connection_class=Urllib3HttpConnection,
                                     **extra)
         except ElasticsearchException as e:
@@ -712,6 +717,7 @@ def init_app(app: object = None) -> None:
     config.setdefault('ELASTICSEARCH_USER', None)
     config.setdefault('ELASTICSEARCH_PASSWORD', None)
     config.setdefault('ELASTICSEARCH_MAPPING', 'mappings/DocumentMapping.json')
+    config.setdefault('ELASTICSEARCH_VERIFY', 'true')
 
 
 # TODO: consider making this private.
@@ -722,11 +728,13 @@ def get_session(app: object = None) -> SearchSession:
     port = config.get('ELASTICSEARCH_PORT', '9200')
     scheme = config.get('ELASTICSEARCH_SCHEME', 'http')
     index = config.get('ELASTICSEARCH_INDEX', 'arxiv')
+    verify = config.get('ELASTICSEARCH_VERIFY', 'true') == 'true'
     user = config.get('ELASTICSEARCH_USER', None)
     password = config.get('ELASTICSEARCH_PASSWORD', None)
     mapping = config.get('ELASTICSEARCH_MAPPING',
                          'mappings/DocumentMapping.json')
-    return SearchSession(host, index, port, scheme, user, password, mapping)
+    return SearchSession(host, index, port, scheme, user, password, mapping,
+                         verify=verify)
 
 
 # TODO: consider making this private.

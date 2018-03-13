@@ -28,9 +28,12 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize exception counter."""
+        cache_dir = kwargs.pop('cache_dir', None)
         super(MetadataRecordProcessor, self).__init__(*args, **kwargs)  # type: ignore
         self._error_count = 0
         self._cache: Optional[str] = None
+        if cache_dir:
+            self.init_cache(cache_dir)
 
     def init_cache(self, cache_dir: str) -> None:
         """Configure the processor to use a local cache for docmeta."""
@@ -218,7 +221,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             except index.IndexConnectionError as e:   # Nope, not happening.
                 raise IndexingFailed('Could not index document') from e
         except Exception as e:
-            logger.error('unhandled exception from index service')
+            logger.error(f'Unhandled exception from index service: {e}')
             raise IndexingFailed('Unhandled exception') from e
 
     @staticmethod
@@ -247,7 +250,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
                 logger.error(f'Could not bulk index documents: {e}')
                 raise IndexingFailed('Could not bulk index documents') from e
         except Exception as e:
-            logger.error('unhandled exception from index service')
+            logger.error(f'Unhandled exception from index service: {e}')
             raise IndexingFailed('Unhandled exception') from e
 
     def index_paper(self, arxiv_id: str) -> None:
@@ -361,5 +364,5 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             logger.debug(f'{arxiv_id}: failed to index document')
             self._error_count += 1
         except IndexingFailed as e:
-            logger.error('Indexing failed: {e}')
+            logger.error(f'Indexing failed: {e}')
             raise

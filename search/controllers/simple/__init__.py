@@ -9,13 +9,12 @@ error messages for the user.
 
 from typing import Tuple, Dict, Any, Optional
 
-from arxiv.base.exceptions import InternalServerError, NotFound
+from werkzeug.exceptions import InternalServerError, NotFound
 
-from arxiv import status
+from arxiv import status, identifier
+
 from search import logging
-
 from search.services import index, fulltext, metadata
-from search.util import parse_arxiv_id
 from search.domain import Query, SimpleQuery, asdict
 from search.controllers.util import paginate
 
@@ -63,7 +62,9 @@ def search(request_params: dict) -> Response:
     if 'query' in request_params:
         try:
             # first check if the URL includes an arXiv ID
-            arxiv_id: Optional[str] = parse_arxiv_id(request_params['query'])
+            arxiv_id: Optional[str] = identifier.parse_arxiv_id(
+                request_params['query']
+            )
             # If so, redirect.
             logger.debug(f"got arXiv ID: {arxiv_id}")
         except ValueError as e:

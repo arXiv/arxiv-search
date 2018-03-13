@@ -33,20 +33,12 @@ debug execution which might be useful to debug production applications (but
 also very risky).
 """
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'asdf1234')
-"""
-the secret key
-"""
 
 USE_X_SENDFILE = os.environ.get('USE_X_SENDFILE') == ON
-"""
-enable/disable x-sendfile
-"""
+"""Enable/disable x-sendfile"""
 
 LOGGER_NAME = os.environ.get('LOGGER_NAME', 'search')
-"""
-the name of the logger
-"""
+"""The name of the logger."""
 
 LOGGER_HANDLER_POLICY = os.environ.get('LOGGER_HANDLER_POLICY', 'always')
 """
@@ -156,6 +148,7 @@ be useful to figure out why templates cannot be found or wrong templates appear
 to be loaded.
 """
 
+# AWS credentials.
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', 'nope')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', 'nope')
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
@@ -176,6 +169,9 @@ ELASTICSEARCH_SCHEME = os.environ.get(
 ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'arxiv')
 ELASTICSEARCH_USER = os.environ.get('ELASTICSEARCH_USER', None)
 ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD', None)
+ELASTICSEARCH_VERIFY = os.environ.get('ELASTICSEARCH_VERIFY', 'true')
+"""Indicates whether SSL certificate verification for ES should be enforced."""
+
 
 METADATA_ENDPOINT = os.environ.get('METADATA_ENDPOINT',
                                    'https://arxiv.org/docmeta/')
@@ -185,11 +181,24 @@ Location of endpoint(s) for metadata retrieval.
 Multiple endpoints may be provided with comma delimitation.
 """
 
+METADATA_CACHE_DIR = os.environ.get('METADATA_CACHE_DIR')
+"""Cache directory for metadata documents."""
+
 METADATA_VERIFY_CERT = os.environ.get('METADATA_VERIFY_CERT', 'True')
 """If ``False``, SSL certificate verification will be disabled."""
 
 FULLTEXT_ENDPOINT = os.environ.get('FULLTEXT_ENDPOINT',
                                    'https://fulltext.arxiv.org/fulltext/')
+
+# Settings for the indexing agent.
+KINESIS_ENDPOINT = os.environ.get('KINESIS_ENDPOINT')
+"""Can be used to set an alternate endpoint, e.g. for testing."""
+
+KINESIS_VERIFY = os.environ.get('KINESIS_VERIFY', "true")
+"""Indicates whether SSL certificate verification should be enforced."""
+
+KINESIS_STREAM = os.environ.get('KINESIS_STREAM', 'MetadataIsAvailable')
+"""Name of the stream to which the indexing agent subscribes."""
 
 """
 Flask-S3 plugin settings.

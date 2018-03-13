@@ -1,8 +1,11 @@
-# Run the Flask development server
+# arxiv/search
+#
+# Defines the runtime for the arXiv search service, which provides the main
+# UIs (and, eventually, APIs) for search.
 
 FROM arxiv/base
 
-# Add Python consumer and configuration.
+# Add Python application and configuration.
 ADD requirements/prod.txt /opt/arxiv/requirements.txt
 ADD app.py /opt/arxiv/
 RUN pip install -U pip

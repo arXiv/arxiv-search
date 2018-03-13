@@ -1,4 +1,5 @@
-# arxiv-search
+# Provides the Elasticsearch + Kibana stack for local development. See
+# README.md for instructions on use.
 ---
 version:            '3'
 services:

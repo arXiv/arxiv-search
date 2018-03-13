@@ -12,6 +12,7 @@ import time
 from datetime import datetime
 from pytz import timezone
 
+from search.factory import create_ui_web_app
 from search.services import index
 from search.agent.consumer import MetadataRecordProcessor
 from search.domain import SimpleQuery, AuthorQuery, AuthorList, Author, \
@@ -23,6 +24,8 @@ EASTERN = timezone('US/Eastern')
 class TestSearchIntegration(TestCase):
     """Indexes a limited set of documents, and tests search behavior."""
 
+    __test__ = int(os.environ.get('TEST_LEVEL', '1')) >= 2
+
     @classmethod
     def setUpClass(cls):
         """Spin up ES and index documents."""
@@ -33,18 +36,39 @@ class TestSearchIntegration(TestCase):
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
         )
         start_es = subprocess.run(
-            "docker run -d -p 9200:9200 arxiv/elasticsearch",
+            "docker run -d -p 9201:9200 arxiv/elasticsearch",
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        cls.container = start_es.stdout.decode('ascii').strip()
+        cls.es_container = start_es.stdout.decode('ascii').strip()
+        os.environ['ELASTICSEARCH_SERVICE_HOST'] = 'localhost'
+        os.environ['ELASTICSEARCH_SERVICE_PORT'] = "9201"
+        os.environ['ELASTICSEARCH_PORT_9201_PROTO'] = "http"
+        os.environ['ELASTICSEARCH_VERIFY'] = 'false'
+
+        # Build and start the docmeta stub.
+        build_docmeta = subprocess.run(
+            "docker build ./"
+            " -t arxiv/search-metadata"
+            " -f ./Dockerfile-metadata",
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        )
+        start_docmeta = subprocess.run(
+            "docker run -d -p 9000:8000 arxiv/search-metadata",
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        cls.md_container = start_docmeta.stdout.decode('ascii').strip()
+        os.environ['METADATA_ENDPOINT'] = 'http://localhost:9000/docmeta/'
+
+        cls.app = create_ui_web_app()
+        # app.app_context().push()
 
         print('Waiting for ES cluster to be available...')
         time.sleep(12)
-        while True:
-            time.sleep(5)
-            if index.cluster_available():
-                time.sleep(2)
-                index.create_index()
-                break
+        with cls.app.app_context():
+            while True:
+                time.sleep(5)
+                if index.cluster_available():
+                    time.sleep(2)
+                    index.create_index()
+                    break
 
         to_index = [
             "1712.04442",    # flux capacitor
@@ -60,19 +84,23 @@ class TestSearchIntegration(TestCase):
             "1708.07156",    # w w
             "1401.1012",     # Wonmin Son
         ]
-        cls.cache_dir = os.path.abspath('tests/data/examples')
-        cls.processor = MetadataRecordProcessor()
-        cls.processor.init_cache(cls.cache_dir)
-        cls.processor.index_papers(to_index)
+        with cls.app.app_context():
+            cls.processor = MetadataRecordProcessor()
+            cls.processor.index_papers(to_index)
         time.sleep(5)    # Give a few seconds for docs to be available.
 
     @classmethod
     def tearDownClass(cls):
         """Tear down Elasticsearch once all tests have run."""
-        stop_es = subprocess.run(f"docker rm -f {cls.container}",
+        stop_es = subprocess.run(f"docker rm -f {cls.es_container}",
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  shell=True)
+        stop_md = subprocess.run(f"docker rm -f {cls.md_container}",
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 shell=True)
+        del cls.app
 
     def test_simple_search_all_fields(self):
         """Scenario: simple term search across all fields."""
@@ -85,7 +113,8 @@ class TestSearchIntegration(TestCase):
             field='all',
             value='flux capacitor'
         )
-        document_set = index.search(query)
+        with self.app.app_context():
+            document_set = index.search(query)
         # All entries contain a metadata field that contains either "flux"
         # or "capacitor".
         self.assertEqual(len(document_set.results), 3)
@@ -105,7 +134,8 @@ class TestSearchIntegration(TestCase):
             field='all',
             value='λ'
         )
-        document_set = index.search(query)
+        with self.app.app_context():
+            document_set = index.search(query)
         self.assertEqual(len(document_set.results), 1)
         self.assertEqual(document_set.results[0].id, "1403.6219")
 
@@ -117,7 +147,8 @@ class TestSearchIntegration(TestCase):
             field='all',
             value='$z_1$'
         )
-        document_set = index.search(query)
+        with self.app.app_context():
+            document_set = index.search(query)
         self.assertEqual(len(document_set.results), 1)
         self.assertEqual(document_set.results[0].id, "1404.3450")
 
@@ -129,7 +160,8 @@ class TestSearchIntegration(TestCase):
             field='all',
             value='$\lambda$'
         )
-        document_set = index.search(query)
+        with self.app.app_context():
+            document_set = index.search(query)
         self.assertEqual(len(document_set.results), 2)
 
     def test_author_search_with_folding(self):
@@ -139,7 +171,8 @@ class TestSearchIntegration(TestCase):
             page_size=10,
             authors=AuthorList([Author(surname="schröder")])
         )
-        document_set = index.search(query)
+        with self.app.app_context():
+            document_set = index.search(query)
         self.assertEqual(len(document_set.results), 2)
         self.assertIn("1607.05107", [r.id for r in document_set.results],
                       "Schröder should match.")
@@ -153,7 +186,8 @@ class TestSearchIntegration(TestCase):
             page_size=10,
             authors=AuthorList([Author(surname="w", forename="w")])
         )
-        document_set = index.search(query)
+        with self.app.app_context():
+            document_set = index.search(query)
         self.assertEqual(len(document_set.results), 1)
         _ids = [r.id for r in document_set.results]
         self.assertIn("1708.07156", _ids, "Wissink B. W should match")
@@ -170,7 +204,8 @@ class TestSearchIntegration(TestCase):
                 end_date=datetime(year=2016, month=1, day=1, tzinfo=EASTERN)
             )
         )
-        document_set = index.search(query)
+        with self.app.app_context():
+            document_set = index.search(query)
         self.assertEqual(len(document_set.results), 3,
                          "Should be three results from 2015.")
         _ids = [r.paper_id_v for r in document_set.results]
@@ -191,7 +226,8 @@ class TestSearchIntegration(TestCase):
                                   term='jqk'),
             ])
         )
-        document_set = index.search(query)
+        with self.app.app_context():
+            document_set = index.search(query)
         _ids = [r.id for r in document_set.results]
         self.assertEqual(len(document_set.results), 2)
         self.assertIn("1607.05107", _ids, "Schröder should match.")
@@ -208,5 +244,6 @@ class TestSearchIntegration(TestCase):
                 FieldedSearchTerm(operator='AND', field='title', term='jqk'),
             ])
         )
-        document_set = index.search(query)
+        with self.app.app_context():
+            document_set = index.search(query)
         self.assertEqual(len(document_set.results), 0)

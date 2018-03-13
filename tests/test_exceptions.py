@@ -5,7 +5,7 @@ from flask import Flask
 
 from arxiv import status
 from search.factory import create_ui_web_app
-from arxiv.base.exceptions import InternalServerError
+from werkzeug.exceptions import InternalServerError
 from search.services.index import IndexConnectionError, QueryError
 
 
@@ -21,14 +21,14 @@ class TestExceptionHandling(TestCase):
         """A 404 response should be returned."""
         response = self.client.get('/foo')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.content_type, 'text/html; charset=utf-8')
+        self.assertIn('text/html', response.content_type)
 
     def test_405(self):
         """A 405 response should be returned."""
         response = self.client.post('/')
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
-        self.assertEqual(response.content_type, 'text/html; charset=utf-8')
+        self.assertIn('text/html', response.content_type)
 
     @mock.patch('search.controllers.simple.search')
     def test_500(self, mock_search):
@@ -39,7 +39,7 @@ class TestExceptionHandling(TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code,
                          status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.content_type, 'text/html; charset=utf-8')
+        self.assertIn('text/html', response.content_type)
 
     @mock.patch('search.controllers.simple.index')
     def test_index_connection_error(self, mock_index):
@@ -49,7 +49,7 @@ class TestExceptionHandling(TestCase):
         response = self.client.get('/?searchtype=title&query=foo')
         self.assertEqual(response.status_code,
                          status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.content_type, 'text/html; charset=utf-8')
+        self.assertIn('text/html', response.content_type)
 
     @mock.patch('search.controllers.simple.index')
     def test_query_error(self, mock_index):
@@ -60,4 +60,4 @@ class TestExceptionHandling(TestCase):
         response = self.client.get('/?searchtype=title&query=foo')
         self.assertEqual(response.status_code,
                          status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.content_type, 'text/html; charset=utf-8')
+        self.assertIn('text/html', response.content_type)
