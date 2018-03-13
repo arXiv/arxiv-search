@@ -131,8 +131,6 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         try:
             logger.debug(f'{arxiv_id}: requesting metadata')
             docmeta: DocMeta = metadata.retrieve(arxiv_id)
-
-        # TODO: use a context manager for retry?
         except metadata.ConnectionFailed as e:
             # The metadata service will retry bad responses, but not connection
             # errors. Sometimes it just takes another try, so why not.
@@ -323,50 +321,9 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             MetadataRecordProcessor._bulk_add_to_index(documents)
         except (DocumentFailed, IndexingFailed) as e:
             # We just pass these along so that process_record() can keep track.
-            # TODO: Ensure this is the correct behavior.
             logger.debug(f'{arxiv_id}: Document failed: {e}')
             raise e
 
-    # Experimental generator
-    # def _transform_from_ids(
-    #                         self,
-    #                         arxiv_ids: List[str]
-    #                         ) -> Generator[DocMeta, None, None]:
-    #     try:
-    #         for arxiv_id in arxiv_ids:
-    #             docmeta = self._get_metadata(arxiv_id)
-    #             document = MetadataRecordProcessor._transform_to_document(
-    #                 docmeta)
-    #             current_version = docmeta.version
-    #             logger.debug(f'current version is {current_version}')
-    #             if current_version is not None and current_version > 1:
-    #                 for version in range(1, current_version):
-    #                     ver_docmeta = self._get_metadata(
-    #                         f'{arxiv_id}v{version}')
-    #                     ver_document =\
-    #                         MetadataRecordProcessor._transform_to_document(
-    #                             ver_docmeta)
-    #
-    #                     # The earlier versions are here primarily to respond to
-    #                     # queries that explicitly specify the version number.
-    #                     ver_document.is_current = False
-    #
-    #                     # Add a reference to the most recent version.
-    #                     ver_document.latest = f'{arxiv_id}v{current_version}'
-    #
-    #                     # Set the primary document ID to the version-specied
-    #                     # arXiv identifier, to avoid clobbering the latest
-    #                     # version.
-    #                     ver_document.id = f'{arxiv_id}v{version}'
-    #                     yield ver_document
-    #
-    #             # Finally, ensure the most recent version gets indexed.
-    #             document.is_current = True
-    #             yield document
-    #     except (DocumentFailed) as e:
-    #         raise e
-
-    # TODO: verify notification payload on MetadataIsAvailable stream.
     def process_record(self, data: bytes, partition_key: bytes,
                        sequence_number: int, sub_sequence_number: int) -> None:
         """
