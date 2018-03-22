@@ -1,3 +1,9 @@
+"""
+Notes on author name search tuning.
+
+This is here for experimentation purposes only.
+"""
+
 import re
 import time
 from string import punctuation
