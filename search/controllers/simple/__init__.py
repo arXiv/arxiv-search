@@ -190,4 +190,6 @@ def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:
     order = form.order.data
     if order and order != 'None':
         q.order = order
+    else:
+        q.order = form.order.choices[0][0]
     return q
