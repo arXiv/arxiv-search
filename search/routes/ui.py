@@ -65,6 +65,10 @@ def _browse_url(name: str, **parameters: Any) -> Optional[str]:
         route = 'abs'
     elif name == 'pdf':
         route = 'pdf'
+    elif name == 'ps':
+        route = 'ps'
+    elif name == 'other':
+        route = 'formats'
     return urljoin('https://arxiv.org', '/%s/%s' % (route, paper_id))
 
 
