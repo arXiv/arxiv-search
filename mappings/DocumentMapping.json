@@ -72,12 +72,13 @@
           "type": "nested",
           "properties": {
             "first_name": {
-              "type": "keyword",
-              "normalizer": "simple",
+              "type": "text",
+              "analyzer": "folding",
+              "similarity": "classic",
               "fields": {
-                "folded": {
-                  "type": "keyword",
-                  "normalizer": "folding"
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "folding"
                 }
               }
             },
@@ -103,7 +104,25 @@
             },
             "full_name": {
               "type": "text",
-              "analyzer": "folding"
+              "analyzer": "folding",
+              "similarity": "classic",
+              "fields": {
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "folding"
+                }
+              }
+            },
+            "full_name_initialized": {
+              "type": "text",
+              "analyzer": "folding",
+              "similarity": "classic",
+              "fields": {
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "folding"
+                }
+              }
             },
             "suffix": {
               "type": "keyword"

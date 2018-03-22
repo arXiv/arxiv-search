@@ -1,6 +1,7 @@
 """Responsible for transforming metadata & fulltext into a search document."""
 
 from string import punctuation
+import re
 from typing import Callable, Dict, List, Optional, Tuple, Union
 from search.domain import Document, DocMeta, Fulltext
 
@@ -45,9 +46,12 @@ def _constructACMClass(meta: DocMeta) -> Optional[list]:
 
 
 def _transformAuthor(author: dict) -> dict:
-    fname = _strip_punctuation(author['first_name'])
-    author['initials'] = [pt[0] for pt in fname.split() if pt]
-    author['full_name'] = f"{author['first_name']} {author['last_name']}"
+    author['first_name'] = _strip_punctuation(author['first_name']).strip()
+    author['full_name'] = re.sub(r'\s+', ' ', f"{author['first_name']} {author['last_name']}")
+    author['initials'] = [pt[0] for pt in author['first_name'].split() if pt]
+    # initials = ' '.join(author["initials"])
+    name_parts = author['first_name'].split() + author['last_name'].split()
+    author['full_name_initialized'] = ' '.join([part[0] for part in name_parts[:-1]] + [name_parts[-1]])
     return author
 
 

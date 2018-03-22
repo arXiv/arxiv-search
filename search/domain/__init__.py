@@ -11,4 +11,3 @@ intelligibility of the codebase.
 # pylint: disable=wildcard-import
 from .base import *
 from .advanced import *
-from .author import *

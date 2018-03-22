@@ -35,88 +35,19 @@ from elasticsearch_dsl.response import Response
 from search.context import get_application_config, get_application_global
 from search import logging
 from search.domain import Document, DocumentSet, Query, DateRange, \
-    Classification, AdvancedQuery, SimpleQuery, AuthorQuery, Author, asdict
+    Classification, AdvancedQuery, SimpleQuery, asdict
+
+from .exceptions import QueryError, IndexConnectionError, DocumentNotFound, \
+    IndexingError, OutsideAllowedRange, MappingError
+from .util import Q_, wildcardEscape
+from .authors import construct_author_query, construct_author_id_query
+
 
 logger = logging.getLogger(__name__)
 
 # TODO: make this configurable.
 MAX_RESULTS = 10_000
 """This is the maximum result offset for pagination."""
-
-# We'll compile this ahead of time, since it gets called quite a lot.
-STRING_LITERAL = re.compile(r"(['\"][^'\"]*['\"])")
-"""Pattern for string literals (quoted) in search queries."""
-
-
-class MappingError(ValueError):
-    """There was a problem with the search document mapping."""
-
-
-class IndexConnectionError(IOError):
-    """There was a problem connecting to the search index."""
-
-
-class IndexingError(IOError):
-    """There was a problem adding a document to the index."""
-
-
-class QueryError(ValueError):
-    """
-    Elasticsearch could not handle the query.
-
-    This is likely due either to a programming error that resulted in a bad
-    index, or to a mal-formed query.
-    """
-
-
-class DocumentNotFound(RuntimeError):
-    """Could not find a requested document in the search index."""
-
-
-class OutsideAllowedRange(RuntimeError):
-    """A page outside of the allowed range has been requested."""
-
-
-def _wildcardEscape(querystring: str) -> Tuple[str, bool]:
-    """
-    Detect wildcard characters, and escape any that occur within a literal.
-
-    Parameters
-    ----------
-    querystring : str
-
-    Returns
-    -------
-    str
-        Query string with wildcard characters enclosed in literals escaped.
-    bool
-        If a non-literal wildcard character is present, returns True.
-
-    """
-    # This should get caught by the controller (form validation), but just
-    # in case we should check for it here.
-    if querystring.startswith('?') or querystring.startswith('*'):
-        raise QueryError('Query cannot start with a wildcard')
-
-    # Escape wildcard characters within string literals.
-    # re.sub() can't handle the complexity, sadly...
-    parts = re.split(STRING_LITERAL, querystring)
-    parts = [part.replace('*', r'\*').replace('?', r'\?')
-             if part.startswith('"') or part.startswith("'") else part
-             for part in parts]
-    querystring = "".join(parts)
-
-    # Only unescaped wildcard characters should remain.
-    wildcard = re.search(r'(?<!\\)([\*\?])', querystring) is not None
-    return querystring, wildcard
-
-
-def _Q(qtype: str, field: str, value: str) -> Q:
-    """Construct a :class:`.Q`, but handle wildcards first."""
-    value, wildcard = _wildcardEscape(value)
-    if wildcard:
-        return Q('wildcard', **{field: value})
-    return Q(qtype, **{field: value})
 
 
 class SearchSession(object):
@@ -213,43 +144,21 @@ class SearchSession(object):
             return Q("simple_query_string", fields=[field], query=term)
         # These terms require a match_phrase search.
         elif field in ['journal_ref', 'report_num']:
-            return _Q('match_phrase', field, term)
+            return Q_('match_phrase', field, term)
         # These terms require a simple match.
         elif field in ['acm_class', 'msc_class', 'doi']:
-            return _Q('match', field, term)
+            return Q_('match', field, term)
         # Search both with and without version.
         elif field == 'paper_id':
             return (
-                _Q('match', 'paper_id', term)
-                | _Q('match', 'paper_id_v', term)
+                Q_('match', 'paper_id', term)
+                | Q_('match', 'paper_id_v', term)
             )
         elif field in ['orcid', 'author_id']:
-            return (
-                Q("nested", path="authors",
-                  query=_Q('match', f'authors__{field}', term))
-                | Q("nested", path="owners",
-                    query=_Q('match', f'owners__{field}', term))
-                | _Q('match', f'submitter__{field}', term)
-            )
-
+            return construct_author_id_query(field, term)
         elif field == 'author':
-            return (
-                Q('nested', path='authors', query=(
-                    _Q('match', 'authors__first_name__folded', term)
-                    | _Q('match', 'authors__last_name__folded', term)
-                    | _Q('match', 'authors__full_name__folded', term)
-                ))
-                | Q('nested', path='owners', query=(
-                    _Q('match', 'owners__first_name__folded', term)
-                    | _Q('match', 'owners__last_name__folded', term)
-                    | _Q('match', 'owners__full_name__folded', term)
-                ))
-                | (
-                    _Q('match', 'submitter__name', term)
-                    & Q('match', **{'submitter__is_author': True})
-                )
-            )
-        return _Q("match", field, term)
+            return construct_author_query(term)
+        return Q_("match", field, term)
 
     @staticmethod
     def _grouped_terms_to_q(term_pair: tuple) -> Q:
@@ -390,53 +299,26 @@ class SearchSession(object):
         current_search = self._apply_sort(query, current_search)
         return current_search
 
-    def _author_query_part(self, author: Author, field: str) -> Search:
+    def _author_query_part(self, author, field: str) -> Search:
         _q = None
         if author.surname:
-            _q = _Q('match', f'{field}__last_name__folded', author.surname)
+            _q = Q_('match', f'{field}__last_name__folded', author.surname)
             if author.forename:    # Try as both forename and initials.
-                _q_forename = _Q('match', f'{field}__first_name__folded',
+                _q_forename = Q_('match', f'{field}__first_name__folded',
                                  author.forename)
                 initials = author.forename.replace('.', ' ').split()
                 if initials:
                     _q_init = Q()
                     for i in initials:
-                        _q_init &= _Q('match', f'{field}__initials__folded', i)
+                        _q_init &= Q_('match', f'{field}__initials__folded', i)
                     _q &= (_q_forename | _q_init)
                 else:
                     _q &= _q_forename
         if author.surname and author.fullname:
-            _q |= _Q('match', f'{field}__full_name', author.fullname)
+            _q |= Q_('match', f'{field}__full_name', author.fullname)
         elif author.fullname:
-            _q = _Q('match', f'{field}__full_name', author.fullname)
+            _q = Q_('match', f'{field}__full_name', author.fullname)
         return _q
-
-    def _prepare_author(self, query: AuthorQuery) -> Search:
-        current_search = self._base_search().filter("term", is_current=True)
-        q = Q()
-        for au in query.authors:
-            # We should be checking this in the controller (e.g. form data
-            # validation), but just in case...
-            if not (au.surname or au.fullname):
-                raise ValueError('Surname or fullname must be set')
-
-            # We may get a higher-quality hit from owners.
-            # TODO: consider weighting owner-hits more highly?
-            q &= (
-                Q('nested', path='authors',
-                  query=self._author_query_part(au, 'authors'))
-                | Q('nested', path='owners',
-                    query=self._author_query_part(au, 'owners'))
-                # TODO: revisit incorporating submitter in this search; as
-                # implemented, it overrides expected behavior of explicit
-                # forename/surname search.
-                # | (_Q('match', 'submitter__name',
-                #       f'{au.forename} {au.surname} {au.fullname}')
-                #    & Q('match', **{'submitter__is_author': True}))
-            )
-        current_search = current_search.query(q)
-        current_search = self._apply_sort(query, current_search)
-        return current_search
 
     def cluster_available(self) -> bool:
         """
@@ -643,8 +525,6 @@ class SearchSession(object):
             current_search = self._prepare(query)
         elif isinstance(query, SimpleQuery):
             current_search = self._prepare_simple(query)
-        elif isinstance(query, AuthorQuery):
-            current_search = self._prepare_author(query)
         logger.debug(str(current_search.to_dict()))
 
         try:
@@ -744,7 +624,7 @@ def current_session() -> SearchSession:
     if not g:
         return get_session()
     if 'search' not in g:
-        g.search = get_session()    #type: ignore
+        g.search = get_session()    # type: ignore
     return g.search     # type: ignore
 
 

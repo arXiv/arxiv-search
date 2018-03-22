@@ -15,8 +15,8 @@ from pytz import timezone
 from search.factory import create_ui_web_app
 from search.services import index
 from search.agent.consumer import MetadataRecordProcessor
-from search.domain import SimpleQuery, AuthorQuery, AuthorList, Author, \
-    AdvancedQuery, DateRange, FieldedSearchList, FieldedSearchTerm
+from search.domain import SimpleQuery,  AdvancedQuery, DateRange, \
+    FieldedSearchList, FieldedSearchTerm
 
 EASTERN = timezone('US/Eastern')
 
@@ -163,35 +163,6 @@ class TestSearchIntegration(TestCase):
         with self.app.app_context():
             document_set = index.search(query)
         self.assertEqual(len(document_set.results), 2)
-
-    def test_author_search_with_folding(self):
-        """Scenario: searching for a surname."""
-        query = AuthorQuery(
-            order='',
-            page_size=10,
-            authors=AuthorList([Author(surname="schröder")])
-        )
-        with self.app.app_context():
-            document_set = index.search(query)
-        self.assertEqual(len(document_set.results), 2)
-        self.assertIn("1607.05107", [r.id for r in document_set.results],
-                      "Schröder should match.")
-        self.assertIn("1509.08727", [r.id for r in document_set.results],
-                      "Schroder should match.")
-
-    def test_author_search_with_forename(self):
-        """Scenario: searching with surname and forename."""
-        query = AuthorQuery(
-            order='',
-            page_size=10,
-            authors=AuthorList([Author(surname="w", forename="w")])
-        )
-        with self.app.app_context():
-            document_set = index.search(query)
-        self.assertEqual(len(document_set.results), 1)
-        _ids = [r.id for r in document_set.results]
-        self.assertIn("1708.07156", _ids, "Wissink B. W should match")
-        self.assertNotIn("1401.1012", _ids, "Wonmin Son should not match.")
 
     def test_advanced_date_range_search(self):
         """Scenario: date range search."""

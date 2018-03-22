@@ -119,7 +119,7 @@
 {%- endmacro %}
 
 
-{% macro search_results(form, results, metadata, external_url, url_for_page) %}
+{% macro search_results(form, results, metadata, external_url, url_for_page, url_for_author_search) %}
 
 {% if metadata.total_pages > 1 %}
   {{ pagination(metadata, url_for_page) }}
@@ -140,7 +140,7 @@
     <p class="title is-5">{{ result.title_utf8 }}</p>
     <p class="authors">Authors:
       {% for author in result.authors[0:25] %}
-      <a href="{{ url_for('ui.author_search') }}?surname={{ author.last_name }}&forename={{ author.first_name }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}
+      <a href="{{ url_for_author_search(author.first_name, author.last_name) }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}
       {% endfor -%}
       {% if result.authors | length > 25 %}, et al. ({{ result.authors | length - 25 }} additional authors not shown){% endif %}
     </p>
