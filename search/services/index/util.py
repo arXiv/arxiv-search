@@ -1,3 +1,5 @@
+"""Helpers for building ES queries."""
+
 import re
 from typing import Any, Optional, Tuple, Union, List
 from elasticsearch_dsl import Search, Q, SF
