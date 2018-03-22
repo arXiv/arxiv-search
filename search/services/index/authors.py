@@ -1,11 +1,11 @@
 """Query-builders and helpers for searching by author name."""
 
-from typing import Tuple
+from typing import Tuple, Optional, List
 from elasticsearch_dsl import Search, Q, SF
 from .util import wildcardEscape, is_literal_query, Q_
 
 
-def _parseName(au_safe: str) -> Tuple[str, str]:
+def _parseName(au_safe: str) -> Tuple[str, Optional[str]]:
     """Parse a name string into its (likely) constituent parts."""
     # We interpret the comma as separating the surname from the forename.
     if "," in au_safe:
@@ -26,7 +26,7 @@ def _parseName(au_safe: str) -> Tuple[str, str]:
 def construct_author_query(term: str) -> Q:
     """Generate an author name query in the ElasticSearch DSL."""
     _author_q = Q()
-    score_functions = []
+    score_functions: List = []
 
     # Multiple authors can be provided, delimited by commas.
     for au_name in term.split(';'):

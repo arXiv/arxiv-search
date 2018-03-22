@@ -299,26 +299,26 @@ class SearchSession(object):
         current_search = self._apply_sort(query, current_search)
         return current_search
 
-    def _author_query_part(self, author, field: str) -> Search:
-        _q = None
-        if author.surname:
-            _q = Q_('match', f'{field}__last_name__folded', author.surname)
-            if author.forename:    # Try as both forename and initials.
-                _q_forename = Q_('match', f'{field}__first_name__folded',
-                                 author.forename)
-                initials = author.forename.replace('.', ' ').split()
-                if initials:
-                    _q_init = Q()
-                    for i in initials:
-                        _q_init &= Q_('match', f'{field}__initials__folded', i)
-                    _q &= (_q_forename | _q_init)
-                else:
-                    _q &= _q_forename
-        if author.surname and author.fullname:
-            _q |= Q_('match', f'{field}__full_name', author.fullname)
-        elif author.fullname:
-            _q = Q_('match', f'{field}__full_name', author.fullname)
-        return _q
+    # def _author_query_part(self, author, field: str) -> Search:
+    #     _q = None
+    #     if author.surname:
+    #         _q = Q_('match', f'{field}__last_name__folded', author.surname)
+    #         if author.forename:    # Try as both forename and initials.
+    #             _q_forename = Q_('match', f'{field}__first_name__folded',
+    #                              author.forename)
+    #             initials = author.forename.replace('.', ' ').split()
+    #             if initials:
+    #                 _q_init = Q()
+    #                 for i in initials:
+    #                     _q_init &= Q_('match', f'{field}__initials__folded', i)
+    #                 _q &= (_q_forename | _q_init)
+    #             else:
+    #                 _q &= _q_forename
+    #     if author.surname and author.fullname:
+    #         _q |= Q_('match', f'{field}__full_name', author.fullname)
+    #     elif author.fullname:
+    #         _q = Q_('match', f'{field}__full_name', author.fullname)
+    #     return _q
 
     def cluster_available(self) -> bool:
         """
