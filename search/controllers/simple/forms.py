@@ -37,9 +37,11 @@ class SimpleSearchForm(Form):
         ('100', '100')
     ])
     order = SelectField('Sort results by', choices=[
-        ('', 'Relevance'),
-        ('submitted_date', 'Submission date (ascending)'),
-        ('-submitted_date', 'Submission date (descending)'),
+        ('-announced_date_first', 'Announcement date (newest first)'),
+        ('announced_date_first', 'Announcement date (oldest first)'),
+        ('-submitted_date', 'Submission date (newest first)'),
+        ('submitted_date', 'Submission date (oldest first)'),
+        ('', 'Relevance')
     ], validators=[validators.Optional()])
 
     def validate_query(form: Form, field: StringField) -> None:
