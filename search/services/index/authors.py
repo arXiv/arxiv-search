@@ -30,7 +30,7 @@ def construct_author_query(term: str) -> Q:
 
     # Multiple authors can be provided, delimited by commas.
     for au_name in term.split(';'):
-        au_name = au_name.strip()
+        au_name = au_name.strip().lower()
 
         au_name, has_wildcard = wildcardEscape(au_name)
         au_safe = au_name.replace('*', '').replace('?', '').replace('"', '')
@@ -145,7 +145,7 @@ def construct_author_query(term: str) -> Q:
 
                 score_functions += [
                     SF({
-                        'weight': 10,
+                        'weight': 12,
                         'filter': Q(
                             "nested", path="authors", query=Q(
                                 "match", **{
