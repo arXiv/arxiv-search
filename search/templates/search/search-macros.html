@@ -161,6 +161,8 @@
 
 {%- macro paper_format_links(result, external_url) -%}
   {%- for format in result.formats -%}
-    <a href="{{ external_url('browse', format, paper_id=result.paper_id_v) }}">{{ format }}</a>{% if not loop.last %}, {% endif %}
+    {%- if format in ('pdf', 'pdfonly', 'ps', 'other') -%}
+      <a href="{{ external_url('browse', format, paper_id=result.paper_id_v) }}">{{ format|replace("pdfonly", "pdf") }}</a>{% if not loop.last %}, {% endif %}
+    {%- endif -%}
   {%- endfor -%}
 {%- endmacro -%}
