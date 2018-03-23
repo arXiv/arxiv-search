@@ -8,11 +8,11 @@ os:
 python:
   - "3.6"
 script:
-  - pip install -r requirements/prod.txt
-  - pip install -r requirements/test.txt
-  - nose2 -vvv --with-coverage
+  - pip install pipenv
+  - pipenv install
+  - pipenv run nose2 -vvv --with-coverage
 after_success:
-  - pip install pylint pydocstyle mypy
+  - pipenv install pylint pydocstyle mypy
   - ./lintstats.sh
   - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
   - docker build . -t arxiv/search:${TRAVIS_COMMIT};
