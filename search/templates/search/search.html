@@ -38,7 +38,7 @@
     </div>
     <div class="is-clearfix" style="height: 2.5em"> {# TODO - adjust this layout so that it matches across all forms less awkwardly #}
       <div class="is-pulled-right">
-        <a href="{{ url_for('ui.advanced_search') }}">Advanced Search</a> | <a href="{{ url_for('ui.author_search') }}">Author Search</a>
+        <a href="{{ url_for('ui.advanced_search') }}">Advanced Search</a>
       </div>
     </div>
     <input type="hidden" name="order" value="-announced_date_first">
@@ -77,7 +77,7 @@
 
   {% if results %}
       {{ search_macros.size_and_order(form, url_for('ui.search')) }}
-      {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
+      {{ search_macros.search_results(form, results, metadata, external_url, url_for_page, url_for_author_search) }}
   {% endif %}
 
 {% endblock %}

@@ -1,6 +1,6 @@
 # Check pylint status
 if [ -z ${MIN_SCORE} ]; then MIN_SCORE="9"; fi
-PYLINT_SCORE=$( pylint search | tail -2 | grep -Eo '[0-9\.]+/10' | tail -1 | sed s/\\/10// )
+PYLINT_SCORE=$( pipenv run pylint search | tail -2 | grep -Eo '[0-9\.]+/10' | tail -1 | sed s/\\/10// )
 PYLINT_PASS=$(echo $PYLINT_SCORE">="$MIN_SCORE | bc -l)
 
 if [ "$TRAVIS_PULL_REQUEST_SHA" = "" ];  then SHA=$TRAVIS_COMMIT; else SHA=$TRAVIS_PULL_REQUEST_SHA; fi
@@ -14,7 +14,7 @@ curl -u $USERNAME:$GITHUB_TOKEN \
 
 
 # Check mypy integration
-mypy --ignore-missing-imports -p search
+pipenv run mypy --ignore-missing-imports -p search
 MYPY_STATUS=$?
 if [ $MYPY_STATUS -ne 0 ]; then MYPY_STATE="failure" && echo "mypy failed"; else MYPY_STATE="success" &&  echo "mypy passed"; fi
 
@@ -26,7 +26,7 @@ curl -u $USERNAME:$GITHUB_TOKEN \
 
 
 # Check pydocstyle integration
-pydocstyle --convention=numpy --add-ignore=D401 search
+pipenv run pydocstyle --convention=numpy --add-ignore=D401 search
 PYDOCSTYLE_STATUS=$?
 if [ $PYDOCSTYLE_STATUS -ne 0 ]; then PYDOCSTYLE_STATE="failure" && echo "pydocstyle failed"; else PYDOCSTYLE_STATE="success" &&  echo "pydocstyle passed"; fi
 

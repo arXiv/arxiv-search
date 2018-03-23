@@ -77,13 +77,14 @@
               </div>
             </div>
           {% endfor %}
-          <div class="control is-clearfix">
-            <button type="button"
-              class="button is-monospace is-pulled-right"
-              data-toggle="fieldset-add-row"
-              data-target="#terms-fieldset"
-              aria-label="Add another term">+
-            </button>
+          <div class="field is-clearfix">
+            <div class="control is-pulled-right">
+              <span style="line-height: 2em; padding-right: 0.25em;">Add another term</span>
+              <button type="button" class="button is-monospace"
+                data-toggle="fieldset-add-row"
+                data-target="#terms-fieldset">+
+              </button>
+            </div>
           </div>
         </section>
 
@@ -160,10 +161,10 @@
             {% for field in form.date.filter_by %}
             <div class="field is-horizontal is-grouped">
               <div class="control">
-                <label class="radio">
+                <div class="radio"> {# label tags are added by wtforms #}
                   {{ field|safe }}
                   {{ field.label }}
-                </label>
+                </div>
               </div>
               {# TODO: the JS bits here should be re-implemented elsewhere #}
               {% if field.data == 'specific_year' %}
@@ -267,26 +268,31 @@
         <h2 class="title is-5">Tips</h2>
         <p class="title is-6">Wildcards:</p>
           <ul>
-           <li>use ? to replace a single character or * to replace any number of characters</li>
-           <li>can be used in any field, but not in the first character position</li>
+           <li>Use ? to replace a single character or * to replace any number of characters.</li>
+           <li>Can be used in any field, but not in the first character position. See Journal References tips for exceptions.</li>
           </ul>
         <p class="title is-6">Expressions:</p>
           <ul>
-             <li>TeX expressions can be searched, enclosed in single $</li>
+             <li>TeX expressions can be searched, enclosed in single $ characters.</li>
           </ul>
         <p class="title is-6">Phrases:</p>
           <ul>
             <li>Enclose phrases in double quotes for exact matches in title, abstract, and comments.</li>
-            <li>All journal reference searches are considered literal searches. E.g. a search for <strong>Physica A</strong> will match all papers with journal references containing <em>Physica A</em>, but a search for <strong>Physica A, 245 (1997) 181</strong> will only return the paper with journal reference <em>Physica A, 245 (1997) 181</em>.</li>
           </ul>
-        <p class="title is-6">Author Search:</p>
+        <p class="title is-6">Authors:</p>
           <ul>
-            <li>Diacritic character variants are automatically searched in the Author(s) field</li>
+            <li>Diacritic character variants are automatically searched in the Author(s) field.</li>
           </ul>
         <p class="title is-6">Dates:</p>
           <ul>
             <li>Search by date and sort by date will use a paper's submission date.</li>
             <li>All versions of a paper are indexed and searchable, with the most recent version displayed first.</li>
+          </ul>
+        <p class="title is-6">Journal References:</p>
+          <ul>
+            <li>If a journal reference search contains a wildcard, matches will be made using wildcard matching as expected. For example, <strong>math*</strong> will match <em>math</em>, <em>maths</em>, <em>mathematics</em>.</li>
+            <li>If a journal reference search does <strong>not</strong> contain a wildcard, only exact phrases entered will be matched. For example, <strong>math</strong> would match <em>math</em> or <em>math and science</em> but not <em>maths</em> or <em>mathematics</em>.</li>
+            <li>All journal reference searches that do not contain a wildcard are literal searches: a search for <strong>Physica A</strong> will match all papers with journal references containing <em>Physica A</em>, but a search for <strong>Physica A, 245 (1997) 181</strong> will only return the paper with journal reference <em>Physica A, 245 (1997) 181</em>.</li>
           </ul>
       </div>
     </div>
@@ -308,7 +314,7 @@
 {% block within_content %}
   <div class="is-clearfix" style="height: 2.5em"> {# TODO - adjust this layout so that it matches across all forms less awkwardly #}
     <div class="is-pulled-right">
-      <a href="{{ url_for('ui.search') }}">Simple Search</a> | <a href="{{ url_for('ui.author_search') }}">Author Search</a>
+      <a href="{{ url_for('ui.search') }}">Simple Search</a>
     </div>
   </div>
 
@@ -318,7 +324,7 @@
     <p class="subtitle is-5">Refine your query: <a href="{{ current_url_sans_parameters('advanced') }}">{{ query }}</a> or <a href="{{ url_for('ui.advanced_search') }}">Start a new search</a></p>
     {% if results %}
         {{ search_macros.size_and_order(form, url_for('ui.advanced_search')) }}
-        {{ search_macros.search_results(form, results, metadata, external_url, url_for_page) }}
+        {{ search_macros.search_results(form, results, metadata, external_url, url_for_page, url_for_author_search) }}
     {% endif %}
   {% endif %}
 {% endblock %}
