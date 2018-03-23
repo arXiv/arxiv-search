@@ -281,6 +281,8 @@
         <p class="title is-6">Authors:</p>
           <ul>
             <li>Diacritic character variants are automatically searched in the Author(s) field.</li>
+            <li>To search multiple authors in the same Author(s) field, separate author names with a ; (semicolon).</li>
+            <li>Author names enclosed in quotes will be searched literally - exact matches only will be displayed.</li>
           </ul>
         <p class="title is-6">Dates:</p>
           <ul>
@@ -302,7 +304,7 @@
 
 {% block title %}
     {% if not show_form and results %}
-        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.end }} of {{ metadata.total }} results
+        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.end }} of {{ '{0:,}'.format(metadata.total) }} results
     {% elif show_form %}
         Advanced Search
     {% else %}
