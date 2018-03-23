@@ -35,9 +35,9 @@ class TestTransformMetdata(TestCase):
             ]
         })
         doc = transform.to_search_document(meta)
-        self.assertEqual(doc.authors[0]['first_name'], 'B. Ivan')
+        self.assertEqual(doc.authors[0]['first_name'], 'B Ivan')
         self.assertEqual(doc.authors[0]['last_name'], 'Dole')
-        self.assertEqual(doc.authors[0]['full_name'], 'B. Ivan Dole',
+        self.assertEqual(doc.authors[0]['full_name'], 'B Ivan Dole',
                          "full_name should be generated from first_name and"
                          " last_name")
         self.assertEqual(doc.authors[0]['initials'], ["B", "I"],
@@ -64,9 +64,9 @@ class TestTransformMetdata(TestCase):
             ]
         })
         doc = transform.to_search_document(meta)
-        self.assertEqual(doc.owners[0]['first_name'], 'B. Ivan')
+        self.assertEqual(doc.owners[0]['first_name'], 'B Ivan')
         self.assertEqual(doc.owners[0]['last_name'], 'Dole')
-        self.assertEqual(doc.owners[0]['full_name'], 'B. Ivan Dole',
+        self.assertEqual(doc.owners[0]['full_name'], 'B Ivan Dole',
                          "full_name should be generated from first_name and"
                          " last_name")
         self.assertEqual(doc.owners[0]['initials'], ["B", "I"],

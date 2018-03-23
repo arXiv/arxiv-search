@@ -17,6 +17,23 @@
             "lowercase"
           ]
         },
+        "author_simple": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "german_normalization"
+          ]
+        },
+        "author_folding": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "icu_folding",
+            "lowercase",
+            "german_normalization"
+          ]
+        },
         "tex_analyzer": {
           "type": "custom",
           "tokenizer": "tex_tokenizer"
@@ -39,6 +56,19 @@
           "filter": [
             "icu_folding",
             "lowercase"
+          ]
+        },
+        "author_simple": {
+          "filter": [
+            "lowercase",
+            "german_normalization"
+          ]
+        },
+        "author_folding": {
+          "filter": [
+            "icu_folding",
+            "lowercase",
+            "german_normalization"
           ]
         }
       }
@@ -72,38 +102,57 @@
           "type": "nested",
           "properties": {
             "first_name": {
-              "type": "keyword",
-              "normalizer": "simple",
+              "type": "text",
+              "analyzer": "author_folding",
+              "similarity": "classic",
               "fields": {
-                "folded": {
-                  "type": "keyword",
-                  "normalizer": "folding"
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "author_folding"
                 }
               }
             },
             "last_name": {
               "type": "keyword",
-              "normalizer": "simple",
+              "normalizer": "author_simple",
               "fields": {
                 "folded": {
                   "type": "keyword",
-                  "normalizer": "folding"
+                  "normalizer": "author_folding"
                 }
               }
             },
             "initials": {
               "type": "keyword",
-              "normalizer": "simple",
+              "normalizer": "author_simple",
               "fields": {
                 "folded": {
                   "type": "keyword",
-                  "normalizer": "folding"
+                  "normalizer": "author_folding"
                 }
               }
             },
             "full_name": {
               "type": "text",
-              "analyzer": "folding"
+              "analyzer": "author_folding",
+              "similarity": "classic",
+              "fields": {
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "author_folding"
+                }
+              }
+            },
+            "full_name_initialized": {
+              "type": "text",
+              "analyzer": "author_folding",
+              "similarity": "classic",
+              "fields": {
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "author_folding"
+                }
+              }
             },
             "suffix": {
               "type": "keyword"
@@ -115,7 +164,15 @@
               "type": "keyword"
             },
             "affiliation": {
-              "type": "text"
+              "type": "text",
+              "analyzer": "author_folding",
+              "similarity": "classic",
+              "fields": {
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "author_folding"
+                }
+              }
             }
           }
         },
