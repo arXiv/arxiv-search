@@ -41,6 +41,7 @@
         <a href="{{ url_for('ui.advanced_search') }}">Advanced Search</a> | <a href="{{ url_for('ui.author_search') }}">Author Search</a>
       </div>
     </div>
+    <input type="hidden" name="order" value="-announced_date_first">
   </form>
 
   {% if not results %}
