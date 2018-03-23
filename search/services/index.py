@@ -205,7 +205,10 @@ class SearchSession(object):
                 Q("simple_query_string", fields=[
                     field,
                     f'{field}__tex',
-                    f'{field}__english'
+                    f'{field}__english',
+                    f'{field}_utf8',
+                    f'{field}_utf8__tex',
+                    f'{field}_utf8__english',
                   ], query=term)
             )
         # These terms have no additional fields.
@@ -647,6 +650,8 @@ class SearchSession(object):
             current_search = self._prepare_author(query)
         logger.debug(str(current_search.to_dict()))
 
+        current_search = self._highlight(current_search)
+
         try:
             results = current_search[query.page_start:query.page_end].execute()
         except TransportError as e:
@@ -681,11 +686,27 @@ class SearchSession(object):
                 'page_size': query.page_size,
                 'max_pages': max_pages
             },
-            'results': [self._transform(raw) for raw in results]
+            'results': [self._to_document(raw) for raw in results]
         })
         # See https://github.com/python/mypy/issues/3937
 
-    def _transform(self, raw: Response) -> Document:
+    def _highlight(self, search: Search) -> Search:
+        """Apply hit highlighting to the search, before execution."""
+        # TODO: consider a .highlight class?
+        search = search.highlight_options(
+            pre_tags=['<span class="tag is-warning">'],
+            post_tags=['</span>']
+        )
+        search = search.highlight('title*')
+
+        search = search.highlight('comments')
+        # type=plain ensures that the field isn't truncated at a dot.
+        search = search.highlight('journal_ref', type='plain')
+        search = search.highlight('doi')
+        search = search.highlight('abstract', fragment_size=200)
+        return search
+
+    def _to_document(self, raw: Response) -> Document:
         """Transform an ES search result back into a :class:`.Document`."""
         # typing: ignore
         result = {}
@@ -704,6 +725,15 @@ class SearchSession(object):
                     pass
             result[key] = value
         result['score'] = raw.meta.score
+
+        # Add highlighting to the result.
+        if hasattr(raw.meta, 'highlight'):
+            result['highlight'] = {}
+            print(raw.meta.highlight)
+            for field in dir(raw.meta.highlight):
+                print(field)
+                result['highlight'][field] = ' ... '.join(getattr(raw.meta.highlight, field))
+
         return Document(**result)   # type: ignore
         # See https://github.com/python/mypy/issues/3937
 

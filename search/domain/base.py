@@ -198,6 +198,8 @@ class Document:
 
     score: float = 1.0
 
+    highlight: dict = field(default_factory=dict)
+
     def __post_init__(self) -> None:
         """Set latest_version, if not already set."""
         if not self.latest_version and self.latest:
