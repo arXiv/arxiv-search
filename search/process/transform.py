@@ -75,6 +75,12 @@ def _getLastSubDate(meta: DocMeta) -> Optional[str]:
     return meta.submitted_date_all[-1]
 
 
+def _constructDOI(meta: DocMeta) -> List[str]:
+    if meta.doi:
+        return meta.doi.split()
+    return []
+
+
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType, bool]] = [
     ("id", "paper_id", True),
@@ -90,7 +96,7 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("modified_date", "modified_date", True),
     ("updated_date", "updated_date", True),
     ("announced_date_first", "announced_date_first", False),
-    ("is_current", "is_current", True),
+    ("is_current", "is_current", False),
     ("is_withdrawn", "is_withdrawn", False),
     ("license", _constructLicense, True),
     ("paper_id", "paper_id", True),
@@ -107,7 +113,7 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("msc_class", _constructMSCClass, False),
     ("metadata_id", "metadata_id", False),
     ("journal_ref", "journal_ref_utf8", False),
-    ("doi", "doi", False),
+    ("doi", _constructDOI, False),
     ("comments", "comments_utf8", False),
     ("acm_class", _constructACMClass, False),
     ("abs_categories", "abs_categories", False),

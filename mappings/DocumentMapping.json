@@ -1,12 +1,19 @@
 {
   "settings": {
     "analysis": {
+      "filter": {
+        "english_stop": {
+          "type":       "stop",
+          "stopwords":  "_english_"
+        }
+      },
       "analyzer": {
         "simple": {
           "type": "custom",
           "tokenizer": "standard",
           "filter": [
-            "lowercase"
+            "lowercase",
+            "english_stop"
           ]
         },
         "folding": {
@@ -14,7 +21,8 @@
           "tokenizer": "standard",
           "filter": [
             "icu_folding",
-            "lowercase"
+            "lowercase",
+            "english_stop"
           ]
         },
         "author_simple": {
@@ -36,7 +44,10 @@
         },
         "tex_analyzer": {
           "type": "custom",
-          "tokenizer": "tex_tokenizer"
+          "tokenizer": "tex_tokenizer",
+          "filter": [
+            "english_stop"
+          ]
         }
       },
       "tokenizer": {

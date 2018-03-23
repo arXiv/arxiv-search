@@ -129,29 +129,34 @@
 
 {% for result in results %}
   <li class="arxiv-result">
-    {% if result.doi %}
-    <div class="field is-grouped is-grouped-multiline is-pulled-right">
-      <div class="control">
-        <div class="tags has-addons">
-          <span class="tag is-dark is-size-7">doi</span>
-          <span class="tag is-light is-size-7"><a class="" href="https://dx.doi.org/{{ result.doi }}">{{ result.doi }}</a></span>
+    <div class="level is-marginless">
+      <p class="list-title level-left">
+        <a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id_v) }}">arXiv: {{ result.paper_id_v }}</a>
+        <span>&nbsp;[<a href="{{ external_url('browse', 'pdf', paper_id=result.paper_id) }}">pdf</a>]&nbsp;</span>
+
+        <span class="tag is-small is-link">{{ result.primary_classification.category.id }}</span>
+        {% if result.secondary_category %}
+          {% for secondary in result.secondary_category %}
+            <span class="tag is-small is-grey">{{ secondary.archive }} {{ secondary.category }}</span>
+          {% endfor %}
+        {% endif -%}
+        {% if result.latest %}
+          <span class="has-text-grey is-size-7">&nbsp;Version {{ result.version }} of {{ result.latest_version }}</span>
+        {% endif %}
+      </p>
+      {% if result.doi %}
+      <div class="field is-grouped is-grouped-multiline level-right">
+        {% for doi in result.doi %}
+        <div class="control">
+          <div class="tags has-addons">
+            <span class="tag is-dark is-size-7">doi</span>
+            <span class="tag is-light is-size-7"><a class="" href="https://dx.doi.org/{{ doi }}">{{ doi }} <i class="fa fa-external-link" aria-hidden="true"></i></a></span>
+          </div>
         </div>
-      </div>
-    </div>
-    {% endif %}
-    <p class="list-title">
-      <a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id_v) }}">arXiv: {{ result.paper_id_v }}</a>
-      [<a href="{{ external_url('browse', 'pdf', paper_id=result.paper_id) }}">pdf</a>]
-      <span class="tag is-small is-link">{{ result.primary_classification.category.id }}</span>
-      {% if result.secondary_category %}
-        {% for secondary in result.secondary_category %}
-          <span class="tag is-small is-grey">{{ secondary.archive }} {{ secondary.category }}</span>
         {% endfor %}
-      {% endif -%}
-      {% if not result.is_current %}
-        <span class="has-text-grey is-size-7">Version {{ result.version }} of {{ result.latest_version }}</span>
+      </div>
       {% endif %}
-    </p>
+    </div>
     <p class="title is-5">{% if result.highlight.title_utf8 %}{{ result.highlight.title_utf8 | safe }}{% else %}{{ result.title_utf8 }}{% endif %}</p>
     <p class="authors">
       <span class="has-text-black-bis has-text-weight-semibold">Authors:</span>
@@ -172,12 +177,20 @@
         </span>
     </p>
     <p class="is-size-7">
-      <span class="has-text-black-bis has-text-weight-semibold">Submitted</span> on {{ result.submitted_date.strftime('%d %B, %Y at %H:%M:%S %Z') }}.
-      {% if result.latest %}<span class="has-text-weight-bold">Latest version: <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a></span>
-      {% else %}
-        {% if result.version > 1 %}First version: <a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id) }}v1">{{ result.submitted_date_first.strftime('%d %B, %Y at %H:%M:%S %Z') }}</a>{% endif %}
+      {% if result.version > 1 %}
+        <span class="has-text-weight-semibold">First version submitted:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id) }}v1">{{ result.submitted_date_first.strftime('%d %B, %Y at %H:%M:%S %Z') }}</a>;
+        <span class="has-text-black-bis has-text-weight-semibold">announced</span> in {{ result.submitted_date.strftime('%B, %Y') }}.
       {% endif %}
     </p>
+    <p class="is-size-7">
+      <span class="has-text-black-bis has-text-weight-semibold">This version submitted</span> on {{ result.submitted_date.strftime('%d %B, %Y at %H:%M:%S %Z') }}{% if result.version == 1 %}; <span class="has-text-black-bis has-text-weight-semibold">announced</span> in {{ result.submitted_date.strftime('%B, %Y') }}{% endif %}.
+    </p>
+    {% if result.latest %}
+    <p class="is-size-7">
+      <span class="has-text-weight-bold">Latest version:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a>.
+    </p>
+    {% endif %}
+
 
     {% if result.comments %}
     <p class="comments is-size-7">

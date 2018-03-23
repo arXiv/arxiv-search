@@ -605,8 +605,14 @@ class SearchSession(object):
                         f'Could not parse {key}: {value} as datetime'
                     )
                     pass
+
+            # # Even though DOI is a string field, some users have crammed more
+            # # than one DOI in. Since we're not
+            # if key in ['doi']:
+            #     value = value.split()
             result[key] = value
         result['score'] = raw.meta.score
+
 
         # Add highlighting to the result.
         if hasattr(raw.meta, 'highlight'):
