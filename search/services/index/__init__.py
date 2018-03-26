@@ -22,7 +22,8 @@ import urllib3
 from math import floor
 from datetime import datetime
 from typing import Any, Optional, Tuple, Union, List
-from functools import wraps
+from functools import reduce, wraps
+from operator import ior
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError, helpers
 from elasticsearch.connection import Urllib3HttpConnection
@@ -48,6 +49,10 @@ logger = logging.getLogger(__name__)
 # TODO: make this configurable.
 MAX_RESULTS = 10_000
 """This is the maximum result offset for pagination."""
+
+ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
+                     'acm_class', 'msc_class', 'report_num', 'paper_id', 'doi',
+                     'orcid', 'author_id']
 
 
 class SearchSession(object):
@@ -168,14 +173,24 @@ class SearchSession(object):
         if type(term_a_raw) is tuple:
             term_a = SearchSession._grouped_terms_to_q(term_a_raw)
         else:
-            term_a = SearchSession._field_term_to_q(term_a_raw.field,
-                                                    term_a_raw.term)
+            if term_a_raw.field == 'all':
+                q_ar = [SearchSession._field_term_to_q(field, term_a_raw.term)
+                        for field in ALL_SEARCH_FIELDS]
+                term_a = reduce(ior, q_ar)
+            else:
+                term_a = SearchSession._field_term_to_q(term_a_raw.field,
+                                                        term_a_raw.term)
 
         if type(term_b_raw) is tuple:
             term_b = SearchSession._grouped_terms_to_q(term_b_raw)
         else:
-            term_b = SearchSession._field_term_to_q(term_b_raw.field,
-                                                    term_b_raw.term)
+            if term_b_raw.field == 'all':
+                q_ar = [SearchSession._field_term_to_q(field, term_b_raw.term)
+                        for field in ALL_SEARCH_FIELDS]
+                term_a = reduce(ior, q_ar)
+            else:
+                term_b = SearchSession._field_term_to_q(term_b_raw.field,
+                                                        term_b_raw.term)
 
         if operator == 'OR':
             return term_a | term_b
@@ -204,7 +219,15 @@ class SearchSession(object):
     def _fielded_terms_to_q(cls, query: AdvancedQuery) -> Match:
         if len(query.terms) == 1:
             term = query.terms[0]
-            return SearchSession._field_term_to_q(term.field, term.term)
+
+            if term.field == 'all':
+                q_ar = [SearchSession._field_term_to_q(field, term.term)
+                        for field in ALL_SEARCH_FIELDS]
+                q = reduce(ior, q_ar)
+            else:
+                q = SearchSession._field_term_to_q(term.field, term.term)
+
+            return q
             # return Q("match", **{query.terms[0].field: query.terms[0].term})
         elif len(query.terms) > 1:
             terms = cls._group_terms(query)
@@ -262,6 +285,7 @@ class SearchSession(object):
             & self._daterange_to_q(query)
             & self._classifications_to_q(query)
         )
+
         if query.order is None or query.order == 'relevance':
             # Boost the current version heavily when sorting by relevance.
             logger.debug('apply filter functions')
@@ -279,20 +303,9 @@ class SearchSession(object):
         """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
         current_search = self._base_search().filter("term", is_current=True)
         if query.field == 'all':
-            q = (
-                self._field_term_to_q('author', query.value)
-                | self._field_term_to_q('title', query.value)
-                | self._field_term_to_q('abstract', query.value)
-                | self._field_term_to_q('comments', query.value)
-                | self._field_term_to_q('journal_ref', query.value)
-                | self._field_term_to_q('acm_class', query.value)
-                | self._field_term_to_q('msc_class', query.value)
-                | self._field_term_to_q('report_num', query.value)
-                | self._field_term_to_q('paper_id', query.value)
-                | self._field_term_to_q('doi', query.value)
-                | self._field_term_to_q('orcid', query.value)
-                | self._field_term_to_q('author_id', query.value)
-            )
+            q_ar = [SearchSession._field_term_to_q(field, query.value)
+                    for field in ALL_SEARCH_FIELDS]
+            q = reduce(ior, q_ar)
         else:
             q = self._field_term_to_q(query.field, query.value)
         current_search = current_search.query(q)

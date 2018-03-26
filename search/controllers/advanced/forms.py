@@ -35,7 +35,8 @@ class FieldForm(Form):
         ('paper_id', 'Identifier'),
         ('doi', 'DOI'),
         ('orcid', 'ORCID'),
-        ('author_id', 'Author ID')
+        ('author_id', 'Author ID'),
+        ('all', 'All fields')
     ])
 
 
@@ -44,7 +45,7 @@ class ClassificationForm(Form):
 
     # pylint: disable=too-few-public-methods
 
-    computer_science = BooleanField('Computer science (cs)')
+    computer_science = BooleanField('Computer Science (cs)')
     economics = BooleanField('Economics (econ)')
     eess = BooleanField('Electrical Engineering and Systems Science (eess)')
     mathematics = BooleanField('Mathematics (math)')
