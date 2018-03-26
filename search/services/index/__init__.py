@@ -256,7 +256,10 @@ class SearchSession(object):
 
     def _prepare(self, query: AdvancedQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
-        current_search = self._base_search()
+        if query.include_older_versions:
+            current_search = self._base_search()
+        else:
+            current_search = self._base_search().filter("term", is_current=True)
         q = (
             self._fielded_terms_to_q(query)
             & self._daterange_to_q(query)
@@ -277,7 +280,7 @@ class SearchSession(object):
 
     def _prepare_simple(self, query: SimpleQuery) -> Search:
         """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
-        current_search = self._base_search().filter("term", is_current=True)
+        current_search = self._base_search().filter("term", is_current=False)
         if query.field == 'all':
             q = (
                 self._field_term_to_q('author', query.value)

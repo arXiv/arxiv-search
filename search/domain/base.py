@@ -123,6 +123,7 @@ class Query:
     order: Optional[str] = None
     page_size: int = 25
     page_start: int = 0
+    include_older_versions: bool = False
 
     @property
     def page_end(self) -> int:

@@ -132,6 +132,8 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     q = _update_query_with_dates(q, form.date.data)
     q = _update_query_with_terms(q, form.terms.data)
     q = _update_query_with_classification(q, form.classification.data)
+    q.include_older_versions = form.include_older_versions.data
+    # q.include_older_versions = False
     order = form.order.data
     if order and order != 'None':
         q.order = order
