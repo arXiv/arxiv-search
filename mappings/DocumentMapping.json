@@ -1,12 +1,19 @@
 {
   "settings": {
     "analysis": {
+      "filter": {
+        "english_stop": {
+          "type":       "stop",
+          "stopwords":  "_english_"
+        }
+      },
       "analyzer": {
         "simple": {
           "type": "custom",
           "tokenizer": "standard",
           "filter": [
-            "lowercase"
+            "lowercase",
+            "english_stop"
           ]
         },
         "folding": {
@@ -14,7 +21,8 @@
           "tokenizer": "standard",
           "filter": [
             "icu_folding",
-            "lowercase"
+            "lowercase",
+            "english_stop"
           ]
         },
         "author_simple": {
@@ -42,7 +50,7 @@
       "tokenizer": {
         "tex_tokenizer": {
           "type": "pattern",
-          "pattern": "\\$([^\\$]+)\\$",
+          "pattern": "(\\$[^\\$]+\\$)",
           "group": 1
         }
       },
@@ -82,6 +90,20 @@
           "type": "keyword"
         },
         "abstract": {
+          "type": "text",
+          "analyzer": "standard",
+          "fields": {
+            "english": {
+              "type": "text",
+              "analyzer": "english"
+            },
+            "tex": {
+              "type": "text",
+              "analyzer": "tex_analyzer"
+            }
+          }
+        },
+        "abstract_utf8": {
           "type": "text",
           "analyzer": "standard",
           "fields": {
@@ -420,7 +442,7 @@
         },
         "title": {
           "type": "text",
-          "analyzer": "simple",
+          "analyzer": "standard",
           "search_analyzer": "standard",
           "search_quote_analyzer": "simple",
           "fields": {
@@ -433,6 +455,7 @@
             "tex": {
               "type": "text",
               "analyzer": "tex_analyzer",
+              "store": true,
               "search_analyzer": "tex_analyzer",
               "search_quote_analyzer": "simple"
             },
@@ -443,7 +466,7 @@
         },
         "title_utf8": {
           "type": "text",
-          "analyzer": "simple",
+          "analyzer": "standard",
           "search_analyzer": "standard",
           "search_quote_analyzer": "simple",
           "fields": {

@@ -35,7 +35,8 @@ class FieldForm(Form):
         ('paper_id', 'Identifier'),
         ('doi', 'DOI'),
         ('orcid', 'ORCID'),
-        ('author_id', 'Author ID')
+        ('author_id', 'Author ID'),
+        ('all', 'All fields')
     ])
 
 
@@ -44,7 +45,7 @@ class ClassificationForm(Form):
 
     # pylint: disable=too-few-public-methods
 
-    computer_science = BooleanField('Computer science (cs)')
+    computer_science = BooleanField('Computer Science (cs)')
     economics = BooleanField('Economics (econ)')
     eess = BooleanField('Electrical Engineering and Systems Science (eess)')
     mathematics = BooleanField('Mathematics (math)')
@@ -121,9 +122,11 @@ class AdvancedSearchForm(Form):
         ('100', '100')
     ])
     order = SelectField('Sort results by', choices=[
-        ('', 'Relevance'),
-        ('submitted_date', 'Submission date (ascending)'),
-        ('-submitted_date', 'Submission date (descending)'),
+        ('-announced_date_first', 'Announcement date (newest first)'),
+        ('announced_date_first', 'Announcement date (oldest first)'),
+        ('-submitted_date', 'Submission date (newest first)'),
+        ('submitted_date', 'Submission date (oldest first)'),
+        ('', 'Relevance')
     ], validators=[validators.Optional()])
     include_older_versions = BooleanField('Include older versions '
                                           'of papers in results')
