@@ -20,7 +20,8 @@ import json
 import urllib3
 from contextlib import contextmanager
 from typing import Any, Optional, Tuple, Union, List, Generator
-from functools import wraps
+from functools import reduce, wraps
+from operator import ior
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError, helpers
 from elasticsearch.connection import Urllib3HttpConnection
@@ -69,6 +70,10 @@ def handle_es_exceptions() -> Generator:
     except BulkIndexError as e:
         logger.error("BulkIndexError: %s", e)
         raise IndexingError('Problem with bulk indexing: %s' % e) from e
+
+ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
+                     'acm_class', 'msc_class', 'report_num', 'paper_id', 'doi',
+                     'orcid', 'author_id']
 
 
 class SearchSession(object):

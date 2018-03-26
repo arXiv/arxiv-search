@@ -131,8 +131,8 @@
   <li class="arxiv-result">
     <div class="level is-marginless">
       <p class="list-title level-left">
-        <a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id_v) }}">arXiv: {{ result.paper_id_v }}</a>
-        <span>&nbsp;[<a href="{{ external_url('browse', 'pdf', paper_id=result.paper_id) }}">pdf</a>]&nbsp;</span>
+        <a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id_v) }}">arXiv:{{ result.paper_id_v }}</a>
+        <span>&nbsp;{{ paper_format_links(result, external_url) }}&nbsp;</span>
 
         <span class="tag is-small is-link">{{ result.primary_classification.category.id }}</span>
         {% if result.secondary_category %}
@@ -140,9 +140,7 @@
             <span class="tag is-small is-grey">{{ secondary.archive }} {{ secondary.category }}</span>
           {% endfor %}
         {% endif -%}
-        {% if result.latest %}
-          <span class="has-text-grey is-size-7">&nbsp;Version {{ result.version }} of {{ result.latest_version }}</span>
-        {% endif %}
+        {% if not result.is_current %}<span class="has-text-grey is-size-7">Version {{ result.version }} of {{ result.latest_version }}</span>{% endif %}
       </p>
       {% if result.doi %}
       <div class="field is-grouped is-grouped-multiline level-right">
@@ -232,4 +230,12 @@
   {{ pagination(metadata, url_for_page) }}
 {% endif %}
 
+{%- endmacro -%}
+
+{%- macro paper_format_links(result, external_url) -%}
+  {%- for format in result.formats -%}
+    {%- if format in ('pdf', 'pdfonly', 'ps', 'other') -%}
+      {% if loop.first %}[{% endif %}<a href="{{ external_url('browse', format, paper_id=result.paper_id_v) }}">{{ format|replace("pdfonly", "pdf") }}</a>{% if not loop.last %}, {% else %}]{% endif %}
+    {%- endif -%}
+  {%- endfor -%}
 {%- endmacro -%}

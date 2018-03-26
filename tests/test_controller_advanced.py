@@ -328,6 +328,21 @@ class TestUpdateQueryWithFieldedTerms(TestCase):
         self.assertEqual(q.terms[1].operator, 'OR')
         self.assertEqual(q.terms[1].field, 'title')
 
+    def test_multiple_terms_are_provided_with_all_field(self):
+        """Selected terms are added to the query."""
+        terms_data = [
+            {'term': 'switch', 'operator': 'AND', 'field': 'all'},
+            {'term': 'disk', 'operator': 'OR', 'field': 'all'}
+        ]
+        q = advanced._update_query_with_terms(Query(), terms_data)
+        self.assertIsInstance(q, Query)
+        self.assertIsInstance(q.terms, list)
+        self.assertEqual(len(q.terms), 2)
+        self.assertIsInstance(q.terms[0], FieldedSearchTerm)
+        self.assertEqual(q.terms[1].term, 'disk')
+        self.assertEqual(q.terms[1].operator, 'OR')
+        self.assertEqual(q.terms[1].field, 'all')
+
 
 class TestUpdateQueryWithDates(TestCase):
     """:func:`.advanced._update_query_with_dates` applies date selections."""

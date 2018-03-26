@@ -1,6 +1,8 @@
 """Functions for preparing a :class:`.Search` (prior to execution)."""
 
 from typing import Any
+from functools import reduce, wraps
+from operator import ior
 
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
@@ -8,6 +10,11 @@ from elasticsearch_dsl.query import Range, Match, Bool
 from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
 from .util import strip_tex, Q_, HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
 from .authors import construct_author_query, construct_author_id_query
+
+
+ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
+                     'acm_class', 'msc_class', 'report_num', 'paper_id', 'doi',
+                     'orcid', 'author_id']
 
 
 def _get_sort_parameters(query: Query) -> list:
@@ -106,12 +113,22 @@ def _grouped_terms_to_q(term_pair: tuple) -> Q:
     if type(term_a_raw) is tuple:
         term_a = _grouped_terms_to_q(term_a_raw)
     else:
-        term_a = _field_term_to_q(term_a_raw.field, term_a_raw.term)
+        if term_a_raw.field == 'all':
+            q_ar = [_field_term_to_q(field, term_a_raw.term)
+                    for field in ALL_SEARCH_FIELDS]
+            term_a = reduce(ior, q_ar)
+        else:
+            term_a = _field_term_to_q(term_a_raw.field, term_a_raw.term)
 
     if type(term_b_raw) is tuple:
         term_b = _grouped_terms_to_q(term_b_raw)
     else:
-        term_b = _field_term_to_q(term_b_raw.field, term_b_raw.term)
+        if term_b_raw.field == 'all':
+            q_ar = [_field_term_to_q(field, term_b_raw.term)
+                    for field in ALL_SEARCH_FIELDS]
+            term_b = reduce(ior, q_ar)
+        else:
+            term_b = _field_term_to_q(term_b_raw.field, term_b_raw.term)
 
     if operator == 'OR':
         return term_a | term_b
@@ -148,11 +165,17 @@ def _group_terms(query: AdvancedQuery) -> tuple:
 def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
     if len(query.terms) == 1:
         term = query.terms[0]
-        return _field_term_to_q(term.field, term.term)
-        # return Q("match", **{query.terms[0].field: query.terms[0].term})
+
+        if term.field == 'all':
+            q_ar = [_field_term_to_q(field, term.term)
+                    for field in ALL_SEARCH_FIELDS]
+            q = reduce(ior, q_ar)
+        else:
+            q = _field_term_to_q(term.field, term.term)
+
+        return q
     elif len(query.terms) > 1:
-        terms = _group_terms(query)
-        return _grouped_terms_to_q(terms)
+        return _grouped_terms_to_q(_group_terms(query))
     return Q('match_all')
 
 
@@ -160,20 +183,9 @@ def simple(search: Search, query: SimpleQuery) -> Search:
     """Prepare a :class:`.Search` from a :class:`.SimpleQuery`."""
     search = search.filter("term", is_current=True)
     if query.field == 'all':
-        q = (
-            _field_term_to_q('author', query.value)
-            | _field_term_to_q('title', query.value)
-            | _field_term_to_q('abstract', query.value)
-            | _field_term_to_q('comments', query.value)
-            | _field_term_to_q('journal_ref', query.value)
-            | _field_term_to_q('acm_class', query.value)
-            | _field_term_to_q('msc_class', query.value)
-            | _field_term_to_q('report_num', query.value)
-            | _field_term_to_q('paper_id', query.value)
-            | _field_term_to_q('doi', query.value)
-            | _field_term_to_q('orcid', query.value)
-            | _field_term_to_q('author_id', query.value)
-        )
+        q_ar = [_field_term_to_q(field, query.value)
+                for field in ALL_SEARCH_FIELDS]
+        q = reduce(ior, q_ar)
     else:
         q = _field_term_to_q(query.field, query.value)
     search = search.query(q)
