@@ -187,7 +187,7 @@ class SearchSession(object):
             if term_b_raw.field == 'all':
                 q_ar = [SearchSession._field_term_to_q(field, term_b_raw.term)
                         for field in ALL_SEARCH_FIELDS]
-                term_a = reduce(ior, q_ar)
+                term_b = reduce(ior, q_ar)
             else:
                 term_b = SearchSession._field_term_to_q(term_b_raw.field,
                                                         term_b_raw.term)
