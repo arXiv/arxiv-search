@@ -157,7 +157,8 @@
       </div>
       {% endif %}
     </div>
-    <p class="title is-5">
+    {# Note: mathjax class should be applied to any element that requires MathJax processing #}
+    <p class="title is-5 mathjax">
 
       {% if result.highlight.title_utf8 %}
         {{ result.highlight.title_utf8 | safe }}
