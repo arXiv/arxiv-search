@@ -157,7 +157,18 @@
       </div>
       {% endif %}
     </div>
-    <p class="title is-5">{% if result.highlight.title_utf8 %}{{ result.highlight.title_utf8 | safe }}{% else %}{{ result.title_utf8 }}{% endif %}</p>
+    <p class="title is-5">
+
+      {% if result.highlight.title_utf8 %}
+        {{ result.highlight.title_utf8 | safe }}
+      {% else %}
+        {% if result.highlight.title %}
+          {{ result.highlight.title | safe }}
+        {% else %}
+          {{ result.title_utf8 }}
+        {% endif %}
+      {% endif %}
+    </p>
     <p class="authors">
       <span class="has-text-black-bis has-text-weight-semibold">Authors:</span>
       {% for author in result.authors[0:25] %}

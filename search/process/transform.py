@@ -5,7 +5,6 @@ import re
 from typing import Callable, Dict, List, Optional, Tuple, Union
 from search.domain import Document, DocMeta, Fulltext
 
-
 DEFAULT_LICENSE = {
     'uri': 'http://arxiv.org/licenses/assumed-1991-2003/',
     'label': "Assumed arXiv.org perpetual, non-exclusive license to distribute"
@@ -105,6 +104,7 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("secondary_classification", "secondary_classification", True),
     ("title", "title", True),
     ("title_utf8", "title_utf8", True),
+    # ("title_tex", "title", True),
     ("source", "source", True),
     ("version", "version", True),
     ("submitter", "submitter", False),

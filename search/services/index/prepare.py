@@ -1,0 +1,245 @@
+"""Functions for preparing a :class:`.Search` (prior to execution)."""
+
+from typing import Any
+
+from elasticsearch_dsl import Search, Q, SF
+from elasticsearch_dsl.query import Range, Match, Bool
+
+from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
+from .util import strip_tex, Q_, HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
+from .authors import construct_author_query, construct_author_id_query
+
+
+def _get_sort_parameters(query: Query) -> list:
+    if not query.order:
+        return ['_score', '_doc']
+    return [query.order, '_score', '_doc']
+
+
+def _apply_sort(query: Query, search: Search) -> Search:
+    sort_params = _get_sort_parameters(query)
+    if sort_params is not None:
+        search = search.sort(*sort_params)
+    return search
+
+
+def _classification_to_q(field: str, classification: Classification) -> Match:
+    q = Q()
+    if classification.group:
+        field_name = '%s__group__id' % field
+        q &= Q('match', **{field_name: classification.group})
+    if classification.archive:
+        field_name = '%s__archive__id' % field
+        q &= Q('match', **{field_name: classification.archive})
+    if classification.category:
+        field_name = '%s__category__id' % field
+        q &= Q('match', **{field_name: classification.category})
+    return q    # Q('nested', path=field, query=q)
+
+
+def _classifications_to_q(query: AdvancedQuery) -> Match:
+    if not query.primary_classification:
+        return Q()
+    q = _classification_to_q('primary_classification',
+                             query.primary_classification[0])
+    if len(query.primary_classification) > 1:
+        for classification in query.primary_classification[1:]:
+            q |= _classification_to_q('primary_classification', classification)
+    return q
+
+
+def _daterange_to_q(query: AdvancedQuery) -> Range:
+    if not query.date_range:
+        return Q()
+    params = {}
+    if query.date_range.start_date:
+        params["gte"] = query.date_range.start_date \
+            .strftime('%Y-%m-%dT%H:%M:%S%z')
+    if query.date_range.end_date:
+        params["lt"] = query.date_range.end_date\
+            .strftime('%Y-%m-%dT%H:%M:%S%z')
+    return Q('range', submitted_date=params)
+
+
+def _field_term_to_q(field: str, term: str) -> Q:
+    """Generate a query fragment for a query on a specific field."""
+    # Searching with TeXisms in non-TeX-tokenized fields leads to
+    # spurious results and challenges with highlighting.
+    term_sans_tex = strip_tex(term).lower()
+
+    # These terms have fields for both TeX and English normalization.
+    if field in ['title', 'abstract']:
+        return (
+            Q("match", **{f'{field}': term_sans_tex})
+            | Q("match", **{f'{field}_utf8': term_sans_tex})
+            | Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})
+            | Q("match", **{f'{field}__english':  term_sans_tex})
+            | Q("match", **{f'{field}_utf8__english':  term_sans_tex})
+        )
+    # These terms have no additional fields.
+    elif field in ['comments']:
+        return Q("simple_query_string", fields=[field],
+                 query=term_sans_tex)
+    # These terms require a match_phrase search.
+    elif field in ['journal_ref', 'report_num']:
+        return Q_('match_phrase', field, term_sans_tex)
+    # These terms require a simple match.
+    elif field in ['acm_class', 'msc_class', 'doi']:
+        return Q_('match', field, term_sans_tex)
+    # Search both with and without version.
+    elif field == 'paper_id':
+        return (
+            Q_('match', 'paper_id', term_sans_tex)
+            | Q_('match', 'paper_id_v', term_sans_tex)
+        )
+    elif field in ['orcid', 'author_id']:
+        return construct_author_id_query(field, term)
+    elif field == 'author':
+        return construct_author_query(term_sans_tex)
+    return Q_("match", field, term)
+
+
+def _grouped_terms_to_q(term_pair: tuple) -> Q:
+    """Generate a :class:`.Q` from grouped terms."""
+    term_a_raw, operator, term_b_raw = term_pair
+
+    if type(term_a_raw) is tuple:
+        term_a = _grouped_terms_to_q(term_a_raw)
+    else:
+        term_a = _field_term_to_q(term_a_raw.field, term_a_raw.term)
+
+    if type(term_b_raw) is tuple:
+        term_b = _grouped_terms_to_q(term_b_raw)
+    else:
+        term_b = _field_term_to_q(term_b_raw.field, term_b_raw.term)
+
+    if operator == 'OR':
+        return term_a | term_b
+    elif operator == 'AND':
+        return term_a & term_b
+    elif operator == 'NOT':
+        return term_a & ~term_b
+    else:
+        # TODO: Confirm proper exception.
+        raise TypeError("Invalid operator for terms")
+
+
+def _get_operator(obj: Any) -> str:
+    if type(obj) is tuple:
+        return _get_operator(obj[0])
+    return obj.operator     # type: ignore
+
+
+def _group_terms(query: AdvancedQuery) -> tuple:
+    """Group fielded search terms into a set of nested tuples."""
+    terms = query.terms[:]
+    for operator in ['NOT', 'AND', 'OR']:
+        i = 0
+        while i < len(terms) - 1:
+            if _get_operator(terms[i+1]) == operator:
+                terms[i] = (terms[i], operator, terms[i+1])
+                terms.pop(i+1)
+                i -= 1
+            i += 1
+    assert len(terms) == 1
+    return terms[0]     # type: ignore
+
+
+def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
+    if len(query.terms) == 1:
+        term = query.terms[0]
+        return _field_term_to_q(term.field, term.term)
+        # return Q("match", **{query.terms[0].field: query.terms[0].term})
+    elif len(query.terms) > 1:
+        terms = _group_terms(query)
+        return _grouped_terms_to_q(terms)
+    return Q('match_all')
+
+
+def simple(search: Search, query: SimpleQuery) -> Search:
+    """Prepare a :class:`.Search` from a :class:`.SimpleQuery`."""
+    search = search.filter("term", is_current=True)
+    if query.field == 'all':
+        q = (
+            _field_term_to_q('author', query.value)
+            | _field_term_to_q('title', query.value)
+            | _field_term_to_q('abstract', query.value)
+            | _field_term_to_q('comments', query.value)
+            | _field_term_to_q('journal_ref', query.value)
+            | _field_term_to_q('acm_class', query.value)
+            | _field_term_to_q('msc_class', query.value)
+            | _field_term_to_q('report_num', query.value)
+            | _field_term_to_q('paper_id', query.value)
+            | _field_term_to_q('doi', query.value)
+            | _field_term_to_q('orcid', query.value)
+            | _field_term_to_q('author_id', query.value)
+        )
+    else:
+        q = _field_term_to_q(query.field, query.value)
+    search = search.query(q)
+    search = _apply_sort(query, search)
+    return search
+
+
+def advanced(search: Search, query: AdvancedQuery) -> Search:
+    """Prepare a :class:`.Search` from a :class:`.AdvancedQuery`."""
+    # Classification and date are treated as filters; this foreshadows the
+    # behavior of faceted search.
+    q = (
+        _fielded_terms_to_q(query)
+        & _daterange_to_q(query)
+        & _classifications_to_q(query)
+    )
+    if query.order is None or query.order == 'relevance':
+        # Boost the current version heavily when sorting by relevance.
+        q = Q('function_score', query=q, boost=5, boost_mode="multiply",
+              score_mode="max",
+              functions=[
+                SF({'weight': 5, 'filter': Q('term', is_current=True)})
+              ])
+    search = _apply_sort(query, search)
+    search = search.query(q)
+    return search
+
+
+def highlight(search: Search) -> Search:
+    """Apply hit highlighting to the search, before execution."""
+    # TODO: consider a .highlight class?
+    search = search.highlight_options(
+        pre_tags=[HIGHLIGHT_TAG_OPEN],
+        post_tags=[HIGHLIGHT_TAG_CLOSE]
+    )
+    search = search.highlight('title', type='plain')
+    search = search.highlight('title.tex', type='plain')
+    search = search.highlight('title_utf8', type='plain')
+
+    search = search.highlight('comments')
+    # type=plain ensures that the field isn't truncated at a dot.
+    search = search.highlight('journal_ref', type='plain')
+    search = search.highlight('doi', type='plain')
+    search = search.highlight('report_num', type='plain')
+    search = search.highlight('abstract', fragment_size=75)
+    search = search.highlight('abstract.tex', type='plain')
+    return search
+
+
+# def _author_query_part(self, author, field: str) -> Search:
+#     _q = None
+#     if author.surname:
+#         _q = Q_('match', f'{field}__last_name__folded', author.surname)
+#         if author.forename:    # Try as both forename and initials.
+#             _q_forename = Q_('match', f'{field}__first_name__folded',
+#                              author.forename)
+#             initials = author.forename.replace('.', ' ').split()
+#             if initials:
+#                 _q_init = Q()
+#                 for i in initials:
+#                     _q_init &= Q_('match', f'{field}__initials__folded', i)
+#                 _q &= (_q_forename | _q_init)
+#             else:
+#                 _q &= _q_forename
+#     if author.surname and author.fullname:
+#         _q |= Q_('match', f'{field}__full_name', author.fullname)
+#     elif author.fullname:
+#         _q = Q_('match', f'{field}__full_name', author.fullname)
+#     return _q

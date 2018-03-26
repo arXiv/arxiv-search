@@ -16,38 +16,59 @@ load the appropriate instance of :class:`.SearchSession` depending on the
 context of the request.
 """
 
-import re
 import json
 import urllib3
-from math import floor
-from datetime import datetime
-from typing import Any, Optional, Tuple, Union, List
+from contextlib import contextmanager
+from typing import Any, Optional, Tuple, Union, List, Generator
 from functools import wraps
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError, helpers
 from elasticsearch.connection import Urllib3HttpConnection
 from elasticsearch.helpers import BulkIndexError
 
-from elasticsearch_dsl import Search, Q, SF
-from elasticsearch_dsl.query import Range, Match, Bool
-from elasticsearch_dsl.response import Response
+from elasticsearch_dsl import Search, Q
 
 from search.context import get_application_config, get_application_global
 from search import logging
-from search.domain import Document, DocumentSet, Query, DateRange, \
-    Classification, AdvancedQuery, SimpleQuery, asdict
+from search.domain import Document, DocumentSet, Query, AdvancedQuery, \
+    SimpleQuery, asdict
 
 from .exceptions import QueryError, IndexConnectionError, DocumentNotFound, \
     IndexingError, OutsideAllowedRange, MappingError
-from .util import Q_, wildcardEscape
-from .authors import construct_author_query, construct_author_id_query
+from .util import MAX_RESULTS
 
+from . import prepare, results
 
 logger = logging.getLogger(__name__)
 
-# TODO: make this configurable.
-MAX_RESULTS = 10_000
-"""This is the maximum result offset for pagination."""
+
+@contextmanager
+def handle_es_exceptions() -> Generator:
+    """Handle common ElasticSearch-related exceptions."""
+    try:
+        yield
+    except TransportError as e:
+        if e.error == 'resource_already_exists_exception':
+            logger.debug('Index already exists; move along')
+            return
+        elif e.error == 'mapper_parsing_exception':
+            logger.error('Invalid document mapping; create index failed')
+            logger.debug(str(e.info))
+            raise MappingError('Invalid mapping: %s' % str(e.info)) from e
+        elif e.error == 'index_not_found_exception':
+            create_index()
+        elif e.error == 'parsing_exception':
+            raise QueryError(e.info) from e
+        logger.error('Problem communicating with ES: %s' % e.error)
+        raise IndexConnectionError(
+            'Problem communicating with ES: %s' % e.error
+        ) from e
+    except SerializationError as e:
+        logger.error("SerializationError: %s", e)
+        raise IndexingError('Problem serializing document: %s' % e) from e
+    except BulkIndexError as e:
+        logger.error("BulkIndexError: %s", e)
+        raise IndexingError('Problem with bulk indexing: %s' % e) from e
 
 
 class SearchSession(object):
@@ -106,223 +127,8 @@ class SearchSession(object):
                 'Could not initialize ES session: %s' % e
             ) from e
 
-    # TODO: Verify type of `SearchSession._get_operator(obj)`
-    @staticmethod
-    def _get_operator(obj: Any) -> str:
-        if type(obj) is tuple:
-            return SearchSession._get_operator(obj[0])
-        return obj.operator     # type: ignore
-
-    @staticmethod
-    def _group_terms(query: AdvancedQuery) -> tuple:
-        """Group fielded search terms into a set of nested tuples."""
-        terms = query.terms[:]
-        for operator in ['NOT', 'AND', 'OR']:
-            i = 0
-            while i < len(terms) - 1:
-                if SearchSession._get_operator(terms[i+1]) == operator:
-                    terms[i] = (terms[i], operator, terms[i+1])
-                    terms.pop(i+1)
-                    i -= 1
-                i += 1
-        assert len(terms) == 1
-        return terms[0]     # type: ignore
-
-    @staticmethod
-    def _field_term_to_q(field: str, term: str) -> Q:
-        # These terms have fields for both TeX and English normalization.
-        term = term.lower()
-        if field in ['title', 'abstract']:
-            return (
-                Q("simple_query_string", fields=[
-                    field,
-                    f'{field}__tex',
-                    f'{field}__english',
-                    f'{field}_utf8',
-                    f'{field}_utf8__tex',
-                    f'{field}_utf8__english',
-                  ], query=term)
-            )
-        # These terms have no additional fields.
-        elif field in ['comments']:
-            return Q("simple_query_string", fields=[field], query=term)
-        # These terms require a match_phrase search.
-        elif field in ['journal_ref', 'report_num']:
-            return Q_('match_phrase', field, term)
-        # These terms require a simple match.
-        elif field in ['acm_class', 'msc_class', 'doi']:
-            return Q_('match', field, term)
-        # Search both with and without version.
-        elif field == 'paper_id':
-            return (
-                Q_('match', 'paper_id', term)
-                | Q_('match', 'paper_id_v', term)
-            )
-        elif field in ['orcid', 'author_id']:
-            return construct_author_id_query(field, term)
-        elif field == 'author':
-            return construct_author_query(term)
-        return Q_("match", field, term)
-
-    @staticmethod
-    def _grouped_terms_to_q(term_pair: tuple) -> Q:
-        """Generate a :class:`.Q` from grouped terms."""
-        term_a_raw, operator, term_b_raw = term_pair
-
-        if type(term_a_raw) is tuple:
-            term_a = SearchSession._grouped_terms_to_q(term_a_raw)
-        else:
-            term_a = SearchSession._field_term_to_q(term_a_raw.field,
-                                                    term_a_raw.term)
-
-        if type(term_b_raw) is tuple:
-            term_b = SearchSession._grouped_terms_to_q(term_b_raw)
-        else:
-            term_b = SearchSession._field_term_to_q(term_b_raw.field,
-                                                    term_b_raw.term)
-
-        if operator == 'OR':
-            return term_a | term_b
-        elif operator == 'AND':
-            return term_a & term_b
-        elif operator == 'NOT':
-            return term_a & ~term_b
-        else:
-            # TODO: Confirm proper exception.
-            raise TypeError("Invalid operator for terms")
-
-    @staticmethod
-    def _daterange_to_q(query: AdvancedQuery) -> Range:
-        if not query.date_range:
-            return Q()
-        params = {}
-        if query.date_range.start_date:
-            params["gte"] = query.date_range.start_date \
-                .strftime('%Y-%m-%dT%H:%M:%S%z')
-        if query.date_range.end_date:
-            params["lt"] = query.date_range.end_date\
-                .strftime('%Y-%m-%dT%H:%M:%S%z')
-        return Q('range', submitted_date=params)
-
-    @classmethod
-    def _fielded_terms_to_q(cls, query: AdvancedQuery) -> Match:
-        if len(query.terms) == 1:
-            term = query.terms[0]
-            return SearchSession._field_term_to_q(term.field, term.term)
-            # return Q("match", **{query.terms[0].field: query.terms[0].term})
-        elif len(query.terms) > 1:
-            terms = cls._group_terms(query)
-            return cls._grouped_terms_to_q(terms)
-        return Q('match_all')
-
-    @staticmethod
-    def _classification_to_q(field: str, classification: Classification) \
-            -> Match:
-        q = Q()
-        if classification.group:
-            field_name = '%s__group__id' % field
-            q &= Q('match', **{field_name: classification.group})
-        if classification.archive:
-            field_name = '%s__archive__id' % field
-            q &= Q('match', **{field_name: classification.archive})
-        if classification.category:
-            field_name = '%s__category__id' % field
-            q &= Q('match', **{field_name: classification.category})
-        return q    # Q('nested', path=field, query=q)
-
-    @classmethod
-    def _classifications_to_q(cls, query: AdvancedQuery) -> Match:
-        if not query.primary_classification:
-            return Q()
-        q = cls._classification_to_q('primary_classification',
-                                     query.primary_classification[0])
-        if len(query.primary_classification) > 1:
-            for classification in query.primary_classification[1:]:
-                q |= cls._classification_to_q('primary_classification',
-                                              classification)
-        return q
-
-    @classmethod
-    def _get_sort_parameters(cls, query: Query) -> list:
-        if not query.order:
-            return ['_score', '_doc']
-        else:
-            return [query.order, '_score', '_doc']
-
-    def _apply_sort(self, query: Query, current_search: Search) -> Search:
-        sort_params = self._get_sort_parameters(query)
-        if sort_params is not None:
-            current_search = current_search.sort(*sort_params)
-        return current_search
-
     def _base_search(self) -> Search:
         return Search(using=self.es, index=self.index)
-
-    def _prepare(self, query: AdvancedQuery) -> Search:
-        """Generate an ES :class:`.Search` from a :class:`.AdvancedQuery`."""
-        current_search = self._base_search()
-        q = (
-            self._fielded_terms_to_q(query)
-            & self._daterange_to_q(query)
-            & self._classifications_to_q(query)
-        )
-        if query.order is None or query.order == 'relevance':
-            # Boost the current version heavily when sorting by relevance.
-            logger.debug('apply filter functions')
-            q = Q('function_score', query=q, boost=5, boost_mode="multiply",
-                  score_mode="max",
-                  functions=[
-                    SF({'weight': 5, 'filter': Q('term', is_current=True)})
-                  ])
-        current_search = self._apply_sort(query, current_search)
-        current_search = current_search.query(q)
-
-        return current_search
-
-    def _prepare_simple(self, query: SimpleQuery) -> Search:
-        """Generate an ES :class:`.Search` from a :class:`.SimpleQuery`."""
-        current_search = self._base_search().filter("term", is_current=True)
-        if query.field == 'all':
-            q = (
-                self._field_term_to_q('author', query.value)
-                | self._field_term_to_q('title', query.value)
-                | self._field_term_to_q('abstract', query.value)
-                | self._field_term_to_q('comments', query.value)
-                | self._field_term_to_q('journal_ref', query.value)
-                | self._field_term_to_q('acm_class', query.value)
-                | self._field_term_to_q('msc_class', query.value)
-                | self._field_term_to_q('report_num', query.value)
-                | self._field_term_to_q('paper_id', query.value)
-                | self._field_term_to_q('doi', query.value)
-                | self._field_term_to_q('orcid', query.value)
-                | self._field_term_to_q('author_id', query.value)
-            )
-        else:
-            q = self._field_term_to_q(query.field, query.value)
-        current_search = current_search.query(q)
-        current_search = self._apply_sort(query, current_search)
-        return current_search
-
-    # def _author_query_part(self, author, field: str) -> Search:
-    #     _q = None
-    #     if author.surname:
-    #         _q = Q_('match', f'{field}__last_name__folded', author.surname)
-    #         if author.forename:    # Try as both forename and initials.
-    #             _q_forename = Q_('match', f'{field}__first_name__folded',
-    #                              author.forename)
-    #             initials = author.forename.replace('.', ' ').split()
-    #             if initials:
-    #                 _q_init = Q()
-    #                 for i in initials:
-    #                     _q_init &= Q_('match', f'{field}__initials__folded', i)
-    #                 _q &= (_q_forename | _q_init)
-    #             else:
-    #                 _q &= _q_forename
-    #     if author.surname and author.fullname:
-    #         _q |= Q_('match', f'{field}__full_name', author.fullname)
-    #     elif author.fullname:
-    #         _q = Q_('match', f'{field}__full_name', author.fullname)
-    #     return _q
 
     def cluster_available(self) -> bool:
         """
@@ -356,22 +162,10 @@ class SearchSession(object):
         logger.debug('create ES index "%s"', self.index)
         if not self.mapping or type(self.mapping) is not str:
             raise IndexingError('Mapping not set')
-        try:
+        with handle_es_exceptions():
             with open(self.mapping) as f:
                 mappings = json.load(f)
             self.es.indices.create(self.index, mappings)
-        except TransportError as e:
-            if e.error == 'resource_already_exists_exception':
-                logger.debug('Index already exists; move along')
-                return
-            elif e.error == 'mapper_parsing_exception':
-                logger.error('Invalid document mapping; create index failed')
-                logger.debug(str(e.info))
-                raise MappingError('Invalid mapping: %s' % str(e.info)) from e
-            logger.error('Problem communicating with ES: %s' % e.error)
-            raise IndexConnectionError(
-                'Problem communicating with ES: %s' % e.error
-            ) from e
 
     def add_document(self, document: Document) -> None:
         """
@@ -395,21 +189,12 @@ class SearchSession(object):
         """
         if not self.es.indices.exists(index=self.index):
             self.create_index()
-        try:
+
+        with handle_es_exceptions():
             ident = document.id if document.id else document.paper_id
             logger.debug(f'{ident}: index document')
             self.es.index(index=self.index, doc_type='document',
                           id=ident, body=document)
-        except SerializationError as e:
-            logger.error("SerializationError: %s", e)
-            raise IndexingError('Problem serializing document: %s' % e) from e
-        except TransportError as e:
-            if e.error == 'index_not_found_exception':
-                self.create_index()
-            logger.error("TransportError: %s", e)
-            raise IndexConnectionError(
-                'Problem communicating with ES: %s' % e
-            ) from e
 
     def bulk_add_documents(self, documents: List[Document],
                            docs_per_chunk: int = 500) -> None:
@@ -435,7 +220,7 @@ class SearchSession(object):
             self.create_index()
             logger.debug('created index')
 
-        try:
+        with handle_es_exceptions():
             actions = ({
                 '_index': self.index,
                 '_type': 'document',
@@ -446,21 +231,6 @@ class SearchSession(object):
             helpers.bulk(client=self.es, actions=actions,
                          chunk_size=docs_per_chunk)
             logger.debug('added %i documents to index', len(documents))
-
-        except SerializationError as e:
-            logger.error("SerializationError: %s", e)
-            raise IndexingError(
-                'Problem serializing documents: %s' % e) from e
-        except BulkIndexError as e:
-            logger.error("BulkIndexError: %s", e)
-            raise IndexingError('Problem with bulk indexing: %s' % e) from e
-        except TransportError as e:
-            logger.error("TransportError: %s", e)
-            if e.error == 'index_not_found_exception':
-                self.create_index()
-            raise IndexConnectionError(
-                'Problem communicating with ES: %s' % e
-            ) from e
 
     def get_document(self, document_id: int) -> Document:
         """
@@ -485,19 +255,10 @@ class SearchSession(object):
             Invalid query parameters.
 
         """
-        try:
+        with handle_es_exceptions():
             record = self.es.get(index=self.index, doc_type='document',
                                  id=document_id)
-        except SerializationError as e:
-            logger.error("SerializationError: %s", e)
-            raise QueryError('Problem serializing document: %s' % e) from e
-        except TransportError as e:
-            logger.error("TransportError: %s", e)
-            if e.error == 'index_not_found_exception':
-                self.create_index()
-            raise IndexConnectionError(
-                'Problem communicating with ES: %s' % e
-            ) from e
+
         if not record:
             logger.error("No such document: %s", document_id)
             raise DocumentNotFound('No such document')
@@ -524,111 +285,34 @@ class SearchSession(object):
             Invalid query parameters.
 
         """
-        logger.debug('got current_search request %s', str(query))
-        if isinstance(query, AdvancedQuery):
-            current_search = self._prepare(query)
-        elif isinstance(query, SimpleQuery):
-            current_search = self._prepare_simple(query)
-        logger.debug(str(current_search.to_dict()))
-
-        current_search = self._highlight(current_search)
-
-        try:
-            results = current_search[query.page_start:query.page_end].execute()
-        except TransportError as e:
-            logger.error("TransportError: %s", e)
-            if e.error == 'index_not_found_exception':
-                self.create_index()
-            if e.error == 'parsing_exception':
-                raise QueryError(e.info) from e
-            raise IndexConnectionError(
-                'Problem communicating with ES: %s' % e
-            ) from e
-
-        N_pages_raw = results['hits']['total']/query.page_size
-        N_pages = int(floor(N_pages_raw)) + \
-            int(N_pages_raw % query.page_size > 0)
-        logger.debug('got %i results', results['hits']['total'])
-
+        # Make sure that the user is not requesting a nonexistant page.
         max_pages = int(MAX_RESULTS/query.page_size)
         if query.page > max_pages:
             _message = f'Requested page {query.page}, but max is {max_pages}'
             logger.error(_message)
             raise OutsideAllowedRange(_message)
 
-        return DocumentSet(**{  # type: ignore
-            'metadata': {
-                'start': query.page_start,
-                'end': min(query.page_start + query.page_size,
-                           results['hits']['total']),
-                'total': results['hits']['total'],
-                'current_page': query.page,
-                'total_pages': N_pages,
-                'page_size': query.page_size,
-                'max_pages': max_pages
-            },
-            'results': [self._to_document(raw) for raw in results]
-        })
-        # See https://github.com/python/mypy/issues/3937
+        # Perform the search.
+        logger.debug('got current_search request %s', str(query))
+        current_search = self._base_search()
+        try:
+            if isinstance(query, AdvancedQuery):
+                current_search = prepare.advanced(current_search, query)
+            elif isinstance(query, SimpleQuery):
+                current_search = prepare.simple(current_search, query)
+        except TypeError as e:
+            raise QueryError('Malformed query') from e
 
-    def _highlight(self, search: Search) -> Search:
-        """Apply hit highlighting to the search, before execution."""
-        # TODO: consider a .highlight class?
-        search = search.highlight_options(
-            pre_tags=['<span class="has-text-success has-text-weight-bold">'],
-            post_tags=['</span>']
-        )
-        search = search.highlight('title*', type='plain')
+        # Highlighting is performed by Elasticsearch; here we include the
+        # fields and configuration for highlighting.
+        current_search = prepare.highlight(current_search)
 
-        search = search.highlight('comments')
-        # type=plain ensures that the field isn't truncated at a dot.
-        search = search.highlight('journal_ref', type='plain')
-        search = search.highlight('doi', type='plain')
-        search = search.highlight('report_num', type='plain')
-        search = search.highlight('abstract', type='plain', fragment_size=75)
-        return search
+        with handle_es_exceptions():
+            # Slicing the search adds pagination parameters to the request.
+            resp = current_search[query.page_start:query.page_end].execute()
 
-    def _to_document(self, raw: Response) -> Document:
-        """Transform an ES search result back into a :class:`.Document`."""
-        # typing: ignore
-        result = {}
-        for key in Document.fields():
-            if not hasattr(raw, key):
-                continue
-            value = getattr(raw, key)
-            if key in ['submitted_date', 'submitted_date_first',
-                       'submitted_date_latest']:
-                try:
-                    value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S%z')
-                except (ValueError, TypeError):
-                    logger.warning(
-                        f'Could not parse {key}: {value} as datetime'
-                    )
-                    pass
-
-            # # Even though DOI is a string field, some users have crammed more
-            # # than one DOI in. Since we're not
-            # if key in ['doi']:
-            #     value = value.split()
-            result[key] = value
-        result['score'] = raw.meta.score
-
-
-        # Add highlighting to the result.
-        if hasattr(raw.meta, 'highlight'):
-            result['highlight'] = {}
-            for field in dir(raw.meta.highlight):
-                value = getattr(raw.meta.highlight, field)
-                if field == 'abstract':
-                    value = (
-                        '&hellip;' + ('&hellip;'.join(value[:2])) + '&hellip;'
-                    )
-                else:
-                    value = ' '.join(value)
-                result['highlight'][field] = value
-
-        return Document(**result)   # type: ignore
-        # See https://github.com/python/mypy/issues/3937
+        # Perform post-processing on the search results.
+        return results.to_documentset(query, resp)
 
 
 def init_app(app: object = None) -> None:

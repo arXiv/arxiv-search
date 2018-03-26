@@ -44,16 +44,13 @@
         },
         "tex_analyzer": {
           "type": "custom",
-          "tokenizer": "tex_tokenizer",
-          "filter": [
-            "english_stop"
-          ]
+          "tokenizer": "tex_tokenizer"
         }
       },
       "tokenizer": {
         "tex_tokenizer": {
           "type": "pattern",
-          "pattern": "\\$([^\\$]+)\\$",
+          "pattern": "(\\$[^\\$]+\\$)",
           "group": 1
         }
       },
@@ -93,6 +90,20 @@
           "type": "keyword"
         },
         "abstract": {
+          "type": "text",
+          "analyzer": "standard",
+          "fields": {
+            "english": {
+              "type": "text",
+              "analyzer": "english"
+            },
+            "tex": {
+              "type": "text",
+              "analyzer": "tex_analyzer"
+            }
+          }
+        },
+        "abstract_utf8": {
           "type": "text",
           "analyzer": "standard",
           "fields": {
@@ -431,7 +442,7 @@
         },
         "title": {
           "type": "text",
-          "analyzer": "simple",
+          "analyzer": "standard",
           "search_analyzer": "standard",
           "search_quote_analyzer": "simple",
           "fields": {
@@ -444,6 +455,7 @@
             "tex": {
               "type": "text",
               "analyzer": "tex_analyzer",
+              "store": true,
               "search_analyzer": "tex_analyzer",
               "search_quote_analyzer": "simple"
             },
@@ -454,7 +466,7 @@
         },
         "title_utf8": {
           "type": "text",
-          "analyzer": "simple",
+          "analyzer": "standard",
           "search_analyzer": "standard",
           "search_quote_analyzer": "simple",
           "fields": {
