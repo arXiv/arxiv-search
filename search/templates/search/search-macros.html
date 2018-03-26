@@ -168,7 +168,7 @@
         {% endif %}
       {% endif %}
     </p>
-    <p class="authors">
+    <p class="authors is-size-7">
       <span class="has-text-black-bis has-text-weight-semibold">Authors:</span>
       {% for author in result.authors[0:25] %}
       <a href="{{ url_for_author_search(author.first_name, author.last_name) }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}
@@ -186,21 +186,7 @@
           <a class="is-size-7" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'none'; document.getElementById('{{result.id}}-abstract-short').style.display = 'inline';">&#9651; Less</a>
         </span>
     </p>
-    <p class="is-size-7">
-      {% if result.version > 1 %}
-        <span class="has-text-weight-semibold">First version submitted:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.paper_id) }}v1">{{ result.submitted_date_first.strftime('%d %B, %Y at %H:%M:%S %Z') }}</a>;
-        <span class="has-text-black-bis has-text-weight-semibold">announced</span> in {{ result.submitted_date.strftime('%B, %Y') }}.
-      {% endif %}
-    </p>
-    <p class="is-size-7">
-      <span class="has-text-black-bis has-text-weight-semibold">This version submitted</span> on {{ result.submitted_date.strftime('%d %B, %Y at %H:%M:%S %Z') }}{% if result.version == 1 %}; <span class="has-text-black-bis has-text-weight-semibold">announced</span> in {{ result.submitted_date.strftime('%B, %Y') }}{% endif %}.
-    </p>
-    {% if result.latest %}
-    <p class="is-size-7">
-      <span class="has-text-weight-bold">Latest version:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a>.
-    </p>
-    {% endif %}
-
+    <p class="is-size-7"><span class="has-text-black-bis has-text-weight-semibold">Submitted</span> {{ result.submitted_date.strftime('%d %B, %Y') }}; {% if result.version > 1 %}<span class="has-text-black-bis has-text-weight-semibold">v1</span> submitted {{ result.submitted_date_first.strftime('%d %B, %Y') }};{% endif %} <span class="has-text-black-bis has-text-weight-semibold">announced</span> {{ result.submitted_date.strftime('%B, %Y') }}. {% if result.latest %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}</p>
 
     {% if result.comments %}
     <p class="comments is-size-7">
