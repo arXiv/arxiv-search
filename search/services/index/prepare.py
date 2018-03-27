@@ -197,6 +197,8 @@ def advanced(search: Search, query: AdvancedQuery) -> Search:
     """Prepare a :class:`.Search` from a :class:`.AdvancedQuery`."""
     # Classification and date are treated as filters; this foreshadows the
     # behavior of faceted search.
+    if not query.include_older_versions:
+        search = search.filter("term", is_current=True)
     q = (
         _fielded_terms_to_q(query)
         & _daterange_to_q(query)
