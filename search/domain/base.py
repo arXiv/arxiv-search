@@ -202,6 +202,10 @@ class Document:
     score: float = 1.0
 
     highlight: dict = field(default_factory=dict)
+    """Contains highlighted versions of field values."""
+
+    preview: dict = field(default_factory=dict)
+    """Contains truncations of field values for preview/snippet display."""
 
     def __post_init__(self) -> None:
         """Set latest_version, if not already set."""

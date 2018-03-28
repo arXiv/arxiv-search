@@ -23,7 +23,8 @@ from typing import Any, Optional, Tuple, Union, List, Generator
 from functools import reduce, wraps
 from operator import ior
 from elasticsearch import Elasticsearch, ElasticsearchException, \
-                          SerializationError, TransportError, helpers
+                          SerializationError, TransportError, NotFoundError, \
+                          helpers
 from elasticsearch.connection import Urllib3HttpConnection
 from elasticsearch.helpers import BulkIndexError
 
@@ -42,13 +43,26 @@ from . import prepare, results
 
 logger = logging.getLogger(__name__)
 
+# Disable the Elasticsearch logger. When enabled, the Elasticsearch logger
+# dumps entire Tracebacks prior to propagating exceptions. Thus we end up with
+# tracebacks in the logs even for handled exceptions.
+logging.getLogger('elasticsearch').disabled = True
+
+
+ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
+                     'acm_class', 'msc_class', 'report_num', 'paper_id', 'doi',
+                     'orcid', 'author_id']
+
 
 @contextmanager
 def handle_es_exceptions() -> Generator:
     """Handle common ElasticSearch-related exceptions."""
     try:
         yield
+    except NotFoundError as e:
+        raise DocumentNotFound('No such document') from e
     except TransportError as e:
+        logger.error(e.error)
         if e.error == 'resource_already_exists_exception':
             logger.debug('Index already exists; move along')
             return
@@ -70,10 +84,8 @@ def handle_es_exceptions() -> Generator:
     except BulkIndexError as e:
         logger.error("BulkIndexError: %s", e)
         raise IndexingError('Problem with bulk indexing: %s' % e) from e
-
-ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
-                     'acm_class', 'msc_class', 'report_num', 'paper_id', 'doi',
-                     'orcid', 'author_id']
+    except Exception as e:
+        logger.error('Unhandled exception: %s')
 
 
 class SearchSession(object):

@@ -178,11 +178,11 @@
     <p class="abstract mathjax  is-size-7">
       <span class="has-text-black-bis has-text-weight-semibold">Abstract</span>:
         <span class="abstract-short has-text-grey-dark mathjax" id="{{result.id}}-abstract-short" style="display: inline;">
-          {% if result.highlight.abstract %}{{ result.highlight.abstract | safe }}{% else %}{{ result.abstract | truncate(175) }}{% endif %}
+          {{ result.preview.abstract | safe }}
           <a class="is-size-7" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'inline'; document.getElementById('{{result.id}}-abstract-short').style.display = 'none';">&#9661; More</a>
         </span>
         <span class="abstract-full has-text-grey-dark mathjax" id="{{result.id}}-abstract-full" style="display: none;">
-          {{ result.abstract }}
+          {% if result.highlight.abstract %}{{ result.highlight.abstract | safe }}{% else %}{{ result.abstract }}{% endif %}
           <a class="is-size-7" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'none'; document.getElementById('{{result.id}}-abstract-short').style.display = 'inline';">&#9651; Less</a>
         </span>
     </p>

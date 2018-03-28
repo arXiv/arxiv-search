@@ -79,6 +79,8 @@ def _field_term_to_q(field: str, term: str) -> Q:
         return (
             Q("match", **{f'{field}': term_sans_tex})
             | Q("match", **{f'{field}_utf8': term_sans_tex})
+            # Boost the TeX field, since these will be exact matches, and we
+            # prefer them to partial matches within TeXisms.
             | Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})
             | Q("match", **{f'{field}__english':  term_sans_tex})
             | Q("match", **{f'{field}_utf8__english':  term_sans_tex})
@@ -223,17 +225,21 @@ def highlight(search: Search) -> Search:
         pre_tags=[HIGHLIGHT_TAG_OPEN],
         post_tags=[HIGHLIGHT_TAG_CLOSE]
     )
-    search = search.highlight('title', type='plain')
-    search = search.highlight('title.tex', type='plain')
-    search = search.highlight('title_utf8', type='plain')
+    search = search.highlight('title', type='plain', number_of_fragments=0)
+    search = search.highlight('title.tex', type='plain', number_of_fragments=0)
+    search = search.highlight('title_utf8', type='plain',
+                              number_of_fragments=0)
 
     search = search.highlight('comments')
-    # type=plain ensures that the field isn't truncated at a dot.
     search = search.highlight('journal_ref', type='plain')
     search = search.highlight('doi', type='plain')
     search = search.highlight('report_num', type='plain')
-    search = search.highlight('abstract', fragment_size=75)
-    search = search.highlight('abstract.tex', type='plain')
+
+    # Setting number_of_fragments to 0 tells ES to highlight the entire
+    # abstract.
+    search = search.highlight('abstract', type='plain', number_of_fragments=0)
+    search = search.highlight('abstract.tex', type='plain',
+                              number_of_fragments=0)
     return search
 
 

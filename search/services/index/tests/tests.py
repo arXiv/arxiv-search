@@ -214,9 +214,7 @@ class TestWildcardSearch(TestCase):
 
 
 class TestPrepare(TestCase):
-    """
-    Tests for :mod:`.index.prepare`.
-    """
+    """Tests for :mod:`.index.prepare`."""
 
     def test_group_terms(self):
         """:meth:`._group_terms` groups terms using logical precedence."""

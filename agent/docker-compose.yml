@@ -18,9 +18,9 @@ services:
       transport.host: '127.0.0.1'
     ports:
       - "9202:9200"
-      - "9300:9300"
+      - "9303:9300"
     networks:
-      - search-test
+      - search-test-kinesis
 
   search-metadata:
     build:
@@ -30,7 +30,7 @@ services:
     environment:
       LOGLEVEL: 10
     networks:
-      - search-test
+      - search-test-kinesis
 
   search-agent:
     build:
@@ -61,7 +61,7 @@ services:
       AGENT_CHECKPOINT_FREQ: "1"
       AGENT_SLEEP_SECONDS: "1"
     networks:
-      - search-test
+      - search-test-kinesis
     depends_on:
       - search-test-localstack
       - search-test-elasticsearch
@@ -71,7 +71,7 @@ services:
     image: atlassianlabs/localstack
     container_name: search-test-localstack
     networks:
-      - search-test
+      - search-test-kinesis
     ports:
       - "5582:4582"
       - "5568:4568"
@@ -81,4 +81,4 @@ services:
       DEBUG: 'true'
 
 networks:
-  search-test:
+  search-test-kinesis:
