@@ -1,13 +1,10 @@
 """Unit tests for :mod:`search.agent`."""
 
 from unittest import TestCase, mock
-# from datetime import datetime
-# from pytz import timezone
+
 from search.domain import DocMeta, Document
 from search.services import metadata, index
 from search.agent import consumer
-
-# EASTERN = timezone('US/Eastern')
 
 
 class TestIndexPaper(TestCase):

@@ -5,6 +5,7 @@ import os
 import subprocess
 import time
 import json
+import logging
 from datetime import datetime
 
 import boto3
@@ -18,6 +19,9 @@ from search.agent.consumer import MetadataRecordProcessor
 from search.domain import Document
 
 import urllib3
+
+logging.getLogger('elasticsearch').disabled = True
+logging.getLogger('botocore').disabled = True
 
 
 class TestKinesisIntegration(TestCase):
@@ -53,6 +57,8 @@ class TestKinesisIntegration(TestCase):
             "docker-compose up -d", stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, shell=True, cwd="agent/"
         )
+        if start_agent.returncode != 0 or build_agent.returncode != 0:
+            raise RuntimeError('Could not start services')
 
         print('Waiting for localstack and indexing agent to be available...')
         print(start_agent.stdout.decode('utf-8'))

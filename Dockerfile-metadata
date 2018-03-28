@@ -11,9 +11,10 @@
 
 FROM arxiv/base
 
+WORKDIR /opt/arxiv
+
 ADD search /opt/arxiv/search
-ADD requirements/prod.txt /opt/arxiv/requirements.txt
-RUN pip install -r /opt/arxiv/requirements.txt
+RUN pip install -U pip
 
 ADD tests/stubs/docmeta.py /opt/arxiv/docmeta.py
 ADD tests/data/examples /opt/arxiv/examples
@@ -23,8 +24,6 @@ RUN pip install flask arxiv-base uwsgi
 ENV METADATA_DIR /opt/arxiv/examples
 
 EXPOSE 8000
-
-WORKDIR /opt/arxiv
 
 ENTRYPOINT ["/usr/bin/uwsgi"]
 CMD ["--http-socket", ":8000", "-w docmeta.py", "-M", "-t 3000", "--manage-script-name", "--processes", "8", "--threads", "1", "--async", "100", "--ugreen", "--mount", "/=docmeta.py"]

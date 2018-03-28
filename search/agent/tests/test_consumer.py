@@ -1,11 +1,13 @@
 """Unit tests for the :mod:`references.agent.consumer` module."""
 
-import unittest
-from unittest import mock
 import os
 import json
 from amazon_kclpy import kcl
+from unittest import TestCase, mock
 
+from search.domain import DocMeta, Document
+from search.services import metadata, index
+from search.agent import consumer
 from search.agent.base import BaseRecordProcessor
 
 
@@ -23,7 +25,7 @@ def mock_extractor_session(mock_obj):
     mock_obj.return_value = mock_session_instance
 
 
-class TestRecordProcessor(unittest.TestCase):
+class TestRecordProcessor(TestCase):
     """Test the :meth:`.BaseRecordProcessor.process_records` method."""
 
     def test_bad_data_are_ignored(self):
@@ -42,7 +44,7 @@ class TestRecordProcessor(unittest.TestCase):
             self.fail('raised %s' % e)
 
 
-class TestRecordProcessorCheckpoint(unittest.TestCase):
+class TestRecordProcessorCheckpoint(TestCase):
     """Test the functionality of the checkpoint mechanism."""
 
     def test_checkpoint_on_time(self):
@@ -138,7 +140,7 @@ class TestRecordProcessorCheckpoint(unittest.TestCase):
         self.assertEqual(checkpointer.checkpoint.call_count, retries)
 
 
-class TestRecordProcessorShouldUpdateSequence(unittest.TestCase):
+class TestRecordProcessorShouldUpdateSequence(TestCase):
     """Tests for :meth:`consumer.RecordProcessor.should_update_sequence`."""
 
     def test_true_if_largest_unset(self):
@@ -155,7 +157,7 @@ class TestRecordProcessorShouldUpdateSequence(unittest.TestCase):
         self.assertFalse(processor.should_update_sequence(1, 1))
 
 
-class TestRecordProcessorShutdown(unittest.TestCase):
+class TestRecordProcessorShutdown(TestCase):
     """Test the handling of Shutdown signals."""
 
     def test_shutdown_terminate(self):
