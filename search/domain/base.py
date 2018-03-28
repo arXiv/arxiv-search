@@ -157,6 +157,7 @@ class Document:
 
     id: str = field(default_factory=str)
     abstract: str = field(default_factory=str)
+    abstract_tex: str = field(default_factory=str)
     authors: List[Dict] = field(default_factory=list)
     authors_freeform: str = field(default_factory=str)
     owners: List[Dict] = field(default_factory=list)
@@ -173,6 +174,7 @@ class Document:
     paper_id: str = field(default_factory=str)
     paper_id_v: str = field(default_factory=str)
     title: str = field(default_factory=str)
+    title_tex: str = field(default_factory=str)
     title_utf8: str = field(default_factory=str)
     source: Dict[str, Any] = field(default_factory=dict)
     version: int = 1
@@ -197,6 +199,12 @@ class Document:
     )
 
     score: float = 1.0
+
+    highlight: dict = field(default_factory=dict)
+    """Contains highlighted versions of field values."""
+
+    preview: dict = field(default_factory=dict)
+    """Contains truncations of field values for preview/snippet display."""
 
     def __post_init__(self) -> None:
         """Set latest_version, if not already set."""

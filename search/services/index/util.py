@@ -10,6 +10,15 @@ from .exceptions import QueryError
 STRING_LITERAL = re.compile(r"(['\"][^'\"]*['\"])")
 """Pattern for string literals (quoted) in search queries."""
 
+TEXISM = re.compile(r'(\$[^\$]+\$)')
+
+# TODO: make this configurable.
+MAX_RESULTS = 10_000
+"""This is the maximum result offset for pagination."""
+
+HIGHLIGHT_TAG_OPEN = '<span class="has-text-success has-text-weight-bold mathjax">'
+HIGHLIGHT_TAG_CLOSE = '</span>'
+
 
 def wildcardEscape(querystring: str) -> Tuple[str, bool]:
     """
@@ -48,6 +57,16 @@ def wildcardEscape(querystring: str) -> Tuple[str, bool]:
 def is_literal_query(term: str) -> bool:
     """Determine whether the term is intended to be treated as a literal."""
     return re.match('"[^"]+"', term) is not None
+
+
+def is_tex_query(term: str) -> bool:
+    """Determine whether the term is intended as a TeX query."""
+    return re.match(TEXISM, term) is not None
+
+
+def strip_tex(term: str) -> str:
+    """Remove TeX-isms from a term."""
+    return re.sub(TEXISM, '', term).strip()
 
 
 def Q_(qtype: str, field: str, value: str) -> Q:

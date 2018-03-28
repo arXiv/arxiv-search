@@ -38,6 +38,9 @@ class TestSearchIntegration(TestCase):
         start_es = subprocess.run(
             "docker run -d -p 9201:9200 arxiv/elasticsearch",
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        if start_es.returncode != 0 or build_es.returncode != 0:
+            raise RuntimeError('Could not start elasticsearch.')
+
         cls.es_container = start_es.stdout.decode('ascii').strip()
         os.environ['ELASTICSEARCH_SERVICE_HOST'] = 'localhost'
         os.environ['ELASTICSEARCH_SERVICE_PORT'] = "9201"
@@ -54,6 +57,10 @@ class TestSearchIntegration(TestCase):
         start_docmeta = subprocess.run(
             "docker run -d -p 9000:8000 arxiv/search-metadata",
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+        if start_docmeta.returncode != 0 or build_docmeta.returncode != 0:
+            raise RuntimeError('Could not start docmeta.')
+
         cls.md_container = start_docmeta.stdout.decode('ascii').strip()
         os.environ['METADATA_ENDPOINT'] = 'http://localhost:9000/docmeta/'
 
@@ -64,20 +71,20 @@ class TestSearchIntegration(TestCase):
         time.sleep(12)
         with cls.app.app_context():
             while True:
-                time.sleep(5)
                 if index.cluster_available():
-                    time.sleep(2)
                     index.create_index()
+                    time.sleep(2)
                     break
+                time.sleep(5)
 
         to_index = [
             "1712.04442",    # flux capacitor
             "1511.07473",    # flux capacitor
             "1604.04228",    # flux capacitor
             "1403.6219",     # λ
-            "1404.3450",     # $z_1$
-            "1703.09067",    # $\lambda$
-            "1408.6682",     # $\lambda$
+            "1404.3450",     # $Z_1$
+            "1703.09067",    # $\Lambda\Lambda$
+            "1408.6682",     # $\Lambda$
             "1607.05107",    # Schröder
             "1509.08727",    # Schroder
             "1710.01597",    # Schroeder
@@ -145,7 +152,7 @@ class TestSearchIntegration(TestCase):
             order='',
             page_size=10,
             field='all',
-            value='$z_1$'
+            value='$Z_1(4475)$'
         )
         with self.app.app_context():
             document_set = index.search(query)
@@ -158,7 +165,17 @@ class TestSearchIntegration(TestCase):
             order='',
             page_size=10,
             field='all',
-            value='$\lambda$'
+            value='$\Lambda$'
+        )
+        with self.app.app_context():
+            document_set = index.search(query)
+        self.assertEqual(len(document_set.results), 1)
+
+        query = SimpleQuery(
+            order='',
+            page_size=10,
+            field='all',
+            value='$\Lambda\Lambda$'
         )
         with self.app.app_context():
             document_set = index.search(query)
@@ -199,8 +216,8 @@ class TestSearchIntegration(TestCase):
         )
         with self.app.app_context():
             document_set = index.search(query)
-        _ids = [r.id for r in document_set.results]
-        self.assertEqual(len(document_set.results), 2)
+        _ids = [r.paper_id for r in document_set.results]
+        self.assertEqual(len(document_set.results), 3)
         self.assertIn("1607.05107", _ids, "Schröder should match.")
         self.assertIn("1509.08727", _ids, "Schroder should match.")
 

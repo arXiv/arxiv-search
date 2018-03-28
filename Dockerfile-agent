@@ -11,12 +11,15 @@ FROM arxiv/base
 
 RUN yum install -y java
 
+WORKDIR /opt/arxiv
+
 # Add Python consumer and configuration.
-ADD requirements/prod.txt /opt/arxiv/requirements.txt
 ADD app.py /opt/arxiv/
-RUN pip install -U pip
-RUN pip install -r /opt/arxiv/requirements.txt
-RUN pip install localstack boto3
+ADD Pipfile /opt/arxiv/
+RUN pip install -U pip pipenv
+RUN pipenv install
+RUN pipenv install localstack --skip-lock
+RUN pipenv install boto3 --skip-lock
 
 ENV PATH "/opt/arxiv:${PATH}"
 
@@ -52,4 +55,4 @@ ENV MODE "agent"
 
 WORKDIR /opt/arxiv
 
-CMD python3.6 /opt/arxiv/pre_start_agent.py; /bin/bash /opt/arxiv/start_agent.sh
+CMD pipenv run python3.6 /opt/arxiv/pre_start_agent.py && /bin/bash /opt/arxiv/start_agent.sh

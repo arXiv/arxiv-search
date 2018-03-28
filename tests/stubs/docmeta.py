@@ -6,7 +6,7 @@ from flask.json import jsonify
 from werkzeug.exceptions import NotFound, InternalServerError
 
 from arxiv.base import Base
-from search.converter import ArXivConverter
+from arxiv.base.converter import ArXivConverter
 from search import logging
 
 logger = logging.getLogger(__name__)
