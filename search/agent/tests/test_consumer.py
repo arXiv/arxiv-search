@@ -1,5 +1,7 @@
 """Unit tests for the :mod:`references.agent.consumer` module."""
 
+# type: ignore
+
 import os
 import json
 from amazon_kclpy import kcl

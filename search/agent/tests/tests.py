@@ -6,6 +6,7 @@ from search.domain import DocMeta, Document
 from search.services import metadata, index
 from search.agent import consumer
 
+# type: ignore
 
 class TestIndexPaper(TestCase):
     """Re-index all versions of an arXiv paper."""
