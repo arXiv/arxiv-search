@@ -90,6 +90,7 @@ class TestSearchIntegration(TestCase):
             "1710.01597",    # Schroeder
             "1708.07156",    # w w
             "1401.1012",     # Wonmin Son
+            "0711.0418"      # disk, switch
         ]
         with cls.app.app_context():
             cls.processor = MetadataRecordProcessor()
@@ -220,6 +221,26 @@ class TestSearchIntegration(TestCase):
         self.assertEqual(len(document_set.results), 3)
         self.assertIn("1607.05107", _ids, "Schröder should match.")
         self.assertIn("1509.08727", _ids, "Schroder should match.")
+
+    def test_advanced_multiple_search_terms_all_fields(self):
+        """Scenario: multiple terms search success."""
+        query = AdvancedQuery(
+            order='',
+            page_size=10,
+            include_older_versions=True,
+            terms=FieldedSearchList([
+                FieldedSearchTerm(operator='AND', field='all',
+                                  term='disk'),
+                FieldedSearchTerm(operator='AND', field='all',
+                                  term='switch'),
+            ])
+        )
+        with self.app.app_context():
+            document_set = index.search(query)
+        _ids = [r.id for r in document_set.results]
+        self.assertEqual(len(document_set.results), 2)
+        self.assertIn("0711.0418", _ids, "'disk' should match in title, "
+                                         "'switch' in abstract")
 
     def test_advanced_multiple_search_terms_fails(self):
         """Scenario: multiple terms with no results."""

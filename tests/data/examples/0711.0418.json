@@ -1,0 +1,83 @@
+{
+  "comments": "6 pages, 6 figures, accepted for publication in the ApJ Letters. Modified version, removed typos, added references. See animations at http://astro.cornell.edu/~romanova/instab.htm and stereo animations at http://astro.cornell.edu/us-rus/stereo.htm",
+  "announced_date_first": "2007-11",
+  "submitted_date_all": [
+    "2007-11-02T22:14:05-0400",
+    "2007-12-10T00:00:56-0500"
+  ],
+  "formats": [
+    "pdf",
+    "ps",
+    "other"
+  ],
+  "is_current": true,
+  "author_owners": [{
+    "last_name": "Romanova",
+    "first_name": "Marina"
+  }],
+  "primary_classification": {
+    "group": {
+      "name": "Physics",
+      "id": "physics"
+    },
+    "archive": {
+      "name": "Astrophysics",
+      "id": "astro-ph"
+    },
+    "category": {
+      "name": "Astrophysics",
+      "id": "astro-ph"
+    }
+  },
+  "doi": "10.1086/527298",
+  "authors_utf8": "Marina M. Romanova, Akshay K. Kulkarni and Richard V.E. Lovelace",
+  "authors": "Marina M. Romanova, Akshay K. Kulkarni and Richard V.E. Lovelace",
+  "secondary_classification": [],
+  "modified_date": "2018-01-17T09:41:47-0500",
+  "document_id": 456484,
+  "msc_class": null,
+  "is_withdrawn": false,
+  "comments_utf8": "6 pages, 6 figures, accepted for publication in the ApJ Letters. Modified version, removed typos, added references. See animations at http://astro.cornell.edu/~romanova/instab.htm and stereo animations at http://astro.cornell.edu/us-rus/stereo.htm",
+  "abstract": "  We report on the first global three-dimensional (3D) MHD simulations of disk accretion onto a rotating magnetized star through the Rayleigh-Taylor instability. The star has a dipole field misaligned relative to the rotation axis by a small angle Theta. Simulations show that, depending on the accretion rate, a star may be in the stable or unstable regime of accretion. In the unstable regime, matter penetrates deep into the magnetosphere through several elongated \"tongues\" which deposit matter at random places on the surface of the star, leading to stochastic light-curves. In the stable regime, matter accretes in ordered funnel streams and the light-curves are almost periodic. A star may switch between these two regimes depending on the accretion rate and may thus show alternate episodes of ordered pulsations and stochastic light-curves. In the intermediate regime, both stochastic and ordered pulsations are observed. For Theta > 30 degrees, the instability is suppressed and stable accretion through funnel streams dominates.",
+  "title": "Unstable Disk Accretion to Magnetized Stars: First Global 3D MHD Simulations",
+  "journal_ref": null,
+  "proxy": null,
+  "submitter": {
+    "email": "romanova@astro.cornell.edu",
+    "name": "Marina Romanova",
+    "name_utf8": "Marina Romanova"
+  },
+  "paper_id": "0711.0418",
+  "source": {
+    "flags": null,
+    "format": "tex",
+    "size_bytes": 294930
+  },
+  "title_utf8": "Unstable Disk Accretion to Magnetized Stars: First Global 3D MHD Simulations",
+  "submitted_date": "2007-12-10T00:00:56-0500",
+  "abs_categories": "astro-ph",
+  "metadata_id": 652248,
+  "acm_class": null,
+  "report_num": null,
+  "version": 2,
+  "abstract_utf8": "  We report on the first global three-dimensional (3D) MHD simulations of disk accretion onto a rotating magnetized star through the Rayleigh-Taylor instability. The star has a dipole field misaligned relative to the rotation axis by a small angle Theta. Simulations show that, depending on the accretion rate, a star may be in the stable or unstable regime of accretion. In the unstable regime, matter penetrates deep into the magnetosphere through several elongated \"tongues\" which deposit matter at random places on the surface of the star, leading to stochastic light-curves. In the stable regime, matter accretes in ordered funnel streams and the light-curves are almost periodic. A star may switch between these two regimes depending on the accretion rate and may thus show alternate episodes of ordered pulsations and stochastic light-curves. In the intermediate regime, both stochastic and ordered pulsations are observed. For Theta > 30 degrees, the instability is suppressed and stable accretion through funnel streams dominates.",
+  "journal_ref_utf8": null,
+  "license": {
+    "label": null,
+    "uri": null
+  },
+  "authors_parsed": [{
+      "last_name": "Romanova",
+      "first_name": "Marina M."
+    },
+    {
+      "last_name": "Kulkarni",
+      "first_name": "Akshay K."
+    },
+    {
+      "last_name": "Lovelace",
+      "first_name": "Richard V. E."
+    }
+  ],
+  "updated_date": null
+}
