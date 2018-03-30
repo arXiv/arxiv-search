@@ -191,7 +191,7 @@
     {% if result.comments %}
     <p class="comments is-size-7">
       <span class="has-text-black-bis has-text-weight-semibold">Comments:</span>
-      <span class="has-text-grey-dark">{% if result.highlight.comments %}{{ result.highlight.comments | safe }}{% else %}{{ result.comments }}{% endif %}</span>
+      <span class="has-text-grey-dark mathjax">{% if result.highlight.comments %}{{ result.highlight.comments | safe }}{% else %}{{ result.comments }}{% endif %}</span>
     </p>
     {% endif %}
 
