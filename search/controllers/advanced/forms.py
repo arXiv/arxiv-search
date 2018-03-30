@@ -1,7 +1,7 @@
 """Provides form rendering and validation for the advanced search feature."""
 
 from datetime import date, datetime
-from typing import Callable, Optional, List
+from typing import Callable, Optional, List, Any
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
     FormField, SelectMultipleField, DateField, ValidationError, FieldList, \
@@ -19,7 +19,7 @@ class MultiFormatDateField(DateField):
     def __init__(self, label: Optional[str] = None,
                  validators: Optional[List[Callable]] = None,
                  formats: List[str] = ['%Y-%m-%d %H:%M:%S'],
-                 **kwargs) -> None:
+                 **kwargs: Any) -> None:
         """Override to change ``format: str`` to ``formats: List[str]``."""
         super(DateField, self).__init__(label, validators, **kwargs)
         self.formats = formats
@@ -34,6 +34,7 @@ class MultiFormatDateField(DateField):
         """Try date formats until one sticks, or raise ValueError."""
         if valuelist:
             date_str = ' '.join(valuelist)
+            self.data: Optional[date]
             for fmt in self.formats:
                 try:
                     self.data = datetime.strptime(date_str, fmt).date()

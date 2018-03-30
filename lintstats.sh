@@ -14,8 +14,7 @@ curl -u $USERNAME:$GITHUB_TOKEN \
 
 
 # Check mypy integration
-pipenv run mypy --ignore-missing-imports -p search | grep -v "test"
-MYPY_STATUS=$?
+MYPY_STATUS=$( pipenv run mypy -p search | grep -v "test.*" | grep -v "defined here" | wc -l | tr -d '[:space:]' )
 if [ $MYPY_STATUS -ne 0 ]; then MYPY_STATE="failure" && echo "mypy failed"; else MYPY_STATE="success" &&  echo "mypy passed"; fi
 
 curl -u $USERNAME:$GITHUB_TOKEN \
