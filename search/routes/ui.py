@@ -127,3 +127,15 @@ def url_for_author_search_builder() -> Dict[str, Callable]:
         url: str = url_unparse(parts)
         return url
     return dict(url_for_author_search=url_for_author_search)
+
+
+@blueprint.context_processor
+def url_with_params_builder() -> Dict[str, Callable]:
+    """Inject a URL builder that handles GET parameters."""
+    def url_with_params(name: str, values: dict, params: dict) -> str:
+        """Build a URL for ``name`` with path ``values`` and GET ``params``."""
+        parts = url_parse(url_for(name, **values))
+        parts = parts.replace(query=url_encode(params))
+        url: str = url_unparse(parts)
+        return url
+    return dict(url_with_params=url_with_params)

@@ -39,13 +39,14 @@
     <div class="is-clearfix" style="height: 2.5em"> {# TODO - adjust this layout so that it matches across all forms less awkwardly #}
       <div class="is-pulled-right">
         {% if query %}
-        <a href="{{ url_for('ui.advanced_search') }}?terms-0-term={{ query.value }}&terms-0-field={{ query.field }}">Advanced Search</a>
+        <a href="{{ url_with_params("ui.advanced_search", {}, {"terms-0-term": query.value, "terms-0-field": query.field, "size": query.page_size, "order": query.order}) }}">Advanced Search</a>
         {% else %}
         <a href="{{ url_for('ui.advanced_search') }}">Advanced Search</a>
         {% endif %}
       </div>
     </div>
-    <input type="hidden" name="order" value="-announced_date_first">
+    <input type="hidden" name="order" value="{{ form.order.data }}">
+    <input type="hidden" name="size" value="{{ form.size.data }}">
   </form>
 
   {% if not results %}
