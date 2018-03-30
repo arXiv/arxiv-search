@@ -8,7 +8,7 @@ from typing import Any
 
 from elasticsearch_dsl.response import Response
 from search.domain import Document, Query, DocumentSet
-from search import logging
+from arxiv.base import logging
 
 from .util import MAX_RESULTS, HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
 

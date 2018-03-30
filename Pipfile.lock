@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "445d1b67d4f66abd66841bfa095a32ea246a1849d0fcc3e9be44f4b1ee28bdc5"
+            "sha256": "f431a5f19deb97db70532f46175c6cf4e51ac7a8c344f68566e9d36b0f1e9ede"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -27,6 +27,9 @@
         ]
     },
     "default": {
+        "17e504d": {
+            "path": "./../arxiv-base-ui"
+        },
         "amazon-kclpy": {
             "hashes": [
                 "sha256:39d8b166c61a4e61218d335a346654b2abc02795e940dd966fc953d06dae811c"
@@ -42,9 +45,9 @@
         },
         "arxiv-base": {
             "hashes": [
-                "sha256:3e8b171aaf7bc55f3933ef00fa0a3f8f9311e45f90d1e4e457948dbb6cf6b88b"
+                "sha256:5f6fde7d54e76ee4835d1a949291eba077966bb3b0e017e4ff58302795216d6d"
             ],
-            "version": "==0.4.2"
+            "version": "==0.5"
         },
         "bleach": {
             "hashes": [

@@ -21,7 +21,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 from arxiv import status
 from search.context import get_application_config, get_application_global
-from search import logging
+from arxiv.base import logging
 from search.domain import DocMeta
 
 

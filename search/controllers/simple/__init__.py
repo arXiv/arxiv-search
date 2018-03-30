@@ -13,7 +13,7 @@ from werkzeug.exceptions import InternalServerError, NotFound
 
 from arxiv import status, identifier
 
-from search import logging
+from arxiv.base import logging
 from search.services import index, fulltext, metadata
 from search.domain import Query, SimpleQuery, asdict
 from search.controllers.util import paginate
