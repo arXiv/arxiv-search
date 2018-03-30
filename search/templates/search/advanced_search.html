@@ -197,9 +197,9 @@
                 <div class="control">{{ form.date.from_date.label }}</div>
                 <div class="control">
                   {% if form.date.from_date.errors %}
-                  {{ form.date.from_date(placeholder="YYYY-MM-DD", class="input is-small is-danger")|safe }}
+                  {{ form.date.from_date(placeholder="YYYY[-MM[-DD]]", class="input is-small is-danger")|safe }}
                   {% else %}
-                  {{ form.date.from_date(placeholder="YYYY-MM-DD", class="input is-small")|safe }}
+                  {{ form.date.from_date(placeholder="YYYY[-MM[-DD]]", class="input is-small")|safe }}
                   {% endif %}
                 </div>
                 {% if form.date.from_date.errors %}
@@ -214,9 +214,9 @@
                 <div class="control">{{ form.date.to_date.label }}</div>
                 <div class="control">
                   {% if form.date.to_date.errors %}
-                  {{ form.date.to_date(placeholder="YYYY-MM-DD", class="input is-small is-danger")|safe }}
+                  {{ form.date.to_date(placeholder="YYYY[-MM[-DD]]", class="input is-small is-danger")|safe }}
                   {% else %}
-                  {{ form.date.to_date(placeholder="YYYY-MM-DD", class="input is-small")|safe }}
+                  {{ form.date.to_date(placeholder="YYYY[-MM[-DD]]", class="input is-small")|safe }}
                   {% endif %}
                 </div>
                 {% if form.date.to_date.errors %}
