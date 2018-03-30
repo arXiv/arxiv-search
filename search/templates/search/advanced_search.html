@@ -228,6 +228,12 @@
                 {% endif %}
               </div>
             </div>
+            <div class="help has-text-grey is-size-7">
+              When limiting by date range, the lower bound of the "from" and "to" dates are
+              used. For example, searching with <code>From: 2012-02</code> and <code>To:
+              2013</code> will search for papers submitted from <code>2012-02-01</code> up to
+              (but not including) <code>2013-01-01</code>.
+            </div>
             <script>
               $('#date-to_date').focus(function() {
                 $('input[name="date-filter_by"]').attr('checked', false);
