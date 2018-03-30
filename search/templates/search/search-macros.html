@@ -186,7 +186,7 @@
           <a class="is-size-7" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'none'; document.getElementById('{{result.id}}-abstract-short').style.display = 'inline';">&#9651; Less</a>
         </span>
     </p>
-    <p class="is-size-7"><span class="has-text-black-bis has-text-weight-semibold">Submitted</span> {{ result.submitted_date.strftime('%-d %B, %Y') }}; {% if result.version > 1 %}<span class="has-text-black-bis has-text-weight-semibold">v1</span> submitted {{ result.submitted_date_first.strftime('%-d %B, %Y') }};{% endif %} <span class="has-text-black-bis has-text-weight-semibold">announced</span> {{ result.submitted_date.strftime('%B %Y') }}. {% if result.latest %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}</p>
+    <p class="is-size-7"><span class="has-text-black-bis has-text-weight-semibold">Submitted</span> {{ result.submitted_date.strftime('%-d %B, %Y') }}; {% if result.version > 1 %}<span class="has-text-black-bis has-text-weight-semibold">v1</span> submitted {{ result.submitted_date_first.strftime('%-d %B, %Y') }};{% endif %} <span class="has-text-black-bis has-text-weight-semibold">originally announced</span> {{ result.announced_date_first.strftime('%B %Y') }}. {% if result.latest %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}</p>
 
     {% if result.comments %}
     <p class="comments is-size-7">

@@ -170,6 +170,8 @@ def _to_document(raw: Response) -> Document:
         if not hasattr(raw, key):
             continue
         value = getattr(raw, key)
+        if key == 'announced_date_first' and value and isinstance(value, str):
+            value = datetime.strptime(value, '%Y-%m').date()
         if key in ['submitted_date', 'submitted_date_first',
                    'submitted_date_latest']:
             try:
