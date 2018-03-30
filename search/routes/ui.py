@@ -1,12 +1,12 @@
-"""Provides REST API routes."""
+"""Provides the main search user interfaces."""
 
 from typing import Dict, Callable, Union, Any, Optional
 from functools import wraps
 from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
 
 from flask.json import jsonify
-from flask import Blueprint, render_template, redirect, request, url_for, \
-    Response
+from flask import Blueprint, render_template, redirect, request, Response, \
+    url_for
 from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
 
 from arxiv import status
@@ -56,7 +56,6 @@ def advanced_search() -> Union[str, Response]:
     )
 
 
-# TODO: we need something more robust here; this is just to get us rolling.
 def _browse_url(name: str, **parameters: Any) -> Optional[str]:
     """Generate a URL for a browse route."""
     paper_id = parameters.get('paper_id')
@@ -73,7 +72,6 @@ def _browse_url(name: str, **parameters: Any) -> Optional[str]:
     return urljoin('https://arxiv.org', '/%s/%s' % (route, paper_id))
 
 
-# TODO: we need something more robust here; this is just to get us rolling.
 @blueprint.context_processor
 def external_url_builder() -> Dict[str, Callable]:
     """Add an external URL builder function to the template context."""
@@ -129,3 +127,15 @@ def url_for_author_search_builder() -> Dict[str, Callable]:
         url: str = url_unparse(parts)
         return url
     return dict(url_for_author_search=url_for_author_search)
+
+
+@blueprint.context_processor
+def url_with_params_builder() -> Dict[str, Callable]:
+    """Inject a URL builder that handles GET parameters."""
+    def url_with_params(name: str, values: dict, params: dict) -> str:
+        """Build a URL for ``name`` with path ``values`` and GET ``params``."""
+        parts = url_parse(url_for(name, **values))
+        parts = parts.replace(query=url_encode(params))
+        url: str = url_unparse(parts)
+        return url
+    return dict(url_with_params=url_with_params)

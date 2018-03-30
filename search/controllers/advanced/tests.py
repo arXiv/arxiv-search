@@ -11,9 +11,63 @@ from arxiv import status
 from search.domain import Query, DateRange, FieldedSearchTerm, Classification,\
     AdvancedQuery, DocumentSet
 from search.controllers import advanced
+from search.controllers.advanced.forms import MultiFormatDateField
 from search.controllers.advanced.forms import AdvancedSearchForm
 
 from search.services.index import IndexConnectionError, QueryError
+
+
+class TestMultiFormatDateField(TestCase):
+    """Tests the :class:`.MultiFormatDateField`."""
+
+    def test_value_with_one_format(self):
+        """One date format is specified."""
+        fmt = '%Y-%m-%d %H:%M:%S'
+        value = datetime.now()
+        field = MultiFormatDateField(
+            formats=[fmt],
+            _form=mock.MagicMock(),
+            _name='test'
+        )
+        field.data = value
+        self.assertEqual(field._value(), value.strftime(fmt),
+                         "Should use the first (only) format to render value")
+
+    def test_process_with_one_format(self):
+        """One date format is specified."""
+        fmt = '%Y-%m-%d %H:%M:%S'
+        field = MultiFormatDateField(
+            formats=[fmt],
+            _form=mock.MagicMock(),
+            _name='test'
+        )
+        field.process_formdata(['2012-01-02 05:55:02'])
+        self.assertIsInstance(field.data, date, "Should parse successfully")
+
+    def test_process_with_several_formats(self):
+        """Several date formats are specified."""
+        field = MultiFormatDateField(
+            formats=['%Y-%m-%d', '%Y-%m', '%Y'],
+            _form=mock.MagicMock(),
+            _name='test'
+        )
+        field.process_formdata(['2012-03-02'])
+        self.assertIsInstance(field.data, date, "Should parse successfully")
+        self.assertEqual(field.data.day, 2)
+        self.assertEqual(field.data.month, 3)
+        self.assertEqual(field.data.year, 2012)
+
+        field.process_formdata(['2014-05'])
+        self.assertIsInstance(field.data, date, "Should parse successfully")
+        self.assertEqual(field.data.day, 1)
+        self.assertEqual(field.data.month, 5)
+        self.assertEqual(field.data.year, 2014)
+
+        field.process_formdata(['2011'])
+        self.assertIsInstance(field.data, date, "Should parse successfully")
+        self.assertEqual(field.data.day, 1)
+        self.assertEqual(field.data.month, 1)
+        self.assertEqual(field.data.year, 2011)
 
 
 class TestSearchController(TestCase):
@@ -166,6 +220,40 @@ class TestAdvancedSearchForm(TestCase):
             'terms-0-term': 'foo',
             'date-filter_by': 'specific_year',
             'date-year': '2012'
+        })
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+
+    # ARXIVNG-382
+    def test_date_range_supports_variable_precision(self):
+        """Date range in advanced search should support variable precision."""
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
+            'date-filter_by': 'date_range',
+            'date-to_date': '2012-02-05'
+        })
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
+            'date-filter_by': 'date_range',
+            'date-to_date': '2012-02'
+        })
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
+            'date-filter_by': 'date_range',
+            'date-to_date': '2013',
+            'date-from_date': '2012-03'
         })
         form = AdvancedSearchForm(data)
         self.assertTrue(form.validate())

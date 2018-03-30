@@ -1,7 +1,7 @@
 """Base domain classes for search service."""
 
 from typing import Any, Optional, List, Dict
-from datetime import datetime
+from datetime import datetime, date
 from operator import attrgetter
 from pytz import timezone
 import re
@@ -156,19 +156,19 @@ class SimpleQuery(Query):
 class Document:
     """A search document, representing an arXiv paper."""
 
+    submitted_date: Optional[datetime] = None
+    announced_date_first: Optional[date] = None
+    submitted_date_first: Optional[datetime] = None
+    submitted_date_latest: Optional[datetime] = None
+    submitted_date_all: List[str] = field(default_factory=list)
     id: str = field(default_factory=str)
     abstract: str = field(default_factory=str)
     abstract_tex: str = field(default_factory=str)
     authors: List[Dict] = field(default_factory=list)
     authors_freeform: str = field(default_factory=str)
     owners: List[Dict] = field(default_factory=list)
-    submitted_date: str = field(default_factory=str)
-    submitted_date_all: List[str] = field(default_factory=list)
-    submitted_date_first: str = field(default_factory=str)
-    submitted_date_latest: str = field(default_factory=str)
     modified_date: str = field(default_factory=str)
     updated_date: str = field(default_factory=str)
-    announced_date_first: str = field(default_factory=str)
     is_current: bool = True
     is_withdrawn: bool = False
     license: Dict[str, str] = field(default_factory=dict)

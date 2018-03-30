@@ -1,7 +1,7 @@
 """Provides form rendering and validation for the advanced search feature."""
 
-from datetime import date
-from typing import Callable, Optional
+from datetime import date, datetime
+from typing import Callable, Optional, List, Any
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
     FormField, SelectMultipleField, DateField, ValidationError, FieldList, \
@@ -11,6 +11,38 @@ from wtforms.fields import HiddenField
 from wtforms import widgets
 
 from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
+
+
+class MultiFormatDateField(DateField):
+    """Extends :class:`.DateField` to support multiple date formats."""
+
+    def __init__(self, label: Optional[str] = None,
+                 validators: Optional[List[Callable]] = None,
+                 formats: List[str] = ['%Y-%m-%d %H:%M:%S'],
+                 **kwargs: Any) -> None:
+        """Override to change ``format: str`` to ``formats: List[str]``."""
+        super(DateField, self).__init__(label, validators, **kwargs)
+        self.formats = formats
+
+    def _value(self) -> str:
+        if self.raw_data:
+            return ' '.join(self.raw_data)
+        else:
+            return self.data and self.data.strftime(self.formats[0]) or ''
+
+    def process_formdata(self, valuelist: List[str]) -> None:
+        """Try date formats until one sticks, or raise ValueError."""
+        if valuelist:
+            date_str = ' '.join(valuelist)
+            self.data: Optional[date]
+            for fmt in self.formats:
+                try:
+                    self.data = datetime.strptime(date_str, fmt).date()
+                    return
+                except ValueError:
+                    continue
+            self.data = None
+            raise ValueError(self.gettext('Not a valid date value'))
 
 
 class FieldForm(Form):
@@ -85,11 +117,22 @@ class DateForm(Form):
         default='all_dates'
     )
 
-    year = DateField('Year', format='%Y',
-                     validators=[validators.Optional(), yearInBounds])
-    from_date = DateField('From',
-                          validators=[validators.Optional(), yearInBounds])
-    to_date = DateField('to', validators=[validators.Optional(), yearInBounds])
+    year = DateField(
+        'Year',
+        format='%Y',
+        validators=[validators.Optional(), yearInBounds]
+    )
+    from_date = MultiFormatDateField(
+        'From',
+        validators=[validators.Optional(), yearInBounds],
+        formats=['%Y-%m-%d', '%Y-%m', '%Y']
+
+    )
+    to_date = MultiFormatDateField(
+        'to',
+        validators=[validators.Optional(), yearInBounds],
+        formats=['%Y-%m-%d', '%Y-%m', '%Y']
+    )
 
     def validate_filter_by(self, field: RadioField) -> None:
         """Ensure that related fields are filled."""
@@ -116,10 +159,10 @@ class AdvancedSearchForm(Form):
     terms = FieldList(FormField(FieldForm), min_entries=1)
     classification = FormField(ClassificationForm)
     date = FormField(DateForm)
-    size = SelectField('results per page', default=25, choices=[
-        ('25', '25'),
+    size = SelectField('results per page', default=50, choices=[
         ('50', '50'),
-        ('100', '100')
+        ('100', '100'),
+        ('200', '200')
     ])
     order = SelectField('Sort results by', choices=[
         ('-announced_date_first', 'Announcement date (newest first)'),
@@ -127,6 +170,6 @@ class AdvancedSearchForm(Form):
         ('-submitted_date', 'Submission date (newest first)'),
         ('submitted_date', 'Submission date (oldest first)'),
         ('', 'Relevance')
-    ], validators=[validators.Optional()])
+    ], validators=[validators.Optional()], default='-announced_date_first')
     include_older_versions = BooleanField('Include older versions '
                                           'of papers in results')

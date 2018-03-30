@@ -1,11 +1,11 @@
 """Functions for processing search results (after execution)."""
 
 import re
-import bleach
 from datetime import datetime
 from math import floor
-from typing import Any
+from typing import Any, Dict
 
+import bleach
 from elasticsearch_dsl.response import Response
 from search.domain import Document, Query, DocumentSet
 from search import logging
@@ -62,7 +62,7 @@ def _start_safely(value: str, start: int, end: int, fragment_size: int,
 
 def _end_safely(value: str, remaining: int,
                 start_tag: str = HIGHLIGHT_TAG_OPEN,
-                end_tag: str = HIGHLIGHT_TAG_CLOSE):
+                end_tag: str = HIGHLIGHT_TAG_CLOSE) -> int:
     """Find a fragment end that doesn't break TeXisms or HTML."""
     # Should match on either a TeXism or a TeXism enclosed in highlight tags.
     ptn = r'(\$[^\$]+\$)|({}\$[^\$]+\${})'.format(start_tag, end_tag)
@@ -165,11 +165,13 @@ def _add_highlighting(result: dict, raw: Response) -> dict:
 def _to_document(raw: Response) -> Document:
     """Transform an ES search result back into a :class:`.Document`."""
     # typing: ignore
-    result = {'preview': {}}
+    result: Dict[str, Any] = {'preview': {}}
     for key in Document.fields():
         if not hasattr(raw, key):
             continue
         value = getattr(raw, key)
+        if key == 'announced_date_first' and value and isinstance(value, str):
+            value = datetime.strptime(value, '%Y-%m').date()
         if key in ['submitted_date', 'submitted_date_first',
                    'submitted_date_latest']:
             try:
