@@ -116,10 +116,10 @@ class AdvancedSearchForm(Form):
     terms = FieldList(FormField(FieldForm), min_entries=1)
     classification = FormField(ClassificationForm)
     date = FormField(DateForm)
-    size = SelectField('results per page', default=25, choices=[
-        ('25', '25'),
+    size = SelectField('results per page', default=50, choices=[
         ('50', '50'),
-        ('100', '100')
+        ('100', '100'),
+        ('200', '200')
     ])
     order = SelectField('Sort results by', choices=[
         ('-announced_date_first', 'Announcement date (newest first)'),
