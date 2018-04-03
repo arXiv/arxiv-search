@@ -10,6 +10,7 @@ python:
 script:
   - pip install pipenv
   - pipenv install
+  - pipenv install --dev
   - pipenv run nose2 -vvv --with-coverage
 after_success:
   - pipenv install pylint pydocstyle mypy
