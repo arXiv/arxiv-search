@@ -11,7 +11,7 @@ script:
   - pip install pipenv
   - pipenv install
   - pipenv install --dev
-  - pipenv install nose2
+  - pipenv install nose2 --skip-lock
   - pipenv run nose2 -vvv --with-coverage
 after_success:
   - pipenv install pylint pydocstyle mypy
