@@ -3,8 +3,12 @@
     "analysis": {
       "filter": {
         "english_stop": {
-          "type":       "stop",
-          "stopwords":  "_english_"
+          "type": "stop",
+          "stopwords": "_english_"
+        },
+        "length_of_two": {
+          "type": "length",
+          "min": 2
         }
       },
       "analyzer": {

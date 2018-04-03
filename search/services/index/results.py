@@ -149,6 +149,15 @@ def _add_highlighting(result: dict, raw: Response) -> dict:
         # entire TeXism.
         if field in ['title', 'title_utf8', 'abstract']:
             value = _highlight_whole_texism(value)
+
+        # A hit on authors may originate in several different fields, most
+        # of which are not displayed. And in any case, author names may be
+        # truncated. So instead of highlighting author names themselves, we
+        # set a 'flag' that can get picked up in the template and highlight
+        # the entire author field.
+        if field.startswith('author'):
+            field = 'author'
+            value = True
         result['highlight'][field] = value
 
     # If there is a hit in a TeX field, we prefer highlighting on that

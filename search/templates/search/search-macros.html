@@ -169,7 +169,7 @@
       {% endif %}
     </p>
     <p class="authors is-size-7">
-      <span class="has-text-black-bis has-text-weight-semibold">Authors:</span>
+      <span class="{% if result.highlight.author %}has-text-success has-text-weight-bold{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Authors:</span>
       {% for author in result.authors[0:25] %}
       <a href="{{ url_for_author_search(author.first_name, author.last_name) }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}
       {% endfor -%}

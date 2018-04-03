@@ -302,6 +302,7 @@ class SearchSession(object):
             Invalid query parameters.
 
         """
+
         # Make sure that the user is not requesting a nonexistant page.
         max_pages = int(MAX_RESULTS/query.page_size)
         if query.page > max_pages:
@@ -324,7 +325,7 @@ class SearchSession(object):
         # fields and configuration for highlighting.
         current_search = prepare.highlight(current_search)
 
-        with handle_es_exceptions():    
+        with handle_es_exceptions():
             # Slicing the search adds pagination parameters to the request.
             resp = current_search[query.page_start:query.page_end].execute()
 

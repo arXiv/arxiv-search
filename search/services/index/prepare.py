@@ -73,18 +73,20 @@ def _field_term_to_q(field: str, term: str) -> Q:
     # Searching with TeXisms in non-TeX-tokenized fields leads to
     # spurious results and challenges with highlighting.
     term_sans_tex = strip_tex(term).lower()
-
     # These terms have fields for both TeX and English normalization.
     if field in ['title', 'abstract']:
         return (
-            Q("match", **{f'{field}': term_sans_tex})
-            | Q("match", **{f'{field}_utf8': term_sans_tex})
+            Q("simple_query_string", fields=[
+                field,
+                f'{field}_utf8',
+                f'{field}__english',
+                f'{field}_utf8__english'
+              ], query=term_sans_tex)
             # Boost the TeX field, since these will be exact matches, and we
             # prefer them to partial matches within TeXisms.
             | Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})
-            | Q("match", **{f'{field}__english':  term_sans_tex})
-            | Q("match", **{f'{field}_utf8__english':  term_sans_tex})
         )
+
     # These terms have no additional fields.
     elif field in ['comments']:
         return Q("simple_query_string", fields=[field],
@@ -231,6 +233,8 @@ def highlight(search: Search) -> Search:
                               number_of_fragments=0)
 
     search = search.highlight('comments')
+    # Highlight any field the name of which begins with "author".
+    search = search.highlight('author*')
     search = search.highlight('journal_ref', type='plain')
     search = search.highlight('doi', type='plain')
     search = search.highlight('report_num', type='plain')
