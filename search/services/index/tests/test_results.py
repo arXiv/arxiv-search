@@ -27,7 +27,7 @@ class TestResultsHighlightAbstract(TestCase):
         preview = results._preview(self.value, fragment_size=350,
                                    start_tag=self.start_tag,
                                    end_tag=self.end_tag)
-        self.assertEqual(len(preview), 326)
+        self.assertEqual(len(preview), 338)
 
     def test_preview_with_close_highlights(self):
         """Two highlights in the abstract are close together."""
@@ -47,7 +47,6 @@ class TestResultsHighlightAbstract(TestCase):
         start_tag = "<span class=\"has-text-success has-text-weight-bold mathjax\">"
         end_tag = "</span>"
         preview = results._preview(value, start_tag=start_tag, end_tag=end_tag)
-        print(preview)
 
 
 class TestResultsEndSafely(TestCase):
