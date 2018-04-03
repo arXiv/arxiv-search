@@ -179,11 +179,11 @@
       <span class="has-text-black-bis has-text-weight-semibold">Abstract</span>:
         <span class="abstract-short has-text-grey-dark mathjax" id="{{result.id}}-abstract-short" style="display: inline;">
           {{ result.preview.abstract | safe }}
-          <a class="is-size-7" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'inline'; document.getElementById('{{result.id}}-abstract-short').style.display = 'none';">&#9661; More</a>
+          <a class="is-size-7" style="white-space: nowrap;" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'inline'; document.getElementById('{{result.id}}-abstract-short').style.display = 'none';">&#9661; More</a>
         </span>
         <span class="abstract-full has-text-grey-dark mathjax" id="{{result.id}}-abstract-full" style="display: none;">
           {% if result.highlight.abstract %}{{ result.highlight.abstract | safe }}{% else %}{{ result.abstract }}{% endif %}
-          <a class="is-size-7" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'none'; document.getElementById('{{result.id}}-abstract-short').style.display = 'inline';">&#9651; Less</a>
+          <a class="is-size-7" style="white-space: nowrap;" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'none'; document.getElementById('{{result.id}}-abstract-short').style.display = 'inline';">&#9651; Less</a>
         </span>
     </p>
     <p class="is-size-7"><span class="has-text-black-bis has-text-weight-semibold">Submitted</span> {{ result.submitted_date.strftime('%-d %B, %Y') }}; {% if result.version > 1 %}<span class="has-text-black-bis has-text-weight-semibold">v1</span> submitted {{ result.submitted_date_first.strftime('%-d %B, %Y') }};{% endif %} <span class="has-text-black-bis has-text-weight-semibold">originally announced</span> {{ result.announced_date_first.strftime('%B %Y') }}. {% if result.latest %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}</p>

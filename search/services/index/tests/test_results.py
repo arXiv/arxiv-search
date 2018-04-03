@@ -29,6 +29,26 @@ class TestResultsHighlightAbstract(TestCase):
                                    end_tag=self.end_tag)
         self.assertEqual(len(preview), 326)
 
+    def test_preview_with_close_highlights(self):
+        """Two highlights in the abstract are close together."""
+        value = (
+            "We investigate self-averaging properties in the transport of"
+            " particles through <span class=\"has-text-success"
+            " has-text-weight-bold mathjax\">random</span> media. We show"
+            " rigorously that in the subdiffusive anomalous regime transport"
+            " coefficients are not self--averaging quantities. These"
+            " quantities are exactly calculated in the case of directed"
+            " <span class=\"has-text-success has-text-weight-bold mathjax\">"
+            "random</span> walks. In the case of general symmetric <span"
+            " class=\"has-text-success has-text-weight-bold mathjax\">random"
+            "</span> walks a perturbative analysis around the Effective Medium"
+            " Approximation (EMA) is performed."
+        )
+        start_tag = "<span class=\"has-text-success has-text-weight-bold mathjax\">"
+        end_tag = "</span>"
+        preview = results._preview(value, start_tag=start_tag, end_tag=end_tag)
+        print(preview)
+
 
 class TestResultsEndSafely(TestCase):
     """Given a highlighted abstract, find a safe end index for the preview."""

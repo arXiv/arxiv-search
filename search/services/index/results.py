@@ -116,9 +116,15 @@ def _preview(value: str, fragment_size: int = 400,
     remaining = max(0, fragment_size - (end - start))
     end += _end_safely(value[end:], remaining, start_tag=start_tag,
                        end_tag=end_tag)
+
+    # For paranoia's sake, make sure that no other HTML makes it through.
+    # This will also clean up any unbalanced tags, in case we screwed up
+    # generating the preview.
+    snippet = bleach.clean(value[start:end].strip(),
+                           tags=['span'], attributes={'span': 'class'})
     return (
         ('&hellip;' if start > 0 else '')
-        + value[start:end].strip()
+        + snippet
         + ('&hellip;' if end < len(value) else '')
     )
 
@@ -187,7 +193,6 @@ def _to_document(raw: Response) -> Document:
     if type(result['abstract']) is str:
         result['preview']['abstract'] = _preview(result['abstract'])
     result = _add_highlighting(result, raw)
-
     return Document(**result)   # type: ignore
     # See https://github.com/python/mypy/issues/3937
 
