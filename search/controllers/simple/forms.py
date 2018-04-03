@@ -42,7 +42,7 @@ class SimpleSearchForm(Form):
         ('-submitted_date', 'Submission date (newest first)'),
         ('submitted_date', 'Submission date (oldest first)'),
         ('', 'Relevance')
-    ], validators=[validators.Optional()])
+    ], validators=[validators.Optional()], default='-announced_date_first')
 
     def validate_query(form: Form, field: StringField) -> None:
         """Validate the length of the querystring, if searchtype is set."""
