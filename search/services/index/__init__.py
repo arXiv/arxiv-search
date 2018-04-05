@@ -329,7 +329,6 @@ class SearchSession(object):
             # Slicing the search adds pagination parameters to the request.
             resp = current_search[query.page_start:query.page_end].execute()
 
-
         # Perform post-processing on the search results.
         return results.to_documentset(query, resp)
 
