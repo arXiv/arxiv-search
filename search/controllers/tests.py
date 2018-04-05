@@ -1,3 +1,5 @@
+"""Tests for :mod:`search.controllers`."""
+
 from unittest import TestCase, mock
 
 from arxiv import status

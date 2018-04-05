@@ -186,12 +186,12 @@ def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
 def simple(search: Search, query: SimpleQuery) -> Search:
     """Prepare a :class:`.Search` from a :class:`.SimpleQuery`."""
     search = search.filter("term", is_current=True)
-    if query.field == 'all':
+    if query.search_field == 'all':
         q_ar = [_field_term_to_q(field, query.value)
                 for field in ALL_SEARCH_FIELDS]
         q = reduce(ior, q_ar)
     else:
-        q = _field_term_to_q(query.field, query.value)
+        q = _field_term_to_q(query.search_field, query.value)
     search = search.query(q)
     search = _apply_sort(query, search)
     return search

@@ -120,10 +120,10 @@ class ClassificationList(list):
 class Query:
     """Represents a search query originating from the UI or API."""
 
-    order: Optional[str] = None
-    page_size: int = 25
-    page_start: int = 0
-    include_older_versions: bool = False
+    order: Optional[str] = field(default=None)
+    page_size: int = field(default=25)
+    page_start: int = field(default=0)
+    include_older_versions: bool = field(default=False)
 
     @property
     def page_end(self) -> int:
@@ -148,8 +148,8 @@ class Query:
 class SimpleQuery(Query):
     """Represents a simple search query."""
 
-    field: str = ''
-    value: str = ''
+    search_field: str = field(default_factory=str)
+    value: str = field(default_factory=str)
 
 
 @dataclass(init=True)

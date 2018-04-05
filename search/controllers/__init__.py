@@ -12,10 +12,8 @@ from arxiv import status
 from search.services import index
 from search.domain import SimpleQuery
 
-Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
-
-def health_check() -> Response:
+def health_check() -> Tuple[str, int, Dict[str, Any]]:
     """
     Exercise the connection with the search index with a real query.
 
@@ -30,10 +28,12 @@ def health_check() -> Response:
 
     """
     try:
-        documentset = index.search(SimpleQuery(
-            field='all',
-            value='theory'
-        ))
+        documentset = index.search(
+            SimpleQuery(   # type: ignore
+                search_field='all',
+                value='theory'
+            )
+        )
     except Exception as e:
         return 'DOWN', status.HTTP_500_INTERNAL_SERVER_ERROR, {}
     if documentset.results:

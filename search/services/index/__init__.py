@@ -302,7 +302,6 @@ class SearchSession(object):
             Invalid query parameters.
 
         """
-
         # Make sure that the user is not requesting a nonexistant page.
         max_pages = int(MAX_RESULTS/query.page_size)
         if query.page > max_pages:
