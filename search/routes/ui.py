@@ -57,7 +57,7 @@ def advanced_search() -> Union[str, Response]:
 
 
 @blueprint.route('status', methods=['GET', 'HEAD'])
-def status() -> Union[str, Response]:
+def service_status() -> Union[str, Response]:
     """
     Health check endpoint for search.
 
