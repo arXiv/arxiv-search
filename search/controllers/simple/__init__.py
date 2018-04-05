@@ -185,7 +185,7 @@ def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:
     :class:`.SimpleQuery`
     """
     q = SimpleQuery()
-    q.field = form.searchtype.data
+    q.search_field = form.searchtype.data
     q.value = form.query.data
     order = form.order.data
     if order and order != 'None':

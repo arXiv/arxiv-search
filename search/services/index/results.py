@@ -120,13 +120,14 @@ def _preview(value: str, fragment_size: int = 400,
     # For paranoia's sake, make sure that no other HTML makes it through.
     # This will also clean up any unbalanced tags, in case we screwed up
     # generating the preview.
-    snippet = bleach.clean(value[start:end].strip(),
-                           tags=['span'], attributes={'span': 'class'})
-    return (
+    snippet: str = bleach.clean(value[start:end].strip(),
+                                tags=['span'], attributes={'span': 'class'})
+    snippet = (
         ('&hellip;' if start > 0 else '')
         + snippet
         + ('&hellip;' if end < len(value) else '')
     )
+    return snippet
 
 
 def _add_highlighting(result: dict, raw: Response) -> dict:

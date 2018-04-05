@@ -12,7 +12,7 @@ from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
 from arxiv import status
 from search import logging
 from werkzeug.exceptions import InternalServerError
-from search.controllers import simple, advanced
+from search.controllers import simple, advanced, health_check
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,16 @@ def advanced_search() -> Union[str, Response]:
         pagetitle="Advanced Search",
         **response
     )
+
+
+@blueprint.route('status', methods=['GET', 'HEAD'])
+def service_status() -> Union[str, Response]:
+    """
+    Health check endpoint for search.
+
+    Exercises the search index connection with a real query.
+    """
+    return health_check()
 
 
 def _browse_url(name: str, **parameters: Any) -> Optional[str]:

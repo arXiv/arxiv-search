@@ -105,7 +105,7 @@ class TestSearch(TestCase):
         query = SimpleQuery(
             order='relevance',
             page_size=10,
-            field='title',
+            search_field='title',
             value='foo title'
         )
         document_set = index.search(query)
