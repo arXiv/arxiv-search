@@ -16,7 +16,7 @@ TEXISM = re.compile(r'(\$[^\$]+\$)')
 MAX_RESULTS = 10_000
 """This is the maximum result offset for pagination."""
 
-HIGHLIGHT_TAG_OPEN = '<span class="has-text-success has-text-weight-bold mathjax">'
+HIGHLIGHT_TAG_OPEN = '<span class="search-hit mathjax">'
 HIGHLIGHT_TAG_CLOSE = '</span>'
 
 
