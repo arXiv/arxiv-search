@@ -12,18 +12,8 @@
 {% endblock addl_head %}
 
 {% block content %}
-  <article class="message is-link is-pulled-right" style="max-width: max-content;">
-    <div class="message-header">
-      <p class="title is-4 has-text-white">Beta test in progress</p>
-    </div>
-    <div class="message-body">
-      <p>We have made improvements to the search engine, author search and
-        advanced search interface!<br />
-        Thanks to those of you who provided feedback via our survey (now closed).</p>
-    </div>
-  </article>
   <h1 class="title is-clearfix">{% block title %}Search{% endblock title %}</h1>
-    <content class="beta">
+    <content>
       {% block within_content %}
         Specific results here
       {% endblock within_content %}
