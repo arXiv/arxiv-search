@@ -10,7 +10,7 @@ from flask import Blueprint, render_template, redirect, request, Response, \
 from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
 
 from arxiv import status
-from search import logging
+from arxiv.base import logging
 from werkzeug.exceptions import InternalServerError
 from search.controllers import simple, advanced, health_check
 

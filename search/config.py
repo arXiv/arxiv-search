@@ -40,7 +40,7 @@ USE_X_SENDFILE = os.environ.get('USE_X_SENDFILE') == ON
 LOGGER_NAME = os.environ.get('LOGGER_NAME', 'search')
 """The name of the logger."""
 
-LOGGER_HANDLER_POLICY = os.environ.get('LOGGER_HANDLER_POLICY', 'always')
+LOGGER_HANDLER_POLICY = os.environ.get('LOGGER_HANDLER_POLICY', 'debug')
 """
 the policy of the default logging handler. The default is 'always' which means
 that the default logging handler is always active. 'debug' will only activate

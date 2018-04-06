@@ -5,7 +5,7 @@ Provides a base class for Kinesis record handling.
 """
 
 import time
-import logging
+
 import json
 import os
 from typing import Any, Optional, Tuple
@@ -15,6 +15,7 @@ from amazon_kclpy import kcl
 from amazon_kclpy.v2 import processor
 from amazon_kclpy.messages import ProcessRecordsInput, ShutdownInput
 
+from arxiv.base import logging
 logger = logging.getLogger(__name__)
 
 

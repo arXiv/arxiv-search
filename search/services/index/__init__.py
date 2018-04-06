@@ -31,7 +31,7 @@ from elasticsearch.helpers import BulkIndexError
 from elasticsearch_dsl import Search, Q
 
 from search.context import get_application_config, get_application_global
-from search import logging
+from arxiv.base import logging
 from search.domain import Document, DocumentSet, Query, AdvancedQuery, \
     SimpleQuery, asdict
 

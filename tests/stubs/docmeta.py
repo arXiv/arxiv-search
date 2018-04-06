@@ -7,7 +7,7 @@ from werkzeug.exceptions import NotFound, InternalServerError
 
 from arxiv.base import Base
 from arxiv.base.converter import ArXivConverter
-from search import logging
+from arxiv.base import logging
 
 logger = logging.getLogger(__name__)
 

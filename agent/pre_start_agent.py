@@ -10,12 +10,8 @@ from search.context import get_application_config
 import sys
 import time
 
-import logging
-fmt = '%(asctime)s - %(name)s - %(levelname)s: %(message)s'
-level = int(os.environ.get('LOGLEVEL', logging.INFO))
-logging.basicConfig(format=fmt)
+from arxiv.base import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(level)
 
 
 if __name__ == '__main__':
