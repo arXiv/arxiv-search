@@ -222,7 +222,7 @@ def advanced(search: Search, query: AdvancedQuery) -> Search:
 
 def highlight(search: Search) -> Search:
     """Apply hit highlighting to the search, before execution."""
-    # TODO: consider a .highlight class?
+    # Highlight class .search-hit defined in search.sass
     search = search.highlight_options(
         pre_tags=[HIGHLIGHT_TAG_OPEN],
         post_tags=[HIGHLIGHT_TAG_CLOSE]

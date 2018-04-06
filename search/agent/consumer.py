@@ -3,7 +3,7 @@
 import json
 import os
 from typing import List, Any, Optional
-from search import logging
+from arxiv.base import logging
 from search.services import metadata, index
 from search.process import transform
 from search.domain import DocMeta, Document, asdict

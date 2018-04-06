@@ -26,7 +26,6 @@ RUN pip install uwsgi
 ADD bin/start_search.sh /opt/arxiv/
 RUN chmod +x /opt/arxiv/start_search.sh
 
-
 ENV LC_ALL en_US.utf8
 ENV LANG en_US.utf8
 ENV LOGLEVEL 40
@@ -45,4 +44,13 @@ EXPOSE 8000
 
 #CMD /bin/bash
 ENTRYPOINT ["/opt/arxiv/start_search.sh"]
-CMD ["--http-socket", ":8000", "-M", "-t 3000", "--manage-script-name", "--processes", "8", "--threads", "1", "--async", "100", "--ugreen", "--mount", "/search=wsgi.py"]
+CMD ["--http-socket", ":8000", \
+     "-M", \
+     "-t 3000", \
+     "--manage-script-name", \
+     "--processes", "8", \
+     "--threads", "1", \
+     "--async", "100", \
+     "--ugreen", \
+     "--mount", "/search=wsgi.py", \
+     "--logformat", "%(addr) %(addr) - %(user_id)|%(session_id) [%(rtime)] [%(uagent)] \"%(method) %(uri) %(proto)\" %(status) %(size) %(micros) %(ttfb)"]
