@@ -45,9 +45,9 @@ index. Note that you will need to have access to the /docmeta endpoint, which
 is only accessible from the CUL network.
 
 ```bash
-pip install -r requirements/dev.txt
-FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python create_index.py
-FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 python populate_test_metadata.py
+pipenv install
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run python create_index.py
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run python populate_test_metadata.py
 ```
 
 ``populate_test_metadata.py`` without parameters populate the index with the
@@ -57,12 +57,10 @@ parameter.
 
 ### Flask dev server
 
-You can spin up the search app directly. You may want to do this in a
-virtualenv.
+You can spin up the search app directly.
 
 ```bash
-pip install -r requirements/dev.txt
-FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 flask run
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run flask run
 ```
 This will monitor any of the Python bits for changes and restart the server.
 Unfortunately static files and templates are not monitored, so you'll have to
@@ -92,7 +90,8 @@ pip install -r requirements/test.txt
 Run the main test suite with...
 
 ```bash
-nose2 --with-coverage
+pipenv install --dev
+pipenv run nose2 --with-coverage
 ```
 
 ### Static checking
@@ -106,21 +105,24 @@ If there is an active `mypy` GitHub issue (i.e. it's a bug/limitation in mypy)
 relevant to missed check, link that for later follow-up.
 
 ```bash
-mypy -p search
+pipenv run mypy -p search | grep -v "test.*" | grep -v "defined here"
 ```
+
+Note that we filter out messages about test modules, and messages about a known
+limitation of mypy related to ``dataclasses`` support.
 
 ### Documentation style
 Goal: zero errors/warnings.
 
 ```bash
-pydocstyle --convention=numpy --add-ignore=D401 search
+pipenv run pydocstyle --convention=numpy --add-ignore=D401 search
 ```
 
 ### Linting
 Goal: 9/10 or better.
 
 ```bash
-pylint search
+pipenv run pylint search
 ```
 
 ## Documentation
