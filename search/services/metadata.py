@@ -193,7 +193,7 @@ class DocMetaSession(object):
         logger.debug(f'{document_ids}: response OK')
         try:
             data = response.json() # returns a dictionary with individual DocMetas
-            data = {value['paper_id'] : DocMeta(**value) 
+            data = {value['paper_id'] : DocMeta(**value) # type: ignore
                         for value in data.values()}
         except json.decoder.JSONDecodeError as e:
             logger.error('JSONDecodeError: %s', e)
@@ -235,3 +235,9 @@ def current_session() -> DocMetaSession:
 def retrieve(document_id: str) -> DocMeta:
     """Retrieve an arxiv document by id."""
     return current_session().retrieve(document_id)
+
+
+@wraps(DocMetaSession.bulk_retrieve)
+def bulk_retrieve(document_ids: List[str]) -> Dict[str, DocMeta]:
+    """Retrieve an arxiv document by id."""
+    return current_session().bulk_retrieve(document_ids)
