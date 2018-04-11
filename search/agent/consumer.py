@@ -1,4 +1,5 @@
 """Provides a record processor for MetadataIsAvailable notifications."""
+from typing import Dict, List
 
 import json
 import os
@@ -165,6 +166,79 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
         return docmeta
 
+    def _get_bulk_metadata(self, arxiv_ids: List[str]) -> Dict[str,DocMeta]:
+        """
+        Retrieve metadata from the :mod:`.metadata` service for multiple documents.
+
+        Parameters
+        ----------
+        arxiv_id : str
+            Am arXiv identifier, with or without a version affix.
+
+        Returns
+        -------
+        Dict[str, :class:`.DocMeta`]
+            A dictionary containing arxiv_ids as keys and DocMeta objects as values.
+
+        Raises
+        ------
+        DocumentFailed
+            Indexing of the document failed. This may have no bearing on the
+            success of subsequent papers.
+        IndexingFailed
+            Indexing of the document failed in a way that indicates recovery
+            is unlikely for subsequent papers.
+
+        """
+        logger.debug(f'{arxiv_ids}: get bulk metadata')
+        md: Dict[str,DocMeta] = {} # to store all metadata
+
+        # First attempt to retrieve existing metadata from the cache
+        for arxiv_id in arxiv_ids:
+            try:
+                md[arxiv_id] = self._from_cache(arxiv_id)
+            except Exception as e:  # Low tolerance for failure,
+                rsn = str(e)
+                logger.debug(f'{arxiv_id}: could not retrieve from cache: {rsn}')
+        
+        # Then retrieve those not in cache
+        to_retrieve = [arxiv_id for arxiv_id in arxiv_ids if arxiv_id not in md.keys()]
+        try:
+            logger.debug(f'{arxiv_ids}: requesting metadata')
+            md.update(metadata.bulk_retrieve(to_retrieve))
+        except metadata.ConnectionFailed as e:
+            # The metadata service will retry bad responses, but not connection
+            # errors. Sometimes it just takes another try, so why not.
+            logger.warning(f'{arxiv_ids}: first attempt failed, retrying')
+            try:
+                md.update(metadata.bulk_retrieve(to_retrieve))
+            except metadata.ConnectionFailed as e:
+                # Things really are looking bad. There is no need to keep
+                # trying with subsequent records, so let's abort entirely.
+                logger.error(f'{arxiv_ids}: second attempt failed, giving up')
+                raise IndexingFailed(
+                    'Indexing failed; metadata endpoint could not be reached.'
+                ) from e
+        except metadata.RequestFailed as e:
+            logger.error(f'{arxiv_ids}: request failed')
+            raise DocumentFailed('Request to metadata service failed') from e
+        except metadata.BadResponse as e:
+            logger.error(f'{arxiv_ids}: bad response from metadata service')
+            raise DocumentFailed('Bad response from metadata service') from e
+        except Exception as e:
+            logger.error(f'{arxiv_ids}: unhandled error, metadata service: {e}')
+            raise IndexingFailed('Unhandled exception') from e
+
+        for arxiv_id in to_retrieve:
+            try:
+                self._to_cache(arxiv_id, md[arxiv_id])
+            except Exception as e:
+                rsn = str(e)
+                logger.debug(f'{arxiv_id}: could not add to cache: {rsn}')
+
+        return md
+
+
     @staticmethod
     def _transform_to_document(docmeta: DocMeta) -> Document:
         """
@@ -286,9 +360,10 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         """
         try:
             documents = []
+            md = metadata.bulk_retrieve(arxiv_ids)
             for arxiv_id in arxiv_ids:
                 logger.debug(f'{arxiv_id}: get metadata')
-                docmeta = self._get_metadata(arxiv_id)
+                docmeta = md[arxiv_id]
                 logger.debug(f'{arxiv_id}: transform to indexable document')
                 document = MetadataRecordProcessor._transform_to_document(
                     docmeta
