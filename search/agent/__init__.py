@@ -20,8 +20,17 @@ logger = logging.getLogger(__name__)
 logger.propagate = False
 
 
-def process_stream(duration: Optional[int] = None):
-    """Configure and run the record processor."""
+def process_stream(duration: Optional[int] = None) -> None:
+    """
+    Configure and run the record processor.
+
+    Parameters
+    ----------
+    duration : int
+        Time (in seconds) to run record processing. If None (default), will
+        run "forever".
+
+    """
     # We use the Flask application instance for configuration, and to manage
     # integrations with metadata service, search index.
     app = create_ui_web_app()

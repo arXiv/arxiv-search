@@ -63,7 +63,7 @@ def retry(retries: int = 5, wait: int = 5) -> Callable:
         """Retry the decorated func on ClientErrors up to ``retries`` times."""
         _retries = __retries
 
-        def inner(*args, **kwargs) -> Any:
+        def inner(*args, **kwargs) -> Any:  # type: ignore
             retries = _retries
             while retries > 0:
                 try:
@@ -160,7 +160,7 @@ class BaseConsumer(object):
         signal.signal(signal.SIGTERM, self.stop)
         logger.info('Ready to start')
 
-    def stop(self, signal: int, frame: Any):
+    def stop(self, signal: int, frame: Any) -> None:
         """Set exit flag for a graceful stop."""
         logger.error(f'Received signal {signal}')
         self._checkpoint()
@@ -220,12 +220,13 @@ class BaseConsumer(object):
             # Position is not set/known; start as early as possible.
             params.update(dict(ShardIteratorType='TRIM_HORIZON'))
         try:
-            return self.client.get_shard_iterator(**params)['ShardIterator']
+            it: str = self.client.get_shard_iterator(**params)['ShardIterator']
         except self.client.exceptions.InvalidArgumentException:
             # Iterator may not have come from this stream/shard.
             if self.position is not None:
                 self.position = None
                 return self._get_iterator()
+        return it
 
     def _checkpoint(self) -> None:
         """
@@ -248,7 +249,8 @@ class BaseConsumer(object):
         iterator = response['NextShardIterator']
         return iterator, response
 
-    def _check_timeout(self):
+    def _check_timeout(self) -> None:
+        """If a processing duration is set, exit if duration is exceeded."""
         if not self.start_time or not self.duration:
             return
         running_for = time.time() - self.start_time
