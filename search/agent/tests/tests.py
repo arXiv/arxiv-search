@@ -1,3 +1,5 @@
+"""Integration tests for :mod:`search.agent` with Kinesis."""
+
 from unittest import TestCase, mock
 import os
 import time
@@ -17,10 +19,11 @@ BASE_PATH = os.path.join(os.path.split(os.path.abspath(__file__))[0],
 
 
 class TestKinesisIntegration(TestCase):
+    """Test :class:`.MetadataRecordProcessor` with a live Kinesis stream."""
+
     @classmethod
     def setUpClass(cls):
         """Spin up ES and index documents."""
-
         os.environ['ELASTICSEARCH_SERVICE_HOST'] = 'localhost'
         os.environ['ELASTICSEARCH_SERVICE_PORT'] = "9201"
         os.environ['ELASTICSEARCH_PORT_9201_PROTO'] = "http"
