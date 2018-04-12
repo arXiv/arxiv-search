@@ -360,7 +360,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         """
         try:
             documents = []
-            md = metadata.bulk_retrieve(arxiv_ids)
+            md = MetadataRecordProcessor._get_bulk_metadata(arxiv_ids)
             for arxiv_id in arxiv_ids:
                 logger.debug(f'{arxiv_id}: get metadata')
                 docmeta = md[arxiv_id]
