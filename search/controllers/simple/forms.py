@@ -19,14 +19,14 @@ class SimpleSearchForm(Form):
         ('author', 'Author(s)'),
         ('abstract', 'Abstract'),
         ('comments', 'Comments'),
-        ('journal_ref', 'Journal ref'),
+        ('journal_ref', 'Journal reference'),
         ('acm_class', 'ACM classification'),
         ('msc_class', 'MSC classification'),
         ('report_num', 'Report number'),
-        ('paper_id', 'Identifier'),
+        ('paper_id', 'arXiv identifier'),
         ('doi', 'DOI'),
         ('orcid', 'ORCID'),
-        ('author_id', 'Author ID')
+        ('author_id', 'arXiv author ID')
     ])
     query = StringField('Search or Article ID',
                         filters=[stripWhiteSpace],
