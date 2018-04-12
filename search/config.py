@@ -200,6 +200,13 @@ KINESIS_VERIFY = os.environ.get('KINESIS_VERIFY', "true")
 KINESIS_STREAM = os.environ.get('KINESIS_STREAM', 'MetadataIsAvailable')
 """Name of the stream to which the indexing agent subscribes."""
 
+KINESIS_SHARD_ID = os.environ.get('KINESIS_SHARD_ID', '0')
+
+KINESIS_CHECKPOINT_VOLUME = os.environ.get('KINESIS_CHECKPOINT_VOLUME',
+                                           '/tmp')
+
+
+
 """
 Flask-S3 plugin settings.
 

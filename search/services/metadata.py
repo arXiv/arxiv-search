@@ -165,8 +165,8 @@ def current_session() -> DocMetaSession:
     if not g:
         return get_session()
     elif 'docmeta' not in g:
-        g.docmeta = get_session() # type: ignore
-    return g.docmeta # type: ignore
+        g.docmeta = get_session()   # type: ignore
+    return g.docmeta    # type: ignore
 
 
 @wraps(DocMetaSession.retrieve)

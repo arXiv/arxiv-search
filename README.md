@@ -68,6 +68,108 @@ manually restart to see those changes take effect.
 
 If all goes well... http://127.0.0.1:5000/ should render the basic search page.
 
+
+## Running the indexing agent.
+
+The indexing agent is responsible for updating the search index as new papers
+are published. By default, docker-compose will also start the search index
+and a service called [Localstack](https://github.com/localstack/localstack)
+that provides a local Kinesis stream for testing/development purposes.
+
+To disable the agent and localstack, just comment out those services in
+``docker-compose.yml``.
+
+The agent takes a little longer than the other services to start. Early in the
+startup, you'll see something like:
+
+```bash
+agent            | application 12/Apr/2018:15:43:13 +0000 - search.agent.base - None - [arxiv:null] - INFO: "New consumer for MetadataIsAvailable (0)"
+agent            | application 12/Apr/2018:15:43:13 +0000 - search.agent.base - None - [arxiv:null] - INFO: "Getting a new connection to Kinesis at https://localstack:4568 in region us-east-1, with SSL verification=False"
+agent            | application 12/Apr/2018:15:43:13 +0000 - search.agent.base - None - [arxiv:null] - INFO: "Waiting for MetadataIsAvailable to be available"
+agent            | application 12/Apr/2018:15:43:13 +0000 - search.agent.base - None - [arxiv:null] - ERROR: "Waiting for stream MetadataIsAvailable"
+```
+
+A little while later, when localstack and the indexing agent are running, you
+should see something like:
+
+```bash
+agent            | application 12/Apr/2018:15:44:14 +0000 - search.agent.base - None - [arxiv:null] - ERROR: "Failed to get stream while waiting"
+agent            | application 12/Apr/2018:15:44:14 +0000 - search.agent.base - None - [arxiv:null] - INFO: "Could not connect to stream; attempting to create"
+agent            | application 12/Apr/2018:15:44:14 +0000 - search.agent.base - None - [arxiv:null] - INFO: "Created; waiting for MetadataIsAvailable again"
+agent            | application 12/Apr/2018:15:44:14 +0000 - search.agent.base - None - [arxiv:null] - ERROR: "Waiting for stream MetadataIsAvailable"
+localstack       | Ready.
+agent            | application 12/Apr/2018:15:44:24 +0000 - search.agent.base - None - [arxiv:null] - INFO: "Ready to start"
+agent            | application 12/Apr/2018:15:44:24 +0000 - search.agent.base - None - [arxiv:null] - INFO: "Starting processing from position 49583482132750299344823207796409748205413425533752967170 on stream MetadataIsAvailable and shard 0"
+```
+
+Note that Kinesis will be mounted locally on port 5586. It will be using SSL,
+but with an invalid certificate. You can connect to this local Kinesis using:
+
+```python
+import boto3
+
+client = boto3.client(
+    'kinesis',
+    region_name='us-east-1',
+    endpoint_url="https://localhost:5568",
+    aws_access_key_id='foo',
+    aws_secret_access_key='bar',
+    verify=False
+)
+```
+
+To verify that the agent is working correctly, try adding some records to
+the stream.
+
+```python
+import json
+
+to_index = [
+    "1712.04442",
+    "1511.07473",
+    "1604.04228",
+    "1403.6219",
+    "1404.3450",
+    "1703.09067",
+    "1408.6682",
+    "1607.05107",
+    "1509.08727",
+    "1710.01597",
+    "1708.07156",
+    "1401.1012",
+]
+
+for document_id in to_index:
+    data = bytes(json.dumps({'document_id': document_id}), encoding='utf-8')
+    client.put_record(
+        StreamName='MetadataIsAvailable',
+        Data=data,
+        PartitionKey='0'
+    )
+
+```
+
+You should see these records being processed in the agent log output almost
+immediately. For example:
+
+```bash
+agent            | application 12/Apr/2018:15:49:18 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447528512983060659815298629634"
+agent            | application 12/Apr/2018:15:49:19 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447529721908880274444473335810"
+agent            | application 12/Apr/2018:15:49:20 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447530930834699889073648041986"
+agent            | application 12/Apr/2018:15:49:20 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447532139760519503702822748162"
+agent            | application 12/Apr/2018:15:49:21 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447533348686339118400716931074"
+agent            | application 12/Apr/2018:15:49:22 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447534557612158733029891637250"
+agent            | application 12/Apr/2018:15:49:23 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447535766537978347659066343426"
+agent            | application 12/Apr/2018:15:49:24 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447536975463797962288241049602"
+agent            | application 12/Apr/2018:15:49:24 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447538184389617576917415755778"
+agent            | application 12/Apr/2018:15:49:25 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447539393315437191546590461954"
+agent            | application 12/Apr/2018:15:49:25 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447540602241256806175765168130"
+agent            | application 12/Apr/2018:15:49:25 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447541811167076420804939874306"
+```
+
+
+
+
 ## Deploying static assets to S3
 
 Assets in search/static can be deployed to S3 using the included

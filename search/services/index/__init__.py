@@ -59,9 +59,6 @@ def handle_es_exceptions() -> Generator:
     """Handle common ElasticSearch-related exceptions."""
     try:
         yield
-    except NotFoundError as e:
-        logger.error('No such document: %s', str(e))
-        raise DocumentNotFound('No such document') from e
     except TransportError as e:
         logger.error(e.error)
         if e.error == 'resource_already_exists_exception':
