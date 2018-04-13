@@ -280,6 +280,7 @@ class BaseConsumer(object):
             self._checkpoint()
             raise StopProcessing('Unhandled exception: %s' % str(e)) from e
 
+        logger.debug('Got %i records', len(response['Records']))
         for record in response['Records']:
             self._check_timeout()
 
