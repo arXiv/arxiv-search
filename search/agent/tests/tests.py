@@ -112,7 +112,7 @@ class TestKinesisIntegration(TestCase):
         mock_metadata.BadResponse = metadata.BadResponse
 
         try:
-            process_stream(duration=5)
+            process_stream(duration=30)
         except StopProcessing:
             pass
 
