@@ -71,6 +71,7 @@ def retry(retries: int = 5, wait: int = 5) -> Callable:
                 except ClientError as e:
                     code = e.response['Error']['Code']
                     logger.error('Caught ClientError %s, retrying', code)
+                    time.sleep(wait)
                     retries -= 1
             raise KinesisRequestFailed('Max retries; last code: {code}')
         return inner
@@ -135,6 +136,7 @@ class BaseConsumer(object):
         self.start_time = None
         self.back_off = back_off
         self.batch_size = batch_size
+        self.sleep_time = 5
 
         if not self.stream_name or not self.shard_id:
             logger.info(
@@ -272,6 +274,7 @@ class BaseConsumer(object):
         logger.debug(f'Get more records, starting at {start}')
         processed = 0
         try:
+            time.sleep(self.sleep_time)   # Don't get carried away.
             next_start, response = self.get_records(start, self.batch_size)
         except Exception as e:
             self._checkpoint()
