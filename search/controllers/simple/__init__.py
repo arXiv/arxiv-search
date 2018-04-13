@@ -54,6 +54,7 @@ def search(request_params: dict) -> Response:
     :class:`.InternalServerError`
         Raised when there is a problem communicating with ES, or there was an
         unexpected problem executing the query.
+
     """
     logger.debug('simple search form')
     response_data = {}  # type: Dict[str, Any]
@@ -81,6 +82,13 @@ def search(request_params: dict) -> Response:
 
     # Fall back to form-based search.
     form = SimpleSearchForm(request_params)
+
+    # Temporary workaround to support classic help search
+    if form.query.data and form.searchtype.data == 'help':
+        return {}, status.HTTP_301_MOVED_PERMANENTLY,\
+            {'Location': 'https://arxiv.org/help/search?method=and'
+             f'&format=builtin-short&sort=score&words={form.query.data}'}
+
     q: Optional[Query]
     if form.validate():
         logger.debug('form is valid')
@@ -143,6 +151,7 @@ def retrieve_document(document_id: str) -> Response:
         Encountered error in search query.
     NotFound
         No such document
+
     """
     try:
         result = index.get_document(document_id)
@@ -183,6 +192,7 @@ def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:
     Returns
     -------
     :class:`.SimpleQuery`
+
     """
     q = SimpleQuery()
     q.search_field = form.searchtype.data
