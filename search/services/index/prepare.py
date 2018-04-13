@@ -75,7 +75,7 @@ def _field_term_to_q(field: str, term: str) -> Q:
     term_sans_tex = strip_tex(term).lower()
     # These terms have fields for both TeX and English normalization.
     if field in ['title', 'abstract']:
-        qr = (
+        return (
             Q("query_string", fields=[
                 field,
                 f'{field}_utf8',
@@ -90,8 +90,6 @@ def _field_term_to_q(field: str, term: str) -> Q:
             # prefer them to partial matches within TeXisms.
             | Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})
         )
-        print(qr)
-        return qr
 
     # These terms have no additional fields.
     elif field in ['comments']:
