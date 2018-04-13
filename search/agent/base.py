@@ -6,6 +6,7 @@ Provides a base class for Kinesis record handling.
 
 import time
 import json
+from datetime import datetime, timedelta
 import os
 from typing import Any, Optional, Tuple, Generator, Callable
 from contextlib import contextmanager
@@ -18,6 +19,7 @@ from botocore.exceptions import WaiterError, NoCredentialsError, \
 from arxiv.base import logging
 logger = logging.getLogger(__name__)
 logger.propagate = False
+
 
 class CheckpointError(RuntimeError):
     """Checkpointing failed."""
@@ -137,6 +139,7 @@ class BaseConsumer(object):
         self.back_off = back_off
         self.batch_size = batch_size
         self.sleep_time = 5
+        self.start_at = datetime.now() - timedelta(hours=1)
 
         if not self.stream_name or not self.shard_id:
             logger.info(
@@ -229,7 +232,12 @@ class BaseConsumer(object):
             ))
         else:
             # Position is not set/known; start as early as possible.
-            params.update(dict(ShardIteratorType='TRIM_HORIZON'))
+            params.update(dict(
+                ShardIteratorType='AT_TIMESTAMP',
+                Timestamp=(
+                    self.start_at - datetime.utcfromtimestamp(0)
+                ).total_seconds()
+            ))
         try:
             it: str = self.client.get_shard_iterator(**params)['ShardIterator']
         except self.client.exceptions.InvalidArgumentException:
