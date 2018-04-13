@@ -32,18 +32,18 @@ class TestKinesisIntegration(TestCase):
         os.environ['KINESIS_STREAM'] = 'MetadataIsAvailable'
         os.environ['KINESIS_SHARD_ID'] = '0'
         os.environ['KINESIS_CHECKPOINT_VOLUME'] = tempfile.mkdtemp()
-        os.environ['KINESIS_ENDPOINT'] = 'http://127.0.0.1:5568'
+        os.environ['KINESIS_ENDPOINT'] = 'http://127.0.0.1:6568'
         os.environ['KINESIS_VERIFY'] = 'false'
 
         print('starting localstack')
         start_localstack = subprocess.run(
-            "docker run -d -p 5568:4568 atlassianlabs/localstack",
+            "docker run -d -p 6568:4568 --name ltest atlassianlabs/localstack",
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
         if start_localstack.returncode != 0:
             raise RuntimeError(
                 f'Could not start localstack: {start_localstack.stdout}.'
-                f' Is one already running? Is port 5568 available?'
+                f' Is one already running? Is port 6568 available?'
             )
         cls.ls_container = start_localstack.stdout.decode('ascii').strip()
         print(f'localstack started as {cls.ls_container}')
@@ -51,7 +51,7 @@ class TestKinesisIntegration(TestCase):
         cls.client = boto3.client(
             'kinesis',
             region_name='us-east-1',
-            endpoint_url="http://localhost:5568",
+            endpoint_url="http://localhost:6568",
             aws_access_key_id='foo',
             aws_secret_access_key='bar',
             verify=False
