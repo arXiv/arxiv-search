@@ -116,8 +116,9 @@ class BaseConsumer(object):
     (to reduce external dependencies).
     """
 
-    def __init__(self, stream_name: str, shard_id: str, access_key: str,
-                 secret_key: str, region: str, checkpointer: CheckpointManager,
+    def __init__(self, stream_name: str = '', shard_id: str = '',
+                 access_key: str = '', secret_key: str = '', region: str = '',
+                 checkpointer: Optional[CheckpointManager] = None,
                  back_off: int = 5, batch_size: int = 50,
                  endpoint: Optional[str] = None, verify: bool = True,
                  duration: Optional[int] = None) -> None:
@@ -126,9 +127,20 @@ class BaseConsumer(object):
         self.stream_name = stream_name
         self.shard_id = shard_id
         self.checkpointer = checkpointer
-        self.position = self.checkpointer.position
+        if self.checkpointer:
+            self.position = self.checkpointer.position
+        else:
+            self.position = None
         self.duration = duration
         self.start_time = None
+        self.back_off = back_off
+        self.batch_size = batch_size
+
+        if not self.stream_name or not self.shard_id:
+            logger.info(
+                'No stream indicated; making no attempt to connect to Kinesis'
+            )
+            return
 
         logger.info(f'Getting a new connection to Kinesis at {endpoint}'
                     f' in region {region}, with SSL verification={verify}')
@@ -150,9 +162,6 @@ class BaseConsumer(object):
             )
             logger.info(f'Created; waiting for {self.stream_name} again')
             self.wait_for_stream()
-
-        self.back_off = back_off
-        self.batch_size = batch_size
 
         # Intercept SIGINT and SIGTERM so that we can checkpoint before exit.
         self.exit = False
@@ -235,8 +244,7 @@ class BaseConsumer(object):
         The current position is the sequence number of the last record that was
         successfully processed.
         """
-        logger.debug('Attempting to checkpoint')
-        if self.position is not None:
+        if self.position is not None and self.checkpointer:
             self.checkpointer.checkpoint(self.position)
             logger.debug(f'Set checkpoint at {self.position}')
 
