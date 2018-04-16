@@ -197,6 +197,8 @@ def _to_document(raw: Response) -> Document:
                     f'Could not parse {key}: {value} as datetime'
                 )
                 pass
+        if key in ['acm_class', 'msc_class'] and value:
+            value = '; '.join(value)
 
         result[key] = value
     result['score'] = raw.meta.score

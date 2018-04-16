@@ -8,13 +8,15 @@ from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
 
 from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
-from .util import strip_tex, Q_, HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
+from .util import strip_tex, Q_, HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE, \
+    is_tex_query
 from .authors import construct_author_query, construct_author_id_query
 
 
 ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
                      'acm_class', 'msc_class', 'report_num', 'paper_id', 'doi',
                      'orcid', 'author_id']
+TEX_FIELDS = ['title', 'abstract', 'comments']
 
 
 def _get_sort_parameters(query: Query) -> list:
@@ -101,7 +103,8 @@ def _field_term_to_q(field: str, term: str) -> Q:
         return Q_('match_phrase', field, term_sans_tex)
     # These terms require a simple match.
     elif field in ['acm_class', 'msc_class', 'doi']:
-        return Q_('match', field, term_sans_tex)
+        print(field, term)
+        return Q_('match', field, term)
     # Search both with and without version.
     elif field == 'paper_id':
         return (
@@ -192,8 +195,9 @@ def simple(search: Search, query: SimpleQuery) -> Search:
     """Prepare a :class:`.Search` from a :class:`.SimpleQuery`."""
     search = search.filter("term", is_current=True)
     if query.search_field == 'all':
+        use = TEX_FIELDS if is_tex_query(query.value) else ALL_SEARCH_FIELDS
         q_ar = [_field_term_to_q(field, query.value)
-                for field in ALL_SEARCH_FIELDS]
+                for field in use]
         q = reduce(ior, q_ar)
     else:
         q = _field_term_to_q(query.search_field, query.value)
@@ -241,6 +245,8 @@ def highlight(search: Search) -> Search:
     # Highlight any field the name of which begins with "author".
     search = search.highlight('author*')
     search = search.highlight('journal_ref', type='plain')
+    search = search.highlight('acm_class', number_of_fragments=0)
+    search = search.highlight('msc_class', number_of_fragments=0)
     search = search.highlight('doi', type='plain')
     search = search.highlight('report_num', type='plain')
 

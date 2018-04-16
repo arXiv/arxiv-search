@@ -195,10 +195,22 @@
     </p>
     {% endif %}
 
-    {% if result.report_num %}
+    {% if result.report_num or result.acm_class or result.msc_class %}
       <p class="comments is-size-7">
-        <span class="has-text-black-bis has-text-weight-semibold">Report number:</span>
-        {% if result.highlight.report_num %}{{ result.highlight.report_num | safe }}{% else %}{{ result.report_num }}{% endif %}
+        {% if result.report_num %}
+          <span class="has-text-black-bis has-text-weight-semibold">Report number:</span>
+          {% if result.highlight.report_num %}{{ result.highlight.report_num | safe }}{% else %}{{ result.report_num }}{% endif %}
+        {% endif %}
+
+        {% if result.msc_class %}
+          <span class="has-text-black-bis has-text-weight-semibold">MSC Class:</span>
+          {% if result.highlight.msc_class %}{{ result.highlight.msc_class | safe }} ({{ result.msc_class }}){% else %}{{ result.msc_class }}{% endif %}
+        {% endif %}
+
+        {% if result.acm_class %}
+          <span class="has-text-black-bis has-text-weight-semibold">ACM Class:</span>
+          {% if result.highlight.acm_class %}{{ result.highlight.acm_class | safe }} ({{ result.acm_class }}){% else %}{{ result.acm_class }}{% endif %}
+        {% endif %}
       </p>
     {% endif %}
 
