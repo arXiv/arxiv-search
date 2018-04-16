@@ -273,6 +273,13 @@
         "version": {
             "minimum": 1,
             "type": "integer"
+        },
+        "latest_version": {
+            "minimum": 1,
+            "type": "integer"
+        },
+        "latest": {
+            "type": "string"
         }
     },
     "required": [

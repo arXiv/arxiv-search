@@ -57,6 +57,8 @@ class DocMeta:
     comments_utf8: str = field(default_factory=str)
     abs_categories: str = field(default_factory=str)
     formats: List[str] = field(default_factory=list)
+    latest_version: int = 1
+    latest: str = field(default_factory=str)
 
 
 @dataclass
