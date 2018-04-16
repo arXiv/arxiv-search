@@ -123,7 +123,7 @@ class Query:
     """Represents a search query originating from the UI or API."""
 
     order: Optional[str] = field(default=None)
-    page_size: int = field(default=25)
+    page_size: int = field(default=50)
     page_start: int = field(default=0)
     include_older_versions: bool = field(default=False)
 

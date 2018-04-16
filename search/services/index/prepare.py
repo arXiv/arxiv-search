@@ -78,6 +78,10 @@ def _field_term_to_q(field: str, term: str) -> Q:
     term_sans_tex = strip_tex(term).lower()
     # These terms have fields for both TeX and English normalization.
     if field in ['title', 'abstract']:
+        # Boost the TeX field, since these will be exact matches, and we
+        # prefer them to partial matches within TeXisms.
+        if is_tex_query(term):
+            return Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})
         return (
             Q("query_string", fields=[
                 field,
@@ -89,9 +93,6 @@ def _field_term_to_q(field: str, term: str) -> Q:
               analyze_wildcard=True,
               allow_leading_wildcard=False,
               query=term_sans_tex)
-            # Boost the TeX field, since these will be exact matches, and we
-            # prefer them to partial matches within TeXisms.
-            | Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})
         )
 
     # These terms have no additional fields.
@@ -103,7 +104,6 @@ def _field_term_to_q(field: str, term: str) -> Q:
         return Q_('match_phrase', field, term_sans_tex)
     # These terms require a simple match.
     elif field in ['acm_class', 'msc_class', 'doi']:
-        print(field, term)
         return Q_('match', field, term)
     # Search both with and without version.
     elif field == 'paper_id':

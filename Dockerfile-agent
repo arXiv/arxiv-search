@@ -15,7 +15,7 @@ ENV ELASTICSEARCH_INDEX arxiv
 ENV ELASTICSEARCH_USER elastic
 ENV ELASTICSEARCH_PASSWORD changeme
 ENV METADATA_ENDPOINT https://arxiv.org/
-ENV LOGLEVEL 10
+ENV LOGLEVEL 20
 
 ENV AWS_ACCESS_KEY_ID ""
 ENV AWS_SECRET_ACCESS_KEY ""
@@ -25,6 +25,7 @@ VOLUME /checkpoint
 ENV KINESIS_STREAM "MetadataIsAvailable"
 ENV KINESIS_SHARD_ID "0"
 ENV KINESIS_CHECKPOINT_VOLUME "/checkpoint"
+ENV KINESIS_START_TYPE "AT_TIMESTAMP"
 
 # Add this module again, so that it's tracked.
 ADD search/agent/ /opt/arxiv/search/agent/

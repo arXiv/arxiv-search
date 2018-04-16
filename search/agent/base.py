@@ -145,7 +145,7 @@ class BaseConsumer(object):
         self.sleep_time = 5
         self.start_at = start_at
         self.start_type = start_type
-        logger.debug(f'Got start_type={start_type} and start_at={start_at}')
+        logger.info(f'Got start_type={start_type} and start_at={start_at}')
 
         if not self.stream_name or not self.shard_id:
             logger.info(
