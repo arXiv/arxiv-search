@@ -5,6 +5,8 @@ services:
 cache: pip
 os:
   - linux
+env:
+  - LOGLEVEL: "40"
 python:
   - "3.6"
 script:

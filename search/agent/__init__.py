@@ -9,6 +9,7 @@ available. Each version is passed to the :mod:`search.services.index` service,
 and becomes available for discovery via :mod:`search.routes.ui`.
 """
 from typing import Optional
+from datetime import datetime
 import warnings
 from .consumer import MetadataRecordProcessor, DocumentFailed, IndexingFailed
 from .base import CheckpointManager
@@ -20,7 +21,8 @@ logger = logging.getLogger(__name__)
 logger.propagate = False
 
 
-def process_stream(duration: Optional[int] = None) -> None:
+def process_stream(duration: Optional[int] = None,
+                   start_at: Optional[datetime] = datetime.now()) -> None:
     """
     Configure and run the record processor.
 
@@ -52,6 +54,7 @@ def process_stream(duration: Optional[int] = None) -> None:
             endpoint=app.config.get('KINESIS_ENDPOINT', None),
             verify=app.config.get('KINESIS_VERIFY', 'true') == 'true',
             duration=duration,
-            cache_dir=cache_dir
+            cache_dir=cache_dir,
+            start_at=start_at
         )
         processor.go()

@@ -76,12 +76,16 @@ def _field_term_to_q(field: str, term: str) -> Q:
     # These terms have fields for both TeX and English normalization.
     if field in ['title', 'abstract']:
         return (
-            Q("simple_query_string", fields=[
+            Q("query_string", fields=[
                 field,
                 f'{field}_utf8',
                 f'{field}__english',
                 f'{field}_utf8__english'
-              ], query=term_sans_tex)
+              ],
+              default_operator='AND',
+              analyze_wildcard=True,
+              allow_leading_wildcard=False,
+              query=term_sans_tex)
             # Boost the TeX field, since these will be exact matches, and we
             # prefer them to partial matches within TeXisms.
             | Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})

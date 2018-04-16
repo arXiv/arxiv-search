@@ -50,9 +50,9 @@ class TestBaseConsumer(TestCase):
         mock_client = mock.MagicMock()
         mock_client_factory.return_value = mock_client
         mock_client.get_records.return_value = {
-            'Records': (
+            'Records': [
                 {'SequenceNumber': str(i)} for i in range(10)
-            ),
+            ],
             'NextShardIterator': '10'
         }
         consumer = BaseConsumer('foo', '1', 'a1b2c3d4', 'qwertyuiop',
@@ -75,9 +75,9 @@ class TestBaseConsumer(TestCase):
             if start > 500:
                 return {'Records': [], 'NextShardIterator': None}
             return {
-                'Records': (
+                'Records': [
                     {'SequenceNumber': str(i)} for i in range(start, end)
-                ),
+                ],
                 'NextShardIterator': str(end + 1)
             }
 

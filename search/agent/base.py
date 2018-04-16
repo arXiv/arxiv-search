@@ -6,8 +6,9 @@ Provides a base class for Kinesis record handling.
 
 import time
 import json
+from datetime import datetime, timedelta
 import os
-from typing import Any, Optional, Tuple, Generator, Callable
+from typing import Any, Optional, Tuple, Generator, Callable, Dict
 from contextlib import contextmanager
 import signal
 
@@ -18,6 +19,7 @@ from botocore.exceptions import WaiterError, NoCredentialsError, \
 from arxiv.base import logging
 logger = logging.getLogger(__name__)
 logger.propagate = False
+
 
 class CheckpointError(RuntimeError):
     """Checkpointing failed."""
@@ -71,6 +73,7 @@ def retry(retries: int = 5, wait: int = 5) -> Callable:
                 except ClientError as e:
                     code = e.response['Error']['Code']
                     logger.error('Caught ClientError %s, retrying', code)
+                    time.sleep(wait)
                     retries -= 1
             raise KinesisRequestFailed('Max retries; last code: {code}')
         return inner
@@ -121,7 +124,8 @@ class BaseConsumer(object):
                  checkpointer: Optional[CheckpointManager] = None,
                  back_off: int = 5, batch_size: int = 50,
                  endpoint: Optional[str] = None, verify: bool = True,
-                 duration: Optional[int] = None) -> None:
+                 duration: Optional[int] = None,
+                 start_at: Optional[datetime] = datetime.now()) -> None:
         """Initialize a new stream consumer."""
         logger.info(f'New consumer for {stream_name} ({shard_id})')
         self.stream_name = stream_name
@@ -135,6 +139,8 @@ class BaseConsumer(object):
         self.start_time = None
         self.back_off = back_off
         self.batch_size = batch_size
+        self.sleep_time = 5
+        self.start_at = start_at
 
         if not self.stream_name or not self.shard_id:
             logger.info(
@@ -210,8 +216,7 @@ class BaseConsumer(object):
         Get a new shard iterator.
 
         If our position is set, we will start with the record immediately after
-        that position. Otherwise, we start at the oldest available record
-        (i.e. the "trim horizon").
+        that position. Otherwise, we start at ``start_at`` timestamp.
 
         Returns
         -------
@@ -219,23 +224,38 @@ class BaseConsumer(object):
             The sequence ID of the record on which to start.
 
         """
-        params = dict(StreamName=self.stream_name, ShardId=self.shard_id)
+        params: Dict[str, Any] = dict(
+            StreamName=self.stream_name,
+            ShardId=self.shard_id
+        )
         if self.position:
             params.update(dict(
                 ShardIteratorType='AFTER_SEQUENCE_NUMBER',
                 StartingSequenceNumber=self.position
             ))
         else:
-            # Position is not set/known; start as early as possible.
-            params.update(dict(ShardIteratorType='TRIM_HORIZON'))
+            # Position is not set/known; start at the specified timestamp...
+            if self.start_at:
+                params.update(dict(
+                    ShardIteratorType='AT_TIMESTAMP',
+                    Timestamp=(
+                        self.start_at - datetime.utcfromtimestamp(0)
+                    ).total_seconds()
+                ))
+            else:   # If a start time is not set, go back as early as possible.
+                params.update(dict(
+                    ShardIteratorType='TRIM_HORIZON'
+                ))
         try:
             it: str = self.client.get_shard_iterator(**params)['ShardIterator']
-        except self.client.exceptions.InvalidArgumentException:
+            return it
+        except self.client.exceptions.InvalidArgumentException as e:
+            logger.info('Got InvalidArgumentException: %s', str(e))
             # Iterator may not have come from this stream/shard.
             if self.position is not None:
                 self.position = None
                 return self._get_iterator()
-        return it
+        raise KinesisRequestFailed('Could not get shard iterator')
 
     def _checkpoint(self) -> None:
         """
@@ -272,11 +292,13 @@ class BaseConsumer(object):
         logger.debug(f'Get more records, starting at {start}')
         processed = 0
         try:
+            time.sleep(self.sleep_time)   # Don't get carried away.
             next_start, response = self.get_records(start, self.batch_size)
         except Exception as e:
             self._checkpoint()
             raise StopProcessing('Unhandled exception: %s' % str(e)) from e
 
+        logger.debug('Got %i records', len(response['Records']))
         for record in response['Records']:
             self._check_timeout()
 
