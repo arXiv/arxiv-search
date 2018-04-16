@@ -59,20 +59,20 @@ def handle_es_exceptions() -> Generator:
     """Handle common ElasticSearch-related exceptions."""
     try:
         yield
-    except NotFoundError as e:
-        raise DocumentNotFound('No such document') from e
     except TransportError as e:
         logger.error(e.error)
         if e.error == 'resource_already_exists_exception':
             logger.debug('Index already exists; move along')
             return
         elif e.error == 'mapper_parsing_exception':
-            logger.error('Invalid document mapping; create index failed')
+            logger.error('ES mapper_parsing_exception: %s', e.info)
             logger.debug(str(e.info))
             raise MappingError('Invalid mapping: %s' % str(e.info)) from e
         elif e.error == 'index_not_found_exception':
+            logger.error('ES index_not_found_exception: %s', e.info)
             create_index()
         elif e.error == 'parsing_exception':
+            logger.error('ES parsing_exception: %s', e.info)
             raise QueryError(e.info) from e
         logger.error('Problem communicating with ES: %s' % e.error)
         raise IndexConnectionError(
@@ -86,6 +86,7 @@ def handle_es_exceptions() -> Generator:
         raise IndexingError('Problem with bulk indexing: %s' % e) from e
     except Exception as e:
         logger.error('Unhandled exception: %s')
+        raise
 
 
 class SearchSession(object):
@@ -127,7 +128,7 @@ class SearchSession(object):
         http_auth = '%s:%s' % (user, password) if user else None
 
         logger.debug(
-            f'init ES session for index "{index}" at {scheme}://{host}:{port}'
+            f'init ES session for index {index} at {scheme}://{host}:{port}'
             f' with verify={verify} and ssl={use_ssl}'
         )
 
@@ -310,7 +311,7 @@ class SearchSession(object):
             raise OutsideAllowedRange(_message)
 
         # Perform the search.
-        logger.debug('got current_search request %s', str(query))
+        logger.debug('got current search request %s', str(query))
         current_search = self._base_search()
         try:
             if isinstance(query, AdvancedQuery):
@@ -318,6 +319,7 @@ class SearchSession(object):
             elif isinstance(query, SimpleQuery):
                 current_search = prepare.simple(current_search, query)
         except TypeError as e:
+            logger.error('Malformed query')
             raise QueryError('Malformed query') from e
 
         # Highlighting is performed by Elasticsearch; here we include the

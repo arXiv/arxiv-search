@@ -7,9 +7,10 @@ from arxiv.base import logging
 from search.services import metadata, index
 from search.process import transform
 from search.domain import DocMeta, Document, asdict
-from .base import BaseRecordProcessor, ProcessRecordsInput
+from .base import BaseConsumer
 
 logger = logging.getLogger(__name__)
+logger.propagate = False
 
 
 class DocumentFailed(RuntimeError):
@@ -20,7 +21,7 @@ class IndexingFailed(RuntimeError):
     """Raised when indexing failed such that future success is unlikely."""
 
 
-class MetadataRecordProcessor(BaseRecordProcessor):
+class MetadataRecordProcessor(BaseConsumer):
     """Consumes ``MetadataIsAvailable`` notifications, updates the index."""
 
     MAX_ERRORS = 5
@@ -327,8 +328,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             logger.debug(f'{arxiv_id}: Document failed: {e}')
             raise e
 
-    def process_record(self, data: bytes, partition_key: bytes,
-                       sequence_number: int, sub_sequence_number: int) -> None:
+    def process_record(self, record: dict) -> None:
         """
         Call for each record that is passed to process_records.
 
@@ -347,15 +347,17 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             documents failed.
 
         """
+        logger.info(f'Processing record {record["SequenceNumber"]}')
         if self._error_count > self.MAX_ERRORS:
             raise IndexingFailed('Too many errors')
 
         try:
-            deserialized = json.loads(data.decode('utf-8'))
-        except Exception as e:
-            logger.error("Error while deserializing data: %s", e)
-            logger.error("Data payload: %s", data)
-            return   # Don't bring down the whole batch.
+            deserialized = json.loads(record['Data'].decode('utf-8'))
+        except json.decoder.JSONDecodeError as e:
+            logger.error("Error while deserializing data %s", e)
+            logger.error("Data payload: %s", record['Data'])
+            raise DocumentFailed('Could not deserialize record data')
+            # return   # Don't bring down the whole batch.
 
         try:
             arxiv_id: str = deserialized.get('document_id')

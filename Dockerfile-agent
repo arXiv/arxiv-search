@@ -3,34 +3,10 @@
 # The indexing agent is responsible for updating the search index as new
 #  article metadata becomes available. Subscribes to a Kinesis stream for
 #  notifications about new metadata.
-#
-# See ``./agent/docker-compose.yml`` for an example of local deployment with
-# localstack and Elasticsearch.
 
-FROM arxiv/base
-
-RUN yum install -y java
+FROM arxiv/search:latest
 
 WORKDIR /opt/arxiv
-
-# Add Python consumer and configuration.
-ADD app.py /opt/arxiv/
-ADD Pipfile /opt/arxiv/
-RUN pip install -U pip pipenv
-RUN pipenv install
-RUN pipenv install localstack --skip-lock
-RUN pipenv install boto3 --skip-lock
-
-ENV PATH "/opt/arxiv:${PATH}"
-
-ADD schema /opt/arxiv/schema
-ADD mappings /opt/arxiv/mappings
-ADD search /opt/arxiv/search
-ADD agent/agent.properties /opt/arxiv/agent.properties
-ADD agent/test.properties /opt/arxiv/test.properties
-ADD agent/run_consumer.py /opt/arxiv/run_consumer.py
-ADD agent/pre_start_agent.py /opt/arxiv/pre_start_agent.py
-ADD agent/start_agent.sh /opt/arxiv/start_agent.sh
 
 ENV ELASTICSEARCH_SERVICE_HOST 127.0.0.1
 ENV ELASTICSEARCH_SERVICE_PORT 9200
@@ -44,15 +20,16 @@ ENV LOGLEVEL 10
 ENV AWS_ACCESS_KEY_ID ""
 ENV AWS_SECRET_ACCESS_KEY ""
 
-# Set `-Dcom.amazonaws.sdk.disableCertChecking` for testing
-ENV JAVA_FLAGS ""
+VOLUME /checkpoint
 
-# Set `true` when testing with localstack.
-ENV AWS_CBOR_DISABLE false
+ENV KINESIS_STREAM "MetadataIsAvailable"
+ENV KINESIS_SHARD_ID "0"
+ENV KINESIS_CHECKPOINT_VOLUME "/checkpoint"
 
-# Set to `test` when testing with localstack.
-ENV MODE "agent"
+# Add this module again, so that it's tracked.
+ADD search/agent/ /opt/arxiv/search/agent/
+ADD bin/start_agent.py /opt/arxiv/start_agent.py
 
-WORKDIR /opt/arxiv
 
-CMD pipenv run python3.6 /opt/arxiv/pre_start_agent.py && /bin/bash /opt/arxiv/start_agent.sh
+ENTRYPOINT ["pipenv", "run", "python3.6"]
+CMD ["/opt/arxiv/start_agent.py"]

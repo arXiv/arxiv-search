@@ -5,179 +5,324 @@ Provides a base class for Kinesis record handling.
 """
 
 import time
-
 import json
 import os
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Generator, Callable
+from contextlib import contextmanager
+import signal
 
-import amazon_kclpy
-from amazon_kclpy import kcl
-from amazon_kclpy.v2 import processor
-from amazon_kclpy.messages import ProcessRecordsInput, ShutdownInput
+import boto3
+from botocore.exceptions import WaiterError, NoCredentialsError, \
+    PartialCredentialsError, BotoCoreError, ClientError
 
 from arxiv.base import logging
 logger = logging.getLogger(__name__)
+logger.propagate = False
+
+class CheckpointError(RuntimeError):
+    """Checkpointing failed."""
 
 
-class BaseRecordProcessor(processor.RecordProcessorBase):
+class StreamNotAvailable(RuntimeError):
+    """Could not find or connect to the stream."""
+
+
+class KinesisRequestFailed(RuntimeError):
+    """Raised when a Kinesis request failed permanently."""
+
+
+class StopProcessing(RuntimeError):
+    """Gracefully stopped processing upon unrecoverable error."""
+
+
+class ConfigurationError(RuntimeError):
+    """There was a problem with the configuration."""
+
+
+def retry(retries: int = 5, wait: int = 5) -> Callable:
     """
-    Processes records received by the Kinesis consumer.
+    Decorator factory for retrying Kinesis calls.
 
-    This class is instantiated when the containing script is run by the
-    MultiLangDaemon. The underlying KCL process handles threading, offset
-    tracking, etc. The KCL guarantees that our :class:`.RecordProcessor` will
-    see each record *at least* once; the checkpoint mechanism gives us a way to
-    further guarantee that we only process each record a single time.
+    Parameters
+    ----------
+    retries : int
+        Number of times to retry before failing.
+    wait : int
+        Number of seconds to wait between retries.
 
-    See the ``consumer.properties`` file for configuration details, including
-    streams.
+    Returns
+    -------
+    function
+        A decorator that retries the decorated func ``retries`` times before
+        raising :class:`.KinesisRequestFailed`.
+
     """
+    __retries = retries
 
-    def __init__(self) -> None:
-        """Initialize checkpointing state and retry configuration."""
-        self._SLEEP_SECONDS = 5
-        self._CHECKPOINT_RETRIES = 5
-        self._CHECKPOINT_FREQ = 60
-        self._largest_seq: Tuple[Optional[int], Optional[int]] = (None, None)
-        self._largest_sub_seq = None
-        self._last_checkpoint_time: Optional[float] = None
+    def decorator(func: Callable) -> Callable:
+        """Retry the decorated func on ClientErrors up to ``retries`` times."""
+        _retries = __retries
 
-    def initialize(self, initialize_input: Any) -> None:
-        """Called once by a KCLProcess before any calls to process_records."""
-        self._largest_seq = (None, None)
-        self._last_checkpoint_time = time.time()
+        def inner(*args, **kwargs) -> Any:  # type: ignore
+            retries = _retries
+            while retries > 0:
+                try:
+                    return func(*args, **kwargs)
+                except ClientError as e:
+                    code = e.response['Error']['Code']
+                    logger.error('Caught ClientError %s, retrying', code)
+                    retries -= 1
+            raise KinesisRequestFailed('Max retries; last code: {code}')
+        return inner
+    return decorator
 
-    def checkpoint(self, checkpointer: amazon_kclpy.kcl.Checkpointer,
-                   sequence_number: Optional[str]=None,
-                   sub_sequence_number: Optional[int]=None) -> None:
-        """Make periodic checkpoints while processing records."""
-        for n in range(0, self._CHECKPOINT_RETRIES):
+
+class CheckpointManager(object):
+    """Provides on-disk loading and updating of consumer checkpoints."""
+
+    def __init__(self, base_path: str, stream_name: str, shard_id: str) \
+            -> None:
+        """Load or create a new file for checkpointing."""
+        if not os.path.exists(base_path):
+            raise ValueError(f'Path does not exist: {base_path}')
+        self.file_path = os.path.join(base_path,
+                                      f'{stream_name}__{shard_id}.json')
+        if not os.path.exists(self.file_path):
             try:
-                checkpointer.checkpoint(sequence_number, sub_sequence_number)
-                return
-            except kcl.CheckpointError as e:
-                if e.value == 'ShutdownException':
-                    # A ShutdownException indicates that this record processor
-                    #  should be shutdown. This is due to some failover event,
-                    #  e.g. another MultiLangDaemon has taken the lease for
-                    #  this shard.
-                    logger.info("Encountered shutdown exception, skipping"
-                                " checkpoint")
-                    return
-                elif e.value == 'ThrottlingException':
-                    # A ThrottlingException indicates that one of our
-                    #  dependencies is is over burdened, e.g. too many dynamo
-                    #  writes. We will sleep temporarily to let it recover.
-                    if self._CHECKPOINT_RETRIES - 1 == n:
-                        logger.error("Failed to checkpoint after %i attempts,"
-                                     " giving up.", n)
-                        return
-                    else:
-                        logger.info("Was throttled while checkpointing, will"
-                                    " attempt again in %i seconds",
-                                    self._SLEEP_SECONDS)
-                elif e.value == 'InvalidStateException':
-                    logger.error("MultiLangDaemon reported an invalid state"
-                                 " while checkpointing.")
-                else:  # Some other error
-                    logger.error("Encountered an error while checkpointing,"
-                                 " error was %s", e)
-            time.sleep(self._SLEEP_SECONDS)
+                with open(self.file_path, 'w') as f:
+                    f.write('')
+            except Exception as e:   # The containing path doesn't exist.
+                raise ValueError(f'Could not use {self.file_path}') from e
 
-    def should_update_sequence(self, sequence_number: Optional[int],
-                               sub_sequence_number: Optional[int]) -> bool:
+        with open(self.file_path) as f:
+            position = f.read()
+        self.position = position if position else None
+
+    def checkpoint(self, position: str) -> None:
+        """Checkpoint at ``position``."""
+        try:
+            with open(self.file_path, 'w') as f:
+                f.write(position)
+            self.position = position
+        except Exception as e:
+            raise CheckpointError('Could not checkpoint') from e
+
+
+class BaseConsumer(object):
+    """
+    Kinesis stream consumer.
+
+    Consumes a single shard from a single stream, and checkpoints on disk
+    (to reduce external dependencies).
+    """
+
+    def __init__(self, stream_name: str = '', shard_id: str = '',
+                 access_key: str = '', secret_key: str = '', region: str = '',
+                 checkpointer: Optional[CheckpointManager] = None,
+                 back_off: int = 5, batch_size: int = 50,
+                 endpoint: Optional[str] = None, verify: bool = True,
+                 duration: Optional[int] = None) -> None:
+        """Initialize a new stream consumer."""
+        logger.info(f'New consumer for {stream_name} ({shard_id})')
+        self.stream_name = stream_name
+        self.shard_id = shard_id
+        self.checkpointer = checkpointer
+        if self.checkpointer:
+            self.position = self.checkpointer.position
+        else:
+            self.position = None
+        self.duration = duration
+        self.start_time = None
+        self.back_off = back_off
+        self.batch_size = batch_size
+
+        if not self.stream_name or not self.shard_id:
+            logger.info(
+                'No stream indicated; making no attempt to connect to Kinesis'
+            )
+            return
+
+        logger.info(f'Getting a new connection to Kinesis at {endpoint}'
+                    f' in region {region}, with SSL verification={verify}')
+        self.client = boto3.client('kinesis',
+                                   aws_access_key_id=access_key,
+                                   aws_secret_access_key=secret_key,
+                                   endpoint_url=endpoint,
+                                   verify=verify,
+                                   region_name=region)
+
+        logger.info(f'Waiting for {self.stream_name} to be available')
+        try:
+            self.wait_for_stream()
+        except (KinesisRequestFailed, StreamNotAvailable):
+            logger.info('Could not connect to stream; attempting to create')
+            self.client.create_stream(
+                StreamName=self.stream_name,
+                ShardCount=1
+            )
+            logger.info(f'Created; waiting for {self.stream_name} again')
+            self.wait_for_stream()
+
+        # Intercept SIGINT and SIGTERM so that we can checkpoint before exit.
+        self.exit = False
+        signal.signal(signal.SIGINT, self.stop)
+        signal.signal(signal.SIGTERM, self.stop)
+        logger.info('Ready to start')
+
+    def stop(self, signal: int, frame: Any) -> None:
+        """Set exit flag for a graceful stop."""
+        logger.error(f'Received signal {signal}')
+        self._checkpoint()
+        logger.error('Done')
+        raise StopProcessing(f'Received signal {signal}')
+
+    @retry(5, 10)
+    def wait_for_stream(self) -> None:
         """
-        Determine whether a new larger sequence number is available.
+        Wait for the stream to become available.
 
-        Parameters
-        ----------
-        sequence_number : int
-        sub_sequence_number : int
+        If the stream becomes available, returns ``None``. Otherwise, raises
+        a :class:`.StreamNotAvailable` exception.
+
+        Raises
+        ------
+        :class:`.StreamNotAvailable`
+            Raised when the stream could not be reached.
+
+        """
+        waiter = self.client.get_waiter('stream_exists')
+        try:
+            logger.error(f'Waiting for stream {self.stream_name}')
+            waiter.wait(
+                StreamName=self.stream_name,
+                Limit=1,
+                ExclusiveStartShardId=self.shard_id
+            )
+        except WaiterError as e:
+            logger.error('Failed to get stream while waiting')
+            raise StreamNotAvailable('Could not connect to stream') from e
+        except (PartialCredentialsError, NoCredentialsError) as e:
+            logger.error('Credentials missing or incomplete: %s', e.msg)
+            raise ConfigurationError('Credentials missing') from e
+
+    def _get_iterator(self) -> str:
+        """
+        Get a new shard iterator.
+
+        If our position is set, we will start with the record immediately after
+        that position. Otherwise, we start at the oldest available record
+        (i.e. the "trim horizon").
 
         Returns
         -------
-        bool
-        """
-        return (self._largest_seq == (None, None) or
-                sequence_number > self._largest_seq[0] or   # type: ignore
-                (sequence_number == self._largest_seq[0] and
-                 sub_sequence_number > self._largest_seq[1]))   # type: ignore
+        str
+            The sequence ID of the record on which to start.
 
-    def shutdown(self, shutdown: ShutdownInput) -> None:
         """
-        Shut down record processing gracefully, if possible.
-
-        Called by a KCLProcess instance to indicate that this record processor
-        should shutdown. After this is called, there will be no more calls to
-        any other methods of this record processor.
-
-        Parameters
-        ----------
-        shutdown : :class:`amazon_kclpy.messages.ShutdownInput`
-        """
+        params = dict(StreamName=self.stream_name, ShardId=self.shard_id)
+        if self.position:
+            params.update(dict(
+                ShardIteratorType='AFTER_SEQUENCE_NUMBER',
+                StartingSequenceNumber=self.position
+            ))
+        else:
+            # Position is not set/known; start as early as possible.
+            params.update(dict(ShardIteratorType='TRIM_HORIZON'))
         try:
-            if shutdown.reason == 'TERMINATE':
-                # **THE RECORD PROCESSOR MUST CHECKPOINT OR THE KCL WILL BE
-                #   UNABLE TO PROGRESS**
-                # Checkpointing with no parameter will checkpoint at the
-                # largest sequence number reached by this processor on this
-                # shard id.
-                logger.info("Was told to terminate, attempting to checkpoint.")
-                self.checkpoint(shutdown.checkpointer, None)
-            else:    # reason == 'ZOMBIE'
-                # **ATTEMPTING TO CHECKPOINT ONCE A LEASE IS LOST WILL FAIL**
-                logger.info("Shutting down due to failover. Won't checkpoint.")
-        except Exception as e:
-            logger.error("Encountered exception while shutting down: %s", e)
+            it: str = self.client.get_shard_iterator(**params)['ShardIterator']
+        except self.client.exceptions.InvalidArgumentException:
+            # Iterator may not have come from this stream/shard.
+            if self.position is not None:
+                self.position = None
+                return self._get_iterator()
+        return it
 
-    def process_records(self, records: ProcessRecordsInput) -> None:
+    def _checkpoint(self) -> None:
         """
-        Handle a series of records from the stream.
+        Checkpoint at the current position.
 
-        Called by a KCLProcess with a list of records to be processed and a
-        checkpointer which accepts sequence numbers from the records to
-        indicate where in the bytestream to checkpoint.
-
-        Parameters
-        ----------
-        records : :class:`amazon_kclpy.messages.ProcessRecordsInput`
+        The current position is the sequence number of the last record that was
+        successfully processed.
         """
+        if self.position is not None and self.checkpointer:
+            self.checkpointer.checkpoint(self.position)
+            logger.debug(f'Set checkpoint at {self.position}')
+
+    @retry(retries=10, wait=5)
+    def get_records(self, iterator: str, limit: int) -> Tuple[str, dict]:
+        """Get the next batch of ``limit`` or fewer records."""
+        logger.debug(f'Get more records from {iterator}, limit {limit}')
+        response = self.client.get_records(ShardIterator=iterator,
+                                           Limit=limit)
+        iterator = response['NextShardIterator']
+        return iterator, response
+
+    def _check_timeout(self) -> None:
+        """If a processing duration is set, exit if duration is exceeded."""
+        if not self.start_time or not self.duration:
+            return
+        running_for = time.time() - self.start_time
+        if running_for > self.duration:
+            logger.info(f'Ran for {running_for} seconds; exiting')
+            self._checkpoint()
+            raise StopProcessing(f'Ran for {running_for} seconds; exiting')
+
+    def process_records(self, start: str) -> Tuple[str, int]:
+        """Retrieve and process records starting at ``start``."""
+        logger.debug(f'Get more records, starting at {start}')
+        processed = 0
         try:
-            for record in records.records:
-                data = record.binary_data
-                seq = int(record.sequence_number)
-                sub_seq = record.sub_sequence_number
-                key = record.partition_key
-                self.process_record(data, key, seq, sub_seq)
-                if self.should_update_sequence(seq, sub_seq):
-                    self._largest_seq = (seq, sub_seq)
-
-            # Checkpoints every self._CHECKPOINT_FREQ seconds
-            if self._last_checkpoint_time is None:
-                raise RuntimeError('last checkpoint time is not set')
-            last_check = time.time() - self._last_checkpoint_time
-            if last_check > self._CHECKPOINT_FREQ:
-                self.checkpoint(records.checkpointer,
-                                str(self._largest_seq[0]),
-                                self._largest_seq[1])
-                self._last_checkpoint_time = time.time()
-
+            next_start, response = self.get_records(start, self.batch_size)
         except Exception as e:
-            logger.error("Encountered an exception while processing records."
-                         " Exception was %s", e)
-            logger.error("Seq: %i; Sub seq: %i; Key: %s", seq, sub_seq, key)
-            logger.error(data)
+            self._checkpoint()
+            raise StopProcessing('Unhandled exception: %s' % str(e)) from e
 
-    def process_record(self, data: bytes, partition_key: bytes,
-                       sequence_number: int, sub_sequence_number: int) -> None:
+        for record in response['Records']:
+            self._check_timeout()
+
+            # It is possible that Kinesis will replay the same message several
+            # times, especially at the end of the stream. There's no point in
+            # replaying the message, so we'll continue on.
+            if record['SequenceNumber'] == self.position:
+                continue
+
+            self.process_record(record)
+            processed += 1
+
+            # Setting the position means that we have successfully
+            # processed this record.
+            if record['SequenceNumber']:    # Make sure it's set.
+                self.position = record['SequenceNumber']
+                logger.debug(f'Updated position to {self.position}')
+        logger.debug(f'Next start is {next_start}')
+        return next_start, processed
+
+    def go(self) -> None:
+        """Main processing routine."""
+        self.start_time = time.time()
+        logger.info(f'Starting processing from position {self.position}'
+                    f' on stream {self.stream_name} and shard {self.shard_id}')
+
+        start = self._get_iterator()
+        while True:
+            start, processed = self.process_records(start)
+            if processed > 0:
+                self._checkpoint()  # Checkpoint after every batch.
+            if start is None:     # Shard is closed.
+                logger.error('Shard closed unexpectedly; no new iterator')
+                self._checkpoint()
+                raise StopProcessing('Could not get a new iterator')
+            self._check_timeout()
+
+    def process_record(self, record: dict) -> None:
         """
-        Hook for method to be executed for each record.
+        Process a single record from the stream.
 
         Parameters
         ----------
-        data : bytes
-        partition_key : bytes
-        sequence_number : int
-        sub_sequence_number : int
+        record : dict
+
         """
-        raise NotImplementedError('Must be implemented by child class')
+        logger.info(f'Processing record {record["SequenceNumber"]}')
+        logger.debug(f'Process record {record}')
+        # raise NotImplementedError('Should be implemented by a subclass')
