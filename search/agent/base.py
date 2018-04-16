@@ -124,7 +124,8 @@ class BaseConsumer(object):
                  checkpointer: Optional[CheckpointManager] = None,
                  back_off: int = 5, batch_size: int = 50,
                  endpoint: Optional[str] = None, verify: bool = True,
-                 duration: Optional[int] = None) -> None:
+                 duration: Optional[int] = None,
+                 start_at: Optional[datetime] = datetime.now()) -> None:
         """Initialize a new stream consumer."""
         logger.info(f'New consumer for {stream_name} ({shard_id})')
         self.stream_name = stream_name
@@ -139,7 +140,7 @@ class BaseConsumer(object):
         self.back_off = back_off
         self.batch_size = batch_size
         self.sleep_time = 5
-        self.start_at = datetime.now() - timedelta(hours=1)
+        self.start_at = start_at
 
         if not self.stream_name or not self.shard_id:
             logger.info(
@@ -215,8 +216,7 @@ class BaseConsumer(object):
         Get a new shard iterator.
 
         If our position is set, we will start with the record immediately after
-        that position. Otherwise, we start at the oldest available record
-        (i.e. the "trim horizon").
+        that position. Otherwise, we start at ``start_at`` timestamp.
 
         Returns
         -------
@@ -231,21 +231,28 @@ class BaseConsumer(object):
                 StartingSequenceNumber=self.position
             ))
         else:
-            # Position is not set/known; start as early as possible.
-            params.update(dict(
-                ShardIteratorType='AT_TIMESTAMP',
-                Timestamp=(
-                    self.start_at - datetime.utcfromtimestamp(0)
-                ).total_seconds()
-            ))
+            # Position is not set/known; start at the specified timestamp...
+            if self.start_at:
+                params.update(dict(
+                    ShardIteratorType='AT_TIMESTAMP',
+                    Timestamp=(
+                        self.start_at - datetime.utcfromtimestamp(0)
+                    ).total_seconds()
+                ))
+            else:   # If a start time is not set, go back as early as possible.
+                params.update(dict(
+                    ShardIteratorType='TRIM_HORIZON'
+                ))
         try:
             it: str = self.client.get_shard_iterator(**params)['ShardIterator']
-        except self.client.exceptions.InvalidArgumentException:
+            return it
+        except self.client.exceptions.InvalidArgumentException as e:
+            logger.info('Got InvalidArgumentException: %s', str(e))
             # Iterator may not have come from this stream/shard.
             if self.position is not None:
                 self.position = None
                 return self._get_iterator()
-        return it
+        raise KinesisRequestFailed('Could not get shard iterator')
 
     def _checkpoint(self) -> None:
         """

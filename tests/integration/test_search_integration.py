@@ -24,7 +24,7 @@ EASTERN = timezone('US/Eastern')
 class TestSearchIntegration(TestCase):
     """Indexes a limited set of documents, and tests search behavior."""
 
-    __test__ = int(os.environ.get('TEST_LEVEL', '1')) >= 2
+    __test__ = int(bool(os.environ.get('WITH_INTEGRATION', False)))
 
     @classmethod
     def setUpClass(cls):

@@ -167,9 +167,6 @@ agent            | application 12/Apr/2018:15:49:25 +0000 - search.agent.consume
 agent            | application 12/Apr/2018:15:49:25 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447541811167076420804939874306"
 ```
 
-
-
-
 ## Deploying static assets to S3
 
 Assets in search/static can be deployed to S3 using the included
@@ -185,15 +182,21 @@ set ``FLASKS3_ACTIVE=1`` when starting the Flask dev server.
 Install testing tools with...
 
 ```bash
-pip install -r requirements/test.txt
+pipenv install --dev
 ```
 
 ### Test suite
 Run the main test suite with...
 
 ```bash
-pipenv install --dev
 pipenv run nose2 --with-coverage
+```
+
+To include integration tests, the environment variable ``WITH_INTEGRATION``.
+E.g.
+
+```bash
+WITH_INTEGRATION=1 pipenv run nose2 --with-coverage
 ```
 
 ### Static checking

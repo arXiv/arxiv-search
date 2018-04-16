@@ -21,6 +21,8 @@ BASE_PATH = os.path.join(os.path.split(os.path.abspath(__file__))[0],
 class TestKinesisIntegration(TestCase):
     """Test :class:`.MetadataRecordProcessor` with a live Kinesis stream."""
 
+    __test__ = int(bool(os.environ.get('WITH_INTEGRATION', False)))
+
     @classmethod
     def setUpClass(cls):
         """Spin up ES and index documents."""
@@ -34,6 +36,12 @@ class TestKinesisIntegration(TestCase):
         os.environ['KINESIS_CHECKPOINT_VOLUME'] = tempfile.mkdtemp()
         os.environ['KINESIS_ENDPOINT'] = 'http://127.0.0.1:6568'
         os.environ['KINESIS_VERIFY'] = 'false'
+
+        print('pulling localstack image')
+        pull_localstack = subprocess.run(
+            "docker pull atlassianlabs/localstack",
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        )
 
         print('starting localstack')
         start_localstack = subprocess.run(
@@ -112,7 +120,7 @@ class TestKinesisIntegration(TestCase):
         mock_metadata.BadResponse = metadata.BadResponse
 
         try:
-            process_stream(duration=30)
+            process_stream(duration=30, start_at=None)
         except StopProcessing:
             pass
 
