@@ -380,7 +380,7 @@ class MetadataRecordProcessor(BaseConsumer):
             MetadataRecordProcessor._bulk_add_to_index(documents)
         except (DocumentFailed, IndexingFailed) as e:
             # We just pass these along so that process_record() can keep track.
-            logger.debug(f'{arxiv_id}: Document failed: {e}')
+            logger.debug(f'{arxiv_ids}: Document failed: {e}')
             raise e
 
     def process_record(self, record: dict) -> None:
