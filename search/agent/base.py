@@ -8,7 +8,7 @@ import time
 import json
 from datetime import datetime, timedelta
 import os
-from typing import Any, Optional, Tuple, Generator, Callable
+from typing import Any, Optional, Tuple, Generator, Callable, Dict
 from contextlib import contextmanager
 import signal
 
@@ -224,7 +224,10 @@ class BaseConsumer(object):
             The sequence ID of the record on which to start.
 
         """
-        params = dict(StreamName=self.stream_name, ShardId=self.shard_id)
+        params: Dict[str, Any] = dict(
+            StreamName=self.stream_name,
+            ShardId=self.shard_id
+        )
         if self.position:
             params.update(dict(
                 ShardIteratorType='AFTER_SEQUENCE_NUMBER',
