@@ -108,7 +108,8 @@ class DocMetaSession(object):
             raise ValueError('Invalid value for document_id')
 
         try:
-            target = urljoin(self.endpoint, document_id)
+            target = urljoin(self.endpoint, '/docmeta/')
+            target = urljoin(target, document_id)
             logger.debug(
                 f'{document_id}: retrieve metadata from {target} with SSL'
                 f' verify {self._verify_cert}'
@@ -164,7 +165,7 @@ class DocMetaSession(object):
         if not document_ids:    # This could use further elaboration.
             raise ValueError('Invalid value for document_ids')
         
-        query_string = '?' + '&'.join(f'id={document_id}' for document_id in document_ids)
+        query_string = '/docmeta_bulk?' + '&'.join(f'id={document_id}' for document_id in document_ids)
 
         try:
             target = urljoin(self.endpoint, query_string)
@@ -212,14 +213,14 @@ class DocMetaSession(object):
 def init_app(app: object = None) -> None:
     """Set default configuration parameters for an application instance."""
     config = get_application_config(app)
-    config.setdefault('METADATA_ENDPOINT', 'https://arxiv.org/docmeta/')
+    config.setdefault('METADATA_ENDPOINT', 'https://arxiv.org/')
     config.setdefault('METADATA_VERIFY_CERT', 'True')
 
 
 def get_session(app: object = None) -> DocMetaSession:
     """Get a new session with the docmeta endpoint."""
     config = get_application_config(app)
-    endpoint = config.get('METADATA_ENDPOINT', 'https://arxiv.org/docmeta/')
+    endpoint = config.get('METADATA_ENDPOINT', 'https://arxiv.org/')
     verify_cert = bool(eval(config.get('METADATA_VERIFY_CERT', 'True')))
     if ',' in endpoint:
         return DocMetaSession(*(endpoint.split(',')), verify_cert=verify_cert)

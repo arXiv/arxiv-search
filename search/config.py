@@ -174,7 +174,7 @@ ELASTICSEARCH_VERIFY = os.environ.get('ELASTICSEARCH_VERIFY', 'true')
 
 
 METADATA_ENDPOINT = os.environ.get('METADATA_ENDPOINT',
-                                   'https://arxiv.org/docmeta/')
+                                   'https://arxiv.org/')
 """
 Location of endpoint(s) for metadata retrieval.
 
