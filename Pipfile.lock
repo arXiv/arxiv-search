@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f55d37af405dfab109f2e33c95e830b1154015a1e2c82ad9c5c9a50a6ff6fa0a"
+            "sha256": "c40e8cbac20a96b1633931510532596cf51d0cb3a8bf2ef6c3ce448d30034204"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -27,19 +27,6 @@
         ]
     },
     "default": {
-        "amazon-kclpy": {
-            "hashes": [
-                "sha256:39d8b166c61a4e61218d335a346654b2abc02795e940dd966fc953d06dae811c"
-            ],
-            "version": "==1.4.4"
-        },
-        "argparse": {
-            "hashes": [
-                "sha256:c31647edb69fd3d465a847ea3157d37bed1f95f19760b11a47aa91c04b666314",
-                "sha256:62b089a55be1d8949cd2bc7e0df0bddb9e028faefc8c32038cc84862aefdd6e4"
-            ],
-            "version": "==1.4.0"
-        },
         "arxiv-base": {
             "hashes": [
                 "sha256:60840fad2c607aac0554135683e7f41aae786a070c60b0177bb0d0d42a02a73d"
