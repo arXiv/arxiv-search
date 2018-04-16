@@ -4,7 +4,7 @@ from unittest import TestCase, mock
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from werkzeug import MultiDict
-from werkzeug.exceptions import InternalServerError, NotFound
+from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
 
 from arxiv import status
 
@@ -289,3 +289,39 @@ class TestQueryFromForm(TestCase):
         form = SimpleSearchForm(data)
         self.assertTrue(form.validate(), "Form should be valid.")
         self.assertEqual(form.query.data, 'foo title')
+
+
+class TestPaginationParametersAreFunky(TestCase):
+    """
+    The user may have monkeyed with the order or sort parameters.
+
+    Since these are limited to specific values, there is no other reason for
+    them to be invalid. Given that they are passed around among
+    views (to persist users' selection), it's important to break the chain.
+    To do this, we return a 400 Bad Request, with a clean link back to the
+    search form.
+    """
+
+    @mock.patch('search.controllers.simple.url_for')
+    def test_order_is_invalid(self, mock_url_for):
+        """The order parameter on the request is invalid."""
+        request_data = MultiDict({
+            'searchtype': 'title',
+            'query': 'foo title',
+            'size': 50,     # Valid.
+            'order': 'foo'  # Invalid
+        })
+        with self.assertRaises(BadRequest):
+            simple.search(request_data)
+
+    @mock.patch('search.controllers.simple.url_for')
+    def test_size_is_invalid(self, mock_url_for):
+        """The order parameter on the request is invalid."""
+        request_data = MultiDict({
+            'searchtype': 'title',
+            'query': 'foo title',
+            'size': 51,     # Invalid
+            'order': ''  # Valid
+        })
+        with self.assertRaises(BadRequest):
+            simple.search(request_data)
