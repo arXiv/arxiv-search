@@ -14,7 +14,7 @@ EASTERN = timezone('US/Eastern')
 
 def asdict(obj: Any) -> dict:
     """Coerce a dataclass object to a dict."""
-    return {key: value for key, value in _asdict(obj).items() if value}
+    return {key: value for key, value in _asdict(obj).items()}
 
 
 @dataclass
@@ -33,8 +33,8 @@ class DocMeta:
     modified_date: str = field(default_factory=str)
     updated_date: str = field(default_factory=str)
     announced_date_first: str = field(default_factory=str)
-    is_current: bool = True
-    is_withdrawn: bool = False
+    is_current: bool = field(default=True)
+    is_withdrawn: bool = field(default=False)
     license: Dict[str, str] = field(default_factory=dict)
     primary_classification: Dict[str, str] = field(default_factory=dict)
     secondary_classification: List[Dict[str, str]] = \
@@ -42,14 +42,14 @@ class DocMeta:
     title: str = field(default_factory=str)
     title_utf8: str = field(default_factory=str)
     source: Dict[str, Any] = field(default_factory=dict)
-    version: int = 1
+    version: int = field(default=1)
     submitter: Dict[str, str] = field(default_factory=dict)
     report_num: str = field(default_factory=str)
-    proxy: bool = False
+    proxy: bool = field(default=False)
     msc_class: str = field(default_factory=str)
     acm_class: str = field(default_factory=str)
-    metadata_id: int = -1
-    document_id: int = -1
+    metadata_id: int = field(default=-1)
+    document_id: int = field(default=-1)
     journal_ref: str = field(default_factory=str)
     journal_ref_utf8: str = field(default_factory=str)
     doi: str = field(default_factory=str)
@@ -57,7 +57,7 @@ class DocMeta:
     comments_utf8: str = field(default_factory=str)
     abs_categories: str = field(default_factory=str)
     formats: List[str] = field(default_factory=list)
-    latest_version: int = 1
+    latest_version: int = field(default=1)
     latest: str = field(default_factory=str)
 
 

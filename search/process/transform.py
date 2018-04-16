@@ -25,8 +25,6 @@ def _strip_punctuation(s: str) -> str:
 
 def _constructPaperVersion(meta: DocMeta) -> str:
     """Generate a version-qualified paper ID."""
-    if 'v' in meta.paper_id:
-        return meta.paper_id
     return '%sv%i' % (meta.paper_id, meta.version)
 
 
@@ -82,7 +80,7 @@ def _constructDOI(meta: DocMeta) -> List[str]:
 
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType, bool]] = [
-    ("id", "paper_id", True),
+    ("id", lambda meta: meta.paper_id if meta.is_current else _constructPaperVersion(meta), True),
     ("abstract", "abstract", False),
     ("authors", _constructAuthors, True),
     ("authors_freeform", "authors_utf8", False),
@@ -95,7 +93,7 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("modified_date", "modified_date", True),
     ("updated_date", "updated_date", True),
     ("announced_date_first", "announced_date_first", False),
-    ("is_current", "is_current", False),
+    ("is_current", "is_current", True),
     ("is_withdrawn", "is_withdrawn", False),
     ("license", _constructLicense, True),
     ("paper_id", "paper_id", True),
@@ -117,7 +115,9 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("comments", "comments_utf8", False),
     ("acm_class", _constructACMClass, False),
     ("abs_categories", "abs_categories", False),
-    ("formats", "formats", True)
+    ("formats", "formats", True),
+    ("latest_version", "latest_version", True),
+    ("latest", "latest", True)
 ]
 
 
@@ -146,7 +146,7 @@ def to_search_document(metadata: DocMeta, fulltext: Optional[Fulltext] = None)\
             value = getattr(metadata, source, None)
         elif hasattr(source, '__call__'):
             value = source(metadata)
-        if not value and not is_required:
+        if value is None and not is_required:
             continue
         data[key] = value
     if fulltext:

@@ -162,10 +162,6 @@ class TestTransformMetdata(TestCase):
 
     def test_paper_version(self):
         """Field ``paper_id_v`` is populated from ``paper_id``."""
-        meta = DocMeta(**{'paper_id': '1234.56789v5'})
-        doc = transform.to_search_document(meta)
-        self.assertEqual(doc.paper_id_v, '1234.56789v5')
-
         meta = DocMeta(**{'paper_id': '1234.56789', 'version': 4})
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.paper_id_v, '1234.56789v4')
@@ -329,3 +325,35 @@ class TestTransformMetdata(TestCase):
         })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.comments, 'comments!')
+
+
+class TestTransformBulkDocmeta(TestCase):
+
+    def test_transform(self):
+        """All of the paper ID and version fields should be set correctly."""
+        with open('tests/data/docmeta_bulk.json') as f:
+            data = json.load(f)
+
+        docmeta = [DocMeta(**datum) for datum in data]
+
+        documents = [transform.to_search_document(meta) for meta in docmeta]
+        for doc in documents:
+            self.assertIsNotNone(doc.id)
+            self.assertGreater(len(doc.id), 0)
+            self.assertIsNotNone(doc.paper_id)
+            self.assertGreater(len(doc.paper_id), 0)
+            self.assertNotIn('v', doc.paper_id)
+            self.assertIsNotNone(doc.paper_id_v)
+            self.assertGreater(len(doc.paper_id_v), 0)
+            self.assertIn('v', doc.paper_id_v)
+            self.assertIsNotNone(doc.version)
+            self.assertGreater(doc.version, 0)
+
+            if doc.version == 2:
+                self.assertEqual(doc.latest, f"{doc.paper_id}v2")
+                self.assertTrue(doc.is_current)
+                self.assertEqual(doc.id, doc.paper_id)
+            else:
+                self.assertFalse(doc.is_current)
+                self.assertEqual(doc.id, doc.paper_id_v)
+            self.assertEqual(doc.latest_version, 2)

@@ -164,8 +164,10 @@ class DocMetaSession(object):
         """
         if not document_ids:    # This could use further elaboration.
             raise ValueError('Invalid value for document_ids')
-        
-        query_string = '/docmeta_bulk?' + '&'.join(f'id={document_id}' for document_id in document_ids)
+
+        query_string = '/docmeta_bulk?' + '&'.join(
+            f'id={document_id}' for document_id in document_ids
+        )
 
         try:
             target = urljoin(self.endpoint, query_string)
@@ -193,14 +195,12 @@ class DocMetaSession(object):
             )
         logger.debug(f'{document_ids}: response OK')
         try:
-            resp = response.json() # returns a dictionary with individual DocMetas
+            resp = response.json()  # Returns a list with individual DocMetas.
             # Add the versioned IDs
             data: Dict[str, DocMeta] = {
-                f"{value['paper_id']}v{value['version']}" : DocMeta(**value) # type: ignore
-                        for value in resp.values()}
-            # Add the current canonical IDs
-            data.update({value['paper_id'] : DocMeta(**value) # type: ignore
-                        for value in resp.values() if value['is_current']})
+                f"{value['paper_id']}v{value['version']}": DocMeta(**value) # type: ignore
+                for value in resp
+            }
         except json.decoder.JSONDecodeError as e:
             logger.error('JSONDecodeError: %s', e)
             raise BadResponse(

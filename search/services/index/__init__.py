@@ -242,7 +242,7 @@ class SearchSession(object):
             actions = ({
                 '_index': self.index,
                 '_type': 'document',
-                '_id': document.id if document.id else document.paper_id,
+                '_id': document.id,
                 '_source': asdict(document)
             } for document in documents)
 

@@ -192,16 +192,16 @@ class MetadataRecordProcessor(BaseConsumer):
 
         """
         logger.debug(f'{arxiv_ids}: get bulk metadata')
-        md: Dict[str,DocMeta] = {} # to store all metadata
+        md: Dict[str, DocMeta] = {}     # to store all metadata
 
         # First attempt to retrieve existing metadata from the cache
-        for arxiv_id in arxiv_ids:
-            try:
-                md[arxiv_id] = self._from_cache(arxiv_id)
-            except Exception as e:  # Low tolerance for failure,
-                rsn = str(e)
-                logger.debug(f'{arxiv_id}: could not retrieve from cache: {rsn}')
-        
+        # for arxiv_id in arxiv_ids:
+        #     try:
+        #         md[arxiv_id] = self._from_cache(arxiv_id)
+        #     except Exception as e:  # Low tolerance for failure,
+        #         rsn = str(e)
+        #         logger.debug(f'{arxiv_id}: could not retrieve from cache: {rsn}')
+
         # Then retrieve those not in cache
         to_retrieve = [arxiv_id for arxiv_id in arxiv_ids if arxiv_id not in md.keys()]
         if to_retrieve:
@@ -233,7 +233,7 @@ class MetadataRecordProcessor(BaseConsumer):
 
         # cache all new entries
         to_cache = [arxiv_id for arxiv_id in md.keys()
-                        if arxiv_id.split('v')[0] in to_retrieve]
+                    if arxiv_id.split('v')[0] in to_retrieve]
         for arxiv_id in to_cache:
             try:
                 self._to_cache(arxiv_id, md[arxiv_id])
@@ -242,7 +242,6 @@ class MetadataRecordProcessor(BaseConsumer):
                 logger.debug(f'{arxiv_id}: could not add to cache: {rsn}')
 
         return md
-
 
     @staticmethod
     def _transform_to_document(docmeta: DocMeta) -> Document:
@@ -373,8 +372,6 @@ class MetadataRecordProcessor(BaseConsumer):
                 document = MetadataRecordProcessor._transform_to_document(
                     docmeta
                 )
-                if 'v' in arxiv_id:
-                    document.id = arxiv_id
                 documents.append(document)
 
             logger.debug('add to index in bulk')

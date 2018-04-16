@@ -40,8 +40,7 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
                 args, _ = mock_get.call_args
             except Exception as e:
                 self.fail('Did not call requests.get as expected: %s' % e)
-
-        print(args)
+                
         self.assertTrue(args[0].startswith(base))
 
     @mock.patch('search.services.metadata.requests.get')
