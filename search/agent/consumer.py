@@ -204,31 +204,32 @@ class MetadataRecordProcessor(BaseConsumer):
         
         # Then retrieve those not in cache
         to_retrieve = [arxiv_id for arxiv_id in arxiv_ids if arxiv_id not in md.keys()]
-        try:
-            logger.debug(f'{arxiv_ids}: requesting metadata')
-            md.update(metadata.bulk_retrieve(to_retrieve))
-        except metadata.ConnectionFailed as e:
-            # The metadata service will retry bad responses, but not connection
-            # errors. Sometimes it just takes another try, so why not.
-            logger.warning(f'{arxiv_ids}: first attempt failed, retrying')
+        if to_retrieve:
             try:
+                logger.debug(f'{arxiv_ids}: requesting bulk metadata')
                 md.update(metadata.bulk_retrieve(to_retrieve))
             except metadata.ConnectionFailed as e:
-                # Things really are looking bad. There is no need to keep
-                # trying with subsequent records, so let's abort entirely.
-                logger.error(f'{arxiv_ids}: second attempt failed, giving up')
-                raise IndexingFailed(
-                    'Indexing failed; metadata endpoint could not be reached.'
-                ) from e
-        except metadata.RequestFailed as e:
-            logger.error(f'{arxiv_ids}: request failed')
-            raise DocumentFailed('Request to metadata service failed') from e
-        except metadata.BadResponse as e:
-            logger.error(f'{arxiv_ids}: bad response from metadata service')
-            raise DocumentFailed('Bad response from metadata service') from e
-        except Exception as e:
-            logger.error(f'{arxiv_ids}: unhandled error, metadata service: {e}')
-            raise IndexingFailed('Unhandled exception') from e
+                # The metadata service will retry bad responses, but not connection
+                # errors. Sometimes it just takes another try, so why not.
+                logger.warning(f'{arxiv_ids}: first attempt failed, retrying')
+                try:
+                    md.update(metadata.bulk_retrieve(to_retrieve))
+                except metadata.ConnectionFailed as e:
+                    # Things really are looking bad. There is no need to keep
+                    # trying with subsequent records, so let's abort entirely.
+                    logger.error(f'{arxiv_ids}: second attempt failed, giving up')
+                    raise IndexingFailed(
+                        'Indexing failed; metadata endpoint could not be reached.'
+                    ) from e
+            except metadata.RequestFailed as e:
+                logger.error(f'{arxiv_ids}: request failed')
+                raise DocumentFailed('Request to metadata service failed') from e
+            except metadata.BadResponse as e:
+                logger.error(f'{arxiv_ids}: bad response from metadata service')
+                raise DocumentFailed('Bad response from metadata service') from e
+            except Exception as e:
+                logger.error(f'{arxiv_ids}: unhandled error, metadata service: {e}')
+                raise IndexingFailed('Unhandled exception') from e
 
         # cache all new entries
         to_cache = [arxiv_id for arxiv_id in md.keys()
