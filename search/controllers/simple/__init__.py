@@ -9,7 +9,8 @@ error messages for the user.
 
 from typing import Tuple, Dict, Any, Optional
 
-from werkzeug.exceptions import InternalServerError, NotFound
+from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
+from flask import url_for
 
 from arxiv import status, identifier
 
@@ -121,6 +122,15 @@ def search(request_params: dict) -> Response:
             ) from e
     else:
         logger.debug('form is invalid: %s', str(form.errors))
+        if 'order' in form.errors or 'size' in form.errors:
+            # It's likely that the user tried to set these parameters manually,
+            # or that the search originated from somewhere else (and was
+            # configured incorrectly).
+            simple_url = url_for('ui.search')
+            raise BadRequest(
+                f"It looks like there's something odd about your search"
+                f" request. Please try <a href='{simple_url}'>starting"
+                f" over</a>.")
         q = None
     response_data['query'] = q
     response_data['form'] = form

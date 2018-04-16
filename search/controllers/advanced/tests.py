@@ -4,7 +4,7 @@ from unittest import TestCase, mock
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from werkzeug import MultiDict
-from werkzeug.exceptions import InternalServerError
+from werkzeug.exceptions import InternalServerError, BadRequest
 
 from arxiv import status
 
@@ -481,3 +481,43 @@ class TestUpdateQueryWithDates(TestCase):
         self.assertIsInstance(q, AdvancedQuery)
         self.assertEqual(q.date_range.end_date.date(), to_date)
         self.assertEqual(q.date_range.start_date.date(), from_date)
+
+
+class TestPaginationParametersAreFunky(TestCase):
+    """
+    The user may have monkeyed with the order or sort parameters.
+
+    Since these are limited to specific values, there is no other reason for
+    them to be invalid. Given that they are passed around among
+    views (to persist users' selection), it's important to break the chain.
+    To do this, we return a 400 Bad Request, with a clean link back to the
+    search form.
+    """
+
+    @mock.patch('search.controllers.advanced.url_for')
+    def test_order_is_invalid(self, mock_url_for):
+        """The order parameter on the request is invalid."""
+        request_data = MultiDict({
+            'advanced': True,
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
+            'size': 50,     # Valid.
+            'order': 'foo'  # Invalid
+        })
+        with self.assertRaises(BadRequest):
+            advanced.search(request_data)
+
+    @mock.patch('search.controllers.advanced.url_for')
+    def test_size_is_invalid(self, mock_url_for):
+        """The order parameter on the request is invalid."""
+        request_data = MultiDict({
+            'advanced': True,
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
+            'size': 51,     # Invalid
+            'order': ''  # Valid
+        })
+        with self.assertRaises(BadRequest):
+            advanced.search(request_data)
