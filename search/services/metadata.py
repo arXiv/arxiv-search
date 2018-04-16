@@ -10,6 +10,8 @@ mentioned above load the appropriate instance of :class:`.DocMetaSession`
 depending on the context of the request.
 """
 
+from typing import Dict, List
+
 import os
 from urllib.parse import urljoin
 import json
@@ -142,6 +144,71 @@ class DocMetaSession(object):
         return data
 
 
+    def bulk_retrieve(self, document_ids: List[str]) -> Dict[str, DocMeta]:
+        """
+        Retrieve metadata for an arXiv paper.
+
+        Parameters
+        ----------
+        document_ids : List[str]
+
+        Returns
+        -------
+        dict
+
+        Raises
+        ------
+        IOError
+        ValueError
+        """
+        if not document_ids:    # This could use further elaboration.
+            raise ValueError('Invalid value for document_ids')
+        
+        query_string = '?' + '&'.join(f'id={document_id}' for document_id in document_ids)
+
+        try:
+            target = urljoin(self.endpoint, query_string)
+            logger.debug(
+                f'{document_ids}: retrieve metadata from {target} with SSL'
+                f' verify {self._verify_cert}'
+            )
+            response = self._session.get(target, verify=self._verify_cert)
+        except requests.exceptions.SSLError as e:
+            logger.error('SSLError: %s', e)
+            raise SecurityException('SSL failed: %s' % e) from e
+        except requests.exceptions.ConnectionError as e:
+            logger.error('ConnectionError: %s', e)
+            raise ConnectionFailed(
+                'Could not connect to metadata service: %s' % e
+            ) from e
+
+        if response.status_code not in \
+                [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]:
+            logger.error('Request failed: %s', response.content)
+            raise RequestFailed(
+                '%s: failed with %i: %s' % (
+                    document_ids, response.status_code, response.content
+                )
+            )
+        logger.debug(f'{document_ids}: response OK')
+        try:
+            resp = response.json() # returns a dictionary with individual DocMetas
+            # Add the versioned IDs
+            data: Dict[str, DocMeta] = {
+                f"{value['paper_id']}v{value['version']}" : DocMeta(**value) # type: ignore
+                        for value in resp.values()}
+            # Add the current canonical IDs
+            data.update({value['paper_id'] : DocMeta(**value) # type: ignore
+                        for value in resp.values() if value['is_current']})
+        except json.decoder.JSONDecodeError as e:
+            logger.error('JSONDecodeError: %s', e)
+            raise BadResponse(
+                '%s: could not decode response: %s' % (document_ids, e)
+            ) from e
+        logger.debug(f'{document_ids}: response decoded; done!')
+        return data
+
+
 def init_app(app: object = None) -> None:
     """Set default configuration parameters for an application instance."""
     config = get_application_config(app)
@@ -173,3 +240,9 @@ def current_session() -> DocMetaSession:
 def retrieve(document_id: str) -> DocMeta:
     """Retrieve an arxiv document by id."""
     return current_session().retrieve(document_id)
+
+
+@wraps(DocMetaSession.bulk_retrieve)
+def bulk_retrieve(document_ids: List[str]) -> Dict[str, DocMeta]:
+    """Retrieve an arxiv document by id."""
+    return current_session().bulk_retrieve(document_ids)
