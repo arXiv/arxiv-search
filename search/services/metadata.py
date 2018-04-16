@@ -192,13 +192,14 @@ class DocMetaSession(object):
             )
         logger.debug(f'{document_ids}: response OK')
         try:
-            data = response.json() # returns a dictionary with individual DocMetas
+            resp = response.json() # returns a dictionary with individual DocMetas
             # Add the versioned IDs
-            data = {f"{value['paper_id']}v{value['version']}" : DocMeta(**value) # type: ignore
-                        for value in data.values()}
+            data: Dict[str, DocMeta] = {
+                f"{value['paper_id']}v{value['version']}" : DocMeta(**value) # type: ignore
+                        for value in resp.values()}
             # Add the current canonical IDs
             data.update({value['paper_id'] : DocMeta(**value) # type: ignore
-                        for value in data.values() if value['is_current']})
+                        for value in resp.values() if value['is_current']})
         except json.decoder.JSONDecodeError as e:
             logger.error('JSONDecodeError: %s', e)
             raise BadResponse(
