@@ -45,7 +45,10 @@ class TestIndexPaper(TestCase):
                             submitted_date='2001-03-04T03:04:05-400')
         mock_meta.retrieve.side_effect = [mock_dm_3, mock_dm_1, mock_dm_2]
         mock_meta.bulk_retrieve.return_value = {
-            '1234.56789' : mock_dm_3
+            '1234.56789' : mock_dm_3,
+            '1234.56789v1' : mock_dm_1,
+            '1234.56789v2' : mock_dm_2,
+            '1234.56789v3' : mock_dm_3
         }
         mock_doc_1 = Document(version=1, paper_id='1234.56789', title='foo',
                               submitted_date=['2001-03-02T03:04:05-400'],
@@ -66,16 +69,16 @@ class TestIndexPaper(TestCase):
                                 '2001-03-04T03:04:05-400'
                               ])
         mock_tx.to_search_document.side_effect = [
-            mock_doc_3, mock_doc_1, mock_doc_2
+            mock_doc_3, mock_doc_1, mock_doc_2, mock_doc_3
         ]
         self.processor.index_paper('1234.56789')
         self.assertEqual(mock_meta.bulk_retrieve.call_count, 1,
                          "Metadata should be retrieved for current version with bulk_retrieve")
-        self.assertEqual(mock_meta.retrieve.call_count, 2,
+        self.assertEqual(mock_meta.retrieve.call_count, 0,
                          "Metadata should be retrieved for each non-current version")
         
         mock_idx.bulk_add_documents.assert_called_once_with(
-            [mock_doc_1, mock_doc_2, mock_doc_3])
+            [mock_doc_3, mock_doc_1, mock_doc_2, mock_doc_3])
 
 
 class TestAddToIndex(TestCase):

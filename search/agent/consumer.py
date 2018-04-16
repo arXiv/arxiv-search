@@ -229,7 +229,10 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             logger.error(f'{arxiv_ids}: unhandled error, metadata service: {e}')
             raise IndexingFailed('Unhandled exception') from e
 
-        for arxiv_id in to_retrieve:
+        # cache all new entries
+        to_cache = [arxiv_id for arxiv_id in md.keys()
+                        if arxiv_id.split('v')[0] in to_retrieve]
+        for arxiv_id in to_cache:
             try:
                 self._to_cache(arxiv_id, md[arxiv_id])
             except Exception as e:
@@ -345,7 +348,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
         Parameters
         ----------
-        arxiv_id : List[str]
+        arxiv_ids : List[str]
             A list of **versionless** arXiv e-print identifiers.
 
         Raises
@@ -361,40 +364,17 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         try:
             documents = []
             md = self._get_bulk_metadata(arxiv_ids)
-            for arxiv_id in arxiv_ids:
+            for arxiv_id in md:
                 logger.debug(f'{arxiv_id}: get metadata')
                 docmeta = md[arxiv_id]
                 logger.debug(f'{arxiv_id}: transform to indexable document')
                 document = MetadataRecordProcessor._transform_to_document(
                     docmeta
                 )
-                current_version = docmeta.version
-                logger.debug(f'current version is {current_version}')
-                if current_version is not None and current_version > 1:
-                    for version in range(1, current_version):
-                        ver_docmeta = self._get_metadata(
-                            f'{arxiv_id}v{version}')
-                        ver_document =\
-                            MetadataRecordProcessor._transform_to_document(
-                                ver_docmeta)
-
-                        # The earlier versions are here primarily to respond to
-                        # queries that explicitly specify the version number.
-                        ver_document.is_current = False
-
-                        # Add a reference to the most recent version.
-                        ver_document.latest = f'{arxiv_id}v{current_version}'
-                        ver_document.latest_version = current_version
-
-                        # Set the primary document ID to the version-specied
-                        # arXiv identifier, to avoid clobbering the latest
-                        # version.
-                        ver_document.id = f'{arxiv_id}v{version}'
-                        documents.append(ver_document)
-
-                # Finally, ensure the most recent version gets indexed.
-                document.is_current = True
+                if 'v' in arxiv_id:
+                    document.id = arxiv_id
                 documents.append(document)
+
             logger.debug('add to index in bulk')
             MetadataRecordProcessor._bulk_add_to_index(documents)
         except (DocumentFailed, IndexingFailed) as e:
