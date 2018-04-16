@@ -5,6 +5,8 @@ services:
 cache: pip
 os:
   - linux
+env:
+  - LOGLEVEL: "40"
 python:
   - "3.6"
 script:
@@ -13,6 +15,7 @@ script:
   - pipenv install --dev --skip-lock
   - pipenv run nose2 -vvv --with-coverage
 after_success:
+  - coveralls
   - pipenv install pylint pydocstyle mypy
   - ./lintstats.sh
   - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
@@ -20,4 +23,3 @@ after_success:
     docker push arxiv/search:${TRAVIS_COMMIT}
   - docker build . -t arxiv/search-agent:${TRAVIS_COMMIT} -f ./Dockerfile-agent;
     docker push arxiv/search-agent:${TRAVIS_COMMIT}
-  - coveralls

@@ -20,7 +20,8 @@ ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
 def _get_sort_parameters(query: Query) -> list:
     if not query.order:
         return ['_score', '_doc']
-    return [query.order, '_score', '_doc']
+    direction = '-' if query.order.startswith('-') else ''
+    return [query.order, f'{direction}paper_id_v']
 
 
 def _apply_sort(query: Query, search: Search) -> Search:
@@ -76,12 +77,16 @@ def _field_term_to_q(field: str, term: str) -> Q:
     # These terms have fields for both TeX and English normalization.
     if field in ['title', 'abstract']:
         return (
-            Q("simple_query_string", fields=[
+            Q("query_string", fields=[
                 field,
                 f'{field}_utf8',
                 f'{field}__english',
                 f'{field}_utf8__english'
-              ], query=term_sans_tex)
+              ],
+              default_operator='AND',
+              analyze_wildcard=True,
+              allow_leading_wildcard=False,
+              query=term_sans_tex)
             # Boost the TeX field, since these will be exact matches, and we
             # prefer them to partial matches within TeXisms.
             | Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})

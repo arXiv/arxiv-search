@@ -7,6 +7,7 @@ import os
 from itertools import cycle
 
 from search.services import metadata
+from search.factory import create_ui_web_app
 
 
 class TestRetrieveExistantMetadata(unittest.TestCase):
@@ -16,7 +17,9 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
     def test_calls_metadata_endpoint(self, mock_get):
         """:func:`.metadata.retrieve` calls passed endpoint with GET."""
         base = 'https://asdf.com/'
-        os.environ['METADATA_ENDPOINT'] = base
+
+        app = create_ui_web_app()
+        app.config['METADATA_ENDPOINT'] = base
 
         response = mock.MagicMock()
         with open('tests/data/docmeta.json') as f:
@@ -26,24 +29,28 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
         response.status_code = 200
         mock_get.return_value = response
 
-        docmeta_session = metadata.get_session()
+        with app.app_context():
+            docmeta_session = metadata.get_session()
 
-        try:
-            docmeta_session.retrieve('1602.00123')
-        except Exception as e:
-            self.fail('Choked on valid response: %s' % e)
-        try:
-            args, _ = mock_get.call_args
-        except Exception as e:
-            self.fail('Did not call requests.get as expected: %s' % e)
+            try:
+                docmeta_session.retrieve('1602.00123')
+            except Exception as e:
+                self.fail('Choked on valid response: %s' % e)
+            try:
+                args, _ = mock_get.call_args
+            except Exception as e:
+                self.fail('Did not call requests.get as expected: %s' % e)
+
+        print(args)
         self.assertTrue(args[0].startswith(base))
 
     @mock.patch('search.services.metadata.requests.get')
     def test_calls_metadata_endpoint_roundrobin(self, mock_get):
         """:func:`.metadata.retrieve` calls passed endpoint with GET."""
         base = ['https://asdf.com/', 'https://asdf2.com/']
-        os.environ['METADATA_ENDPOINT'] = ','.join(base)
-        os.environ['METADATA_VERIFY_CERT'] = 'False'
+        app = create_ui_web_app()
+        app.config['METADATA_ENDPOINT'] = ','.join(base)
+        app.config['METADATA_VERIFY_CERT'] = 'False'
 
         response = mock.MagicMock()
         with open('tests/data/docmeta.json') as f:
@@ -53,33 +60,34 @@ class TestRetrieveExistantMetadata(unittest.TestCase):
         response.status_code = 200
         mock_get.return_value = response
 
-        docmeta_session = metadata.get_session()
+        with app.app_context():
+            docmeta_session = metadata.get_session()
 
-        try:
-            docmeta_session.retrieve('1602.00123')
-        except Exception as e:
-            self.fail('Choked on valid response: %s' % e)
-        try:
-            args, _ = mock_get.call_args
-        except Exception as e:
-            self.fail('Did not call requests.get as expected: %s' % e)
+            try:
+                docmeta_session.retrieve('1602.00123')
+            except Exception as e:
+                self.fail('Choked on valid response: %s' % e)
+            try:
+                args, _ = mock_get.call_args
+            except Exception as e:
+                self.fail('Did not call requests.get as expected: %s' % e)
+            print(args)
+            self.assertTrue(
+                args[0].startswith(base[0]), "Expected call to %s" % base[0]
+            )
 
-        self.assertTrue(
-            args[0].startswith(base[0]), "Expected call to %s" % base[0]
-        )
-
-        try:
-            docmeta_session.retrieve('1602.00124')
-        except Exception as e:
-            self.fail('Choked on valid response: %s' % e)
-        try:
-            args, _ = mock_get.call_args
-        except Exception as e:
-            self.fail('Did not call requests.get as expected: %s' % e)
-        print(args)
-        self.assertTrue(
-            args[0].startswith(base[1]), "Expected call to %s" % base[1]
-        )
+            try:
+                docmeta_session.retrieve('1602.00124')
+            except Exception as e:
+                self.fail('Choked on valid response: %s' % e)
+            try:
+                args, _ = mock_get.call_args
+            except Exception as e:
+                self.fail('Did not call requests.get as expected: %s' % e)
+            print(args)
+            self.assertTrue(
+                args[0].startswith(base[1]), "Expected call to %s" % base[1]
+            )
 
 
 class TestRetrieveNonexistantRecord(unittest.TestCase):
