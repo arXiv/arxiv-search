@@ -21,8 +21,7 @@ logger = logging.getLogger(__name__)
 logger.propagate = False
 
 
-def process_stream(duration: Optional[int] = None,
-                   start_at: Optional[datetime] = datetime.now()) -> None:
+def process_stream(duration: Optional[int] = None) -> None:
     """
     Configure and run the record processor.
 
@@ -55,6 +54,9 @@ def process_stream(duration: Optional[int] = None,
             verify=app.config.get('KINESIS_VERIFY', 'true') == 'true',
             duration=duration,
             cache_dir=cache_dir,
-            start_at=start_at
+            start_type=app.config.get('KINESIS_START_TYPE', 'AT_TIMESTAMP'),
+            start_at=app.config.get(
+                'KINESIS_START_AT',
+                datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
         )
         processor.go()

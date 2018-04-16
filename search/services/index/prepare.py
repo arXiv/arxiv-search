@@ -20,7 +20,8 @@ ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
 def _get_sort_parameters(query: Query) -> list:
     if not query.order:
         return ['_score', '_doc']
-    return [query.order, '_score', '_doc']
+    direction = '-' if query.order.startswith('-') else ''
+    return [query.order, f'{direction}paper_id_v']
 
 
 def _apply_sort(query: Query, search: Search) -> Search:

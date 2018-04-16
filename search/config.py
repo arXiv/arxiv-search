@@ -205,6 +205,8 @@ KINESIS_SHARD_ID = os.environ.get('KINESIS_SHARD_ID', '0')
 KINESIS_CHECKPOINT_VOLUME = os.environ.get('KINESIS_CHECKPOINT_VOLUME',
                                            '/tmp')
 
+KINESIS_START_TYPE = os.environ.get('KINESIS_START_TYPE')
+KINESIS_START_AT = os.environ.get('KINESIS_START_AT')
 
 
 """

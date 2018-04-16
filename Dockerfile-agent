@@ -31,5 +31,4 @@ ADD search/agent/ /opt/arxiv/search/agent/
 ADD bin/start_agent.py /opt/arxiv/start_agent.py
 
 
-ENTRYPOINT ["pipenv", "run", "python3.6"]
-CMD ["/opt/arxiv/start_agent.py"]
+ENTRYPOINT ["pipenv", "run", "python3.6", "/opt/arxiv/start_agent.py"]

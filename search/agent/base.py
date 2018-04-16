@@ -8,7 +8,7 @@ import time
 import json
 from datetime import datetime, timedelta
 import os
-from typing import Any, Optional, Tuple, Generator, Callable, Dict
+from typing import Any, Optional, Tuple, Generator, Callable, Dict, Union
 from contextlib import contextmanager
 import signal
 
@@ -19,6 +19,8 @@ from botocore.exceptions import WaiterError, NoCredentialsError, \
 from arxiv.base import logging
 logger = logging.getLogger(__name__)
 logger.propagate = False
+
+NOW = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
 
 class CheckpointError(RuntimeError):
@@ -125,7 +127,8 @@ class BaseConsumer(object):
                  back_off: int = 5, batch_size: int = 50,
                  endpoint: Optional[str] = None, verify: bool = True,
                  duration: Optional[int] = None,
-                 start_at: Optional[datetime] = datetime.now()) -> None:
+                 start_type: str = 'AT_TIMESTAMP',
+                 start_at: str = NOW) -> None:
         """Initialize a new stream consumer."""
         logger.info(f'New consumer for {stream_name} ({shard_id})')
         self.stream_name = stream_name
@@ -141,6 +144,8 @@ class BaseConsumer(object):
         self.batch_size = batch_size
         self.sleep_time = 5
         self.start_at = start_at
+        self.start_type = start_type
+        logger.debug(f'Got start_type={start_type} and start_at={start_at}')
 
         if not self.stream_name or not self.shard_id:
             logger.info(
@@ -233,19 +238,16 @@ class BaseConsumer(object):
                 ShardIteratorType='AFTER_SEQUENCE_NUMBER',
                 StartingSequenceNumber=self.position
             ))
-        else:
-            # Position is not set/known; start at the specified timestamp...
-            if self.start_at:
-                params.update(dict(
-                    ShardIteratorType='AT_TIMESTAMP',
-                    Timestamp=(
-                        self.start_at - datetime.utcfromtimestamp(0)
-                    ).total_seconds()
-                ))
-            else:   # If a start time is not set, go back as early as possible.
-                params.update(dict(
-                    ShardIteratorType='TRIM_HORIZON'
-                ))
+        elif self.start_type == 'AT_TIMESTAMP' and self.start_at:
+            start_at = datetime.strptime(self.start_at, '%Y-%m-%dT%H:%M:%S')
+            params.update(dict(
+                ShardIteratorType='AT_TIMESTAMP',
+                Timestamp=(
+                    start_at - datetime.utcfromtimestamp(0)
+                ).total_seconds()
+            ))
+        elif self.start_type == 'TRIM_HORIZON':
+            params.update(dict(ShardIteratorType='TRIM_HORIZON'))
         try:
             it: str = self.client.get_shard_iterator(**params)['ShardIterator']
             return it

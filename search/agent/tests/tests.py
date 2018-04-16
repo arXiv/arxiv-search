@@ -36,6 +36,7 @@ class TestKinesisIntegration(TestCase):
         os.environ['KINESIS_CHECKPOINT_VOLUME'] = tempfile.mkdtemp()
         os.environ['KINESIS_ENDPOINT'] = 'http://127.0.0.1:6568'
         os.environ['KINESIS_VERIFY'] = 'false'
+        os.environ['KINESIS_START_TYPE'] = 'TRIM_HORIZON'
 
         print('pulling localstack image')
         pull_localstack = subprocess.run(
@@ -120,7 +121,7 @@ class TestKinesisIntegration(TestCase):
         mock_metadata.BadResponse = metadata.BadResponse
 
         try:
-            process_stream(duration=30, start_at=None)
+            process_stream(duration=30)
         except StopProcessing:
             pass
 

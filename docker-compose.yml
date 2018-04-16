@@ -43,6 +43,7 @@ services:
       KINESIS_SHARD_ID: "0"
       KINESIS_ENDPOINT: "https://localstack:4568"
       KINESIS_VERIFY: "false"
+      KINESIS_START_TYPE: "TRIM_HORIZON"
       LOGLEVEL: 20
     networks:
       - es_stack
