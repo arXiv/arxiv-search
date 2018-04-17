@@ -328,6 +328,7 @@ class TestTransformMetdata(TestCase):
 
 
 class TestTransformBulkDocmeta(TestCase):
+    """Test transformation of docmeta retrieved from bulk endpoint."""
 
     def test_transform(self):
         """All of the paper ID and version fields should be set correctly."""

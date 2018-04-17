@@ -11,6 +11,7 @@ class TestBaseConsumer(TestCase):
 
     def setUp(self):
         self.checkpointer = mock.MagicMock()
+        self.checkpointer.position = None
 
     @mock.patch('boto3.client')
     def test_init(self, mock_client_factory):
@@ -47,6 +48,7 @@ class TestBaseConsumer(TestCase):
 
     @mock.patch('boto3.client')
     def test_iteration(self, mock_client_factory):
+        """Test iteration behavior."""
         mock_client = mock.MagicMock()
         mock_client_factory.return_value = mock_client
         mock_client.get_records.return_value = {
@@ -102,7 +104,7 @@ class TestBaseConsumer(TestCase):
         mock_client.get_shard_iterator.return_value = {'ShardIterator': '1'}
 
         def raise_client_error(*args, **kwargs):
-            raise ClientError('', {}, {})
+            raise ClientError({'Error': {'Code': 'foo'}}, {})
 
         mock_client.get_records.side_effect = raise_client_error
 
@@ -110,8 +112,55 @@ class TestBaseConsumer(TestCase):
         consumer = BaseConsumer('foo', '1', 'a1b2c3d4', 'qwertyuiop',
                                 'us-east-1', self.checkpointer,
                                 batch_size=batch_size)
+        consumer.position = 'fooposition'
         try:
             consumer.go()
         except Exception:
             pass
         self.assertEqual(self.checkpointer.checkpoint.call_count, 1)
+
+    @mock.patch('boto3.client')
+    def test_start_from_timestamp(self, mock_client_factory):
+        """Consumer is initialized with start_type 'AT_TIMESTAMP'."""
+        mock_client = mock.MagicMock()
+        mock_client_factory.return_value = mock_client
+        mock_client.get_shard_iterator.return_value = {'ShardIterator': '1'}
+
+        consumer = BaseConsumer('foo', '1', 'a1b2c3d4', 'qwertyuiop',
+                                'us-east-1', self.checkpointer,
+                                start_type='AT_TIMESTAMP')
+        consumer._get_iterator()
+        args, kwargs = mock_client.get_shard_iterator.call_args
+        self.assertEqual(kwargs['ShardIteratorType'], 'AT_TIMESTAMP')
+        self.assertIn('Timestamp', kwargs)
+
+    @mock.patch('boto3.client')
+    def test_start_from_position(self, mock_client_factory):
+        """Consumer is initialized with start_type 'AT_TIMESTAMP'."""
+        mock_client = mock.MagicMock()
+        mock_client_factory.return_value = mock_client
+        mock_client.get_shard_iterator.return_value = {'ShardIterator': '1'}
+
+        consumer = BaseConsumer('foo', '1', 'a1b2c3d4', 'qwertyuiop',
+                                'us-east-1', self.checkpointer,
+                                start_type='AT_TIMESTAMP')
+        consumer.position = 'fooposition'
+        consumer._get_iterator()
+        args, kwargs = mock_client.get_shard_iterator.call_args
+        self.assertEqual(kwargs['ShardIteratorType'], 'AFTER_SEQUENCE_NUMBER')
+        self.assertEqual(kwargs['StartingSequenceNumber'], 'fooposition')
+
+    @mock.patch('boto3.client')
+    def test_start_from_trim_horizon(self, mock_client_factory):
+        """Consumer is initialized with start_type 'AT_TIMESTAMP'."""
+        mock_client = mock.MagicMock()
+        mock_client_factory.return_value = mock_client
+        mock_client.get_shard_iterator.return_value = {'ShardIterator': '1'}
+
+        consumer = BaseConsumer('foo', '1', 'a1b2c3d4', 'qwertyuiop',
+                                'us-east-1', self.checkpointer,
+                                start_type='TRIM_HORIZON')
+        consumer._get_iterator()
+        args, kwargs = mock_client.get_shard_iterator.call_args
+        self.assertEqual(kwargs['ShardIteratorType'], 'TRIM_HORIZON')
+        self.assertNotIn('StartingSequenceNumber', kwargs)

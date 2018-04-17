@@ -129,7 +129,7 @@ class SearchSession(object):
 
         logger.debug(
             f'init ES session for index {index} at {scheme}://{host}:{port}'
-            f' with verify={verify} and ssl={use_ssl}'
+            f' with verify={verify}, ssl={use_ssl}, and user={user}'
         )
 
         try:

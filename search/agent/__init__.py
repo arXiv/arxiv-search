@@ -11,11 +11,12 @@ and becomes available for discovery via :mod:`search.routes.ui`.
 from typing import Optional
 from datetime import datetime
 import warnings
-from .consumer import MetadataRecordProcessor, DocumentFailed, IndexingFailed
-from .base import CheckpointManager
-from search.factory import create_ui_web_app
+
+from flask import current_app as app
 
 from arxiv.base import logging
+from .consumer import MetadataRecordProcessor, DocumentFailed, IndexingFailed
+from .base import CheckpointManager
 
 logger = logging.getLogger(__name__)
 logger.propagate = False
@@ -34,11 +35,15 @@ def process_stream(duration: Optional[int] = None) -> None:
     """
     # We use the Flask application instance for configuration, and to manage
     # integrations with metadata service, search index.
-    app = create_ui_web_app()
-    app.app_context().push()
-    cache_dir = app.config.get('METADATA_CACHE_DIR', None)
     with warnings.catch_warnings():     # boto3 is notoriously annoying.
         warnings.simplefilter("ignore")
+        start_at = app.config.get('KINESIS_START_AT')
+        start_type = app.config.get('KINESIS_START_TYPE')
+        if not start_type:
+            start_type = 'AT_TIMESTAMP'
+        if start_type == 'AT_TIMESTAMP' and not start_at:
+            start_at = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
         processor = MetadataRecordProcessor(
             app.config['KINESIS_STREAM'],
             app.config['KINESIS_SHARD_ID'],
@@ -53,10 +58,7 @@ def process_stream(duration: Optional[int] = None) -> None:
             endpoint=app.config.get('KINESIS_ENDPOINT', None),
             verify=app.config.get('KINESIS_VERIFY', 'true') == 'true',
             duration=duration,
-            cache_dir=cache_dir,
-            start_type=app.config.get('KINESIS_START_TYPE', 'AT_TIMESTAMP'),
-            start_at=app.config.get(
-                'KINESIS_START_AT',
-                datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
+            start_type=start_type,
+            start_at=start_at
         )
         processor.go()

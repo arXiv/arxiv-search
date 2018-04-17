@@ -119,11 +119,12 @@
 {%- endmacro %}
 
 
-{% macro search_results(form, results, metadata, external_url, url_for_page, url_for_author_search) %}
+{% macro search_results(form, results, metadata, external_url, url_for_page, url_for_author_search, is_current) %}
 
 {% if metadata.total_pages > 1 %}
   {{ pagination(metadata, url_for_page) }}
 {% endif %}
+
 
 <ol class="breathe-horizontal" start="{{ metadata.start + 1}}"> {# Start index is 0-based. #}
 
@@ -131,7 +132,7 @@
   <li class="arxiv-result">
     <div class="level is-marginless">
       <p class="list-title level-left">
-        {% set display_paper_id = result.paper_id if result.is_current else result.paper_id_v %}
+        {% set display_paper_id = result.paper_id if is_current(result) else result.paper_id_v %}
         <a href="{{ external_url('browse', 'abstract', paper_id=display_paper_id) }}">arXiv:{{ display_paper_id }}</a>
         <span>&nbsp;{{ paper_format_links(result, external_url) }}&nbsp;</span>
         <span class="tag is-small is-link">{{ result.primary_classification.category.id }}</span>
@@ -185,7 +186,7 @@
           <a class="is-size-7" style="white-space: nowrap;" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'none'; document.getElementById('{{result.id}}-abstract-short').style.display = 'inline';">&#9651; Less</a>
         </span>
     </p>
-    <p class="is-size-7"><span class="has-text-black-bis has-text-weight-semibold">Submitted</span> {{ result.submitted_date.strftime('%-d %B, %Y') }}; {% if result.version > 1 %}<span class="has-text-black-bis has-text-weight-semibold">v1</span> submitted {{ result.submitted_date_first.strftime('%-d %B, %Y') }};{% endif %} <span class="has-text-black-bis has-text-weight-semibold">originally announced</span> {{ result.announced_date_first.strftime('%B %Y') }}. {% if not result.is_current %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}</p>
+    <p class="is-size-7"><span class="has-text-black-bis has-text-weight-semibold">Submitted</span> {{ result.submitted_date.strftime('%-d %B, %Y') }}; {% if result.version > 1 %}<span class="has-text-black-bis has-text-weight-semibold">v1</span> submitted {{ result.submitted_date_first.strftime('%-d %B, %Y') }};{% endif %} <span class="has-text-black-bis has-text-weight-semibold">originally announced</span> {{ result.announced_date_first.strftime('%B %Y') }}. {% if not is_current(result) %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}</p>
 
     {% if result.comments %}
     <p class="comments is-size-7">

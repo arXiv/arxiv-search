@@ -144,8 +144,7 @@ class DocMetaSession(object):
         logger.debug(f'{document_id}: response decoded; done!')
         return data
 
-
-    def bulk_retrieve(self, document_ids: List[str]) -> Dict[str, DocMeta]:
+    def bulk_retrieve(self, document_ids: List[str]) -> List[DocMeta]:
         """
         Retrieve metadata for an arXiv paper.
 
@@ -195,12 +194,9 @@ class DocMetaSession(object):
             )
         logger.debug(f'{document_ids}: response OK')
         try:
-            resp = response.json()  # Returns a list with individual DocMetas.
-            # Add the versioned IDs
-            data: Dict[str, DocMeta] = {
-                f"{value['paper_id']}v{value['version']}": DocMeta(**value) # type: ignore
-                for value in resp
-            }
+            resp = response.json()  # A list with metadata for each paper.
+            data: List[DocMeta]
+            data = [DocMeta(**value) for value in resp]     # type: ignore
         except json.decoder.JSONDecodeError as e:
             logger.error('JSONDecodeError: %s', e)
             raise BadResponse(
@@ -244,6 +240,6 @@ def retrieve(document_id: str) -> DocMeta:
 
 
 @wraps(DocMetaSession.bulk_retrieve)
-def bulk_retrieve(document_ids: List[str]) -> Dict[str, DocMeta]:
+def bulk_retrieve(document_ids: List[str]) -> List[DocMeta]:
     """Retrieve an arxiv document by id."""
     return current_session().bulk_retrieve(document_ids)
