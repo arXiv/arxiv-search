@@ -13,6 +13,7 @@ from search.agent import process_stream
 from search.agent.base import StopProcessing
 from search.services import metadata
 from search.domain import DocMeta
+from search.factory import create_ui_web_app
 
 BASE_PATH = os.path.join(os.path.split(os.path.abspath(__file__))[0],
                          '../../../tests/data/examples')
@@ -26,6 +27,7 @@ class TestKinesisIntegration(TestCase):
     @classmethod
     def setUpClass(cls):
         """Spin up ES and index documents."""
+
         os.environ['ELASTICSEARCH_SERVICE_HOST'] = 'localhost'
         os.environ['ELASTICSEARCH_SERVICE_PORT'] = "9201"
         os.environ['ELASTICSEARCH_PORT_9201_PROTO'] = "http"
@@ -72,6 +74,7 @@ class TestKinesisIntegration(TestCase):
         )
         time.sleep(5)
         print('created stream, ready to test')
+        cls.app = create_ui_web_app()
 
     @classmethod
     def tearDownClass(cls):
@@ -120,9 +123,10 @@ class TestKinesisIntegration(TestCase):
         mock_metadata.ConnectionFailed = metadata.ConnectionFailed
         mock_metadata.BadResponse = metadata.BadResponse
 
-        try:
-            process_stream(duration=30)
-        except StopProcessing:
-            pass
+        with self.app.app_context():
+            try:
+                process_stream(duration=30)
+            except StopProcessing:
+                pass
 
-        self.assertGreater(mock_metadata.retrieve.call_count, 0)
+        self.assertGreater(mock_metadata.bulk_retrieve.call_count, 0)
