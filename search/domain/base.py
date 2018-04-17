@@ -223,6 +223,10 @@ class Document:
         """Get the names of fields on this class."""
         return cls.__dataclass_fields__.keys()  # type: ignore
 
+    def is_current_fallback(self):
+        """Fallback evaluation for whether this is the current version."""
+        return len(self.submitted_date_all) == self.version
+
 
 @dataclass
 class DocumentSet:

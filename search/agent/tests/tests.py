@@ -27,7 +27,6 @@ class TestKinesisIntegration(TestCase):
     @classmethod
     def setUpClass(cls):
         """Spin up ES and index documents."""
-
         os.environ['ELASTICSEARCH_SERVICE_HOST'] = 'localhost'
         os.environ['ELASTICSEARCH_SERVICE_PORT'] = "9201"
         os.environ['ELASTICSEARCH_PORT_9201_PROTO'] = "http"

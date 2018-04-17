@@ -149,3 +149,18 @@ def url_with_params_builder() -> Dict[str, Callable]:
         url: str = url_unparse(parts)
         return url
     return dict(url_with_params=url_with_params)
+
+
+@blueprint.context_processor
+def is_current_builder() -> Dict[str, Callable]:
+    """Inject a function to evaluate whether or not a result is current."""
+    def is_current(result: dict) -> bool:
+        """Determine whether the result is the current version."""
+        if result['submitted_date_all'] is None:
+            return result['is_current']
+        try:
+            return (result['is_current']
+                    and result['version'] == len(result['submitted_date_all']))
+        except Exception as e:
+            return True
+    return dict(is_current=is_current)
