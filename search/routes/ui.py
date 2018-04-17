@@ -157,10 +157,13 @@ def is_current_builder() -> Dict[str, Callable]:
     def is_current(result: dict) -> bool:
         """Determine whether the result is the current version."""
         if result['submitted_date_all'] is None:
-            return result['is_current']
+            return bool(result['is_current'])
         try:
-            return (result['is_current']
-                    and result['version'] == len(result['submitted_date_all']))
+            return bool(
+                result['is_current']
+                and result['version'] == len(result['submitted_date_all'])
+            )
         except Exception as e:
             return True
+        return False
     return dict(is_current=is_current)
