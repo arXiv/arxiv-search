@@ -1,18 +1,18 @@
-"""Provides REST API routes."""
+"""Provides the main search user interfaces."""
 
 from typing import Dict, Callable, Union, Any, Optional
 from functools import wraps
 from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
 
 from flask.json import jsonify
-from flask import Blueprint, render_template, redirect, request, url_for, \
-    Response
+from flask import Blueprint, render_template, redirect, request, Response, \
+    url_for
 from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
 
 from arxiv import status
-from search import logging
+from arxiv.base import logging
 from werkzeug.exceptions import InternalServerError
-from search.controllers import simple, advanced, authors
+from search.controllers import simple, advanced, health_check
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,11 @@ def search() -> Union[str, Response]:
     response, code, headers = simple.search(request.args)
     logger.debug(f"controller returned code: {code}")
     if code == status.HTTP_200_OK:
-        return render_template("search/search.html", **response, pagetitle="Search")
+        return render_template(
+            "search/search.html",
+            pagetitle="Search",
+            **response
+        )
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
           or code == status.HTTP_303_SEE_OTHER):
         return redirect(headers['Location'], code=code)
@@ -45,17 +49,23 @@ def search() -> Union[str, Response]:
 def advanced_search() -> Union[str, Response]:
     """Advanced search interface."""
     response, code, headers = advanced.search(request.args)
-    return render_template("search/advanced_search.html", **response, pagetitle="Advanced Search")
+    return render_template(
+        "search/advanced_search.html",
+        pagetitle="Advanced Search",
+        **response
+    )
 
 
-@blueprint.route('authors', methods=['GET'])
-def author_search() -> Union[str, Response]:
-    """Author search interface."""
-    response, code, headers = authors.search(request.args.copy())
-    return render_template("search/author_search.html", **response, pagetitle="Author Search")
+@blueprint.route('status', methods=['GET', 'HEAD'])
+def service_status() -> Union[str, Response]:
+    """
+    Health check endpoint for search.
+
+    Exercises the search index connection with a real query.
+    """
+    return health_check()
 
 
-# TODO: we need something more robust here; this is just to get us rolling.
 def _browse_url(name: str, **parameters: Any) -> Optional[str]:
     """Generate a URL for a browse route."""
     paper_id = parameters.get('paper_id')
@@ -63,12 +73,15 @@ def _browse_url(name: str, **parameters: Any) -> Optional[str]:
         return None
     if name == 'abstract':
         route = 'abs'
-    elif name == 'pdf':
+    elif name.startswith('pdf'):
         route = 'pdf'
+    elif name == 'other':
+        route = 'format'
+    elif name == 'ps':
+        route = 'ps'
     return urljoin('https://arxiv.org', '/%s/%s' % (route, paper_id))
 
 
-# TODO: we need something more robust here; this is just to get us rolling.
 @blueprint.context_processor
 def external_url_builder() -> Dict[str, Callable]:
     """Add an external URL builder function to the template context."""
@@ -110,3 +123,47 @@ def current_url_sans_parameters_builder() -> Dict[str, Callable]:
         url: str = url_unparse(parts)
         return url
     return dict(current_url_sans_parameters=current_url_sans_parameters)
+
+
+@blueprint.context_processor
+def url_for_author_search_builder() -> Dict[str, Callable]:
+    """Inject a function to build author name query URLs."""
+    def url_for_author_search(forename: str, surname: str) -> str:
+        parts = url_parse(url_for('ui.search'))
+        parts = parts.replace(query=url_encode({
+            'searchtype': 'author',
+            'query': f'"{surname}, {forename}"'
+        }))
+        url: str = url_unparse(parts)
+        return url
+    return dict(url_for_author_search=url_for_author_search)
+
+
+@blueprint.context_processor
+def url_with_params_builder() -> Dict[str, Callable]:
+    """Inject a URL builder that handles GET parameters."""
+    def url_with_params(name: str, values: dict, params: dict) -> str:
+        """Build a URL for ``name`` with path ``values`` and GET ``params``."""
+        parts = url_parse(url_for(name, **values))
+        parts = parts.replace(query=url_encode(params))
+        url: str = url_unparse(parts)
+        return url
+    return dict(url_with_params=url_with_params)
+
+
+@blueprint.context_processor
+def is_current_builder() -> Dict[str, Callable]:
+    """Inject a function to evaluate whether or not a result is current."""
+    def is_current(result: dict) -> bool:
+        """Determine whether the result is the current version."""
+        if result['submitted_date_all'] is None:
+            return bool(result['is_current'])
+        try:
+            return bool(
+                result['is_current']
+                and result['version'] == len(result['submitted_date_all'])
+            )
+        except Exception as e:
+            return True
+        return False
+    return dict(is_current=is_current)

@@ -1,7 +1,7 @@
 """Base domain classes for search service."""
 
 from typing import Any, Optional, List, Dict
-from datetime import datetime
+from datetime import datetime, date
 from operator import attrgetter
 from pytz import timezone
 import re
@@ -14,7 +14,7 @@ EASTERN = timezone('US/Eastern')
 
 def asdict(obj: Any) -> dict:
     """Coerce a dataclass object to a dict."""
-    return {key: value for key, value in _asdict(obj).items() if value}
+    return {key: value for key, value in _asdict(obj).items()}
 
 
 @dataclass
@@ -33,8 +33,8 @@ class DocMeta:
     modified_date: str = field(default_factory=str)
     updated_date: str = field(default_factory=str)
     announced_date_first: str = field(default_factory=str)
-    is_current: bool = True
-    is_withdrawn: bool = False
+    is_current: bool = field(default=True)
+    is_withdrawn: bool = field(default=False)
     license: Dict[str, str] = field(default_factory=dict)
     primary_classification: Dict[str, str] = field(default_factory=dict)
     secondary_classification: List[Dict[str, str]] = \
@@ -42,14 +42,14 @@ class DocMeta:
     title: str = field(default_factory=str)
     title_utf8: str = field(default_factory=str)
     source: Dict[str, Any] = field(default_factory=dict)
-    version: int = 1
+    version: int = field(default=1)
     submitter: Dict[str, str] = field(default_factory=dict)
     report_num: str = field(default_factory=str)
-    proxy: bool = False
+    proxy: bool = field(default=False)
     msc_class: str = field(default_factory=str)
     acm_class: str = field(default_factory=str)
-    metadata_id: int = -1
-    document_id: int = -1
+    metadata_id: int = field(default=-1)
+    document_id: int = field(default=-1)
     journal_ref: str = field(default_factory=str)
     journal_ref_utf8: str = field(default_factory=str)
     doi: str = field(default_factory=str)
@@ -57,6 +57,8 @@ class DocMeta:
     comments_utf8: str = field(default_factory=str)
     abs_categories: str = field(default_factory=str)
     formats: List[str] = field(default_factory=list)
+    latest_version: int = field(default=1)
+    latest: str = field(default_factory=str)
 
 
 @dataclass
@@ -120,9 +122,10 @@ class ClassificationList(list):
 class Query:
     """Represents a search query originating from the UI or API."""
 
-    order: Optional[str] = None
-    page_size: int = 25
-    page_start: int = 0
+    order: Optional[str] = field(default=None)
+    page_size: int = field(default=50)
+    page_start: int = field(default=0)
+    include_older_versions: bool = field(default=False)
 
     @property
     def page_end(self) -> int:
@@ -147,32 +150,34 @@ class Query:
 class SimpleQuery(Query):
     """Represents a simple search query."""
 
-    field: str = ''
-    value: str = ''
+    search_field: str = field(default_factory=str)
+    value: str = field(default_factory=str)
 
 
 @dataclass(init=True)
 class Document:
     """A search document, representing an arXiv paper."""
 
+    submitted_date: Optional[datetime] = None
+    announced_date_first: Optional[date] = None
+    submitted_date_first: Optional[datetime] = None
+    submitted_date_latest: Optional[datetime] = None
+    submitted_date_all: List[str] = field(default_factory=list)
     id: str = field(default_factory=str)
     abstract: str = field(default_factory=str)
+    abstract_tex: str = field(default_factory=str)
     authors: List[Dict] = field(default_factory=list)
     authors_freeform: str = field(default_factory=str)
     owners: List[Dict] = field(default_factory=list)
-    submitted_date: str = field(default_factory=str)
-    submitted_date_all: List[str] = field(default_factory=list)
-    submitted_date_first: str = field(default_factory=str)
-    submitted_date_latest: str = field(default_factory=str)
     modified_date: str = field(default_factory=str)
     updated_date: str = field(default_factory=str)
-    announced_date_first: str = field(default_factory=str)
     is_current: bool = True
     is_withdrawn: bool = False
     license: Dict[str, str] = field(default_factory=dict)
     paper_id: str = field(default_factory=str)
     paper_id_v: str = field(default_factory=str)
     title: str = field(default_factory=str)
+    title_tex: str = field(default_factory=str)
     title_utf8: str = field(default_factory=str)
     source: Dict[str, Any] = field(default_factory=dict)
     version: int = 1
@@ -197,6 +202,12 @@ class Document:
     )
 
     score: float = 1.0
+
+    highlight: dict = field(default_factory=dict)
+    """Contains highlighted versions of field values."""
+
+    preview: dict = field(default_factory=dict)
+    """Contains truncations of field values for preview/snippet display."""
 
     def __post_init__(self) -> None:
         """Set latest_version, if not already set."""

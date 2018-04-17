@@ -1,12 +1,23 @@
 {
   "settings": {
     "analysis": {
+      "filter": {
+        "english_stop": {
+          "type": "stop",
+          "stopwords": "_english_"
+        },
+        "length_of_two": {
+          "type": "length",
+          "min": 2
+        }
+      },
       "analyzer": {
         "simple": {
           "type": "custom",
           "tokenizer": "standard",
           "filter": [
-            "lowercase"
+            "lowercase",
+            "english_stop"
           ]
         },
         "folding": {
@@ -14,7 +25,25 @@
           "tokenizer": "standard",
           "filter": [
             "icu_folding",
-            "lowercase"
+            "lowercase",
+            "english_stop"
+          ]
+        },
+        "author_simple": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "german_normalization"
+          ]
+        },
+        "author_folding": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": [
+            "icu_folding",
+            "lowercase",
+            "german_normalization"
           ]
         },
         "tex_analyzer": {
@@ -25,7 +54,7 @@
       "tokenizer": {
         "tex_tokenizer": {
           "type": "pattern",
-          "pattern": "\\$([^\\$]+)\\$",
+          "pattern": "(\\$[^\\$]+\\$)",
           "group": 1
         }
       },
@@ -39,6 +68,19 @@
           "filter": [
             "icu_folding",
             "lowercase"
+          ]
+        },
+        "author_simple": {
+          "filter": [
+            "lowercase",
+            "german_normalization"
+          ]
+        },
+        "author_folding": {
+          "filter": [
+            "icu_folding",
+            "lowercase",
+            "german_normalization"
           ]
         }
       }
@@ -65,6 +107,20 @@
             }
           }
         },
+        "abstract_utf8": {
+          "type": "text",
+          "analyzer": "standard",
+          "fields": {
+            "english": {
+              "type": "text",
+              "analyzer": "english"
+            },
+            "tex": {
+              "type": "text",
+              "analyzer": "tex_analyzer"
+            }
+          }
+        },
         "acm_class": {
           "type": "keyword"
         },
@@ -72,38 +128,57 @@
           "type": "nested",
           "properties": {
             "first_name": {
-              "type": "keyword",
-              "normalizer": "simple",
+              "type": "text",
+              "analyzer": "author_folding",
+              "similarity": "classic",
               "fields": {
-                "folded": {
-                  "type": "keyword",
-                  "normalizer": "folding"
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "author_folding"
                 }
               }
             },
             "last_name": {
               "type": "keyword",
-              "normalizer": "simple",
+              "normalizer": "author_simple",
               "fields": {
                 "folded": {
                   "type": "keyword",
-                  "normalizer": "folding"
+                  "normalizer": "author_folding"
                 }
               }
             },
             "initials": {
               "type": "keyword",
-              "normalizer": "simple",
+              "normalizer": "author_simple",
               "fields": {
                 "folded": {
                   "type": "keyword",
-                  "normalizer": "folding"
+                  "normalizer": "author_folding"
                 }
               }
             },
             "full_name": {
               "type": "text",
-              "analyzer": "folding"
+              "analyzer": "author_folding",
+              "similarity": "classic",
+              "fields": {
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "author_folding"
+                }
+              }
+            },
+            "full_name_initialized": {
+              "type": "text",
+              "analyzer": "author_folding",
+              "similarity": "classic",
+              "fields": {
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "author_folding"
+                }
+              }
             },
             "suffix": {
               "type": "keyword"
@@ -115,7 +190,15 @@
               "type": "keyword"
             },
             "affiliation": {
-              "type": "text"
+              "type": "text",
+              "analyzer": "author_folding",
+              "similarity": "classic",
+              "fields": {
+                "exact": {
+                    "type": "keyword",
+                    "normalizer": "author_folding"
+                }
+              }
             }
           }
         },
@@ -363,7 +446,7 @@
         },
         "title": {
           "type": "text",
-          "analyzer": "simple",
+          "analyzer": "standard",
           "search_analyzer": "standard",
           "search_quote_analyzer": "simple",
           "fields": {
@@ -376,6 +459,7 @@
             "tex": {
               "type": "text",
               "analyzer": "tex_analyzer",
+              "store": true,
               "search_analyzer": "tex_analyzer",
               "search_quote_analyzer": "simple"
             },
@@ -386,7 +470,7 @@
         },
         "title_utf8": {
           "type": "text",
-          "analyzer": "simple",
+          "analyzer": "standard",
           "search_analyzer": "standard",
           "search_quote_analyzer": "simple",
           "fields": {

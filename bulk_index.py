@@ -1,107 +1,182 @@
-"""Use this to populate a search index in bulk or prefetch metadata."""
+"""Use this to populate a search index for testing."""
 
+import json
 import os
+import tempfile
 import click
+from itertools import islice, groupby
+from typing import List
 import re
 from search.factory import create_ui_web_app
 from search.agent import MetadataRecordProcessor, DocumentFailed, \
     IndexingFailed
+from search.domain import asdict, DocMeta, Document
+from search.services import metadata, index
+from search.process import transform
 
 app = create_ui_web_app()
 app.app_context().push()
 
 
-def chunks(l, n):
-    """Yield successive n-sized chunks from l."""
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
-
-
 @app.cli.command()
+@click.option('--print_indexable', '-i', is_flag=True,
+              help='Print the indexable JSON to stdout.')
 @click.option('--paper_id', '-p',
               help='Index specified paper id')
 @click.option('--id_list', '-l',
               help="Index paper IDs in a file (one ID per line)")
-@click.option('--alt_cache_dir', '-c',
-              help="Specify alternate cache directory for document metadata")
-@click.option('--prefetch_metadata', '-m', is_flag=True,
-              help="Prefetch latest version document metadata, don't index")
-@click.option('--no_index', '-n', is_flag=True,
-              help="Don't index; use with --prefetch_metadata")
-def populate(paper_id, id_list, alt_cache_dir, prefetch_metadata, no_index):
+@click.option('--load-cache', '-d', is_flag=True,
+              help="Install papers from a cache on disk. Note: this will"
+                   " preempt checking for new versions of papers that are"
+                   " in the cache.")
+@click.option('--cache-dir', '-c', help="Specify the cache directory.")
+def populate(print_indexable: bool, paper_id: str, id_list: str,
+             load_cache: bool, cache_dir: str) -> None:
     """Populate the search index with some test data."""
-    cache_dir = os.path.abspath('tests/data/temp')
-    # Create default cache directory if it doesn't exist
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
-
-    if alt_cache_dir:
-        if not (os.path.exists and os.access(alt_cache_dir, os.W_OK)):
-            click.echo(
-                f'Path does not exist or is not writable: {alt_cache_dir}')
-            return
-        cache_dir = alt_cache_dir
-
-    PAPERS_PER_BULK = 500
-    MAX_ERRORS = int(os.environ.get('MAX_ERRORS', 5))
-
-    processor = MetadataRecordProcessor()
-    processor.init_cache(cache_dir)
-
-    error_count = 0
+    cache_dir = init_cache(cache_dir)
     index_count = 0
-
     if paper_id:    # Index a single paper.
         TO_INDEX = [paper_id]
     elif id_list:   # Index a list of papers.
-        if not os.path.exists(id_list):
-            click.echo('Path does not exist: %s' % id_list)
-            return
-        with open(id_list) as f:
-            TO_INDEX = [ident.strip() for ident in f.read().split()]
+        TO_INDEX = load_id_list(id_list)
+    else:
+        TO_INDEX = load_id_sample()
+    approx_size = len(TO_INDEX)
 
-    docs = []
-    for arxiv_id in TO_INDEX:
-        m = re.search(r'^(?P<paper_id>.+?)(v[\d]+)?$', arxiv_id)
-        if m and m.group('paper_id'):
-            arxiv_id = m.group('paper_id')
-        docs.append(arxiv_id)
+    retrieve_chunk_size = 50
+    index_chunk_size = 250
+    chunk: List[str] = []
+    meta: List[DocMeta] = []
 
-    # TODO: currently only works for latest version
-    # TODO: lower McCabe index
-    if prefetch_metadata:
-        click.echo(f'Prefetching metdata for {len(docs)} papers...')
-        with click.progressbar(length=len(docs),
-                               label='Metadata fetched') as metadata_bar:
-            try:
-                for arxiv_id in docs:
-                    if error_count >= MAX_ERRORS:
-                        click.echo('Too many errors fetching '
-                                   'metadata. Aborting.')
-                        return
-                    metadata_bar.update(1)
-                    processor._get_metadata(arxiv_id)
-            except DocumentFailed:
-                error_count += 1
-        if no_index:
-            return
+    try:
+        with click.progressbar(length=approx_size,
+                               label='Papers indexed') as index_bar:
+            last = len(TO_INDEX) - 1
+            for i, paper_id in enumerate(TO_INDEX):
+                if load_cache:
+                    try:
+                        meta += from_cache(cache_dir, paper_id)
+                        continue
+                    except RuntimeError as e:    # No document.
+                        pass
 
-    click.echo(f'Indexing {len(docs)} papers...')
-    with click.progressbar(length=len(docs),
-                           label='Papers indexed') as index_bar:
-        num_chunks = 0
-        for chunk in chunks(docs, PAPERS_PER_BULK):
-            try:
-                num_chunks += 1
-                processor.index_papers(chunk)
-                index_count += len(chunk)
-                index_bar.update(len(chunk))
-            except DocumentFailed:
-                error_count += 1
-            except IndexingFailed as e:
-                click.echo('Indexing failed, aborting: %s' % str(e))
-                return
-        click.echo(f'\nDone indexing {index_count} papers.')
+                chunk.append(paper_id)
+                if len(chunk) == retrieve_chunk_size or i == last:
+                    try:
+                        new_meta = metadata.bulk_retrieve(chunk)
+                    except metadata.ConnectionFailed as e:  # Try again.
+                        new_meta = metadata.bulk_retrieve(chunk)
+                    # Add metadata to the cache.
+                    key = lambda dm: dm.paper_id
+                    new_meta_srt = sorted(new_meta, key=key)
+                    for paper_id, grp in groupby(new_meta_srt, key):
+                        to_cache(cache_dir, paper_id, [dm for dm in grp])
+                    meta += new_meta
+                    chunk = []
+
+                # Index papers on a different chunk cycle, and at the very end.
+                if len(meta) >= index_chunk_size or i == last:
+                    # Transform to Document.
+                    documents = [
+                        transform.to_search_document(dm) for dm in meta
+                    ]
+                    # Add to index.
+                    index.bulk_add_documents(documents)
+
+                    if print_indexable:
+                        for document in documents:
+                            click.echo(json.dumps(asdict(document)))
+                    index_count += len(documents)
+                    meta = []
+                    index_bar.update(i)
+
+    except Exception as e:
+        raise RuntimeError('Populate failed: %s' % str(e)) from e
+
+    finally:
+        click.echo(f"Indexed {index_count} documents in total")
+        click.echo(f"Cache path: {cache_dir}; use `-c {cache_dir}` to reuse in"
+                   f" subsequent calls")
+
+
+def init_cache(cache_dir: str) -> None:
+    """Configure the processor to use a local cache for docmeta."""
+    # Create cache directory if it doesn't exist
+    if not (cache_dir and os.path.exists(cache_dir)
+            and os.access(cache_dir, os.W_OK)):
+        cache_dir = tempfile.mkdtemp()
+    return cache_dir
+
+
+def from_cache(cache_dir: str, arxiv_id: str) -> List[DocMeta]:
+    """
+    Get the docmeta document from a local cache, if available.
+
+    Parameters
+    ----------
+    arxiv_id : str
+
+    Returns
+    -------
+    :class:`.DocMeta`
+
+    Raises
+    ------
+    RuntimeError
+        Raised when the cache is not available, or the document could not
+        be found in the cache.
+
+    """
+    fname = '%s.json' % arxiv_id.replace('/', '_')
+    cache_path = os.path.join(cache_dir, fname)
+    if not os.path.exists(cache_path):
+        raise RuntimeError('No cached document')
+
+    with open(cache_path) as f:
+        data: dict = json.load(f)
+        return [DocMeta(**datum) for datum in data]  # type: ignore
+        # See https://github.com/python/mypy/issues/3937
+
+
+def to_cache(cache_dir: str, arxiv_id: str, docmeta: List[DocMeta]) -> None:
+    """
+    Add a document to the local cache, if available.
+
+    Parameters
+    ----------
+    arxiv_id : str
+    docmeta : :class:`.DocMeta`
+
+    Raises
+    ------
+    RuntimeError
+        Raised when the cache is not available, or the document could not
+        be added to the cache.
+
+    """
+    fname = '%s.json' % arxiv_id.replace('/', '_')
+    cache_path = os.path.join(cache_dir, fname)
+    try:
+        with open(cache_path, 'w') as f:
+            json.dump([asdict(dm) for dm in docmeta], f)
+    except Exception as e:
+        raise RuntimeError(str(e)) from e
+
+
+def load_id_list(path: str) -> List[str]:
+    """Load a list of paper IDs from ``path``."""
+    if not os.path.exists(path):
+        raise RuntimeError('Path does not exist: %s' % path)
+        return
+    with open(path) as f:
+        # Stream from the file, in case it's large.
+        return [ident.strip() for ident in f]
+
+
+def load_id_sample() -> List[str]:
+    """Load a list of IDs from the testing sample."""
+    with open('tests/data/sample.json') as f:
+        return [datum['id'] for datum in json.load(f).get('sample')]
 
 
 if __name__ == '__main__':

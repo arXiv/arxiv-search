@@ -3,9 +3,10 @@ omit =
     app.py
     setup.py
     docs/*
-    tests/*
+    test*
     wsgi.py
     populate_test_metadata.py
+    upload_static_assets.py
     create_index.py
     bulk_index.py
     shard_ids_for_index.py

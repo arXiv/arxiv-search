@@ -19,28 +19,30 @@ class SimpleSearchForm(Form):
         ('author', 'Author(s)'),
         ('abstract', 'Abstract'),
         ('comments', 'Comments'),
-        ('journal_ref', 'Journal ref'),
+        ('journal_ref', 'Journal reference'),
         ('acm_class', 'ACM classification'),
         ('msc_class', 'MSC classification'),
         ('report_num', 'Report number'),
-        ('paper_id', 'Identifier'),
+        ('paper_id', 'arXiv identifier'),
         ('doi', 'DOI'),
         ('orcid', 'ORCID'),
-        ('author_id', 'Author ID')
+        ('author_id', 'arXiv author ID')
     ])
     query = StringField('Search or Article ID',
                         filters=[stripWhiteSpace],
                         validators=[doesNotStartWithWildcard])
-    size = SelectField('results per page', default=25, choices=[
-        ('25', '25'),
+    size = SelectField('results per page', default=50, choices=[
         ('50', '50'),
-        ('100', '100')
+        ('100', '100'),
+        ('200', '200')
     ])
     order = SelectField('Sort results by', choices=[
-        ('', 'Relevance'),
-        ('submitted_date', 'Submission date (ascending)'),
-        ('-submitted_date', 'Submission date (descending)'),
-    ], validators=[validators.Optional()])
+        ('-announced_date_first', 'Announcement date (newest first)'),
+        ('announced_date_first', 'Announcement date (oldest first)'),
+        ('-submitted_date', 'Submission date (newest first)'),
+        ('submitted_date', 'Submission date (oldest first)'),
+        ('', 'Relevance')
+    ], validators=[validators.Optional()], default='-announced_date_first')
 
     def validate_query(form: Form, field: StringField) -> None:
         """Validate the length of the querystring, if searchtype is set."""

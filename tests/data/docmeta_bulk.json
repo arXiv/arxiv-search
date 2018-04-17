@@ -1,0 +1,294 @@
+[
+  {
+    "comments":"MPGD2015 (4th Conference on Micro-Pattern Gaseous Detectors, Trieste, Italy, 12 - 15 October, 2015). 4 pages, 8 figures",
+    "announced_date_first":"2016-01",
+    "submitted_date_all":[
+      "2016-01-01T18:15:35-0500",
+      "2016-01-12T12:13:31-0500"
+    ],
+    "formats":[
+      "pdf",
+      "ps",
+      "other"
+    ],
+    "is_current":false,
+    "author_owners":[
+      {
+        "last_name":"Papaevangelou",
+        "first_name":"Thomas"
+      }
+    ],
+    "primary_classification":{
+      "group":{
+        "name":"Physics",
+        "id":"physics"
+      },
+      "archive":{
+        "name":"Physics",
+        "id":"physics"
+      },
+      "category":{
+        "name":"Instrumentation and Detectors",
+        "id":"physics.ins-det"
+      }
+    },
+    "doi":null,
+    "authors_utf8":"Thomas Papaevangelou, Esther Ferrer-Ribas, Ioannis Giomataris, Cyprien Godinot, Diego Gonzalez Diaz, Thomas Gustavsson, Mariam Kebbiri, Eraldo Oliveri, Filippo Resnati, Leszek Ropelewski, Georgios Tsiledakis, Rob Veenhof, Sebastian White",
+    "authors":"Thomas Papaevangelou, Esther Ferrer-Ribas, Ioannis Giomataris, Cyprien Godinot, Diego Gonzalez Diaz, Thomas Gustavsson, Mariam Kebbiri, Eraldo Oliveri, Filippo Resnati, Leszek Ropelewski, Georgios Tsiledakis, Rob Veenhof, Sebastian White",
+    "secondary_classification":[
+      {
+        "group":{
+          "name":"Physics",
+          "id":"physics"
+        },
+        "archive":{
+          "name":"High Energy Physics - Experiment",
+          "id":"hep-ex"
+        },
+        "category":{
+          "name":"High Energy Physics - Experiment",
+          "id":"hep-ex"
+        }
+      }
+    ],
+    "modified_date":"2016-01-04T20:05:00-0500",
+    "document_id":1120431,
+    "msc_class":null,
+    "is_withdrawn":false,
+    "comments_utf8":"MPGD2015 (4th Conference on Micro-Pattern Gaseous Detectors, Trieste, Italy, 12 - 15 October, 2015). 4 pages, 8 figures",
+    "abstract":"The current state of the art in fast timing resolution for existing experiments is of the order of 100 ps on the time of arrival of both charged particles and electromagnetic showers. Current R&D on charged particle timing is approaching the level of 10 ps but is not primarily directed at sustained performance at high rates and under high radiation (as would be needed for HL-LHC pileup mitigation). We demonstrate a Micromegas based solution to reach this level of performance. The Micromegas acts as a photomultiplier coupled to a Cerenkov-radiator front window, which produces sufficient UV photons to convert the ~100 ps single-photoelectron jitter into a timing response of the order of 10-20 ps per incident charged particle. A prototype has been built in order to demonstrate this performance. The first laboratory tests with a pico-second laser have shown a time resolution of the order of 27 ps for ~50 primary photoelectrons, using a bulk Micromegas readout.",
+    "title":"Fast Timing for High-Rate Environments with Micromegas",
+    "journal_ref":null,
+    "proxy":null,
+    "submitter":{
+      "is_author":true,
+      "email":"thomas.papaevangelou@cea.fr",
+      "name":"Thomas Papaevangelou",
+      "name_utf8":"Thomas Papaevangelou"
+    },
+    "paper_id":"1601.00123",
+    "source":{
+      "flags":"",
+      "format":"tex",
+      "size_bytes":260834
+    },
+    "title_utf8":"Fast Timing for High-Rate Environments with Micromegas",
+    "latest":"1601.00123v2",
+    "submitted_date":"2016-01-01T18:15:35-0500",
+    "abs_categories":"physics.ins-det hep-ex",
+    "metadata_id":1680166,
+    "acm_class":null,
+    "report_num":null,
+    "version":1,
+    "abstract_utf8":"The current state of the art in fast timing resolution for existing experiments is of the order of 100 ps on the time of arrival of both charged particles and electromagnetic showers. Current R&D on charged particle timing is approaching the level of 10 ps but is not primarily directed at sustained performance at high rates and under high radiation (as would be needed for HL-LHC pileup mitigation). We demonstrate a Micromegas based solution to reach this level of performance. The Micromegas acts as a photomultiplier coupled to a Cerenkov-radiator front window, which produces sufficient UV photons to convert the ~100 ps single-photoelectron jitter into a timing response of the order of 10-20 ps per incident charged particle. A prototype has been built in order to demonstrate this performance. The first laboratory tests with a pico-second laser have shown a time resolution of the order of 27 ps for ~50 primary photoelectrons, using a bulk Micromegas readout.",
+    "latest_version":2,
+    "journal_ref_utf8":null,
+    "license":{
+      "label":"arXiv.org perpetual, non-exclusive license to distribute this article",
+      "uri":"http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+    },
+    "authors_parsed":[
+      {
+        "last_name":"Papaevangelou",
+        "first_name":"Thomas"
+      },
+      {
+        "last_name":"Ferrer-Ribas",
+        "first_name":"Esther"
+      },
+      {
+        "last_name":"Giomataris",
+        "first_name":"Ioannis"
+      },
+      {
+        "last_name":"Godinot",
+        "first_name":"Cyprien"
+      },
+      {
+        "last_name":"Diaz",
+        "first_name":"Diego Gonzalez"
+      },
+      {
+        "last_name":"Gustavsson",
+        "first_name":"Thomas"
+      },
+      {
+        "last_name":"Kebbiri",
+        "first_name":"Mariam"
+      },
+      {
+        "last_name":"Oliveri",
+        "first_name":"Eraldo"
+      },
+      {
+        "last_name":"Resnati",
+        "first_name":"Filippo"
+      },
+      {
+        "last_name":"Ropelewski",
+        "first_name":"Leszek"
+      },
+      {
+        "last_name":"Tsiledakis",
+        "first_name":"Georgios"
+      },
+      {
+        "last_name":"Veenhof",
+        "first_name":"Rob"
+      },
+      {
+        "last_name":"White",
+        "first_name":"Sebastian"
+      }
+    ],
+    "updated_date":null
+  },
+  {
+    "comments":"MPGD2015 (4th Conference on Micro-Pattern Gaseous Detectors, Trieste, Italy, 12 - 15 October, 2015). 5 pages, 8 figures",
+    "announced_date_first":"2016-01",
+    "submitted_date_all":[
+      "2016-01-01T18:15:35-0500",
+      "2016-01-12T12:13:31-0500"
+    ],
+    "formats":[
+      "pdf",
+      "ps",
+      "other"
+    ],
+    "is_current":true,
+    "author_owners":[
+      {
+        "last_name":"Papaevangelou",
+        "first_name":"Thomas"
+      }
+    ],
+    "primary_classification":{
+      "group":{
+        "name":"Physics",
+        "id":"physics"
+      },
+      "archive":{
+        "name":"Physics",
+        "id":"physics"
+      },
+      "category":{
+        "name":"Instrumentation and Detectors",
+        "id":"physics.ins-det"
+      }
+    },
+    "doi":null,
+    "authors_utf8":"Thomas Papaevangelou, Daniel Desforge, Esther Ferrer-Ribas, Ioannis Giomataris, Cyprien Godinot, Diego Gonzalez Diaz, Thomas Gustavsson, Mariam Kebbiri, Eraldo Oliveri, Filippo Resnati, Leszek Ropelewski, Georgios Tsiledakis, Rob Veenhof, Sebastian White",
+    "authors":"Thomas Papaevangelou, Daniel Desforge, Esther Ferrer-Ribas, Ioannis Giomataris, Cyprien Godinot, Diego Gonzalez Diaz, Thomas Gustavsson, Mariam Kebbiri, Eraldo Oliveri, Filippo Resnati, Leszek Ropelewski, Georgios Tsiledakis, Rob Veenhof, Sebastian White",
+    "secondary_classification":[
+      {
+        "group":{
+          "name":"Physics",
+          "id":"physics"
+        },
+        "archive":{
+          "name":"High Energy Physics - Experiment",
+          "id":"hep-ex"
+        },
+        "category":{
+          "name":"High Energy Physics - Experiment",
+          "id":"hep-ex"
+        }
+      }
+    ],
+    "modified_date":"2016-01-12T20:11:33-0500",
+    "document_id":1120431,
+    "msc_class":null,
+    "is_withdrawn":false,
+    "comments_utf8":"MPGD2015 (4th Conference on Micro-Pattern Gaseous Detectors, Trieste, Italy, 12 - 15 October, 2015). 5 pages, 8 figures",
+    "abstract":"The current state of the art in fast timing resolution for existing experiments is of the order of 100 ps on the time of arrival of both charged particles and electromagnetic showers. Current R&D on charged particle timing is approaching the level of 10 ps but is not primarily directed at sustained performance at high rates and under high radiation (as would be needed for HL-LHC pileup mitigation). We demonstrate a Micromegas based solution to reach this level of performance. The Micromegas acts as a photomultiplier coupled to a Cerenkov-radiator front window, which produces sufficient UV photons to convert the ~100 ps single-photoelectron jitter into a timing response of the order of 10-20 ps per incident charged particle. A prototype has been built in order to demonstrate this performance. The first laboratory tests with a pico-second laser have shown a time resolution of the order of 27 ps for ~50 primary photoelectrons, using a bulk Micromegas readout.",
+    "title":"Fast Timing for High-Rate Environments with Micromegas",
+    "journal_ref":null,
+    "proxy":null,
+    "submitter":{
+      "is_author":true,
+      "email":"thomas.papaevangelou@cea.fr",
+      "name":"Thomas Papaevangelou",
+      "name_utf8":"Thomas Papaevangelou"
+    },
+    "paper_id":"1601.00123",
+    "source":{
+      "flags":"",
+      "format":"tex",
+      "size_bytes":234656
+    },
+    "title_utf8":"Fast Timing for High-Rate Environments with Micromegas",
+    "latest":"1601.00123v2",
+    "submitted_date":"2016-01-12T12:13:31-0500",
+    "abs_categories":"physics.ins-det hep-ex",
+    "metadata_id":1684894,
+    "acm_class":null,
+    "report_num":null,
+    "version":2,
+    "abstract_utf8":"The current state of the art in fast timing resolution for existing experiments is of the order of 100 ps on the time of arrival of both charged particles and electromagnetic showers. Current R&D on charged particle timing is approaching the level of 10 ps but is not primarily directed at sustained performance at high rates and under high radiation (as would be needed for HL-LHC pileup mitigation). We demonstrate a Micromegas based solution to reach this level of performance. The Micromegas acts as a photomultiplier coupled to a Cerenkov-radiator front window, which produces sufficient UV photons to convert the ~100 ps single-photoelectron jitter into a timing response of the order of 10-20 ps per incident charged particle. A prototype has been built in order to demonstrate this performance. The first laboratory tests with a pico-second laser have shown a time resolution of the order of 27 ps for ~50 primary photoelectrons, using a bulk Micromegas readout.",
+    "latest_version":2,
+    "journal_ref_utf8":null,
+    "license":{
+      "label":"arXiv.org perpetual, non-exclusive license to distribute this article",
+      "uri":"http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+    },
+    "authors_parsed":[
+      {
+        "last_name":"Papaevangelou",
+        "first_name":"Thomas"
+      },
+      {
+        "last_name":"Desforge",
+        "first_name":"Daniel"
+      },
+      {
+        "last_name":"Ferrer-Ribas",
+        "first_name":"Esther"
+      },
+      {
+        "last_name":"Giomataris",
+        "first_name":"Ioannis"
+      },
+      {
+        "last_name":"Godinot",
+        "first_name":"Cyprien"
+      },
+      {
+        "last_name":"Diaz",
+        "first_name":"Diego Gonzalez"
+      },
+      {
+        "last_name":"Gustavsson",
+        "first_name":"Thomas"
+      },
+      {
+        "last_name":"Kebbiri",
+        "first_name":"Mariam"
+      },
+      {
+        "last_name":"Oliveri",
+        "first_name":"Eraldo"
+      },
+      {
+        "last_name":"Resnati",
+        "first_name":"Filippo"
+      },
+      {
+        "last_name":"Ropelewski",
+        "first_name":"Leszek"
+      },
+      {
+        "last_name":"Tsiledakis",
+        "first_name":"Georgios"
+      },
+      {
+        "last_name":"Veenhof",
+        "first_name":"Rob"
+      },
+      {
+        "last_name":"White",
+        "first_name":"Sebastian"
+      }
+    ],
+    "updated_date":null
+  }
+]

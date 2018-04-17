@@ -1,15 +1,17 @@
 """Provides a record processor for MetadataIsAvailable notifications."""
+from typing import Dict, List
 
 import json
 import os
 from typing import List, Any, Optional
-from search import logging
+from arxiv.base import logging
 from search.services import metadata, index
 from search.process import transform
 from search.domain import DocMeta, Document, asdict
-from .base import BaseRecordProcessor, ProcessRecordsInput
+from .base import BaseConsumer
 
 logger = logging.getLogger(__name__)
+logger.propagate = False
 
 
 class DocumentFailed(RuntimeError):
@@ -20,7 +22,7 @@ class IndexingFailed(RuntimeError):
     """Raised when indexing failed such that future success is unlikely."""
 
 
-class MetadataRecordProcessor(BaseRecordProcessor):
+class MetadataRecordProcessor(BaseConsumer):
     """Consumes ``MetadataIsAvailable`` notifications, updates the index."""
 
     MAX_ERRORS = 5
@@ -28,76 +30,8 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize exception counter."""
-        cache_dir = kwargs.pop('cache_dir', None)
         super(MetadataRecordProcessor, self).__init__(*args, **kwargs)  # type: ignore
         self._error_count = 0
-        self._cache: Optional[str] = None
-        if cache_dir:
-            self.init_cache(cache_dir)
-
-    def init_cache(self, cache_dir: str) -> None:
-        """Configure the processor to use a local cache for docmeta."""
-        if not os.path.exists(cache_dir):
-            raise ValueError(f'cache_dir does not exist: {cache_dir}')
-        self._cache = cache_dir
-
-    def _from_cache(self, arxiv_id: str) -> DocMeta:
-        """
-        Get the docmeta document from a local cache, if available.
-
-        Parameters
-        ----------
-        arxiv_id : str
-
-        Returns
-        -------
-        :class:`.DocMeta`
-
-        Raises
-        ------
-        RuntimeError
-            Raised when the cache is not available, or the document could not
-            be found in the cache.
-
-        """
-        if not self._cache:
-            raise RuntimeError('Cache not set')
-
-        fname = '%s.json' % arxiv_id.replace('/', '_')
-        cache_path = os.path.join(self._cache, fname)
-        if not os.path.exists(cache_path):
-            raise RuntimeError('No cached document')
-
-        with open(cache_path) as f:
-            data: dict = json.load(f)
-            return DocMeta(**data)  # type: ignore
-            # See https://github.com/python/mypy/issues/3937
-
-    def _to_cache(self, arxiv_id: str, docmeta: DocMeta) -> None:
-        """
-        Add a document to the local cache, if available.
-
-        Parameters
-        ----------
-        arxiv_id : str
-        docmeta : :class:`.DocMeta`
-
-        Raises
-        ------
-        RuntimeError
-            Raised when the cache is not available, or the document could not
-            be added to the cache.
-
-        """
-        if not self._cache:
-            raise RuntimeError('Cache not set')
-        fname = '%s.json' % arxiv_id.replace('/', '_')
-        cache_path = os.path.join(self._cache, fname)
-        try:
-            with open(cache_path, 'w') as f:
-                json.dump(asdict(docmeta), f)
-        except Exception as e:
-            raise RuntimeError(str(e)) from e
 
     # TODO: bring McCabe index down.
     def _get_metadata(self, arxiv_id: str) -> DocMeta:
@@ -125,11 +59,6 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
         """
         logger.debug(f'{arxiv_id}: get metadata')
-        try:
-            return self._from_cache(arxiv_id)
-        except Exception as e:  # Low tolerance for failure,
-            rsn = str(e)
-            logger.debug(f'{arxiv_id}: could not retrieve from cache: {rsn}')
 
         try:
             logger.debug(f'{arxiv_id}: requesting metadata')
@@ -156,14 +85,62 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         except Exception as e:
             logger.error(f'{arxiv_id}: unhandled error, metadata service: {e}')
             raise IndexingFailed('Unhandled exception') from e
-
-        try:
-            self._to_cache(arxiv_id, docmeta)
-        except Exception as e:
-            rsn = str(e)
-            logger.debug(f'{arxiv_id}: could not add to cache: {rsn}')
-
         return docmeta
+
+    def _get_bulk_metadata(self, arxiv_ids: List[str]) -> List[DocMeta]:
+        """
+        Retrieve metadata from :mod:`.metadata` service for multiple documents.
+
+        Parameters
+        ----------
+        arxiv_id : str
+            Am arXiv identifier, with or without a version affix.
+
+        Returns
+        -------
+        Dict[str, :class:`.DocMeta`]
+            A dictionary containing arxiv_ids as keys and DocMeta objects as
+            values.
+
+        Raises
+        ------
+        DocumentFailed
+            Indexing of the document failed. This may have no bearing on the
+            success of subsequent papers.
+        IndexingFailed
+            Indexing of the document failed in a way that indicates recovery
+            is unlikely for subsequent papers.
+
+        """
+        logger.debug(f'{arxiv_ids}: get bulk metadata')
+        meta: List[DocMeta]
+        try:
+            logger.debug(f'{arxiv_ids}: requesting bulk metadata')
+            meta = metadata.bulk_retrieve(arxiv_ids)
+            return meta
+        except metadata.ConnectionFailed as e:
+            # The metadata service will retry bad responses, but not connection
+            # errors. Sometimes it just takes another try, so why not.
+            logger.warning(f'{arxiv_ids}: first attempt failed, retrying')
+            try:
+                meta = metadata.bulk_retrieve(arxiv_ids)
+                return meta
+            except metadata.ConnectionFailed as e:
+                # Things really are looking bad. There is no need to keep
+                # trying with subsequent records, so let's abort entirely.
+                logger.error(f'{arxiv_ids}: second attempt failed, giving up')
+                raise IndexingFailed(
+                    'Indexing failed; metadata endpoint could not be reached.'
+                ) from e
+        except metadata.RequestFailed as e:
+            logger.error(f'{arxiv_ids}: request failed')
+            raise DocumentFailed('Request to metadata service failed') from e
+        except metadata.BadResponse as e:
+            logger.error(f'{arxiv_ids}: bad response from metadata service')
+            raise DocumentFailed('Bad response from metadata service') from e
+        except Exception as e:
+            logger.error(f'{arxiv_ids}: unhandled error, metadata svc: {e}')
+            raise IndexingFailed('Unhandled exception') from e
 
     @staticmethod
     def _transform_to_document(docmeta: DocMeta) -> Document:
@@ -271,7 +248,7 @@ class MetadataRecordProcessor(BaseRecordProcessor):
 
         Parameters
         ----------
-        arxiv_id : List[str]
+        arxiv_ids : List[str]
             A list of **versionless** arXiv e-print identifiers.
 
         Raises
@@ -286,49 +263,20 @@ class MetadataRecordProcessor(BaseRecordProcessor):
         """
         try:
             documents = []
-            for arxiv_id in arxiv_ids:
-                logger.debug(f'{arxiv_id}: get metadata')
-                docmeta = self._get_metadata(arxiv_id)
-                logger.debug(f'{arxiv_id}: transform to indexable document')
+            for docmeta in self._get_bulk_metadata(arxiv_ids):
+                logger.debug(f'{docmeta.paper_id}: transform to Document')
                 document = MetadataRecordProcessor._transform_to_document(
                     docmeta
                 )
-                current_version = docmeta.version
-                logger.debug(f'current version is {current_version}')
-                if current_version is not None and current_version > 1:
-                    for version in range(1, current_version):
-                        ver_docmeta = self._get_metadata(
-                            f'{arxiv_id}v{version}')
-                        ver_document =\
-                            MetadataRecordProcessor._transform_to_document(
-                                ver_docmeta)
-
-                        # The earlier versions are here primarily to respond to
-                        # queries that explicitly specify the version number.
-                        ver_document.is_current = False
-
-                        # Add a reference to the most recent version.
-                        ver_document.latest = f'{arxiv_id}v{current_version}'
-                        ver_document.latest_version = current_version
-
-                        # Set the primary document ID to the version-specied
-                        # arXiv identifier, to avoid clobbering the latest
-                        # version.
-                        ver_document.id = f'{arxiv_id}v{version}'
-                        documents.append(ver_document)
-
-                # Finally, ensure the most recent version gets indexed.
-                document.is_current = True
                 documents.append(document)
             logger.debug('add to index in bulk')
             MetadataRecordProcessor._bulk_add_to_index(documents)
         except (DocumentFailed, IndexingFailed) as e:
             # We just pass these along so that process_record() can keep track.
-            logger.debug(f'{arxiv_id}: Document failed: {e}')
+            logger.debug(f'{arxiv_ids}: Document failed: {e}')
             raise e
 
-    def process_record(self, data: bytes, partition_key: bytes,
-                       sequence_number: int, sub_sequence_number: int) -> None:
+    def process_record(self, record: dict) -> None:
         """
         Call for each record that is passed to process_records.
 
@@ -347,15 +295,17 @@ class MetadataRecordProcessor(BaseRecordProcessor):
             documents failed.
 
         """
+        logger.info(f'Processing record {record["SequenceNumber"]}')
         if self._error_count > self.MAX_ERRORS:
             raise IndexingFailed('Too many errors')
 
         try:
-            deserialized = json.loads(data.decode('utf-8'))
-        except Exception as e:
-            logger.error("Error while deserializing data: %s", e)
-            logger.error("Data payload: %s", data)
-            return   # Don't bring down the whole batch.
+            deserialized = json.loads(record['Data'].decode('utf-8'))
+        except json.decoder.JSONDecodeError as e:
+            logger.error("Error while deserializing data %s", e)
+            logger.error("Data payload: %s", record['Data'])
+            raise DocumentFailed('Could not deserialize record data')
+            # return   # Don't bring down the whole batch.
 
         try:
             arxiv_id: str = deserialized.get('document_id')

@@ -1,9 +1,9 @@
 """Responsible for transforming metadata & fulltext into a search document."""
 
 from string import punctuation
+import re
 from typing import Callable, Dict, List, Optional, Tuple, Union
 from search.domain import Document, DocMeta, Fulltext
-
 
 DEFAULT_LICENSE = {
     'uri': 'http://arxiv.org/licenses/assumed-1991-2003/',
@@ -25,8 +25,6 @@ def _strip_punctuation(s: str) -> str:
 
 def _constructPaperVersion(meta: DocMeta) -> str:
     """Generate a version-qualified paper ID."""
-    if 'v' in meta.paper_id:
-        return meta.paper_id
     return '%sv%i' % (meta.paper_id, meta.version)
 
 
@@ -45,9 +43,12 @@ def _constructACMClass(meta: DocMeta) -> Optional[list]:
 
 
 def _transformAuthor(author: dict) -> dict:
-    fname = _strip_punctuation(author['first_name'])
-    author['initials'] = [pt[0] for pt in fname.split() if pt]
-    author['full_name'] = f"{author['first_name']} {author['last_name']}"
+    author['first_name'] = _strip_punctuation(author['first_name']).strip()
+    author['full_name'] = re.sub(r'\s+', ' ', f"{author['first_name']} {author['last_name']}")
+    author['initials'] = [pt[0] for pt in author['first_name'].split() if pt]
+    # initials = ' '.join(author["initials"])
+    name_parts = author['first_name'].split() + author['last_name'].split()
+    author['full_name_initialized'] = ' '.join([part[0] for part in name_parts[:-1]] + [name_parts[-1]])
     return author
 
 
@@ -71,9 +72,15 @@ def _getLastSubDate(meta: DocMeta) -> Optional[str]:
     return meta.submitted_date_all[-1]
 
 
+def _constructDOI(meta: DocMeta) -> List[str]:
+    if meta.doi:
+        return meta.doi.split()
+    return []
+
+
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType, bool]] = [
-    ("id", "paper_id", True),
+    ("id", lambda meta: meta.paper_id if meta.is_current else _constructPaperVersion(meta), True),
     ("abstract", "abstract", False),
     ("authors", _constructAuthors, True),
     ("authors_freeform", "authors_utf8", False),
@@ -95,6 +102,7 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("secondary_classification", "secondary_classification", True),
     ("title", "title", True),
     ("title_utf8", "title_utf8", True),
+    # ("title_tex", "title", True),
     ("source", "source", True),
     ("version", "version", True),
     ("submitter", "submitter", False),
@@ -103,11 +111,13 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("msc_class", _constructMSCClass, False),
     ("metadata_id", "metadata_id", False),
     ("journal_ref", "journal_ref_utf8", False),
-    ("doi", "doi", False),
+    ("doi", _constructDOI, False),
     ("comments", "comments_utf8", False),
     ("acm_class", _constructACMClass, False),
     ("abs_categories", "abs_categories", False),
-    ("formats", "formats", True)
+    ("formats", "formats", True),
+    ("latest_version", "latest_version", True),
+    ("latest", "latest", True)
 ]
 
 
@@ -136,7 +146,7 @@ def to_search_document(metadata: DocMeta, fulltext: Optional[Fulltext] = None)\
             value = getattr(metadata, source, None)
         elif hasattr(source, '__call__'):
             value = source(metadata)
-        if not value and not is_required:
+        if value is None and not is_required:
             continue
         data[key] = value
     if fulltext:

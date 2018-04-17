@@ -25,4 +25,41 @@ services:
     networks:       ['es_stack']
     depends_on:     ['elasticsearch']
 
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile-agent
+    container_name: agent
+    environment:
+      AWS_ACCESS_KEY_ID: "foo"
+      AWS_SECRET_ACCESS_KEY: "bar"
+      ELASTICSEARCH_SERVICE_HOST: "elasticsearch"
+      ELASTICSEARCH_SERVICE_PORT: "9200"
+      ELASTICSEARCH_PORT_9200_PROTO: "http"
+      ELASTICSEARCH_USER: "elastic"
+      ELASTICSEARCH_PASSWORD: "changeme"
+      ELASTICSEARCH_VERIFY: "false"
+      KINESIS_STREAM: "MetadataIsAvailable"
+      KINESIS_SHARD_ID: "0"
+      KINESIS_ENDPOINT: "https://localstack:4568"
+      KINESIS_VERIFY: "false"
+      KINESIS_START_TYPE: "TRIM_HORIZON"
+      LOGLEVEL: 20
+    networks:
+      - es_stack
+    depends_on:
+      - localstack
+      - elasticsearch
+
+  localstack:
+    image: atlassianlabs/localstack
+    container_name: localstack
+    networks:
+      - es_stack
+    ports:
+      - "5568:4568"
+    environment:
+      USE_SSL: 'true'
+      DEBUG: 'true'
+
 networks: {es_stack: {}}

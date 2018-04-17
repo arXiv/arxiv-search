@@ -14,14 +14,15 @@ from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
 from werkzeug.datastructures import MultiDict
+from werkzeug.exceptions import InternalServerError, BadRequest
+from flask import url_for
 
 from arxiv import status
 
-from werkzeug.exceptions import InternalServerError
 from search.services import index, fulltext, metadata
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
     Classification, FieldedSearchList, ClassificationList, Query, asdict
-from search import logging
+from arxiv.base import logging
 from search.controllers.util import paginate
 
 from . import forms
@@ -103,6 +104,16 @@ def search(request_params: MultiDict) -> Response:
             response_data['query'] = q
         else:
             logger.debug('form is invalid: %s', str(form.errors))
+            if 'order' in form.errors or 'size' in form.errors:
+                # It's likely that the user tried to set these parameters
+                # manually, or that the search originated from somewhere else
+                # (and was configured incorrectly).
+                advanced_url = url_for('ui.advanced_search')
+                raise BadRequest(
+                    f"It looks like there's something odd about your search"
+                    f" request. Please try <a href='{advanced_url}'>starting"
+                    f" over</a>.")
+
             # Force the form to be displayed, so that we can render errors.
             #  This has most likely occurred due to someone manually crafting
             #  a GET response, but it could be something else.
@@ -132,6 +143,8 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     q = _update_query_with_dates(q, form.date.data)
     q = _update_query_with_terms(q, form.terms.data)
     q = _update_query_with_classification(q, form.classification.data)
+    if form.include_older_versions.data:
+        q.include_older_versions = True
     order = form.order.data
     if order and order != 'None':
         q.order = order

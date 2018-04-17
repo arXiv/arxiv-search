@@ -40,7 +40,7 @@ USE_X_SENDFILE = os.environ.get('USE_X_SENDFILE') == ON
 LOGGER_NAME = os.environ.get('LOGGER_NAME', 'search')
 """The name of the logger."""
 
-LOGGER_HANDLER_POLICY = os.environ.get('LOGGER_HANDLER_POLICY', 'always')
+LOGGER_HANDLER_POLICY = os.environ.get('LOGGER_HANDLER_POLICY', 'debug')
 """
 the policy of the default logging handler. The default is 'always' which means
 that the default logging handler is always active. 'debug' will only activate
@@ -174,7 +174,7 @@ ELASTICSEARCH_VERIFY = os.environ.get('ELASTICSEARCH_VERIFY', 'true')
 
 
 METADATA_ENDPOINT = os.environ.get('METADATA_ENDPOINT',
-                                   'https://arxiv.org/docmeta/')
+                                   'https://arxiv.org/')
 """
 Location of endpoint(s) for metadata retrieval.
 
@@ -199,6 +199,15 @@ KINESIS_VERIFY = os.environ.get('KINESIS_VERIFY', "true")
 
 KINESIS_STREAM = os.environ.get('KINESIS_STREAM', 'MetadataIsAvailable')
 """Name of the stream to which the indexing agent subscribes."""
+
+KINESIS_SHARD_ID = os.environ.get('KINESIS_SHARD_ID', '0')
+
+KINESIS_CHECKPOINT_VOLUME = os.environ.get('KINESIS_CHECKPOINT_VOLUME',
+                                           '/tmp')
+
+KINESIS_START_TYPE = os.environ.get('KINESIS_START_TYPE', 'AT_TIMESTAMP')
+KINESIS_START_AT = os.environ.get('KINESIS_START_AT')
+
 
 """
 Flask-S3 plugin settings.

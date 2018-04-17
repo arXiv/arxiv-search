@@ -10,6 +10,8 @@ mentioned above load the appropriate instance of :class:`.DocMetaSession`
 depending on the context of the request.
 """
 
+from typing import Dict, List
+
 import os
 from urllib.parse import urljoin
 import json
@@ -21,7 +23,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 from arxiv import status
 from search.context import get_application_config, get_application_global
-from search import logging
+from arxiv.base import logging
 from search.domain import DocMeta
 
 
@@ -106,7 +108,8 @@ class DocMetaSession(object):
             raise ValueError('Invalid value for document_id')
 
         try:
-            target = urljoin(self.endpoint, document_id)
+            target = urljoin(self.endpoint, '/docmeta/')
+            target = urljoin(target, document_id)
             logger.debug(
                 f'{document_id}: retrieve metadata from {target} with SSL'
                 f' verify {self._verify_cert}'
@@ -141,18 +144,79 @@ class DocMetaSession(object):
         logger.debug(f'{document_id}: response decoded; done!')
         return data
 
+    def bulk_retrieve(self, document_ids: List[str]) -> List[DocMeta]:
+        """
+        Retrieve metadata for an arXiv paper.
+
+        Parameters
+        ----------
+        document_ids : List[str]
+
+        Returns
+        -------
+        dict
+
+        Raises
+        ------
+        IOError
+        ValueError
+        """
+        if not document_ids:    # This could use further elaboration.
+            raise ValueError('Invalid value for document_ids')
+
+        query_string = '/docmeta_bulk?' + '&'.join(
+            f'id={document_id}' for document_id in document_ids
+        )
+
+        try:
+            target = urljoin(self.endpoint, query_string)
+            logger.debug(
+                f'{document_ids}: retrieve metadata from {target} with SSL'
+                f' verify {self._verify_cert}'
+            )
+            response = self._session.get(target, verify=self._verify_cert)
+        except requests.exceptions.SSLError as e:
+            logger.error('SSLError: %s', e)
+            raise SecurityException('SSL failed: %s' % e) from e
+        except requests.exceptions.ConnectionError as e:
+            logger.error('ConnectionError: %s', e)
+            raise ConnectionFailed(
+                'Could not connect to metadata service: %s' % e
+            ) from e
+
+        if response.status_code not in \
+                [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]:
+            logger.error('Request failed: %s', response.content)
+            raise RequestFailed(
+                '%s: failed with %i: %s' % (
+                    document_ids, response.status_code, response.content
+                )
+            )
+        logger.debug(f'{document_ids}: response OK')
+        try:
+            resp = response.json()  # A list with metadata for each paper.
+            data: List[DocMeta]
+            data = [DocMeta(**value) for value in resp]     # type: ignore
+        except json.decoder.JSONDecodeError as e:
+            logger.error('JSONDecodeError: %s', e)
+            raise BadResponse(
+                '%s: could not decode response: %s' % (document_ids, e)
+            ) from e
+        logger.debug(f'{document_ids}: response decoded; done!')
+        return data
+
 
 def init_app(app: object = None) -> None:
     """Set default configuration parameters for an application instance."""
     config = get_application_config(app)
-    config.setdefault('METADATA_ENDPOINT', 'https://arxiv.org/docmeta/')
+    config.setdefault('METADATA_ENDPOINT', 'https://arxiv.org/')
     config.setdefault('METADATA_VERIFY_CERT', 'True')
 
 
 def get_session(app: object = None) -> DocMetaSession:
     """Get a new session with the docmeta endpoint."""
     config = get_application_config(app)
-    endpoint = config.get('METADATA_ENDPOINT', 'https://arxiv.org/docmeta/')
+    endpoint = config.get('METADATA_ENDPOINT', 'https://arxiv.org/')
     verify_cert = bool(eval(config.get('METADATA_VERIFY_CERT', 'True')))
     if ',' in endpoint:
         return DocMetaSession(*(endpoint.split(',')), verify_cert=verify_cert)
@@ -165,11 +229,17 @@ def current_session() -> DocMetaSession:
     if not g:
         return get_session()
     elif 'docmeta' not in g:
-        g.docmeta = get_session() # type: ignore
-    return g.docmeta # type: ignore
+        g.docmeta = get_session()   # type: ignore
+    return g.docmeta    # type: ignore
 
 
 @wraps(DocMetaSession.retrieve)
 def retrieve(document_id: str) -> DocMeta:
     """Retrieve an arxiv document by id."""
     return current_session().retrieve(document_id)
+
+
+@wraps(DocMetaSession.bulk_retrieve)
+def bulk_retrieve(document_ids: List[str]) -> List[DocMeta]:
+    """Retrieve an arxiv document by id."""
+    return current_session().bulk_retrieve(document_ids)
