@@ -241,7 +241,7 @@ def highlight(search: Search) -> Search:
     search = search.highlight('title_utf8', type='plain',
                               number_of_fragments=0)
 
-    search = search.highlight('comments')
+    search = search.highlight('comments', number_of_fragments=0)
     # Highlight any field the name of which begins with "author".
     search = search.highlight('author*')
     search = search.highlight('journal_ref', type='plain')
