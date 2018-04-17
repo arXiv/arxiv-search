@@ -87,7 +87,7 @@ class MetadataRecordProcessor(BaseConsumer):
             raise IndexingFailed('Unhandled exception') from e
         return docmeta
 
-    def _get_bulk_metadata(self, arxiv_ids: List[str]) -> Dict[str, DocMeta]:
+    def _get_bulk_metadata(self, arxiv_ids: List[str]) -> List[DocMeta]:
         """
         Retrieve metadata from :mod:`.metadata` service for multiple documents.
 
@@ -113,16 +113,18 @@ class MetadataRecordProcessor(BaseConsumer):
 
         """
         logger.debug(f'{arxiv_ids}: get bulk metadata')
-
+        meta: List[DocMeta]
         try:
             logger.debug(f'{arxiv_ids}: requesting bulk metadata')
-            return metadata.bulk_retrieve(arxiv_ids)
+            meta = metadata.bulk_retrieve(arxiv_ids)
+            return meta
         except metadata.ConnectionFailed as e:
             # The metadata service will retry bad responses, but not connection
             # errors. Sometimes it just takes another try, so why not.
             logger.warning(f'{arxiv_ids}: first attempt failed, retrying')
             try:
-                return metadata.bulk_retrieve(arxiv_ids)
+                meta = metadata.bulk_retrieve(arxiv_ids)
+                return meta
             except metadata.ConnectionFailed as e:
                 # Things really are looking bad. There is no need to keep
                 # trying with subsequent records, so let's abort entirely.
@@ -261,16 +263,12 @@ class MetadataRecordProcessor(BaseConsumer):
         """
         try:
             documents = []
-            md = self._get_bulk_metadata(arxiv_ids)
-            for arxiv_id in md:
-                logger.debug(f'{arxiv_id}: get metadata')
-                docmeta = md[arxiv_id]
-                logger.debug(f'{arxiv_id}: transform to indexable document')
+            for docmeta in self._get_bulk_metadata(arxiv_ids):
+                logger.debug(f'{docmeta.paper_id}: transform to Document')
                 document = MetadataRecordProcessor._transform_to_document(
                     docmeta
                 )
                 documents.append(document)
-
             logger.debug('add to index in bulk')
             MetadataRecordProcessor._bulk_add_to_index(documents)
         except (DocumentFailed, IndexingFailed) as e:
