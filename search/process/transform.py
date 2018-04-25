@@ -43,6 +43,8 @@ def _constructACMClass(meta: DocMeta) -> Optional[list]:
 
 
 def _transformAuthor(author: dict) -> dict:
+    # TODO: we should not be stripping punctuation from the name here.
+    # This should be handled by the analyzer. This is related to ARXIVNG-543.
     author['first_name'] = _strip_punctuation(author['first_name']).strip()
     author['full_name'] = re.sub(r'\s+', ' ', f"{author['first_name']} {author['last_name']}")
     author['initials'] = [pt[0] for pt in author['first_name'].split() if pt]

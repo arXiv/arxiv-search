@@ -92,7 +92,8 @@ def construct_author_query(term: str) -> Q:
                         'match', **{
                             'authors__full_name': fullname_safe
                         }
-                    )
+                    ),
+                    score_mode='sum'
                 )
             }),
             SF({
@@ -102,7 +103,8 @@ def construct_author_query(term: str) -> Q:
                         'match', **{
                             'authors__full_name_initialized': au_safe
                         }
-                    )
+                    ),
+                    score_mode='sum'
                 )
             })
         ]
@@ -118,7 +120,8 @@ def construct_author_query(term: str) -> Q:
                             'match', **{
                                 'authors__last_name': surname_safe
                             }
-                        )
+                        ),
+                        score_mode='sum'
                     )
                 }),
             ]
@@ -154,7 +157,8 @@ def construct_author_query(term: str) -> Q:
                                 "match", **{
                                     "authors__first_name__exact": forename_safe
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -164,7 +168,8 @@ def construct_author_query(term: str) -> Q:
                                 "match", **{
                                     "authors__first_name__exact": init_forename
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -173,7 +178,8 @@ def construct_author_query(term: str) -> Q:
                                 "match_phrase", **{
                                     "authors__first_name": forename_safe
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -182,7 +188,8 @@ def construct_author_query(term: str) -> Q:
                                 "match_phrase", **{
                                     "authors__first_name": init_forename
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -191,7 +198,8 @@ def construct_author_query(term: str) -> Q:
                                 "match", **{
                                     "authors__first_name": forename_safe
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -200,7 +208,8 @@ def construct_author_query(term: str) -> Q:
                                 "match", **{
                                     "authors__first_name": init_forename
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -209,11 +218,12 @@ def construct_author_query(term: str) -> Q:
                                 "match", **{
                                     "authors__initials": init_forename.lower()
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                 ]
-        _author_q &= Q("nested", path="authors", query=_q)
+        _author_q &= Q("nested", path="authors", query=_q, score_mode='sum')
 
     return Q('function_score', query=_author_q,
              score_mode="sum", boost=1, boost_mode='multiply',
