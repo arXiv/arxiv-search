@@ -84,11 +84,18 @@ def search(request_params: dict) -> Response:
     # Fall back to form-based search.
     form = SimpleSearchForm(request_params)
 
-    # Temporary workaround to support classic help search
-    if form.query.data and form.searchtype.data == 'help':
-        return {}, status.HTTP_301_MOVED_PERMANENTLY,\
-            {'Location': 'https://arxiv.org/help/search?method=and'
-             f'&format=builtin-short&sort=score&words={form.query.data}'}
+    if form.query.data:
+        # Temporary workaround to support classic help search
+        if form.searchtype.data == 'help':
+            return {}, status.HTTP_301_MOVED_PERMANENTLY,\
+                {'Location': 'https://arxiv.org/help/search?method=and'
+                 f'&format=builtin-short&sort=score&words={form.query.data}'}
+
+        # Support classic "expeirmental" search
+        elif form.searchtype.data == 'full_text':
+            return {}, status.HTTP_301_MOVED_PERMANENTLY,\
+                {'Location': 'http://search.arxiv.org:8081/'
+                             f'?in=&query={form.query.data}'}
 
     q: Optional[Query]
     if form.validate():
