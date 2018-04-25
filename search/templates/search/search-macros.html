@@ -134,7 +134,7 @@
       <p class="list-title level-left">
         {% set display_paper_id = result.paper_id if is_current(result) else result.paper_id_v %}
         <a href="{{ external_url('browse', 'abstract', paper_id=display_paper_id) }}">arXiv:{{ display_paper_id }}</a>
-        <span>&nbsp;{{ paper_format_links(result, external_url) }}&nbsp;</span>
+        <span>&nbsp;{{ paper_format_links(result, external_url, display_paper_id) }}&nbsp;</span>
         <span class="tag is-small is-link">{{ result.primary_classification.category.id }}</span>
         {% if result.secondary_category %}
           {% for secondary in result.secondary_category %}
@@ -230,10 +230,10 @@
 
 {%- endmacro -%}
 
-{%- macro paper_format_links(result, external_url) -%}
+{%- macro paper_format_links(result, external_url, display_paper_id) -%}
   {%- for format in result.formats -%}
     {%- if format in ('pdf', 'pdfonly', 'ps', 'other') -%}
-      {% if loop.first %}[{% endif %}<a href="{{ external_url('browse', format, paper_id=result.paper_id_v) }}">{{ format|replace("pdfonly", "pdf") }}</a>{% if not loop.last %}, {% else %}]{% endif %}
+      {% if loop.first %}[{% endif %}<a href="{{ external_url('browse', format, paper_id=display_paper_id) }}">{{ format|replace("pdfonly", "pdf") }}</a>{% if not loop.last %}, {% else %}]{% endif %}
     {%- endif -%}
   {%- endfor -%}
 {%- endmacro -%}
