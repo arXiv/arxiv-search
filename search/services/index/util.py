@@ -19,6 +19,9 @@ MAX_RESULTS = 10_000
 HIGHLIGHT_TAG_OPEN = '<span class="search-hit mathjax">'
 HIGHLIGHT_TAG_CLOSE = '</span>'
 
+SPECIAL_CHARACTERS = ['+', '-', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
+                      '}', '[', ']', '^', '~', ':', '\\', '/']
+
 
 def wildcardEscape(querystring: str) -> Tuple[str, bool]:
     """
@@ -75,3 +78,13 @@ def Q_(qtype: str, field: str, value: str) -> Q:
     if wildcard:
         return Q('wildcard', **{field: value})
     return Q(qtype, **{field: value})
+
+
+def escape(term: str) -> str:
+    """Escape special characters."""
+    escaped = []
+    for i, char in enumerate(term):
+        if char in SPECIAL_CHARACTERS:
+            escaped.append("\\")
+        escaped.append(char)
+    return "".join(escaped)

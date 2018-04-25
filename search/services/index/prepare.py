@@ -10,7 +10,7 @@ from elasticsearch_dsl.query import Range, Match, Bool
 
 from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
 from .util import strip_tex, Q_, HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE, \
-    is_tex_query
+    is_tex_query, is_literal_query, escape
 from .authors import construct_author_query, construct_author_id_query
 
 
@@ -18,19 +18,6 @@ ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
                      'acm_class', 'msc_class', 'report_num', 'paper_id', 'doi',
                      'orcid', 'author_id']
 TEX_FIELDS = ['title', 'abstract', 'comments']
-
-SPECIAL_CHARACTERS = ['+', '-', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
-                      '}', '[', ']', '^', '~', ':', '\\', '/']
-
-
-def _escape(term: str) -> str:
-    """Escape special characters."""
-    escaped = []
-    for i, char in enumerate(term):
-        if char in SPECIAL_CHARACTERS:
-            escaped.append("\\")
-        escaped.append(char)
-    return "".join(escaped)
 
 
 def _get_sort_parameters(query: Query) -> list:
@@ -89,7 +76,7 @@ def _field_term_to_q(field: str, term: str) -> Q:
     """Generate a query fragment for a query on a specific field."""
     # Searching with TeXisms in non-TeX-tokenized fields leads to
     # spurious results and challenges with highlighting.
-    term_sans_tex = _escape(strip_tex(term).lower())
+    term_sans_tex = escape(strip_tex(term).lower())
     # These terms have fields for both TeX and English normalization.
     if field in ['title', 'abstract']:
         # Boost the TeX field, since these will be exact matches, and we
@@ -197,6 +184,17 @@ def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
             q_ar = [_field_term_to_q(field, term.term)
                     for field in ALL_SEARCH_FIELDS]
             q = reduce(ior, q_ar)
+            if not is_literal_query(term.term):
+                # When searching in "all fields", users will include terms from
+                # various different fields. This additional multi-match treats
+                # title, abstract, and authors as one big field, and boosts
+                # matching results. Since authors get boosted strongly
+                # elsewhere, this effectively surfaces results for which
+                # authors respond and also titles (and, to a lesser extent,
+                # abstracts) respond.
+                q |= Q("multi_match",
+                       fields=["title*^30", "abstract*^10", "authors*"],
+                       query=escape(term.term), boost=4, type="cross_fields")
         else:
             q = _field_term_to_q(term.field, term.term)
 
@@ -214,6 +212,17 @@ def simple(search: Search, query: SimpleQuery) -> Search:
         q_ar = [_field_term_to_q(field, query.value)
                 for field in use]
         q = reduce(ior, q_ar)
+        if not is_literal_query(query.value):
+            # When searching in "all fields", users will include terms from
+            # various different fields. This additional multi-match treats
+            # title, abstract, and authors as one big field, and boosts
+            # matching results. Since authors get boosted strongly elsewhere,
+            # this effectively surfaces results for which authors respond and
+            # also titles (and, to a lesser extent, abstracts) respond.
+            q |= Q("multi_match",
+                   fields=["title*^30", "abstract*^10", "authors*"],
+                   query=query.value, boost=4, type="cross_fields")
+            pass
     else:
         q = _field_term_to_q(query.search_field, query.value)
     search = search.query(q)
