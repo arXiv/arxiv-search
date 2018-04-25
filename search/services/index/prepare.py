@@ -3,6 +3,7 @@
 from typing import Any
 from functools import reduce, wraps
 from operator import ior
+import re
 
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
@@ -18,10 +19,23 @@ ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
                      'orcid', 'author_id']
 TEX_FIELDS = ['title', 'abstract', 'comments']
 
+SPECIAL_CHARACTERS = ['+', '-', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
+                      '}', '[', ']', '^', '~', ':', '\\', '/']
+
+
+def _escape(term: str) -> str:
+    """Escape special characters."""
+    escaped = []
+    for i, char in enumerate(term):
+        if char in SPECIAL_CHARACTERS:
+            escaped.append("\\")
+        escaped.append(char)
+    return "".join(escaped)
+
 
 def _get_sort_parameters(query: Query) -> list:
     if not query.order:
-        return ['_score', '_doc']
+        return ['_score', '-announced_date_first', '_doc']
     direction = '-' if query.order.startswith('-') else ''
     return [query.order, f'{direction}paper_id_v']
 
@@ -75,14 +89,14 @@ def _field_term_to_q(field: str, term: str) -> Q:
     """Generate a query fragment for a query on a specific field."""
     # Searching with TeXisms in non-TeX-tokenized fields leads to
     # spurious results and challenges with highlighting.
-    term_sans_tex = strip_tex(term).lower()
+    term_sans_tex = _escape(strip_tex(term).lower())
     # These terms have fields for both TeX and English normalization.
     if field in ['title', 'abstract']:
         # Boost the TeX field, since these will be exact matches, and we
         # prefer them to partial matches within TeXisms.
         if is_tex_query(term):
             return Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})
-        return (
+        q = (
             Q("query_string", fields=[
                 field,
                 f'{field}_utf8',
@@ -94,6 +108,7 @@ def _field_term_to_q(field: str, term: str) -> Q:
               allow_leading_wildcard=False,
               query=term_sans_tex)
         )
+        return q
 
     # These terms have no additional fields.
     elif field in ['comments']:
