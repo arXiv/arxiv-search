@@ -213,7 +213,7 @@ def simple(search: Search, query: SimpleQuery) -> Search:
         use = TEX_FIELDS if is_tex_query(query.value) else ALL_SEARCH_FIELDS
         q_ar = [_field_term_to_q(field, query.value)
                 for field in use]
-        q = reduce(ior, q_ar) | Q("multi_match", fields=["title", "abstract", "author_*"], query=_escape(query.value), boost=2, type="best_fields")
+        q = reduce(ior, q_ar)
     else:
         q = _field_term_to_q(query.search_field, query.value)
     search = search.query(q)

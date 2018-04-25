@@ -54,6 +54,8 @@ def construct_author_query(term: str) -> Q:
             | Q('match_phrase', **{
                 'authors__full_name': {'query': fullname_safe, 'boost': 9}
             })
+            | Q('multi_match', fields=['authors*'], query=term, boost=20,
+                type="cross_fields")
         )
         if not is_literal_query(term):
             # We support wildcards (?*) within each author name. Since
