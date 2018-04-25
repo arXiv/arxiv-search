@@ -2,7 +2,7 @@
 
 from typing import Tuple, Optional, List
 from elasticsearch_dsl import Search, Q, SF
-from .util import wildcardEscape, is_literal_query, Q_
+from .util import wildcardEscape, is_literal_query, Q_, escape
 
 
 def _parseName(au_safe: str) -> Tuple[str, Optional[str]]:
@@ -28,6 +28,7 @@ def _parseName(au_safe: str) -> Tuple[str, Optional[str]]:
 # pieces, for readability.
 def construct_author_query(term: str) -> Q:
     """Generate an author name query in the ElasticSearch DSL."""
+    term = escape(term)
     _author_q = Q()
     score_functions: List = []
 
@@ -54,10 +55,12 @@ def construct_author_query(term: str) -> Q:
             | Q('match_phrase', **{
                 'authors__full_name': {'query': fullname_safe, 'boost': 9}
             })
-            | Q('multi_match', fields=['authors*'], query=term, boost=20,
-                type="cross_fields")
         )
         if not is_literal_query(term):
+            # Search across all authors, and prefer documents for which a
+            # greater number of authors respond.
+            _q |= Q('multi_match', fields=['authors*'], query=term, boost=20,
+                    type="cross_fields")
             # We support wildcards (?*) within each author name. Since
             # ES will treat the non-wildcard part of the term as a literal,
             # we need to apply each word in the name separately.
