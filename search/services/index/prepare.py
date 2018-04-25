@@ -184,7 +184,7 @@ def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
             q_ar = [_field_term_to_q(field, term.term)
                     for field in ALL_SEARCH_FIELDS]
             q = reduce(ior, q_ar)
-            if not is_literal_query(query.value):
+            if not is_literal_query(term.term):
                 # When searching in "all fields", users will include terms from
                 # various different fields. This additional multi-match treats
                 # title, abstract, and authors as one big field, and boosts
@@ -194,7 +194,7 @@ def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
                 # abstracts) respond.
                 q |= Q("multi_match",
                        fields=["title*^30", "abstract*^10", "authors*"],
-                       query=escape(query.value), boost=4, type="cross_fields")
+                       query=escape(term.term), boost=4, type="cross_fields")
         else:
             q = _field_term_to_q(term.field, term.term)
 
