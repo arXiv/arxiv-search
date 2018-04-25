@@ -1,8 +1,29 @@
 """Query-builders and helpers for searching by author name."""
 
 from typing import Tuple, Optional, List
+import re
+from string import punctuation
 from elasticsearch_dsl import Search, Q, SF
 from .util import wildcardEscape, is_literal_query, Q_, escape
+
+
+STOP = ["and", "or", "the", "of", "a", "for", "an"]
+
+# TODO: remove this when we address the author name bug in
+# search.process.transform..
+def _strip_punctuation(s: str) -> str:
+    return ''.join([c for c in s if c not in punctuation])
+
+
+# TODO: revisit author name indexing in document mappings.
+# Ideally stopwords would be removed at index time, but authors are indexed
+# as keywords which makes that difficult.
+def _remove_stopwords(term: str) -> str:
+    """Remove common stopwords that will match on institutions."""
+    _term = str(term)
+    for stopword in STOP:
+        _term =re.sub(f"(^|\s+){stopword}(\s+|$)", " ", _term)
+    return _term
 
 
 def _parseName(au_safe: str) -> Tuple[str, Optional[str]]:
@@ -39,6 +60,12 @@ def construct_author_query(term: str) -> Q:
         au_name, has_wildcard = wildcardEscape(au_name)
         au_safe = au_name.replace('*', '').replace('?', '').replace('"', '')
         surname_safe, forename_safe = _parseName(au_safe)
+        # TODO: remove this when the author name bug is fixed in
+        # search.process.transform. Since we are erroneously removing
+        # punctuation from author names prior to indexing, it's important to do
+        # the same here so that results are returned.
+        forename_safe = _strip_punctuation(forename_safe)
+
         if forename_safe is not None:
             fullname_safe = f'{forename_safe} {surname_safe}'
         else:
@@ -48,8 +75,9 @@ def construct_author_query(term: str) -> Q:
             Q('match', **{
                 'authors__full_name__exact': {
                     'query': fullname_safe, 'boost': 10
-                }
+                },
             })
+
             # The next best case is that the query is a substring of
             #  the full name.
             | Q('match_phrase', **{
@@ -59,8 +87,9 @@ def construct_author_query(term: str) -> Q:
         if not is_literal_query(term):
             # Search across all authors, and prefer documents for which a
             # greater number of authors respond.
-            _q |= Q('multi_match', fields=['authors*'], query=term, boost=20,
-                    type="cross_fields")
+            _q |= Q('multi_match', fields=['authors.full_name'],
+                    query=_remove_stopwords(term),
+                    boost=8, type="cross_fields")
             # We support wildcards (?*) within each author name. Since
             # ES will treat the non-wildcard part of the term as a literal,
             # we need to apply each word in the name separately.
