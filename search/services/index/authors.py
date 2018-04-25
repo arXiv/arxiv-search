@@ -9,8 +9,11 @@ def _parseName(au_safe: str) -> Tuple[str, Optional[str]]:
     """Parse a name string into its (likely) constituent parts."""
     # We interpret the comma as separating the surname from the forename.
     if "," in au_safe:
-        surname, forename = au_safe.split(',')
-        return surname.strip(), forename.strip()
+        au_parts = au_safe.split(',')
+        if len(au_parts) >= 2:
+            surname = au_parts[0]
+            forename = au_parts[1]
+            return surname.strip(), forename.strip()
 
     # Otherwise, treat the last word in the name as the surname. This isn't
     # a great approach from first principles, but it produces reasonable

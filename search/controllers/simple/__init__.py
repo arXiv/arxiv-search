@@ -127,6 +127,9 @@ def search(request_params: dict) -> Response:
                 "search again.  If this problem persists, please report it to "
                 "help@arxiv.org."
             ) from e
+        except Exception as e:
+            print(e)
+            raise 
     else:
         logger.debug('form is invalid: %s', str(form.errors))
         if 'order' in form.errors or 'size' in form.errors:
