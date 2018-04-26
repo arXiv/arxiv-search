@@ -43,6 +43,8 @@ def _constructACMClass(meta: DocMeta) -> Optional[list]:
 
 
 def _transformAuthor(author: dict) -> dict:
+    # TODO: we should not be stripping punctuation from the name here.
+    # This should be handled by the analyzer. This is related to ARXIVNG-543.
     author['first_name'] = _strip_punctuation(author['first_name']).strip()
     author['full_name'] = re.sub(r'\s+', ' ', f"{author['first_name']} {author['last_name']}")
     author['initials'] = [pt[0] for pt in author['first_name'].split() if pt]
@@ -81,7 +83,7 @@ def _constructDOI(meta: DocMeta) -> List[str]:
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType, bool]] = [
     ("id", lambda meta: meta.paper_id if meta.is_current else _constructPaperVersion(meta), True),
-    ("abstract", "abstract", False),
+    ("abstract", "abstract_utf8", False),
     ("authors", _constructAuthors, True),
     ("authors_freeform", "authors_utf8", False),
     ("owners", _constructAuthorOwners, False),

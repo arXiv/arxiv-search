@@ -92,9 +92,6 @@ def handle_es_exceptions() -> Generator:
 class SearchSession(object):
     """Encapsulates session with Elasticsearch host."""
 
-    # TODO: we need to take on security considerations here. Presumably we will
-    # use SSL. Presumably we will use HTTP Auth, or something else.
-
     def __init__(self, host: str, index: str, port: int=9200,
                  scheme: str='http', user: Optional[str]=None,
                  password: Optional[str]=None, mapping: Optional[str]=None,

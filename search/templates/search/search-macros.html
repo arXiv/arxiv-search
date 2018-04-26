@@ -134,7 +134,7 @@
       <p class="list-title level-left">
         {% set display_paper_id = result.paper_id if is_current(result) else result.paper_id_v %}
         <a href="{{ external_url('browse', 'abstract', paper_id=display_paper_id) }}">arXiv:{{ display_paper_id }}</a>
-        <span>&nbsp;{{ paper_format_links(result, external_url) }}&nbsp;</span>
+        <span>&nbsp;{{ paper_format_links(result, external_url, display_paper_id) }}&nbsp;</span>
         <span class="tag is-small is-link">{{ result.primary_classification.category.id }}</span>
         {% if result.secondary_category %}
           {% for secondary in result.secondary_category %}
@@ -168,14 +168,14 @@
         {% endif %}
       {% endif %}
     </p>
-    <p class="authors is-size-7">
+    <p class="authors">
       <span class="{% if result.highlight.author %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Authors:</span>
       {% for author in result.authors[0:25] %}
       <a href="{{ url_for_author_search(author.first_name, author.last_name) }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}
       {% endfor -%}
       {% if result.authors | length > 25 %}, et al. ({{ result.authors | length - 25 }} additional authors not shown){% endif %}
     </p>
-    <p class="abstract mathjax  is-size-7">
+    <p class="abstract mathjax">
       <span class="has-text-black-bis has-text-weight-semibold">Abstract</span>:
         <span class="abstract-short has-text-grey-dark mathjax" id="{{result.id}}-abstract-short" style="display: inline;">
           {{ result.preview.abstract | safe }}
@@ -230,10 +230,10 @@
 
 {%- endmacro -%}
 
-{%- macro paper_format_links(result, external_url) -%}
+{%- macro paper_format_links(result, external_url, display_paper_id) -%}
   {%- for format in result.formats -%}
     {%- if format in ('pdf', 'pdfonly', 'ps', 'other') -%}
-      {% if loop.first %}[{% endif %}<a href="{{ external_url('browse', format, paper_id=result.paper_id_v) }}">{{ format|replace("pdfonly", "pdf") }}</a>{% if not loop.last %}, {% else %}]{% endif %}
+      {% if loop.first %}[{% endif %}<a href="{{ external_url('browse', format, paper_id=display_paper_id) }}">{{ format|replace("pdfonly", "pdf") }}</a>{% if not loop.last %}, {% else %}]{% endif %}
     {%- endif -%}
   {%- endfor -%}
 {%- endmacro -%}
