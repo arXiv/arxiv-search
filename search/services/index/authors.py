@@ -88,10 +88,14 @@ def construct_author_query(term: str) -> Q:
         )
         if not is_literal_query(term):
             # Search across all authors, and prefer documents for which a
-            # greater number of authors respond.
+            # greater number of authors respond. For this part of the search
+            # we want to avoid artificially high scores when only initials
+            # match, so we drop solo characters from the query.
+            term_sans_inits = ' '.join(part for part in
+                                       _remove_stopwords(term).split()
+                                       if len(part) > 1)
             _q |= Q('multi_match', fields=['authors.full_name'],
-                    query=_remove_stopwords(term),
-                    boost=8, type="cross_fields")
+                    query=term_sans_inits, boost=8, type="cross_fields")
             # We support wildcards (?*) within each author name. Since
             # ES will treat the non-wildcard part of the term as a literal,
             # we need to apply each word in the name separately.
