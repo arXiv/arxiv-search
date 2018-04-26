@@ -83,13 +83,18 @@ def _field_term_to_q(field: str, term: str) -> Q:
         # prefer them to partial matches within TeXisms.
         if is_tex_query(term):
             return Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})
+
+        # "english" fields are analyzed with the English stoplist, so they're
+        # safe for all kinds of searches.
+        _fields = [f'{field}.english', f'{field}_utf8__english']
+
+        # If this is a literal query, however, we should search against the
+        # the base field, too.
+        if is_literal_query(term_sans_tex):
+            _fields += [field, f'{field}_utf8']
+
         q = (
-            Q("query_string", fields=[
-                field,
-                f'{field}_utf8',
-                f'{field}__english',
-                f'{field}_utf8__english'
-              ],
+            Q("query_string", fields=_fields,
               default_operator='AND',
               analyze_wildcard=True,
               allow_leading_wildcard=False,
@@ -193,8 +198,8 @@ def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
                 # authors respond and also titles (and, to a lesser extent,
                 # abstracts) respond.
                 q |= Q("multi_match",
-                       fields=["title*^30", "abstract*^10", "authors*"],
-                       query=escape(term.term), boost=4, type="cross_fields")
+                       fields=["title.english^30", "abstract.english*^10"],
+                       query=term.term, boost=4, type="cross_fields")
         else:
             q = _field_term_to_q(term.field, term.term)
 
@@ -212,17 +217,17 @@ def simple(search: Search, query: SimpleQuery) -> Search:
         q_ar = [_field_term_to_q(field, query.value)
                 for field in use]
         q = reduce(ior, q_ar)
+
         if not is_literal_query(query.value):
             # When searching in "all fields", users will include terms from
             # various different fields. This additional multi-match treats
-            # title, abstract, and authors as one big field, and boosts
+            # title and abstract as one big field, and boosts
             # matching results. Since authors get boosted strongly elsewhere,
             # this effectively surfaces results for which authors respond and
             # also titles (and, to a lesser extent, abstracts) respond.
             q |= Q("multi_match",
-                   fields=["title*^30", "abstract*^10", "authors*"],
+                   fields=["title.english^30", "abstract.english*^10"],
                    query=query.value, boost=4, type="cross_fields")
-            pass
     else:
         q = _field_term_to_q(query.search_field, query.value)
     search = search.query(q)
@@ -261,6 +266,7 @@ def highlight(search: Search) -> Search:
         post_tags=[HIGHLIGHT_TAG_CLOSE]
     )
     search = search.highlight('title', type='plain', number_of_fragments=0)
+    search = search.highlight('title.english', type='plain', number_of_fragments=0)
     search = search.highlight('title.tex', type='plain', number_of_fragments=0)
     search = search.highlight('title_utf8', type='plain',
                               number_of_fragments=0)
@@ -279,4 +285,6 @@ def highlight(search: Search) -> Search:
     search = search.highlight('abstract', type='plain', number_of_fragments=0)
     search = search.highlight('abstract.tex', type='plain',
                               number_of_fragments=0)
+    search = search.highlight('abstract.english', type='plain',
+                               number_of_fragments=0)
     return search
