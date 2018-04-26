@@ -22,8 +22,8 @@
 
 {% macro advanced_query(form) %}
 
-<div class="columns">
-  <div class="column is-three-fifths">
+<div class="columns is-desktop">
+  <div class="column is-three-fifths-desktop">
     {% if form.errors %}
     <div class="notification is-warning">
       Whoops! Something went wrong. Please correct errors in the form below.
@@ -36,7 +36,7 @@
         {# Field-specific search term fieldset. #}
         <section data-toggle="fieldset" id="terms-fieldset">
           {% for entry in form.terms.entries %}
-            <div class="field has-addons" data-toggle="fieldset-entry">
+            <div class="field has-addons-tablet" data-toggle="fieldset-entry">
               <div class="control fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>
                 <span class="select">
                   <label for="terms-{{loop.index0}}-operator" class="hidden-label">Boolean operator</label>
@@ -249,27 +249,29 @@
         <section>
           <div class="level">
             <div class="level-left">
-              <div class="field is-horizontal is-grouped">
-                <div class="control">
-                  <span class="select is-small">
-                    {{ form.size|safe }}
-                  </span>
-                </div>
-                <div class="control">
-                 {{ form.size.label }}
-                </div>
-              </div>
-            </div>
-            <div class="level-left">
-              <div class="field is-horizontal is-grouped">
-                <div class="control">
-                  <div class="checkbox">
-                    {{ form.include_older_versions|safe }}
-                    {{ form.include_older_versions.label }}
+              <div class="level-item">
+                <div class="field is-horizontal is-grouped">
+                  <div class="control">
+                    <span class="select is-small">
+                      {{ form.size|safe }}
+                    </span>
+                  </div>
+                  <div class="control">
+                   {{ form.size.label }}
                   </div>
                 </div>
               </div>
-            </div>
+              <div class="level-item">
+                <div class="field is-horizontal is-grouped">
+                  <div class="control">
+                    <div class="checkbox">
+                      {{ form.include_older_versions|safe }}
+                      {{ form.include_older_versions.label }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
             <div class="level-right">
               <button class="button is-link is-medium">Search</button>
             </div>
