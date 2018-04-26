@@ -18,8 +18,11 @@ class TestTransformMetdata(TestCase):
         self.assertEqual(doc.id, '1234.56789')
 
     def test_abstract(self):
-        """Field ``abstract`` is populated from ``abstract``."""
-        meta = DocMeta(**{'paper_id': '1234.56789', 'abstract': 'abstract!'})
+        """Field ``abstract`` is populated from ``abstract_utf8``."""
+        meta = DocMeta(**{
+            'paper_id': '1234.56789',
+            'abstract_utf8': 'abstract!'
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.abstract, 'abstract!')
 
