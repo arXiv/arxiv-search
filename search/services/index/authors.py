@@ -76,7 +76,7 @@ def construct_author_query(term: str) -> Q:
             # Matching on keyword field is effectively an exact match.
             Q('match', **{
                 'authors__full_name__exact': {
-                    'query': fullname_safe, 'boost': 10
+                    'query': fullname_safe, 'boost': 30
                 },
             })
 
