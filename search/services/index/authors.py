@@ -9,6 +9,7 @@ from .util import wildcardEscape, is_literal_query, Q_, escape
 
 STOP = ["and", "or", "the", "of", "a", "for", "an"]
 
+
 # TODO: remove this when we address the author name bug in
 # search.process.transform..
 def _strip_punctuation(s: str) -> str:
@@ -60,13 +61,14 @@ def construct_author_query(term: str) -> Q:
         au_name, has_wildcard = wildcardEscape(au_name)
         au_safe = au_name.replace('*', '').replace('?', '').replace('"', '')
         surname_safe, forename_safe = _parseName(au_safe)
-        # TODO: remove this when the author name bug is fixed in
-        # search.process.transform. Since we are erroneously removing
-        # punctuation from author names prior to indexing, it's important to do
-        # the same here so that results are returned.
-        forename_safe = _strip_punctuation(forename_safe)
 
         if forename_safe is not None:
+            # TODO: remove this when the author name bug is fixed in
+            # search.process.transform. Since we are erroneously removing
+            # punctuation from author names prior to indexing, it's important
+            # to do the same here so that results are returned.
+            forename_safe = _strip_punctuation(forename_safe)
+
             fullname_safe = f'{forename_safe} {surname_safe}'
         else:
             fullname_safe = surname_safe

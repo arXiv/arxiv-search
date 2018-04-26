@@ -217,10 +217,11 @@ def simple(search: Search, query: SimpleQuery) -> Search:
         q_ar = [_field_term_to_q(field, query.value)
                 for field in use]
         q = reduce(ior, q_ar)
+
         if not is_literal_query(query.value):
             # When searching in "all fields", users will include terms from
             # various different fields. This additional multi-match treats
-            # title, abstract, and authors as one big field, and boosts
+            # title and abstract as one big field, and boosts
             # matching results. Since authors get boosted strongly elsewhere,
             # this effectively surfaces results for which authors respond and
             # also titles (and, to a lesser extent, abstracts) respond.
@@ -229,7 +230,6 @@ def simple(search: Search, query: SimpleQuery) -> Search:
                    query=query.value, boost=4, type="cross_fields")
     else:
         q = _field_term_to_q(query.search_field, query.value)
-    print(q)
     search = search.query(q)
     search = _apply_sort(query, search)
     return search
