@@ -1,0 +1,33 @@
+Test cases for author search tuning, updated 2018-04-27 EAW
+Searches performed on "All Fields" selection unless otherwise specified
+
+** Single author, initial and/or first name **
+
+L Edholm => results for L Edholm, Luke Edholm
+Luke Edholm => results for Luke Edholm, L Edholm (and not Luke * or * Edholm)
+Kuo-Wei Huang => results for Kuo-Wei Huang (currently only KuoWei without hyphen works), K Wang (maybe?)
+Volker Eyert => results for Volker Eyert (may be missing index issue?) including 1607.01703
+Weiwei Wu => results for Weiwei Wu, W Wu
+Juven Wang => results for Juven Wang, J Wang
+
+
+** Single author multiple surnames **
+Alvarez Cartelle => results for P Alvarez Cartelle
+Pena Alvarez => results for BOTH Pena and Alvarez at top; P Alvarez Cartelle also relevant
+Pena-Alvarez => results for Miriam Pena-Alvarez
+
+** Multiple authors denoted by space or other punctuation **
+waalewijn tackmann => results for papers by both Waalewijn and Tackmann
+runkel gainutdinov => results for papers by both Runkel and Gainutdinov
+Ceballos Ziegler => results for "Ceballos, Ziegler" and for "Ceballos, Ziegler, *""
+Ceballos, Santos, and Ziegler => results for "Ceballos, Santos, Ziegler"
+Arguelles Salvado => results for papers by Arguelles and Salvado
+Rozo bartlett => results for papers by Rozo and Bartlett
+wood lou olusola => results for Wood, Lou, and Olusola arXiv:1407.2521
+
+
+** Multiple terms across fields (author plus other term) **
+
+Planar algebras Jones => results for papers including all three keywords
+"Planar Algebras, I" Jones => arXiv:math/9909027
+auroux symplectic => papers authored by Denis Auroux containing "symplectic"
