@@ -173,6 +173,8 @@ def _query_all_fields(term: str) -> Q:
                          query=remove_single_characters(query_term.lower()))
 
     # In addition, all terms must each match in at least one field.
+    # TODO: continue implementing disjunct case, so that partials match on
+    # individual fields (e.g. ORCID, ACM class, etc).
     queries = [
         author_query(term, operator='OR'),
         _query_title(term, default_operator='or'),
