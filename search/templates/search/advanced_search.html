@@ -159,7 +159,7 @@
               </div>
             {% endif %}
             {% for field in form.date.filter_by %}
-            <div class="field is-horizontal is-grouped">
+            <div class="field is-grouped">
               <div class="control">
                 <div class="radio"> {# label tags are added by wtforms #}
                   {{ field|safe }}
@@ -168,7 +168,7 @@
               </div>
               {# TODO: the JS bits here should be re-implemented elsewhere #}
               {% if field.data == 'specific_year' %}
-              <div class="control">
+              <div class="control is-datefield">
                 <label for="date-year" class="hidden-label">Enter four digit year</label>
                 {% if form.date.year.errors %}
                   {{ form.date.year(placeholder="YYYY", class="input is-small is-danger")|safe }}
@@ -192,10 +192,10 @@
               {% endif %}
             </div>
             {% endfor %}
-            <div class="field is-horizontal is-grouped">
+            <div class="field is-grouped">
               <div class="control">
                 <div class="control">{{ form.date.from_date.label }}</div>
-                <div class="control">
+                <div class="control is-datefield">
                   {% if form.date.from_date.errors %}
                   {{ form.date.from_date(placeholder="YYYY[-MM[-DD]]", class="input is-small is-danger")|safe }}
                   {% else %}
@@ -212,7 +212,7 @@
               </div>
               <div class="control">
                 <div class="control">{{ form.date.to_date.label }}</div>
-                <div class="control">
+                <div class="control is-datefield">
                   {% if form.date.to_date.errors %}
                   {{ form.date.to_date(placeholder="YYYY[-MM[-DD]]", class="input is-small is-danger")|safe }}
                   {% else %}

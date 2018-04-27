@@ -171,5 +171,4 @@ class AdvancedSearchForm(Form):
         ('submitted_date', 'Submission date (oldest first)'),
         ('', 'Relevance')
     ], validators=[validators.Optional()], default='')
-    include_older_versions = BooleanField('Include older versions '
-                                          'of papers in results')
+    include_older_versions = BooleanField('Include older versions of papers')
