@@ -1,32 +1,71 @@
 Test cases for author search tuning, updated 2018-04-27 EAW
-Searches performed on "All Fields" selection unless otherwise specified
+
+NOTE: It may seem that there are a lot of duplicate example cases, but it has been
+found during testing that not every case performs in a similar fashion. Some already
+work well under current rules, and others have trouble for sometimes mysterious reasons.
+It may be worth keeping a library of search cases that may have had trouble in the
+past to prevent behavior regression.
+
+New method: Searched performed on "All Fields" will return results containing
+all terms conjoined from any field.
+
+Searches below performed on "Authors" selection unless otherwise specified
+
+** New syntax rules, which can be directly communicated to users in interface **
+Comma:
+ - Match part before the comma to surname AND match part after the comma to
+   forename (or as prefix) on same author.
+No comma:
+ - match all parts across all authors with simple AND
+Semicolon:
+ - Match all terms before semicolon on same author, after semicolon on different author, etc.
+No semicolon:
+ - Match all terms across all authors.
+Quotation marks:
+ - "Luke" "Luke Edholm" "L Edholm" "Edholm", "Edholm, L." -- literal on any
+   author name field, except continue to support commas.
+
+New author syntax examples:
+Edholm, Luke => results for any paper with: Surname == "Edholm" AND forename == "Luke" on -same person-
+Edholm, L => results for any paper with: surname == "Edholm" AND (forename begins with L or == L) -same person- (infer that this is just one person)
+Edholm; Luke => results for any paper with "Edholm" in a name field AND "Luke" in a separate name field. (indication of two separate persons)
+Edholm, Luke; Smith, Jane => (surname == "Edholm" AND forename matches or prefix "Luke") AND (surname == "Smith", forename matches or prefix "Jane")
 
 ** Single author, initial and/or first name **
+Previously, or implied from user feedback expectations:
+  L Edholm => results for L Edholm, Luke Edholm
+  Luke Edholm => results for Luke Edholm, L Edholm (and not Luke * or * Edholm)
+New method:
+  L Edholm => results for any paper containing 'Edholm' in an author name AND 'L'
+              in an author name. Boost: results containing 'L Edholm' exactly.
+  Luke Edholm => results for any paper containing 'Edholm' in an author name AND 'Luke'
+              in an author name. Would be the same as searching for multiple authors
+              without additional syntax.
 
-L Edholm => results for L Edholm, Luke Edholm
-Luke Edholm => results for Luke Edholm, L Edholm (and not Luke * or * Edholm)
-Kuo-Wei Huang => results for Kuo-Wei Huang (currently only KuoWei without hyphen works), K Wang (maybe?)
+Kuo-Wei Huang => results for Kuo-Wei Huang (currently only KuoWei without hyphen works)
 Volker Eyert => results for Volker Eyert (may be missing index issue?) including 1607.01703
-Weiwei Wu => results for Weiwei Wu, W Wu
-Juven Wang => results for Juven Wang, J Wang
+Weiwei Wu => results for Weiwei Wu (as Luke Edholm example above)
+Juven Wang => results for Juven Wang (as Luke Edholm example above)
 
 
 ** Single author multiple surnames **
-Alvarez Cartelle => results for P Alvarez Cartelle
-Pena Alvarez => results for BOTH Pena and Alvarez at top; P Alvarez Cartelle also relevant
-Pena-Alvarez => results for Miriam Pena-Alvarez
+Alvarez Cartelle => results for 'Alvarez' AND 'Cartelle' somewhere in author field (can be separate people)
+Pena Alvarez => results for 'Pena' AND 'Alvarez' in author field
+Pena-Alvarez => results for 'Pena-Alvarez' in author field
 
 ** Multiple authors denoted by space or other punctuation **
-waalewijn tackmann => results for papers by both Waalewijn and Tackmann
-runkel gainutdinov => results for papers by both Runkel and Gainutdinov
-Ceballos Ziegler => results for "Ceballos, Ziegler" and for "Ceballos, Ziegler, *""
-Ceballos, Santos, and Ziegler => results for "Ceballos, Santos, Ziegler"
-Arguelles Salvado => results for papers by Arguelles and Salvado
-Rozo bartlett => results for papers by Rozo and Bartlett
-wood lou olusola => results for Wood, Lou, and Olusola arXiv:1407.2521
+waalewijn tackmann => results for papers by 'Waalewijn' AND 'Tackmann'
+runkel gainutdinov => results for papers by 'Runkel' AND 'Gainutdinov'
+Ceballos Ziegler => results for papers with authors 'Ceballos' AND 'Ziegler' (with or without other authors)
+Ceballos, Santos, and Ziegler => old system: results for "Ceballos, Santos, Ziegler"
+                                 new system: invalid syntax (should consider case when more than one comma appears). Would this parse as "Ceballos, Santos" AND "Santos, and Ziegler"
+                                 as two names?
+Arguelles Salvado => results for papers by 'Arguelles' AND 'Salvado'
+Rozo bartlett => results for papers by 'Rozo' AND 'Bartlett'
+wood lou olusola => results for 'Wood' AND 'Lou' AND 'Olusola' (single result arXiv:1407.2521)
 
 
-** Multiple terms across fields (author plus other term) **
+** Multiple terms across fields (author plus other term) in ALL FIELDS **
 
 Planar algebras Jones => results for papers including all three keywords
 "Planar Algebras, I" Jones => arXiv:math/9909027
