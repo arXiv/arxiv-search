@@ -130,9 +130,10 @@ def url_for_author_search_builder() -> Dict[str, Callable]:
     """Inject a function to build author name query URLs."""
     def url_for_author_search(forename: str, surname: str) -> str:
         parts = url_parse(url_for('ui.search'))
+        forename_part = ' '.join([part[0] for part in forename.split()])
         parts = parts.replace(query=url_encode({
             'searchtype': 'author',
-            'query': f'"{surname}, {forename}"'
+            'query': f'{surname}, {forename_part}'
         }))
         url: str = url_unparse(parts)
         return url

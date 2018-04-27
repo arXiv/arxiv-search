@@ -317,6 +317,7 @@ class SearchSession(object):
                 current_search = prepare.simple(current_search, query)
         except TypeError as e:
             logger.error('Malformed query')
+            print(e)
             raise QueryError('Malformed query') from e
 
         # Highlighting is performed by Elasticsearch; here we include the

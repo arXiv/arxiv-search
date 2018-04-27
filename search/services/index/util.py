@@ -2,6 +2,8 @@
 
 import re
 from typing import Any, Optional, Tuple, Union, List
+from string import punctuation
+
 from elasticsearch_dsl import Search, Q, SF
 
 from .exceptions import QueryError
@@ -59,7 +61,8 @@ def wildcardEscape(querystring: str) -> Tuple[str, bool]:
 
 def is_literal_query(term: str) -> bool:
     """Determine whether the term is intended to be treated as a literal."""
-    return re.match('"[^"]+"', term) is not None
+    # return re.match('"[^"]+"', term) is not None
+    return '"' in term
 
 
 def is_tex_query(term: str) -> bool:
@@ -72,12 +75,14 @@ def strip_tex(term: str) -> str:
     return re.sub(TEXISM, '', term).strip()
 
 
-def Q_(qtype: str, field: str, value: str) -> Q:
+def Q_(qtype: str, field: str, value: str, boost: int = 1) -> Q:
     """Construct a :class:`.Q`, but handle wildcards first."""
     value, wildcard = wildcardEscape(value)
     if wildcard:
-        return Q('wildcard', **{field: value})
-    return Q(qtype, **{field: value})
+        return Q('wildcard', **{field: {'value': value, 'boost': boost}})
+    if 'match' in qtype:
+        return Q(qtype, **{field: {'query': value, 'boost': boost}})
+    return Q(qtype, **{field: value}, boost=boost)
 
 
 def escape(term: str) -> str:
@@ -88,3 +93,13 @@ def escape(term: str) -> str:
             escaped.append("\\")
         escaped.append(char)
     return "".join(escaped)
+
+
+def strip_punctuation(s: str) -> str:
+    return ''.join([c for c in s if c not in punctuation])
+
+
+def remove_single_characters(term: str) -> str:
+    """Remove any single characters in the search string."""
+    return ' '.join([part for part in term.split()
+                     if len(strip_punctuation(part)) > 1])

@@ -148,8 +148,8 @@ def _add_highlighting(result: dict, raw: Response) -> dict:
         # To guard against this while preserving highlighting, we move
         # any highlighting tags from within TeXisms to encapsulate the
         # entire TeXism.
-        if field in ['title', 'title_utf8', 'title.english', 'abstract',
-                     'abstract.english']:
+        if field in ['title', 'title.english',
+                     'abstract', 'abstract.english']:
             value = _highlight_whole_texism(value)
 
         # A hit on authors may originate in several different fields, most
@@ -164,20 +164,19 @@ def _add_highlighting(result: dict, raw: Response) -> dict:
 
     # If there is a hit in a TeX field, we prefer highlighting on that
     # field, since other tokenizers will clobber the TeX.
-    for field in ['abstract', 'abstract_utf8', 'title', 'title_utf8']:
+    for field in ['abstract', 'title']:
         if f'{field}.tex' in result['highlight']:
             result['highlight'][field] = \
                 result['highlight'].pop(f'{field}.tex')
 
-    for field in ['abstract.tex', 'abstract.english', 'abstract_utf8',
-                  'abstract']:
+    for field in ['abstract.tex', 'abstract.english', 'abstract']:
         if field in result['highlight']:
             value = result['highlight'][field]
             abstract_snippet = _preview(value)
             result['preview']['abstract'] = abstract_snippet
             result['highlight']['abstract'] = value
             break
-    for field in ['title.english', 'title_utf8', 'title']:
+    for field in ['title.english', 'title']:
         if field in result['highlight']:
             result['highlight']['title'] = result['highlight'][field]
             break
