@@ -1,8 +1,30 @@
 """Query-builders and helpers for searching by author name."""
 
 from typing import Tuple, Optional, List
+import re
+from string import punctuation
 from elasticsearch_dsl import Search, Q, SF
-from .util import wildcardEscape, is_literal_query, Q_
+from .util import wildcardEscape, is_literal_query, Q_, escape
+
+
+STOP = ["and", "or", "the", "of", "a", "for", "an"]
+
+
+# TODO: remove this when we address the author name bug in
+# search.process.transform..
+def _strip_punctuation(s: str) -> str:
+    return ''.join([c for c in s if c not in punctuation])
+
+
+# TODO: revisit author name indexing in document mappings.
+# Ideally stopwords would be removed at index time, but authors are indexed
+# as keywords which makes that difficult.
+def _remove_stopwords(term: str) -> str:
+    """Remove common stopwords that will match on institutions."""
+    _term = str(term)
+    for stopword in STOP:
+        _term =re.sub(f"(^|\s+){stopword}(\s+|$)", " ", _term)
+    return _term
 
 
 def _parseName(au_safe: str) -> Tuple[str, Optional[str]]:
@@ -28,6 +50,7 @@ def _parseName(au_safe: str) -> Tuple[str, Optional[str]]:
 # pieces, for readability.
 def construct_author_query(term: str) -> Q:
     """Generate an author name query in the ElasticSearch DSL."""
+    term = escape(term)
     _author_q = Q()
     score_functions: List = []
 
@@ -38,7 +61,14 @@ def construct_author_query(term: str) -> Q:
         au_name, has_wildcard = wildcardEscape(au_name)
         au_safe = au_name.replace('*', '').replace('?', '').replace('"', '')
         surname_safe, forename_safe = _parseName(au_safe)
+
         if forename_safe is not None:
+            # TODO: remove this when the author name bug is fixed in
+            # search.process.transform. Since we are erroneously removing
+            # punctuation from author names prior to indexing, it's important
+            # to do the same here so that results are returned.
+            forename_safe = _strip_punctuation(forename_safe)
+
             fullname_safe = f'{forename_safe} {surname_safe}'
         else:
             fullname_safe = surname_safe
@@ -46,9 +76,10 @@ def construct_author_query(term: str) -> Q:
             # Matching on keyword field is effectively an exact match.
             Q('match', **{
                 'authors__full_name__exact': {
-                    'query': fullname_safe, 'boost': 10
-                }
+                    'query': fullname_safe, 'boost': 30
+                },
             })
+
             # The next best case is that the query is a substring of
             #  the full name.
             | Q('match_phrase', **{
@@ -56,6 +87,15 @@ def construct_author_query(term: str) -> Q:
             })
         )
         if not is_literal_query(term):
+            # Search across all authors, and prefer documents for which a
+            # greater number of authors respond. For this part of the search
+            # we want to avoid artificially high scores when only initials
+            # match, so we drop solo characters from the query.
+            term_sans_inits = ' '.join(part for part in
+                                       _remove_stopwords(term).split()
+                                       if len(part) > 1)
+            _q |= Q('multi_match', fields=['authors.full_name'],
+                    query=term_sans_inits, boost=8, type="cross_fields")
             # We support wildcards (?*) within each author name. Since
             # ES will treat the non-wildcard part of the term as a literal,
             # we need to apply each word in the name separately.
@@ -92,7 +132,8 @@ def construct_author_query(term: str) -> Q:
                         'match', **{
                             'authors__full_name': fullname_safe
                         }
-                    )
+                    ),
+                    score_mode='sum'
                 )
             }),
             SF({
@@ -102,7 +143,8 @@ def construct_author_query(term: str) -> Q:
                         'match', **{
                             'authors__full_name_initialized': au_safe
                         }
-                    )
+                    ),
+                    score_mode='sum'
                 )
             })
         ]
@@ -118,7 +160,8 @@ def construct_author_query(term: str) -> Q:
                             'match', **{
                                 'authors__last_name': surname_safe
                             }
-                        )
+                        ),
+                        score_mode='sum'
                     )
                 }),
             ]
@@ -154,7 +197,8 @@ def construct_author_query(term: str) -> Q:
                                 "match", **{
                                     "authors__first_name__exact": forename_safe
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -164,7 +208,8 @@ def construct_author_query(term: str) -> Q:
                                 "match", **{
                                     "authors__first_name__exact": init_forename
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -173,7 +218,8 @@ def construct_author_query(term: str) -> Q:
                                 "match_phrase", **{
                                     "authors__first_name": forename_safe
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -182,7 +228,8 @@ def construct_author_query(term: str) -> Q:
                                 "match_phrase", **{
                                     "authors__first_name": init_forename
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -191,7 +238,8 @@ def construct_author_query(term: str) -> Q:
                                 "match", **{
                                     "authors__first_name": forename_safe
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -200,7 +248,8 @@ def construct_author_query(term: str) -> Q:
                                 "match", **{
                                     "authors__first_name": init_forename
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                     SF({
@@ -209,11 +258,12 @@ def construct_author_query(term: str) -> Q:
                                 "match", **{
                                     "authors__initials": init_forename.lower()
                                 }
-                            )
+                            ),
+                            score_mode='sum'
                         )
                     }),
                 ]
-        _author_q &= Q("nested", path="authors", query=_q)
+        _author_q &= Q("nested", path="authors", query=_q, score_mode='sum')
 
     return Q('function_score', query=_author_q,
              score_mode="sum", boost=1, boost_mode='multiply',
