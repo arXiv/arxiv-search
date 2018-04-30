@@ -176,16 +176,20 @@ def author_query(term: str, operator: str = 'AND') -> Q:
     return (string_query(term, operator=operator)
             | string_query(term, path="owners", operator=operator)
             | broad_query(remove_single_characters(term), operator=operator)
-            | broad_query(remove_single_characters(term), "owners", operator=operator))
+            | broad_query(remove_single_characters(term), "owners",
+                          operator=operator))
 
 
 def author_id_query(term: str) -> Q:
     """Generate a query part for Author ID using the ES DSL."""
     return (
-        Q("nested", path="authors", query=Q_('match', f'authors__author_id', term))
-        | Q("nested", path="owners", query=Q_('match', f'owners__author_id', term))
+        Q("nested", path="authors", query=Q_('match', f'authors__author_id',
+                                             term))
+        | Q("nested", path="owners", query=Q_('match', f'owners__author_id',
+                                              term))
         | Q_('match', f'submitter__author_id', term)
     )
+
 
 def orcid_query(term: str) -> Q:
     """Generate a query part for ORCID ID using the ES DSL."""

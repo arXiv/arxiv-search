@@ -7,6 +7,7 @@ from elasticsearch_dsl import Search, Q
 from elasticsearch_dsl.query import Range, Match, Bool, Nested
 
 from search.services import index
+from search.services.index import advanced
 from search.services.index.util import wildcardEscape, Q_
 from search.domain import Query, FieldedSearchTerm, DateRange, Classification,\
     AdvancedQuery, FieldedSearchList, ClassificationList, SimpleQuery, \
@@ -238,7 +239,7 @@ class TestPrepare(TestCase):
             )
         )
         try:
-            terms = index.prepare._group_terms(query)
+            terms = advanced._group_terms(query)
         except AssertionError:
             self.fail('Should result in a single group')
         self.assertEqual(expected, terms)
@@ -260,7 +261,7 @@ class TestPrepare(TestCase):
             FieldedSearchTerm(operator='AND', field='title', term='foo')
         )
         try:
-            terms = index.prepare._group_terms(query)
+            terms = advanced._group_terms(query)
         except AssertionError:
             self.fail('Should result in a single group')
         self.assertEqual(expected, terms)

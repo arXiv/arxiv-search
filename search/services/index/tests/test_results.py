@@ -1,7 +1,7 @@
 """Tests for :mod:`search.services.index`."""
 
 from unittest import TestCase, mock
-from search.services.index import results
+from search.services.index import highlighting
 
 
 class TestResultsHighlightAbstract(TestCase):
@@ -24,9 +24,9 @@ class TestResultsHighlightAbstract(TestCase):
 
     def test_preview(self):
         """Generate a preview that is smaller than/equal to fragment size."""
-        preview = results._preview(self.value, fragment_size=350,
-                                   start_tag=self.start_tag,
-                                   end_tag=self.end_tag)
+        preview = highlighting.preview(self.value, fragment_size=350,
+                                       start_tag=self.start_tag,
+                                       end_tag=self.end_tag)
         self.assertEqual(len(preview), 338)
 
     def test_preview_with_close_highlights(self):
@@ -46,7 +46,8 @@ class TestResultsHighlightAbstract(TestCase):
         )
         start_tag = "<span class=\"has-text-success has-text-weight-bold mathjax\">"
         end_tag = "</span>"
-        preview = results._preview(value, start_tag=start_tag, end_tag=end_tag)
+        preview = highlighting.preview(value, start_tag=start_tag,
+                                       end_tag=end_tag)
 
 
 class TestResultsEndSafely(TestCase):
@@ -69,27 +70,30 @@ class TestResultsEndSafely(TestCase):
 
     def test_end_safely_from_start(self):
         """No TeXisms/HTML are found within the desired fragment size."""
-        end = results._end_safely(self.value, 45, start_tag=self.start_tag,
-                                  end_tag=self.end_tag)
+        end = highlighting._end_safely(self.value, 45,
+                                       start_tag=self.start_tag,
+                                       end_tag=self.end_tag)
         self.assertEqual(end, 45, "Should end at the desired fragment length.")
 
     def test_end_safely_before_texism(self):
         """End before TeXism when desired fragment size would truncate."""
-        end = results._end_safely(self.value, 55, start_tag=self.start_tag,
-                                  end_tag=self.end_tag)
+        end = highlighting._end_safely(self.value, 55,
+                                       start_tag=self.start_tag,
+                                       end_tag=self.end_tag)
         # print(self.value[:end])
         self.assertEqual(end, 50, "Should end before the start of the TeXism.")
 
     def test_end_safely_before_html(self):
         """End before HTML when desired fragment size would truncate."""
-        end = results._end_safely(self.value, 215, start_tag=self.start_tag,
-                                  end_tag=self.end_tag)
+        end = highlighting._end_safely(self.value, 215,
+                                       start_tag=self.start_tag,
+                                       end_tag=self.end_tag)
         # print(self.value[:end])
         self.assertEqual(end, 213, "Should end before the start of the tag.")
 
     def test_end_safely_after_html_with_tolerance(self):
         """End before HTML when desired fragment size would truncate."""
-        end = results._end_safely(self.value, 275,
-                                  start_tag=self.start_tag,
-                                  end_tag=self.end_tag)
+        end = highlighting._end_safely(self.value, 275,
+                                       start_tag=self.start_tag,
+                                       end_tag=self.end_tag)
         self.assertEqual(end, 275, "Should end after the closing tag.")
