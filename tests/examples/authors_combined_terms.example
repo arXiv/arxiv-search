@@ -1,4 +1,4 @@
-Test cases for author search tuning, updated 2018-04-27 EAW
+Test cases for author search tuning, updated 2018-04-30 EAW
 
 NOTE: It may seem that there are a lot of duplicate example cases, but it has been
 found during testing that not every case performs in a similar fashion. Some already
@@ -13,8 +13,8 @@ Searches below performed on "Authors" selection unless otherwise specified
 
 ** New syntax rules, which can be directly communicated to users in interface **
 Comma:
- - Match part before the comma to surname AND match part after the comma to
-   forename (or as prefix) on same author.
+ - Match part before the (first) comma to surname AND match part after the (first)
+   comma to forename (or as prefix) on same author.
 No comma:
  - match all parts across all authors with simple AND
 Semicolon:
@@ -24,6 +24,10 @@ No semicolon:
 Quotation marks:
  - "Luke" "Luke Edholm" "L Edholm" "Edholm", "Edholm, L." -- literal on any
    author name field, except continue to support commas.
+
+Classic syntax surname_firstinitial is not explicitly supported; if this continues
+to cause confusion the plan is to detect this and display a message to user
+explaining comma-delineated syntax
 
 New author syntax examples:
 Edholm, Luke => results for any paper with: Surname == "Edholm" AND forename == "Luke" on -same person-
@@ -49,7 +53,8 @@ Juven Wang => results for Juven Wang (as Luke Edholm example above)
 
 
 ** Single author multiple surnames **
-Alvarez Cartelle => results for 'Alvarez' AND 'Cartelle' somewhere in author field (can be separate people)
+Alvarez Cartelle => results for 'Alvarez' AND 'Cartelle' somewhere in author field
+                    including 'Alvarez Cartelle' and 'Cartelle Alvarez' or separate authors
 Pena Alvarez => results for 'Pena' AND 'Alvarez' in author field
 Pena-Alvarez => results for 'Pena-Alvarez' in author field
 
@@ -58,15 +63,22 @@ waalewijn tackmann => results for papers by 'Waalewijn' AND 'Tackmann'
 runkel gainutdinov => results for papers by 'Runkel' AND 'Gainutdinov'
 Ceballos Ziegler => results for papers with authors 'Ceballos' AND 'Ziegler' (with or without other authors)
 Ceballos, Santos, and Ziegler => old system: results for "Ceballos, Santos, Ziegler"
-                                 new system: invalid syntax (should consider case when more than one comma appears). Would this parse as "Ceballos, Santos" AND "Santos, and Ziegler"
-                                 as two names?
-Arguelles Salvado => results for papers by 'Arguelles' AND 'Salvado'
-Rozo bartlett => results for papers by 'Rozo' AND 'Bartlett'
+                                 new system: treated as one name: surname 'Ceballos',
+                                 forename 'Santos and Ziegler'
+Ceballos, Santos; Ziegler, Rowena => results for papers with authors
+                                      surname 'Ceballos' forename 'Santos' AND
+                                      surname 'Ziegler' forename 'Rowena'
+Arguelles Salvado => results for papers by 'Arguelles' AND 'Salvado' including
+                      those by 'Arguelles Salvado' and 'Salvado Arguelles'
+Rozo bartlett => results for papers by 'Rozo' AND 'Bartlett' including those by
+                'Rozo Bartlett' and 'Bartlett Rozo'
 wood lou olusola => results for 'Wood' AND 'Lou' AND 'Olusola' (single result arXiv:1407.2521)
+                    or any combination of those names in one or more authors
 
 
 ** Multiple terms across fields (author plus other term) in ALL FIELDS **
 
 Planar algebras Jones => results for papers including all three keywords
 "Planar Algebras, I" Jones => arXiv:math/9909027
-auroux symplectic => papers authored by Denis Auroux containing "symplectic"
+auroux symplectic => papers authored by Denis Auroux containing "symplectic", or,
+                     more precisely: papers containing the terms 'auroux' AND 'symplectic'
