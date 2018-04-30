@@ -357,7 +357,8 @@
           "copy_to": ["combined"]
         },
         "paper_id": {
-          "type": "keyword"
+          "type": "keyword",
+          "copy_to": ["combined"]
         },
         "paper_id_v": {
           "type": "keyword"
@@ -391,10 +392,12 @@
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "copy_to": ["combined"]
                 },
                 "name": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "copy_to": ["combined"]
                 }
               }
             }

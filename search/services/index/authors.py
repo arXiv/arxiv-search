@@ -85,8 +85,7 @@ def part_query(term: str, path: str = "authors") -> Q:
         q = Q("query_string",
               fields=AUTHOR_QUERY_FIELDS, default_operator='AND',
               analyze_wildcard=True, allow_leading_wildcard=False,
-              auto_generate_phrase_queries=True, type="cross_fields",
-              query=escape(term))
+              type="cross_fields", query=escape(term))
 
     return Q("nested", path=path, query=q, score_mode='sum')
 
@@ -100,8 +99,8 @@ def string_query(term: str, path: str = 'authors', operator: str = 'AND') -> Q:
     ]
     q = Q("query_string", fields=AUTHOR_QUERY_FIELDS,
           default_operator=operator, analyze_wildcard=True,
-          allow_leading_wildcard=False, auto_generate_phrase_queries=True,
-          type="cross_fields", query=escape(term))
+          allow_leading_wildcard=False, type="cross_fields",
+          query=escape(term))
     return Q('nested', path=path, query=q, score_mode='sum')
 
 
@@ -180,21 +179,31 @@ def author_query(term: str, operator: str = 'AND') -> Q:
                           operator=operator))
 
 
-def author_id_query(term: str) -> Q:
+def author_id_query(term: str, operator: str = 'and') -> Q:
     """Generate a query part for Author ID using the ES DSL."""
-    return (
-        Q("nested", path="authors", query=Q_('match', f'authors__author_id',
-                                             term))
-        | Q("nested", path="owners", query=Q_('match', f'owners__author_id',
-                                              term))
-        | Q_('match', f'submitter__author_id', term)
-    )
+    if operator == 'or':
+        return (
+            Q("nested", path="authors",
+              query=Q("terms", **{"authors__author_id": term.split()}))
+            | Q("nested", path="owners",
+                query=Q("terms", **{"owners__author_id": term.split()}))
+            | Q("terms", **{"submitter__author_id": term.split()})
+        )
+    flds = ['authors.author_id', 'owners.author_id', 'submitter.author_id']
+    return Q("multi_match", type="cross_fields", fields=flds, query=term,
+             operator=operator)
 
 
-def orcid_query(term: str) -> Q:
+def orcid_query(term: str, operator: str = 'and') -> Q:
     """Generate a query part for ORCID ID using the ES DSL."""
-    return (
-        Q("nested", path="authors", query=Q_('match', f'authors__orcid', term))
-        | Q("nested", path="owners", query=Q_('match', f'owners__orcid', term))
-        | Q_('match', f'submitter__orcid', term)
-    )
+    if operator == 'or':
+        return (
+            Q("nested", path="authors",
+              query=Q("terms", **{"authors__orcid": term.split()}))
+            | Q("nested", path="owners",
+                query=Q("terms", **{"owners__orcid": term.split()}))
+            | Q("terms", **{"submitter__orcid": term.split()})
+        )
+    flds = ['authors.orcid', 'owners.orcid', 'submitter.orcid']
+    return Q("multi_match", type="cross_fields", fields=flds, query=term,
+             operator=operator)

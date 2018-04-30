@@ -75,14 +75,14 @@ def strip_tex(term: str) -> str:
     return re.sub(TEXISM, '', term).strip()
 
 
-def Q_(qtype: str, field: str, value: str, boost: int = 1) -> Q:
+def Q_(qtype: str, field: str, value: str, operator: str = 'or') -> Q:
     """Construct a :class:`.Q`, but handle wildcards first."""
     value, wildcard = wildcardEscape(value)
     if wildcard:
-        return Q('wildcard', **{field: {'value': value, 'boost': boost}})
+        return Q('wildcard', **{field: {'value': value.lower()}})
     if 'match' in qtype:
-        return Q(qtype, **{field: {'query': value, 'boost': boost}})
-    return Q(qtype, **{field: value}, boost=boost)
+        return Q(qtype, **{field: value})
+    return Q(qtype, **{field: value}, operator=operator)
 
 
 def escape(term: str) -> str:

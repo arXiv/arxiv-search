@@ -7,7 +7,7 @@ fields to query-building functions in the module.
 
 from typing import Any, List, Tuple, Callable, Dict
 from functools import reduce, wraps
-from operator import ior
+from operator import ior, iand
 import re
 from string import punctuation
 
@@ -32,7 +32,7 @@ def _query_title(term: str, default_operator: str = 'AND') -> Q:
         fields += ['title']
     return Q("query_string", fields=fields, default_operator=default_operator,
              analyze_wildcard=True, allow_leading_wildcard=False,
-             auto_generate_phrase_queries=True, query=escape(term))
+             query=escape(term))
 
 
 def _query_abstract(term: str, default_operator: str = 'AND') -> Q:
@@ -41,43 +41,53 @@ def _query_abstract(term: str, default_operator: str = 'AND') -> Q:
         fields += ['abstract']
     return Q("query_string", fields=fields, default_operator=default_operator,
              analyze_wildcard=True, allow_leading_wildcard=False,
-             auto_generate_phrase_queries=True, query=escape(term))
+             query=escape(term))
 
 
 def _query_comments(term: str, default_operator: str = 'AND') -> Q:
     return Q("query_string", fields=['comments'],
              default_operator=default_operator, analyze_wildcard=True,
-             allow_leading_wildcard=False, auto_generate_phrase_queries=True,
-             query=escape(term))
+             allow_leading_wildcard=False, query=escape(term))
 
 
-def _tex_query(field: str, term: str, boost: int = 2) -> Q:
-    return Q("match", **{f'{field}.tex': {'query': term, 'boost': boost}})
+def _tex_query(field: str, term: str, operator: str = 'and') -> Q:
+    return Q("match", **{f'{field}.tex': {'query': term, 'operator': operator}})
 
 
-def _query_journal_ref(term: str, boost: int = 1) -> Q:
+def _query_journal_ref(term: str, boost: int = 1, operator: str = 'and') -> Q:
+    if operator == 'or':
+        return reduce(ior, [Q_('match', 'journal_ref', escape(part)) for part in term.split()])
     return Q_('match_phrase', 'journal_ref', escape(term))
 
 
-def _query_report_num(term: str, boost: int = 1) -> Q:
+def _query_report_num(term: str, boost: int = 1, operator: str = 'and') -> Q:
+    if operator == 'or':
+        return reduce(ior, [Q_('match', 'report_num', escape(part)) for part in term.split()])
+        # return Q_('match', 'report_num', escape(term))
     return Q_('match_phrase', 'report_num', escape(term))
 
 
-def _query_acm_class(term: str) -> Q:
-    return Q_('match', 'acm_class', escape(term).upper())
+def _query_acm_class(term: str, operator: str = 'and') -> Q:
+    term = term.upper()
+    if operator == 'or':
+        return Q("terms", acm_class=term.split())
+    return reduce(iand, [Q("term", acm_class=part) for part in term.split()])
 
 
-def _query_msc_class(term: str) -> Q:
-    return Q_('match', 'msc_class', escape(term))
+def _query_msc_class(term: str, operator: str = 'and') -> Q:
+    if operator == 'or':
+        return Q("terms", msc_class=term.split())
+    return reduce(iand, [Q("term", msc_class=part) for part in term.split()])
+    # return Q_('match', 'msc_class', escape(term), operator=operator)
 
 
-def _query_doi(term: str) -> Q:
-    return Q_('match', 'doi', term)
+def _query_doi(term: str, operator: str = 'and') -> Q:
+    return Q_('match', 'doi', term, operator=operator)
 
 
-def _query_paper_id(term: str) -> Q:
-    return (Q_('match', 'paper_id', escape(term))
-            | Q_('match', 'paper_id_v', escape(term)))
+def _query_paper_id(term: str, operator: str = 'and') -> Q:
+    return (Q_('match', 'paper_id', escape(term), operator=operator)
+            | Q_('match', 'paper_id_v', escape(term), operator=operator))
 
 
 def _query_all_fields(term: str) -> Q:
@@ -91,11 +101,11 @@ def _query_all_fields(term: str) -> Q:
     query_term = wildcard_escaped if has_wildcard else escape(term)
 
     # All terms must match in the combined field.
+    _query = escape(remove_single_characters(query_term.lower()))
     match_all_fields = Q("query_string", fields=['combined'],
                          default_operator='AND', analyze_wildcard=True,
                          allow_leading_wildcard=False,
-                         auto_generate_phrase_queries=True,
-                         query=remove_single_characters(query_term.lower()))
+                         query=_query)
 
     # In addition, all terms must each match in at least one field.
     # TODO: continue implementing disjunct case, so that partials match on
@@ -105,13 +115,13 @@ def _query_all_fields(term: str) -> Q:
         _query_title(term, default_operator='or'),
         _query_abstract(term, default_operator='or'),
         _query_comments(term, default_operator='or'),
-        orcid_query(term),
-        author_id_query(term),
-        _query_doi(term),
-        _query_journal_ref(term),
-        _query_report_num(term),
-        _query_acm_class(term),
-        _query_msc_class(term),
+        orcid_query(term, operator='or'),
+        author_id_query(term, operator='or'),
+        _query_doi(term, operator='or'),
+        _query_journal_ref(term, operator='or'),
+        _query_report_num(term, operator='or'),
+        _query_acm_class(term, operator='or'),
+        _query_msc_class(term, operator='or'),
     ]
     query = match_all_fields & Q("bool", should=queries)
     scores = [SF({'weight': i + 1, 'filter': q})

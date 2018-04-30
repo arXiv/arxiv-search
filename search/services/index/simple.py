@@ -30,4 +30,5 @@ def simple_search(search: Search, query: SimpleQuery) -> Search:
     q = SEARCH_FIELDS[query.search_field](query.value)
     search = search.query(q)
     search = sort(query, search)
+    print(search.to_dict())
     return search

@@ -17,6 +17,7 @@ from .util import MAX_RESULTS, TEXISM
 from .highlighting import add_highlighting, preview
 
 logger = logging.getLogger(__name__)
+logger.propagate = False
 
 
 def _to_document(raw: Response) -> Document:
