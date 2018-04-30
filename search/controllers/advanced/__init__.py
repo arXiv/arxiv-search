@@ -14,10 +14,10 @@ from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
 from werkzeug.datastructures import MultiDict
-from werkzeug.exceptions import InternalServerError, BadRequest
+from werkzeug.exceptions import InternalServerError, BadRequest, NotFound
 from flask import url_for
 
-from arxiv import status
+from arxiv import status, taxonomy
 
 from search.services import index, fulltext, metadata
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
@@ -228,3 +228,47 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
             end_date=date_data['to_date'],
         )
     return q
+
+
+# TODO: this _could_ go on the AdvancedSearchForm or ClassificationForm.
+def group_search(args: MultiDict, groups_or_archives: str) -> Response:
+    """
+    Short-cut for advanced search with group or archive pre-selected.
+
+    Note that this only supports options supported in the advanced search
+    interface. Anything else will result in a 404.
+    """
+    logger.debug('Group search for %s', groups_or_archives)
+    valid_archives = []
+    for archive in groups_or_archives.split(','):
+        if archive not in taxonomy.ARCHIVES:
+            logger.debug('archive %s not found in taxonomy', archive)
+            continue
+        # Support old archives.
+        if archive in taxonomy.ARCHIVES_SUBSUMED:
+            category = taxonomy.CATEGORIES[taxonomy.ARCHIVES_SUBSUMED[archive]]
+            archive = category['in_archive']
+        valid_archives.append(archive)
+
+    if len(valid_archives) == 0:
+        logger.debug('No valid archives in request')
+        raise NotFound('No such archive.')
+
+    logger.debug('Request for %i valid archives', len(valid_archives))
+    args = args.copy()
+    for archive in valid_archives:
+        fld = dict(forms.ClassificationForm.ARCHIVES).get(archive)
+        if fld is not None:     # Try a top-level archive first.
+            args[f'classification-{fld}'] = True
+        else:
+            # Might be a physics archive; if so, also select the physics
+            # group on the form.
+            fld = dict(forms.ClassificationForm.PHYSICS_ARCHIVES).get(archive)
+            if fld is None:
+                logger.warn('Invalid archive shortcut: {fld}')
+                continue
+            args['classification-physics'] = True
+            # If there is more than one physics archives, only the last one
+            # will be preserved.
+            args['classification-physics_archives'] = fld
+    return search(args)

@@ -56,6 +56,23 @@ def advanced_search() -> Union[str, Response]:
     )
 
 
+@blueprint.route('<string:groups_or_archives>', methods=['GET'])
+def group_search(groups_or_archives: str) -> Union[str, Response]:
+    """
+    Short-cut for advanced search with group or archive pre-selected.
+
+    Note that this only supports options supported in the advanced search
+    interface. Anything else will result in a 404.
+    """
+    print(groups_or_archives)
+    response, code, _ = advanced.group_search(request.args, groups_or_archives)
+    return render_template(
+        "search/advanced_search.html",
+        pagetitle="Advanced Search",
+        **response
+    )
+
+
 @blueprint.route('status', methods=['GET', 'HEAD'])
 def service_status() -> Union[str, Response]:
     """
