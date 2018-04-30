@@ -18,7 +18,7 @@ logger.propagate = False
 # We don't remove stopwords from author names at index time because
 # institutions and collaborations are often treated as authors just like
 # people.
-STOP = ["and", "or", "the", "of", "a", "for", "an"]
+STOP = ["and", "or", "the", "of", "a", "for"]
 
 
 def _remove_stopwords(term: str) -> str:
@@ -139,6 +139,7 @@ def author_query(term: str, operator: str = 'AND') -> Q:
     """
     logger.debug(f"Author query for {term}")
     term = _remove_stopwords(term.lower())
+    print(term)
     # term = term.lower()
     if ";" in term:     # Authors are individuated.
         logger.debug(f"Authors are individuated: {term}")

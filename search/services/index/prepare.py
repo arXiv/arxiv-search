@@ -123,7 +123,7 @@ def _query_all_fields(term: str) -> Q:
         _query_acm_class(term, operator='or'),
         _query_msc_class(term, operator='or'),
     ]
-    query = match_all_fields & Q("bool", should=queries)
+    query = (match_all_fields | author_query(term)) & Q("bool", should=queries)
     scores = [SF({'weight': i + 1, 'filter': q})
               for i, q in enumerate(queries[::-1])]
     return Q('function_score', query=query, score_mode="sum", functions=scores,

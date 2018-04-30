@@ -131,9 +131,10 @@ def url_for_author_search_builder() -> Dict[str, Callable]:
     def url_for_author_search(forename: str, surname: str) -> str:
         parts = url_parse(url_for('ui.search'))
         forename_part = ' '.join([part[0] for part in forename.split()])
+        name = f'{surname}, {forename_part}' if forename_part else surname
         parts = parts.replace(query=url_encode({
             'searchtype': 'author',
-            'query': f'{surname}, {forename_part}'
+            'query': name
         }))
         url: str = url_unparse(parts)
         return url
