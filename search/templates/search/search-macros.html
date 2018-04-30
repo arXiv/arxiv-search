@@ -237,3 +237,47 @@
     {%- endif -%}
   {%- endfor -%}
 {%- endmacro -%}
+
+{% macro help_tips() %}
+  <div class="box">
+    <article class="message is-link">
+      <div class="message-header">
+        <h4 class="has-text-white is-marginless is-bold">Searching Authors</h4>
+      </div>
+      <div class="message-body">
+        <ul>
+          <li>Searching for multiple names or terms with no punctuation treats names as individual parts</li>
+          <li>For the most accurate name search, follow <strong>surname, firstinitial</strong> pattern: example Hawking, S or Hawking, Stephen</li>
+          <li>For best results on multiple authors, <strong>separate author names with a ;</strong> (semicolon). Example: Jin, D S; Ye, J</li>
+          <li>Author names enclosed in quotes will return only exact matches. For example, "Stephen Hawking" will not return matches for Stephen W. Hawking.</li>
+          <li>Diacritic character variants are automatically searched in the Author(s) field.</li>
+        </ul>
+      </div>
+    </article>
+    <h2 class="title is-5">Tips</h2>
+    <p class="title is-6">Wildcards:</p>
+      <ul>
+       <li>Use ? to replace a single character or * to replace any number of characters.</li>
+       <li>Can be used in any field, but not in the first character position. See Journal References tips for exceptions.</li>
+      </ul>
+    <p class="title is-6">Expressions:</p>
+      <ul>
+         <li>TeX expressions can be searched, enclosed in single $ characters.</li>
+      </ul>
+    <p class="title is-6">Phrases:</p>
+      <ul>
+        <li>Enclose phrases in double quotes for exact matches in title, abstract, and comments.</li>
+      </ul>
+    <p class="title is-6">Dates:</p>
+      <ul>
+        <li>Sorting by announcement date will use the year and month the <em>original version</em> (v1) of the paper was announced.</li>
+        <li>Sorting by submission date will use the year, month and day the <em>latest version</em> of the paper was submitted.</li>
+      </ul>
+    <p class="title is-6">Journal References:</p>
+      <ul>
+        <li>If a journal reference search contains a wildcard, matches will be made using wildcard matching as expected. For example, <strong>math*</strong> will match <em>math</em>, <em>maths</em>, <em>mathematics</em>.</li>
+        <li>If a journal reference search does <strong>not</strong> contain a wildcard, only exact phrases entered will be matched. For example, <strong>math</strong> would match <em>math</em> or <em>math and science</em> but not <em>maths</em> or <em>mathematics</em>.</li>
+        <li>All journal reference searches that do not contain a wildcard are literal searches: a search for <strong>Physica A</strong> will match all papers with journal references containing <em>Physica A</em>, but a search for <strong>Physica A, 245 (1997) 181</strong> will only return the paper with journal reference <em>Physica A, 245 (1997) 181</em>.</li>
+      </ul>
+  </div>
+{% endmacro %}
