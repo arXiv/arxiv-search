@@ -13,6 +13,7 @@ from .util import wildcardEscape, escape, STRING_LITERAL, \
     remove_single_characters
 
 logger = logging.getLogger(__name__)
+logger.propagate = False
 
 # We don't remove stopwords from author names at index time because
 # institutions and collaborations are often treated as authors just like
@@ -104,14 +105,6 @@ def string_query(term: str, path: str = 'authors', operator: str = 'AND') -> Q:
     return Q('nested', path=path, query=q, score_mode='sum')
 
 
-def broad_query(term: str, path: str = 'authors', operator: str = 'AND') -> Q:
-    """Build a query that matches all terms across all authors."""
-    logger.debug(f"{path} general query: {term}, operator={operator}")
-    query_parts = [string_query(part, path, operator) for part in term.split()]
-    op = iand if operator == 'AND' else ior
-    return reduce(op, query_parts)
-
-
 def author_query(term: str, operator: str = 'AND') -> Q:
     """
     Construct a query based on author (and owner) names.
@@ -169,14 +162,14 @@ def author_query(term: str, operator: str = 'AND') -> Q:
         ])
 
     logger.debug(f"General search: {term}")
-    # General author name query; may match on any field. We include both
-    # w/in author and among author matches, so that more precise matches get
-    # more weight.
-    return (string_query(term, operator=operator)
-            | string_query(term, path="owners", operator=operator)
-            | broad_query(remove_single_characters(term), operator=operator)
-            | broad_query(remove_single_characters(term), "owners",
-                          operator=operator))
+
+    # All terms must match within the author/owner names as a whole.
+    q = Q('query_string', fields=['authors_combined'], query=term,
+          default_operator='and')
+    # We include both w/in author and among author matches, so that more
+    # precise matches get more weight.
+    return q | ((string_query(term, operator=operator)
+                | string_query(term, path="owners", operator=operator)))
 
 
 def author_id_query(term: str, operator: str = 'and') -> Q:
