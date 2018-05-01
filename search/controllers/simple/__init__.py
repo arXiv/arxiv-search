@@ -17,7 +17,7 @@ from arxiv import status, identifier
 from arxiv.base import logging
 from search.services import index, fulltext, metadata
 from search.domain import Query, SimpleQuery, asdict
-from search.controllers.util import paginate
+from search.controllers.util import paginate, catch_underscore_syntax
 
 from .forms import SimpleSearchForm
 # from search.routes.ui import external_url_builder
@@ -78,8 +78,6 @@ def search(request_params: dict) -> Response:
     if arxiv_id:
         return {}, status.HTTP_301_MOVED_PERMANENTLY,\
             {'Location': f'https://arxiv.org/abs/{arxiv_id}'}
-        # TODO: use URL constructor to generate URL
-        #{'Location': external_url_builder('browse', 'abstract', arxiv_id=arxiv_id)}
 
     # Fall back to form-based search.
     form = SimpleSearchForm(request_params)
@@ -101,8 +99,16 @@ def search(request_params: dict) -> Response:
     if form.validate():
         logger.debug('form is valid')
         q = _query_from_form(form)
+
         # Pagination is handled outside of the form.
         q = paginate(q, request_params)
+
+        # Here we intervene on the user's query to look for holdouts from the
+        # classic search system's author indexing syntax (surname_f). We
+        # rewrite with a comma, and show a warning to the user about the
+        # change.
+        q.value, has_classic_format = catch_underscore_syntax(q.value)
+
         try:
             # Execute the search. We'll use the results directly in
             #  template rendering, so they get added directly to the
@@ -128,8 +134,8 @@ def search(request_params: dict) -> Response:
                 "help@arxiv.org."
             ) from e
         except Exception as e:
-            print(e)
-            raise 
+            logger.error('Unhandled exception: %s', str(e))
+            raise
     else:
         logger.debug('form is invalid: %s', str(form.errors))
         if 'order' in form.errors or 'size' in form.errors:
