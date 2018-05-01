@@ -85,7 +85,7 @@ def part_query(term: str, path: str = "authors") -> Q:
         # handle wildcards, literals, etc.
         q = Q("query_string",
               fields=AUTHOR_QUERY_FIELDS, default_operator='AND',
-              analyze_wildcard=True, allow_leading_wildcard=False,
+              allow_leading_wildcard=False,
               type="cross_fields", query=escape(term))
 
     return Q("nested", path=path, query=q, score_mode='sum')
@@ -99,9 +99,8 @@ def string_query(term: str, path: str = 'authors', operator: str = 'AND') -> Q:
         f"{path}.full_name_initialized"
     ]
     q = Q("query_string", fields=AUTHOR_QUERY_FIELDS,
-          default_operator=operator, analyze_wildcard=True,
-          allow_leading_wildcard=False, type="cross_fields",
-          query=escape(term))
+          default_operator=operator, allow_leading_wildcard=False,
+          type="cross_fields", query=escape(term))
     return Q('nested', path=path, query=q, score_mode='sum')
 
 
@@ -165,7 +164,7 @@ def author_query(term: str, operator: str = 'AND') -> Q:
     logger.debug(f"General search: {term}")
 
     # All terms must match within the author/owner names as a whole.
-    q = Q('query_string', fields=['authors_combined'], query=term,
+    q = Q('query_string', fields=['authors_combined'], query=escape(term),
           default_operator='and')
     # We include both w/in author and among author matches, so that more
     # precise matches get more weight.

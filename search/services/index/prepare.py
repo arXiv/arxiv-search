@@ -3,6 +3,8 @@ Functions for preparing a :class:`.Search` (prior to execution).
 
 The primary public object is ``SEARCH_FIELDS``, which maps :class:`.Query`
 fields to query-building functions in the module.
+
+See :func:`._query_all_fields` for information on how results are scored.
 """
 
 from typing import Any, List, Tuple, Callable, Dict
@@ -31,58 +33,51 @@ def _query_title(term: str, default_operator: str = 'AND') -> Q:
     if is_literal_query(term):
         fields += ['title']
     return Q("query_string", fields=fields, default_operator=default_operator,
-             analyze_wildcard=True, allow_leading_wildcard=False,
-             query=escape(term))
+             allow_leading_wildcard=False, query=escape(term))
 
 
 def _query_abstract(term: str, default_operator: str = 'AND') -> Q:
-    fields = ['abstract.english']
+    fields = ["abstract.english"]
     if is_literal_query(term):
-        fields += ['abstract']
+        fields += ["abstract"]
     return Q("query_string", fields=fields, default_operator=default_operator,
-             analyze_wildcard=True, allow_leading_wildcard=False,
-             query=escape(term))
+             allow_leading_wildcard=False, query=escape(term))
 
 
 def _query_comments(term: str, default_operator: str = 'AND') -> Q:
-    return Q("query_string", fields=['comments'],
-             default_operator=default_operator, analyze_wildcard=True,
+    return Q("query_string", fields=["comments"],
+             default_operator=default_operator,
              allow_leading_wildcard=False, query=escape(term))
 
 
 def _tex_query(field: str, term: str, operator: str = 'and') -> Q:
-    return Q("match", **{f'{field}.tex': {'query': term, 'operator': operator}})
+    return Q("match",
+             **{f'{field}.tex': {'query': term, 'operator': operator}})
 
 
 def _query_journal_ref(term: str, boost: int = 1, operator: str = 'and') -> Q:
-    if operator == 'or':
-        return reduce(ior, [Q_('match', 'journal_ref', escape(part)) for part in term.split()])
-    return Q_('match_phrase', 'journal_ref', escape(term))
+    return Q("query_string", fields=["journal_ref"], default_operator=operator,
+             allow_leading_wildcard=False, query=escape(term))
 
 
 def _query_report_num(term: str, boost: int = 1, operator: str = 'and') -> Q:
-    if operator == 'or':
-        return reduce(ior, [Q_('match', 'report_num', escape(part)) for part in term.split()])
-        # return Q_('match', 'report_num', escape(term))
-    return Q_('match_phrase', 'report_num', escape(term))
+    return Q("query_string", fields=["report_num"], default_operator=operator,
+             allow_leading_wildcard=False, query=escape(term))
 
 
 def _query_acm_class(term: str, operator: str = 'and') -> Q:
-    term = term.upper()
-    if operator == 'or':
-        return Q("terms", acm_class=term.split())
-    return reduce(iand, [Q("term", acm_class=part) for part in term.split()])
+    return Q("match", acm_class={"query": term, "operator": operator})
 
 
 def _query_msc_class(term: str, operator: str = 'and') -> Q:
-    if operator == 'or':
-        return Q("terms", msc_class=term.split())
-    return reduce(iand, [Q("term", msc_class=part) for part in term.split()])
-    # return Q_('match', 'msc_class', escape(term), operator=operator)
+    return Q("match", msc_class={"query": term, "operator": operator})
 
 
 def _query_doi(term: str, operator: str = 'and') -> Q:
-    return Q_('match', 'doi', term, operator=operator)
+    value, wildcard = wildcardEscape(term)
+    if wildcard:
+        return Q('wildcard', doi={'value': term.lower()})
+    return Q('match', doi={'query': term, 'operator': operator})
 
 
 def _query_paper_id(term: str, operator: str = 'and') -> Q:
@@ -91,7 +86,47 @@ def _query_paper_id(term: str, operator: str = 'and') -> Q:
 
 
 def _query_all_fields(term: str) -> Q:
-    """Construct a query against all fields."""
+    """
+    Construct a query against all fields.
+
+    The heart of the query is a `query_string` search against a "combined"
+    field, which contains tokens from all of the searchable metadata fields on
+    each paper. All tokens in the query must match in that combined field.
+
+    The reason that we do it this way, instead of combining queries across
+    multiple fields, is that:
+
+    - To query in a term-centric way across fields (e.g. the `cross_fields`
+      query type for `query_string` or `multi_match` searches), all of those
+      fields must have the same analyzer. It's a drag to constrain analyzer
+      choice on individual fields, so this way we can do what we want with
+      individual fields but also support a consistent all-fields search that
+      behaves the way that users expect.
+    - Performing a disjunct search across all fields can't guarantee that all
+      terms match (if we use the disjunct operator within each field), and
+      can't handle queries that span fieds (if we use the conjunect operator
+      within each field).
+
+    In addition to the combined query, we also perform dijunct queries across
+    individual fields to generate field-specific hits, and to provide control
+    over scoring.
+
+    Weights are applied using :class:`.SF` (score functions). In the current
+    implementation, fields are given monotonically decreasing weights in the
+    order applied below. More complex score functions may be introduced, and
+    that should happen here.
+
+    Parameters
+    ----------
+    term : str
+        A query string.
+
+    Returns
+    -------
+    :class:`.Q`
+        A search-ready query part, including score functions.
+
+    """
     # We only perform TeX queries on title and abstract.
     if is_tex_query(term):
         return _tex_query('title', term) | _tex_query('abstract', term)
@@ -101,15 +136,14 @@ def _query_all_fields(term: str) -> Q:
     query_term = wildcard_escaped if has_wildcard else escape(term)
 
     # All terms must match in the combined field.
-    _query = escape(remove_single_characters(query_term.lower()))
+    _query = query_term.lower()
     match_all_fields = Q("query_string", fields=['combined'],
-                         default_operator='AND', analyze_wildcard=True,
+                         default_operator='AND',
                          allow_leading_wildcard=False,
-                         query=_query)
+                         query=escape(_query))
 
-    # In addition, all terms must each match in at least one field.
-    # TODO: continue implementing disjunct case, so that partials match on
-    # individual fields (e.g. ORCID, ACM class, etc).
+    # We include matches of any term in any field, so that we can highlight
+    # and score appropriately.
     queries = [
         author_query(term, operator='OR'),
         _query_title(term, default_operator='or'),
@@ -123,7 +157,7 @@ def _query_all_fields(term: str) -> Q:
         _query_acm_class(term, operator='or'),
         _query_msc_class(term, operator='or'),
     ]
-    query = (match_all_fields | author_query(term)) & Q("bool", should=queries)
+    query = match_all_fields & Q("bool", should=queries)
     scores = [SF({'weight': i + 1, 'filter': q})
               for i, q in enumerate(queries[::-1])]
     return Q('function_score', query=query, score_mode="sum", functions=scores,

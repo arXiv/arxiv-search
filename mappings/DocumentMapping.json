@@ -23,11 +23,15 @@
       "analyzer": {
         "combined": {
           "type": "custom",
-          "tokenizer": "standard",
+          "tokenizer": "whitespace",
           "filter": [
+            "icu_folding",
             "lowercase",
             "english_stop",
-            "german_normalization"
+            "german_normalization",
+            "scandinavian_normalization",
+            "scandinavian_folding",
+            "serbian_normalization"
           ]
         },
         "simple": {
@@ -47,14 +51,6 @@
             "english_stop"
           ]
         },
-        "author_simple": {
-          "type": "custom",
-          "tokenizer": "whitespace",
-          "filter": [
-            "lowercase",
-            "german_normalization"
-          ]
-        },
         "author_folding": {
           "type": "custom",
           "tokenizer": "whitespace",
@@ -64,7 +60,10 @@
           "filter": [
             "icu_folding",
             "lowercase",
-            "german_normalization"
+            "german_normalization",
+            "scandinavian_normalization",
+            "scandinavian_folding",
+            "serbian_normalization"
           ]
         },
         "tex_analyzer": {
@@ -91,7 +90,7 @@
             "lowercase"
           ]
         },
-        "author_simple": {
+        "author_folding": {
           "filter": [
             "lowercase",
             "german_normalization"
@@ -131,6 +130,7 @@
         },
         "acm_class": {
           "type": "keyword",
+          "normalizer": "simple",
           "copy_to": ["combined"]
         },
         "authors": {
@@ -162,7 +162,7 @@
             },
             "initials": {
               "type": "keyword",
-              "normalizer": "author_simple",
+              "normalizer": "author_folding",
               "fields": {
                 "folded": {
                   "type": "keyword",
@@ -357,6 +357,7 @@
         },
         "msc_class": {
           "type": "keyword",
+          "normalizer": "simple",
           "copy_to": ["combined"]
         },
         "paper_id": {
@@ -468,7 +469,8 @@
             },
             "name": {
               "type": "text",
-              "analyzer": "folding"
+              "analyzer": "folding",
+              "copy_to": ["combined", "authors_combined"]
             },
             "submitter_id": {
               "type": "integer"
@@ -477,10 +479,12 @@
               "type": "boolean"
             },
             "author_id": {
-              "type": "keyword"
+              "type": "keyword",
+              "copy_to": ["combined"]
             },
             "orcid": {
-              "type": "keyword"
+              "type": "keyword",
+              "copy_to": ["combined"]
             }
           }
         },
