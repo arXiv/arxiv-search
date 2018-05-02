@@ -23,7 +23,7 @@ from search.services import index, fulltext, metadata
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
     Classification, FieldedSearchList, ClassificationList, Query, asdict
 from arxiv.base import logging
-from search.controllers.util import paginate
+from search.controllers.util import paginate, catch_underscore_syntax
 
 from . import forms
 
@@ -77,6 +77,22 @@ def search(request_params: MultiDict) -> Response:
 
             # Pagination is handled outside of the form.
             q = paginate(q, request_params)
+
+            # Here we intervene on the user's query to look for holdouts from
+            # the
+            # classic search system's author indexing syntax (surname_f). We
+            # rewrite with a comma, and show a warning to the user about the
+            # change.
+            has_classic = False
+            for term in q.terms:
+                # We are only looking for this syntax in the author search, or
+                # in an all-fields search.
+                if term.field not in ['all', 'author']:
+                    continue
+                term.term, _has_classic = catch_underscore_syntax(term.term)
+                has_classic = _has_classic if not has_classic else has_classic
+            response_data['has_classic_format'] = has_classic
+
             try:
                 # Execute the search. We'll use the results directly in
                 #  template rendering, so they get added directly to the

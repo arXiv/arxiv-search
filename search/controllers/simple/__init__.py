@@ -107,7 +107,10 @@ def search(request_params: dict) -> Response:
         # classic search system's author indexing syntax (surname_f). We
         # rewrite with a comma, and show a warning to the user about the
         # change.
-        q.value, has_classic_format = catch_underscore_syntax(q.value)
+        response_data['has_classic_format']: bool = False
+        if q.search_field in ['author', 'all']:
+            q.value, has_classic_format = catch_underscore_syntax(q.value)
+            response_data['has_classic_format'] = has_classic_format
 
         try:
             # Execute the search. We'll use the results directly in
