@@ -48,6 +48,7 @@ def part_query(term: str, path: str = "authors") -> Q:
     """Build a query that matches within a single author/owner."""
     SURNAME = f"{path}__last_name"
     FORENAME = f"{path}__first_name"
+    INITIALS = f"{path}__initials"
     AUTHOR_QUERY_FIELDS = [
         f"{path}.full_name",
         f"{path}.last_name",
@@ -62,19 +63,22 @@ def part_query(term: str, path: str = "authors") -> Q:
         # We treat the entire part as a search for a single author. The part
         # before the comma is treated as a surname, and the part after the
         # comma is treated as a forename or a prefix of the forename.
-        name_parts = term.split(",")
+        name_parts = [p.strip() for p in term.split(",")]
         surname = name_parts[0].strip()
         forename = " ".join(name_parts[1:]).strip()
-        q_surname = Q_("match", SURNAME, surname)
-        q_forename = Q_("match", FORENAME, forename)
+        q_surname = Q("match", **{SURNAME: surname})
+        q_forename = Q("match", **{FORENAME: forename})
 
         # It may be the case that the forename consists of initials or some
         # other prefix/partial forename. For a match of this kind, each part
         # of the forename part must be a prefix of a term in the forename.
-        q_forename_prefix = Q()
-        for forename_part in forename.split():
-            q_forename_prefix &= Q_("prefix", FORENAME, forename_part)
-        q_forename |= q_forename_prefix
+        if path == 'authors':
+            q_prefix = []
+            for forename_part in forename.split():
+                print(forename_part)
+                forename_part = forename_part.strip()
+                q_prefix.append(Q("match", **{INITIALS: forename_part}))
+            q_forename |= reduce(iand, q_prefix)
 
         # We will treat this as a search for a single author; surname and
         # forename parts must match in the same (nested) author.
