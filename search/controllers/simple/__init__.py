@@ -89,7 +89,7 @@ def search(request_params: MultiDict) -> Response:
     # classic search system's author indexing syntax (surname_f). We
     # rewrite with a comma, and show a warning to the user about the
     # change.
-    response_data['has_classic_format']: bool = False
+    response_data['has_classic_format'] = False
     if 'searchtype' in request_params and 'query' in request_params:
         if request_params['searchtype'] in ['author', 'all']:
             _query, _classic = catch_underscore_syntax(request_params['query'])

@@ -213,7 +213,7 @@ def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
 def _update_query_with_terms(q: AdvancedQuery, terms_data: list) \
         -> AdvancedQuery:
     q.terms = FieldedSearchList([
-        FieldedSearchTerm(**term) for term in terms_data if term['term']
+        FieldedSearchTerm(**term) for term in terms_data if term['term']    # type: ignore
     ])
     return q
 
