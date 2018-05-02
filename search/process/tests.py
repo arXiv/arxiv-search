@@ -15,7 +15,7 @@ class TestTransformMetdata(TestCase):
         """Field ``id`` is populated from ``paper_id``."""
         meta = DocMeta(**{'paper_id': '1234.56789'})
         doc = transform.to_search_document(meta)
-        self.assertEqual(doc.id, '1234.56789')
+        self.assertEqual(doc.id, '1234.56789v1')
 
     def test_abstract(self):
         """Field ``abstract`` is populated from ``abstract_utf8``."""
@@ -356,7 +356,7 @@ class TestTransformBulkDocmeta(TestCase):
             if doc.version == 2:
                 self.assertEqual(doc.latest, f"{doc.paper_id}v2")
                 self.assertTrue(doc.is_current)
-                self.assertEqual(doc.id, doc.paper_id)
+                self.assertEqual(doc.id, doc.paper_id_v)
             else:
                 self.assertFalse(doc.is_current)
                 self.assertEqual(doc.id, doc.paper_id_v)
