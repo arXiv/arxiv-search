@@ -233,3 +233,11 @@
     {%- endif -%}
   {%- endfor -%}
 {%- endmacro -%}
+
+{% macro show_classic_author_search() -%}
+  <article class="message is-warning">
+    <div class="message-body">
+      <p>For best results searching author names, use format <code>surname, initial</code> OR <code>surname, forename</code>. Separate individual authors with <code>;</code> semicolons.</p>
+    </div>
+  </article>
+{%- endmacro %}
