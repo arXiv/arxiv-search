@@ -554,7 +554,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                         " in the response context, so that a message may be"
                         " rendered in the template.")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.advanced.index')
     def test_author_search_contains_classic_syntax(self, mock_index):
         """User has entered a `surname_f` query in an author search."""
         request_data = MultiDict({
@@ -575,7 +575,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                         " in the response context, so that a message may be"
                         " rendered in the template.")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.advanced.index')
     def test_all_fields_search_multiple_classic_syntax(self, mock_index):
         """User has entered a classic query with multiple authors."""
         request_data = MultiDict({
@@ -597,7 +597,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                         " in the response context, so that a message may be"
                         " rendered in the template.")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.advanced.index')
     def test_title_search_contains_classic_syntax(self, mock_index):
         """User has entered a `surname_f` query in a title search."""
         request_data = MultiDict({
