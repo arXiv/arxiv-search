@@ -25,6 +25,9 @@
         "combined": {
           "type": "custom",
           "tokenizer": "whitespace",
+          "char_filter": [
+            "strip_dots_commas"
+          ],
           "filter": [
             "icu_folding",
             "lowercase",

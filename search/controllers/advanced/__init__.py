@@ -8,12 +8,12 @@ parameters, and produce informative error messages for the user.
 """
 
 from typing import Tuple, Dict, Any, Optional
-
+import re
 from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
-from werkzeug.datastructures import MultiDict
+from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from werkzeug.exceptions import InternalServerError, BadRequest
 from flask import url_for
 
@@ -60,10 +60,36 @@ def search(request_params: MultiDict) -> Response:
         Raised when there is an unrecoverable error while interacting with the
         search index.
     """
+    # We may need to intervene on the request parameters, so we'll
+    # reinstantiate as a mutable MultiDict.
+    if isinstance(request_params, ImmutableMultiDict):
+        request_params = MultiDict(request_params.items(multi=True))
+
     logger.debug('search request from advanced form')
     response_data: Dict[str, Any] = {}
     response_data['show_form'] = ('advanced' not in request_params)
     logger.debug('show_form: %s', str(response_data['show_form']))
+
+    # Here we intervene on the user's query to look for holdouts from
+    # the classic search system's author indexing syntax (surname_f). We
+    # rewrite with a comma, and show a warning to the user about the
+    # change.
+    has_classic = False
+    for key in request_params.keys():
+        if key.startswith('terms-') and key.endswith('-term'):
+            value = request_params.get(key)
+            i = re.search('terms-([0-9])+-term', key).group(1)
+            field = request_params.get(f'terms-{i}-field')
+            # We are only looking for this syntax in the author search, or
+            # in an all-fields search.
+            if field not in ['all', 'author']:
+                continue
+
+            value, _has_classic = catch_underscore_syntax(value)
+            has_classic = _has_classic if not has_classic else has_classic
+            request_params.setlist(key, [value])
+
+    response_data['has_classic_format'] = has_classic
     form = forms.AdvancedSearchForm(request_params)
 
     q: Optional[Query]
@@ -71,27 +97,13 @@ def search(request_params: MultiDict) -> Response:
     #  If a query was actually submitted via the form, 'advanced' will be
     #  present in the request parameters.
     if 'advanced' in request_params:
+
         if form.validate():
             logger.debug('form is valid')
             q = _query_from_form(form)
 
             # Pagination is handled outside of the form.
             q = paginate(q, request_params)
-
-            # Here we intervene on the user's query to look for holdouts from
-            # the
-            # classic search system's author indexing syntax (surname_f). We
-            # rewrite with a comma, and show a warning to the user about the
-            # change.
-            has_classic = False
-            for term in q.terms:
-                # We are only looking for this syntax in the author search, or
-                # in an all-fields search.
-                if term.field not in ['all', 'author']:
-                    continue
-                term.term, _has_classic = catch_underscore_syntax(term.term)
-                has_classic = _has_classic if not has_classic else has_classic
-            response_data['has_classic_format'] = has_classic
 
             try:
                 # Execute the search. We'll use the results directly in
