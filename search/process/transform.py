@@ -79,7 +79,7 @@ def _constructDOI(meta: DocMeta) -> List[str]:
 
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType, bool]] = [
-    ("id", lambda meta: meta.paper_id if meta.is_current else _constructPaperVersion(meta), True),
+    ("id", _constructPaperVersion, True),
     ("abstract", "abstract_utf8", False),
     ("authors", _constructAuthors, True),
     ("authors_freeform", "authors_utf8", False),

@@ -64,7 +64,6 @@ def group_search(groups_or_archives: str) -> Union[str, Response]:
     Note that this only supports options supported in the advanced search
     interface. Anything else will result in a 404.
     """
-    print(groups_or_archives)
     response, code, _ = advanced.group_search(request.args, groups_or_archives)
     return render_template(
         "search/advanced_search.html",
