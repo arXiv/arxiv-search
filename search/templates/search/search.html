@@ -12,6 +12,9 @@
 
 {% block within_content %}
   <form method="GET" action="{{ url_for('ui.search') }}" {% if not query and not results %} class="breathe-vertical" {% endif %} aria-role="search">
+    {% if has_classic_format %}
+      {{ search_macros.show_classic_author_search() }}
+    {% endif %}
     <div class="field has-addons-tablet">
       <div class="control is-expanded">
         <label for="query" class="hidden-label">Search term or terms</label>
