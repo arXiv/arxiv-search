@@ -389,10 +389,14 @@
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "normalizer": "simple",
+                  "copy_to": ["combined"]
                 },
                 "name": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "normalizer": "simple",
+                  "copy_to": ["combined"]
                 }
               }
             },
@@ -401,10 +405,12 @@
               "properties": {
                 "id": {
                   "type": "keyword",
+                  "normalizer": "simple",
                   "copy_to": ["combined"]
                 },
                 "name": {
                   "type": "keyword",
+                  "normalizer": "simple",
                   "copy_to": ["combined"]
                 }
               }

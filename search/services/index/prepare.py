@@ -80,6 +80,15 @@ def _query_doi(term: str, operator: str = 'and') -> Q:
     return Q('match', doi={'query': term, 'operator': operator})
 
 
+def _query_primary(term: str, operator: str = 'and') -> Q:
+    return (
+        Q("match", **{"primary_classification__category__id": {"query": term, "operator": operator}})
+        | Q("match", **{"primary_classification__category__name": {"query": term, "operator": operator}})
+        | Q("match", **{"primary_classification__archive__id": {"query": term, "operator": operator}})
+        | Q("match", **{"primary_classification__archive__name": {"query": term, "operator": operator}})
+    )
+
+
 def _query_paper_id(term: str, operator: str = 'and') -> Q:
     return (Q_('match', 'paper_id', escape(term), operator=operator)
             | Q_('match', 'paper_id_v', escape(term), operator=operator))
@@ -156,6 +165,7 @@ def _query_all_fields(term: str) -> Q:
         _query_report_num(term, operator='or'),
         _query_acm_class(term, operator='or'),
         _query_msc_class(term, operator='or'),
+        _query_primary(term, operator='or')
     ]
     query = match_all_fields & Q("bool", should=queries)
     scores = [SF({'weight': i + 1, 'filter': q})

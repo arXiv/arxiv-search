@@ -20,7 +20,7 @@ TEXISM = re.compile(r'(\$[^\$]+\$)')
 MAX_RESULTS = 10_000
 """This is the maximum result offset for pagination."""
 
-SPECIAL_CHARACTERS = ['+', '-', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
+SPECIAL_CHARACTERS = ['+', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
                       '}', '[', ']', '^', '~', ':', '\\', '/']
 DEFAULT_SORT = ['_score', '-announced_date_first', '_doc']
 
