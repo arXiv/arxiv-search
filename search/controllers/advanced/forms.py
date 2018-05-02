@@ -77,18 +77,34 @@ class ClassificationForm(Form):
 
     # pylint: disable=too-few-public-methods
 
-    computer_science = BooleanField('Computer Science (cs)')
-    economics = BooleanField('Economics (econ)')
-    eess = BooleanField('Electrical Engineering and Systems Science (eess)')
-    mathematics = BooleanField('Mathematics (math)')
-    physics = BooleanField('Physics')
-    physics_archives = SelectField(choices=[
+    # Map arXiv archives to fields on this form. Ideally we would autogenerate
+    # form fields based on the arXiv taxonomy, but this can't easily happen
+    # until we replace the classic-style advanced interface with faceted
+    # search.
+    ARCHIVES = [
+        ('cs', 'computer_science'),
+        ('econ', 'economics'),
+        ('eess', 'eess'),
+        ('math', 'mathematics'),
+        ('physics', 'physics'),
+        ('q-bio', 'q_biology'),
+        ('q-fin', 'q_finance'),
+        ('stat', 'statistics')
+    ]
+    PHYSICS_ARCHIVES = [
         ('all', 'all'), ('astro-ph', 'astro-ph'), ('cond-mat', 'cond-mat'),
         ('gr-qc', 'gr-qc'), ('hep-ex', 'hep-ex'), ('hep-lat', 'hep-lat'),
         ('hep-ph', 'hep-ph'), ('hep-th', 'hep-th'), ('math-ph', 'math-ph'),
         ('nlin', 'nlin'), ('nucl-ex', 'nucl-ex'), ('nucl-th', 'nucl-th'),
         ('physics', 'physics'), ('quant-ph', 'quant-ph')
-    ], default='all')
+    ]
+
+    computer_science = BooleanField('Computer Science (cs)')
+    economics = BooleanField('Economics (econ)')
+    eess = BooleanField('Electrical Engineering and Systems Science (eess)')
+    mathematics = BooleanField('Mathematics (math)')
+    physics = BooleanField('Physics')
+    physics_archives = SelectField(choices=PHYSICS_ARCHIVES, default='all')
     q_biology = BooleanField('Quantitative Biology (q-bio)')
     q_finance = BooleanField('Quantitative Finance (q-fin)')
     statistics = BooleanField('Statistics (stat)')
