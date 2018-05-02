@@ -6,7 +6,8 @@ from dataclasses import dataclass, field
 from typing import NamedTuple, Optional
 
 
-class FieldedSearchTerm(NamedTuple):
+@dataclass
+class FieldedSearchTerm:
     """Represents a fielded search term."""
 
     operator: str

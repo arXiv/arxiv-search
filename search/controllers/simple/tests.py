@@ -325,3 +325,88 @@ class TestPaginationParametersAreFunky(TestCase):
         })
         with self.assertRaises(BadRequest):
             simple.search(request_data)
+
+
+class TestClassicAuthorSyntaxIsIntercepted(TestCase):
+    """
+    The user may have entered an author query using `surname_f` syntax.
+
+    This is an artefact of the classic search system, and not intended to be
+    supported. Nevertheless, users have become accustomed to this syntax. We
+    therefore rewrite the query using a comma, and show the user a warning
+    about the syntax change.
+    """
+
+    @mock.patch('search.controllers.simple.index')
+    def test_all_fields_search_contains_classic_syntax(self, mock_index):
+        """User has entered a `surname_f` query in an all-fields search."""
+        request_data = MultiDict({
+            'searchtype': 'all',
+            'query': 'franklin_r',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = simple.search(request_data)
+        self.assertEqual(data['query'].value, "franklin, r",
+                         "The query should be rewritten.")
+        self.assertTrue(data['has_classic_format'],
+                        "A flag denoting the syntax interception should be set"
+                        " in the response context, so that a message may be"
+                        " rendered in the template.")
+
+    @mock.patch('search.controllers.simple.index')
+    def test_author_search_contains_classic_syntax(self, mock_index):
+        """User has entered a `surname_f` query in an author search."""
+        request_data = MultiDict({
+            'searchtype': 'author',
+            'query': 'franklin_r',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = simple.search(request_data)
+        self.assertEqual(data['query'].value, "franklin, r",
+                         "The query should be rewritten.")
+        self.assertTrue(data['has_classic_format'],
+                        "A flag denoting the syntax interception should be set"
+                        " in the response context, so that a message may be"
+                        " rendered in the template.")
+
+    @mock.patch('search.controllers.simple.index')
+    def test_all_fields_search_multiple_classic_syntax(self, mock_index):
+        """User has entered a classic query with multiple authors."""
+        request_data = MultiDict({
+            'searchtype': 'all',
+            'query': 'j franklin_r hawking_s',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = simple.search(request_data)
+        self.assertEqual(data['query'].value, "j franklin, r; hawking, s",
+                         "The query should be rewritten.")
+        self.assertTrue(data['has_classic_format'],
+                        "A flag denoting the syntax interception should be set"
+                        " in the response context, so that a message may be"
+                        " rendered in the template.")
+
+    @mock.patch('search.controllers.simple.index')
+    def test_title_search_contains_classic_syntax(self, mock_index):
+        """User has entered a `surname_f` query in a title search."""
+        request_data = MultiDict({
+            'searchtype': 'title',
+            'query': 'franklin_r',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = simple.search(request_data)
+        self.assertEqual(data['query'].value, "franklin_r",
+                         "The query should not be rewritten.")
+        self.assertFalse(data['has_classic_format'],
+                         "Flag should not be set, as no rewrite has occurred.")

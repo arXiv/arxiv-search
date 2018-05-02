@@ -10,6 +10,7 @@ error messages for the user.
 from typing import Tuple, Dict, Any, Optional
 
 from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
+from werkzeug import MultiDict, ImmutableMultiDict
 from flask import url_for
 
 from arxiv import status, identifier
@@ -17,7 +18,7 @@ from arxiv import status, identifier
 from arxiv.base import logging
 from search.services import index, fulltext, metadata
 from search.domain import Query, SimpleQuery, asdict
-from search.controllers.util import paginate
+from search.controllers.util import paginate, catch_underscore_syntax
 
 from .forms import SimpleSearchForm
 # from search.routes.ui import external_url_builder
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
 
-def search(request_params: dict) -> Response:
+def search(request_params: MultiDict) -> Response:
     """
     Perform a simple search.
 
@@ -57,6 +58,11 @@ def search(request_params: dict) -> Response:
         unexpected problem executing the query.
 
     """
+    # We may need to intervene on the request parameters, so we'll
+    # reinstantiate as a mutable MultiDict.
+    if isinstance(request_params, ImmutableMultiDict):
+        request_params = MultiDict(request_params.items(multi=True))
+
     logger.debug('simple search form')
     response_data = {}  # type: Dict[str, Any]
 
@@ -78,8 +84,17 @@ def search(request_params: dict) -> Response:
     if arxiv_id:
         return {}, status.HTTP_301_MOVED_PERMANENTLY,\
             {'Location': f'https://arxiv.org/abs/{arxiv_id}'}
-        # TODO: use URL constructor to generate URL
-        #{'Location': external_url_builder('browse', 'abstract', arxiv_id=arxiv_id)}
+
+    # Here we intervene on the user's query to look for holdouts from the
+    # classic search system's author indexing syntax (surname_f). We
+    # rewrite with a comma, and show a warning to the user about the
+    # change.
+    response_data['has_classic_format'] = False
+    if 'searchtype' in request_params and 'query' in request_params:
+        if request_params['searchtype'] in ['author', 'all']:
+            _query, _classic = catch_underscore_syntax(request_params['query'])
+            response_data['has_classic_format'] = _classic
+            request_params['query'] = _query
 
     # Fall back to form-based search.
     form = SimpleSearchForm(request_params)
@@ -101,8 +116,10 @@ def search(request_params: dict) -> Response:
     if form.validate():
         logger.debug('form is valid')
         q = _query_from_form(form)
+
         # Pagination is handled outside of the form.
         q = paginate(q, request_params)
+
         try:
             # Execute the search. We'll use the results directly in
             #  template rendering, so they get added directly to the
@@ -128,8 +145,8 @@ def search(request_params: dict) -> Response:
                 "help@arxiv.org."
             ) from e
         except Exception as e:
-            print(e)
-            raise 
+            logger.error('Unhandled exception: %s', str(e))
+            raise
     else:
         logger.debug('form is invalid: %s', str(form.errors))
         if 'order' in form.errors or 'size' in form.errors:

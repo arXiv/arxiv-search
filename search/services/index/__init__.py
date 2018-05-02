@@ -38,8 +38,10 @@ from search.domain import Document, DocumentSet, Query, AdvancedQuery, \
 from .exceptions import QueryError, IndexConnectionError, DocumentNotFound, \
     IndexingError, OutsideAllowedRange, MappingError
 from .util import MAX_RESULTS
-
-from . import prepare, results
+from .advanced import advanced_search
+from .simple import simple_search
+from .highlighting import highlight
+from . import results
 
 logger = logging.getLogger(__name__)
 
@@ -312,16 +314,16 @@ class SearchSession(object):
         current_search = self._base_search()
         try:
             if isinstance(query, AdvancedQuery):
-                current_search = prepare.advanced(current_search, query)
+                current_search = advanced_search(current_search, query)
             elif isinstance(query, SimpleQuery):
-                current_search = prepare.simple(current_search, query)
+                current_search = simple_search(current_search, query)
         except TypeError as e:
-            logger.error('Malformed query')
+            logger.error('Malformed query: %s', str(e))
             raise QueryError('Malformed query') from e
 
         # Highlighting is performed by Elasticsearch; here we include the
         # fields and configuration for highlighting.
-        current_search = prepare.highlight(current_search)
+        current_search = highlight(current_search)
 
         with handle_es_exceptions():
             # Slicing the search adds pagination parameters to the request.
