@@ -56,7 +56,7 @@ def advanced_search() -> Union[str, Response]:
     )
 
 
-@blueprint.route('<string:groups_or_archives>', methods=['GET'])
+@blueprint.route('advanced/<string:groups_or_archives>', methods=['GET'])
 def group_search(groups_or_archives: str) -> Union[str, Response]:
     """
     Short-cut for advanced search with group or archive pre-selected.
