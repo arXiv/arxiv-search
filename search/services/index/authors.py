@@ -66,7 +66,7 @@ def part_query(term: str, path: str = "authors") -> Q:
         name_parts = [p.strip() for p in term.split(",")]
         surname = name_parts[0].strip()
         forename = " ".join(name_parts[1:]).strip()
-        q_surname = Q("match", **{SURNAME: surname})
+        q_surname = Q("match_phrase", **{SURNAME: surname})
         q_forename = Q("match", **{FORENAME: forename})
 
         # It may be the case that the forename consists of initials or some
@@ -75,10 +75,12 @@ def part_query(term: str, path: str = "authors") -> Q:
         if path == 'authors':
             q_prefix = []
             for forename_part in forename.split():
-                print(forename_part)
                 forename_part = forename_part.strip()
                 q_prefix.append(Q("match", **{INITIALS: forename_part}))
-            q_forename |= reduce(iand, q_prefix)
+            if len(q_prefix) == 1:
+                q_forename |= q_prefix[0]
+            elif len(q_prefix) > 1:
+                q_forename |= reduce(iand, q_prefix)
 
         # We will treat this as a search for a single author; surname and
         # forename parts must match in the same (nested) author.
@@ -141,7 +143,7 @@ def author_query(term: str, operator: str = 'AND') -> Q:
 
     """
     logger.debug(f"Author query for {term}")
-    term = _remove_stopwords(term.lower())
+    term = term.lower()
     # term = term.lower()
     if ";" in term:     # Authors are individuated.
         logger.debug(f"Authors are individuated: {term}")
