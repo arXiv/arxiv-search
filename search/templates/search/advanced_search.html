@@ -22,8 +22,8 @@
 
 {% macro advanced_query(form) %}
 
-<div class="columns">
-  <div class="column is-three-fifths">
+<div class="columns is-desktop">
+  <div class="column is-three-fifths-desktop">
     {% if form.errors %}
     <div class="notification is-warning">
       Whoops! Something went wrong. Please correct errors in the form below.
@@ -32,11 +32,10 @@
     <div class="box">
       <form method="GET" action="{{ url_for('ui.advanced_search') }}">
         {{ form.advanced|safe }}
-
         {# Field-specific search term fieldset. #}
         <section data-toggle="fieldset" id="terms-fieldset">
           {% for entry in form.terms.entries %}
-            <div class="field has-addons" data-toggle="fieldset-entry">
+            <div class="field has-addons-tablet" data-toggle="fieldset-entry">
               <div class="control fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>
                 <span class="select">
                   <label for="terms-{{loop.index0}}-operator" class="hidden-label">Boolean operator</label>
@@ -159,7 +158,7 @@
               </div>
             {% endif %}
             {% for field in form.date.filter_by %}
-            <div class="field is-horizontal is-grouped">
+            <div class="field is-grouped">
               <div class="control">
                 <div class="radio"> {# label tags are added by wtforms #}
                   {{ field|safe }}
@@ -168,7 +167,7 @@
               </div>
               {# TODO: the JS bits here should be re-implemented elsewhere #}
               {% if field.data == 'specific_year' %}
-              <div class="control">
+              <div class="control is-datefield">
                 <label for="date-year" class="hidden-label">Enter four digit year</label>
                 {% if form.date.year.errors %}
                   {{ form.date.year(placeholder="YYYY", class="input is-small is-danger")|safe }}
@@ -192,10 +191,10 @@
               {% endif %}
             </div>
             {% endfor %}
-            <div class="field is-horizontal is-grouped">
+            <div class="field is-grouped">
               <div class="control">
                 <div class="control">{{ form.date.from_date.label }}</div>
-                <div class="control">
+                <div class="control is-datefield">
                   {% if form.date.from_date.errors %}
                   {{ form.date.from_date(placeholder="YYYY[-MM[-DD]]", class="input is-small is-danger")|safe }}
                   {% else %}
@@ -212,7 +211,7 @@
               </div>
               <div class="control">
                 <div class="control">{{ form.date.to_date.label }}</div>
-                <div class="control">
+                <div class="control is-datefield">
                   {% if form.date.to_date.errors %}
                   {{ form.date.to_date(placeholder="YYYY[-MM[-DD]]", class="input is-small is-danger")|safe }}
                   {% else %}
@@ -249,27 +248,29 @@
         <section>
           <div class="level">
             <div class="level-left">
-              <div class="field is-horizontal is-grouped">
-                <div class="control">
-                  <span class="select is-small">
-                    {{ form.size|safe }}
-                  </span>
-                </div>
-                <div class="control">
-                 {{ form.size.label }}
-                </div>
-              </div>
-            </div>
-            <div class="level-left">
-              <div class="field is-horizontal is-grouped">
-                <div class="control">
-                  <div class="checkbox">
-                    {{ form.include_older_versions|safe }}
-                    {{ form.include_older_versions.label }}
+              <div class="level-item">
+                <div class="field is-horizontal is-grouped">
+                  <div class="control">
+                    <span class="select is-small">
+                      {{ form.size|safe }}
+                    </span>
+                  </div>
+                  <div class="control">
+                   {{ form.size.label }}
                   </div>
                 </div>
               </div>
-            </div>
+              <div class="level-item">
+                <div class="field is-horizontal is-grouped">
+                  <div class="control">
+                    <div class="checkbox">
+                      {{ form.include_older_versions|safe }}
+                      {{ form.include_older_versions.label }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
             <div class="level-right">
               <button class="button is-link is-medium">Search</button>
             </div>
@@ -311,6 +312,9 @@
   {% if show_form %}
     {{ advanced_query(form) }}
   {% else %}
+    {% if has_classic_format %}
+      {{ search_macros.show_classic_author_search() }}
+    {% endif %}
     <p class="subtitle is-5">Refine your query: <a href="{{ current_url_sans_parameters('advanced') }}">{{ query }}</a> or <a href="{{ url_for('ui.advanced_search') }}">Start a new search</a></p>
     {% if results %}
         {{ search_macros.size_and_order(form, url_for('ui.advanced_search')) }}

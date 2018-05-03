@@ -178,7 +178,6 @@ class Document:
     paper_id_v: str = field(default_factory=str)
     title: str = field(default_factory=str)
     title_tex: str = field(default_factory=str)
-    title_utf8: str = field(default_factory=str)
     source: Dict[str, Any] = field(default_factory=dict)
     version: int = 1
     latest: str = field(default_factory=str)

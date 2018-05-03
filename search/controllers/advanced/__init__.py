@@ -8,22 +8,23 @@ parameters, and produce informative error messages for the user.
 """
 
 from typing import Tuple, Dict, Any, Optional
-
+import re
 from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
-from werkzeug.datastructures import MultiDict
-from werkzeug.exceptions import InternalServerError, BadRequest
+
+from werkzeug.datastructures import MultiDict, ImmutableMultiDict
+from werkzeug.exceptions import InternalServerError, BadRequest, NotFound
 from flask import url_for
 
-from arxiv import status
+from arxiv import status, taxonomy
 
 from search.services import index, fulltext, metadata
 from search.domain import AdvancedQuery, FieldedSearchTerm, DateRange, \
     Classification, FieldedSearchList, ClassificationList, Query, asdict
 from arxiv.base import logging
-from search.controllers.util import paginate
+from search.controllers.util import paginate, catch_underscore_syntax
 
 from . import forms
 
@@ -60,10 +61,36 @@ def search(request_params: MultiDict) -> Response:
         Raised when there is an unrecoverable error while interacting with the
         search index.
     """
+    # We may need to intervene on the request parameters, so we'll
+    # reinstantiate as a mutable MultiDict.
+    if isinstance(request_params, ImmutableMultiDict):
+        request_params = MultiDict(request_params.items(multi=True))
+
     logger.debug('search request from advanced form')
     response_data: Dict[str, Any] = {}
     response_data['show_form'] = ('advanced' not in request_params)
     logger.debug('show_form: %s', str(response_data['show_form']))
+
+    # Here we intervene on the user's query to look for holdouts from
+    # the classic search system's author indexing syntax (surname_f). We
+    # rewrite with a comma, and show a warning to the user about the
+    # change.
+    has_classic = False
+    for key in request_params.keys():
+        if key.startswith('terms-') and key.endswith('-term'):
+            value = request_params.get(key)
+            i = re.search('terms-([0-9])+-term', key).group(1)
+            field = request_params.get(f'terms-{i}-field')
+            # We are only looking for this syntax in the author search, or
+            # in an all-fields search.
+            if field not in ['all', 'author']:
+                continue
+
+            value, _has_classic = catch_underscore_syntax(value)
+            has_classic = _has_classic if not has_classic else has_classic
+            request_params.setlist(key, [value])
+
+    response_data['has_classic_format'] = has_classic
     form = forms.AdvancedSearchForm(request_params)
 
     q: Optional[Query]
@@ -71,12 +98,14 @@ def search(request_params: MultiDict) -> Response:
     #  If a query was actually submitted via the form, 'advanced' will be
     #  present in the request parameters.
     if 'advanced' in request_params:
+
         if form.validate():
             logger.debug('form is valid')
             q = _query_from_form(form)
 
             # Pagination is handled outside of the form.
             q = paginate(q, request_params)
+
             try:
                 # Execute the search. We'll use the results directly in
                 #  template rendering, so they get added directly to the
@@ -184,7 +213,7 @@ def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
 def _update_query_with_terms(q: AdvancedQuery, terms_data: list) \
         -> AdvancedQuery:
     q.terms = FieldedSearchList([
-        FieldedSearchTerm(**term) for term in terms_data if term['term']
+        FieldedSearchTerm(**term) for term in terms_data if term['term']    # type: ignore
     ])
     return q
 
@@ -228,3 +257,47 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
             end_date=date_data['to_date'],
         )
     return q
+
+
+# TODO: this _could_ go on the AdvancedSearchForm or ClassificationForm.
+def group_search(args: MultiDict, groups_or_archives: str) -> Response:
+    """
+    Short-cut for advanced search with group or archive pre-selected.
+
+    Note that this only supports options supported in the advanced search
+    interface. Anything else will result in a 404.
+    """
+    logger.debug('Group search for %s', groups_or_archives)
+    valid_archives = []
+    for archive in groups_or_archives.split(','):
+        if archive not in taxonomy.ARCHIVES:
+            logger.debug('archive %s not found in taxonomy', archive)
+            continue
+        # Support old archives.
+        if archive in taxonomy.ARCHIVES_SUBSUMED:
+            category = taxonomy.CATEGORIES[taxonomy.ARCHIVES_SUBSUMED[archive]]
+            archive = category['in_archive']
+        valid_archives.append(archive)
+
+    if len(valid_archives) == 0:
+        logger.debug('No valid archives in request')
+        raise NotFound('No such archive.')
+
+    logger.debug('Request for %i valid archives', len(valid_archives))
+    args = args.copy()
+    for archive in valid_archives:
+        fld = dict(forms.ClassificationForm.ARCHIVES).get(archive)
+        if fld is not None:     # Try a top-level archive first.
+            args[f'classification-{fld}'] = True
+        else:
+            # Might be a physics archive; if so, also select the physics
+            # group on the form.
+            fld = dict(forms.ClassificationForm.PHYSICS_ARCHIVES).get(archive)
+            if fld is None:
+                logger.warn('Invalid archive shortcut: {fld}')
+                continue
+            args['classification-physics'] = True
+            # If there is more than one physics archives, only the last one
+            # will be preserved.
+            args['classification-physics_archives'] = fld
+    return search(args)
