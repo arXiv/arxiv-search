@@ -66,8 +66,12 @@ def part_query(term: str, path: str = "authors") -> Q:
         name_parts = [p.strip() for p in term.split(",")]
         surname = name_parts[0].strip()
         forename = " ".join(name_parts[1:]).strip()
-        q_surname = Q("match_phrase", **{SURNAME: surname})
-        q_forename = Q("match", **{FORENAME: forename})
+        if _has_wildcard(surname):
+            q_surname = Q("wildcard", **{SURNAME: surname})
+        else:
+            q_surname = Q("match_phrase", **{SURNAME: surname})
+        q_forename = Q("match",
+                       **{FORENAME: {'query': forename, 'operator': 'and'}})
 
         # It may be the case that the forename consists of initials or some
         # other prefix/partial forename. For a match of this kind, each part
@@ -149,7 +153,7 @@ def author_query(term: str, operator: str = 'AND') -> Q:
         logger.debug(f"Authors are individuated: {term}")
         return reduce(iand if operator == "AND" else ior, [
             (part_query(author_part) | part_query(author_part, "owners"))
-            for author_part in term.split(";")
+            for author_part in term.split(";") if author_part
         ])
 
     if "," in term:     # Forename is individuated.
