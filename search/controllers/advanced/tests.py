@@ -337,7 +337,6 @@ class TestUpdatequeryWithClassification(TestCase):
         self.assertEqual(len(q.primary_classification), 1)
         self.assertIsInstance(q.primary_classification[0], Classification)
         self.assertEqual(q.primary_classification[0].archive, 'cs')
-        self.assertEqual(q.primary_classification[0].group, 'cs')
 
     def test_multiple_classifications_are_selected(self):
         """Selected classifications are added to the query."""
@@ -358,7 +357,7 @@ class TestUpdatequeryWithClassification(TestCase):
         self.assertEqual(len(q.primary_classification), 1)
         self.assertIsInstance(q.primary_classification[0], Classification)
         self.assertIsNone(q.primary_classification[0].archive)
-        self.assertEqual(q.primary_classification[0].group, 'physics')
+        self.assertEqual(q.primary_classification[0].group, 'grp_physics')
 
     def test_physics_is_selected_specific_archive(self):
         """The physic group and specified archive are added to the query."""
@@ -369,7 +368,7 @@ class TestUpdatequeryWithClassification(TestCase):
         self.assertEqual(len(q.primary_classification), 1)
         self.assertIsInstance(q.primary_classification[0], Classification)
         self.assertEqual(q.primary_classification[0].archive, 'hep-ex')
-        self.assertEqual(q.primary_classification[0].group, 'physics')
+        self.assertEqual(q.primary_classification[0].group, 'grp_physics')
 
     def test_physics_is_selected_specific_archive_plus_other_groups(self):
         """The physics group and specified archive are added to the query."""
