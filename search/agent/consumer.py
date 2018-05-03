@@ -3,6 +3,7 @@ from typing import Dict, List
 
 import json
 import os
+import time
 from typing import List, Any, Optional
 from arxiv.base import logging
 from search.services import metadata, index
@@ -295,6 +296,7 @@ class MetadataRecordProcessor(BaseConsumer):
             documents failed.
 
         """
+        time.sleep(0.1)
         logger.info(f'Processing record {record["SequenceNumber"]}')
         if self._error_count > self.MAX_ERRORS:
             raise IndexingFailed('Too many errors')
