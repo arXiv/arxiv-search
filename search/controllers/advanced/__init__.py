@@ -92,7 +92,6 @@ def search(request_params: MultiDict) -> Response:
 
     response_data['has_classic_format'] = has_classic
     form = forms.AdvancedSearchForm(request_params)
-
     q: Optional[Query]
     # We want to avoid attempting to validate if no query has been entered.
     #  If a query was actually submitted via the form, 'advanced' will be
@@ -183,27 +182,27 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
 def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
         -> AdvancedQuery:
     q.primary_classification = ClassificationList()
-    groups = [
+    archives = [
         ('computer_science', 'cs'), ('economics', 'econ'), ('eess', 'eess'),
         ('mathematics', 'math'), ('q_biology', 'q-bio'),
         ('q_finance', 'q-fin'), ('statistics', 'stat')
     ]
-    for field, group in groups:
+    for field, archive in archives:
         if data.get(field):
             # Fix for these typing issues is coming soon!
             #  See: https://github.com/python/mypy/pull/4397
             q.primary_classification.append(
-                Classification(group=group, archive=group)  # type: ignore
+                Classification(archive=archive)  # type: ignore
             )
     if data.get('physics') and 'physics_archives' in data:
         if 'all' in data['physics_archives']:
             q.primary_classification.append(
-                Classification(group='physics')  # type: ignore
+                Classification(group='grp_physics')  # type: ignore
             )
         else:
             q.primary_classification.append(
                 Classification(     # type: ignore
-                    group='physics',
+                    group='grp_physics',
                     archive=data['physics_archives']
                 )
             )

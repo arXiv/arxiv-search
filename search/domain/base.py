@@ -102,12 +102,9 @@ class Classification:
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        rep = f'{self.group}'
-        if self.archive:
-            rep += f':{self.archive}'
-            if self.category:
-                rep += f':{self.category}'
-        return rep
+        return ":".join(
+            [p for p in [self.group, self.archive, self.category] if p]
+        )
 
 
 class ClassificationList(list):

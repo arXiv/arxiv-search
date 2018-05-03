@@ -53,15 +53,13 @@ def advanced_search(search: Search, query: AdvancedQuery) -> Search:
 def _classification(field: str, classification: Classification) -> Match:
     """Get a query part for a :class:`.Classification`."""
     query = Q()
+    print(field, classification, type(classification))
     if classification.group:
         field_name = '%s__group__id' % field
         query &= Q('match', **{field_name: classification.group})
     if classification.archive:
         field_name = '%s__archive__id' % field
         query &= Q('match', **{field_name: classification.archive})
-    if classification.category:
-        field_name = '%s__category__id' % field
-        query &= Q('match', **{field_name: classification.category})
     return query
 
 
