@@ -58,7 +58,7 @@ parameter.
 To check for missing records, use ``audit.py``:
 
 ```bash
-ELASTICSEARCH_HOST=127.0.0.1 pipenv run python audit.py -l list_of_papers.txt -o missing.txt
+ELASTICSEARCH_HOST=127.0.0.1 ELASTICSEARCH_INDEX=arxiv pipenv run python audit.py -l list_of_papers.txt -o missing.txt
 ```
 
 ### Flask dev server
