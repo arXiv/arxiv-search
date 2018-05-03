@@ -123,6 +123,7 @@ class SearchSession(object):
         """
         self.index = index
         self.mapping = mapping
+        self.document_type = 'document'
         use_ssl = True if scheme == 'https' else False
         http_auth = '%s:%s' % (user, password) if user else None
 
@@ -210,7 +211,7 @@ class SearchSession(object):
         with handle_es_exceptions():
             ident = document.id if document.id else document.paper_id
             logger.debug(f'{ident}: index document')
-            self.es.index(index=self.index, doc_type='document',
+            self.es.index(index=self.index, doc_type=self.document_type,
                           id=ident, body=document)
 
     def bulk_add_documents(self, documents: List[Document],
@@ -240,7 +241,7 @@ class SearchSession(object):
         with handle_es_exceptions():
             actions = ({
                 '_index': self.index,
-                '_type': 'document',
+                '_type': self.document_type,
                 '_id': document.id,
                 '_source': asdict(document)
             } for document in documents)
@@ -273,7 +274,7 @@ class SearchSession(object):
 
         """
         with handle_es_exceptions():
-            record = self.es.get(index=self.index, doc_type='document',
+            record = self.es.get(index=self.index, doc_type=self.document_type,
                                  id=document_id)
 
         if not record:
@@ -331,6 +332,11 @@ class SearchSession(object):
 
         # Perform post-processing on the search results.
         return results.to_documentset(query, resp)
+
+    def exists(self, paper_id_v: str) -> bool:
+        """Determine whether a paper exists in the index."""
+        with handle_es_exceptions():
+            return self.es.exists(self.index, self.document_type, paper_id_v)
 
 
 def init_app(app: object = None) -> None:
@@ -407,6 +413,12 @@ def cluster_available() -> bool:
 def create_index() -> None:
     """Create the search index."""
     current_session().create_index()
+
+
+@wraps(SearchSession.exists)
+def exists(paper_id_v: str) -> bool:
+    """Check whether a paper is present in the index."""
+    return current_session().exists(paper_id_v)
 
 
 def ok() -> bool:
