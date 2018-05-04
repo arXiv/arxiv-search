@@ -42,7 +42,7 @@ def _constructACMClass(meta: DocMeta) -> Optional[list]:
     return [obj.strip() for obj in meta.acm_class.split(';')]
 
 
-def _transformAuthor(author: dict) -> dict:
+def _transformAuthor(author: dict) -> Optional[Dict]:
     if (not author['last_name']) and (not author['first_name']):
         return None    
     author['full_name'] = re.sub(r'\s+', ' ', f"{author['first_name']} {author['last_name']}")
