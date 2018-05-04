@@ -43,6 +43,8 @@ def _constructACMClass(meta: DocMeta) -> Optional[list]:
 
 
 def _transformAuthor(author: dict) -> dict:
+    if (not author['last_name']) and (not author['first_name']):
+        return None    
     author['full_name'] = re.sub(r'\s+', ' ', f"{author['first_name']} {author['last_name']}")
     author['initials'] = [pt[0] for pt in author['first_name'].split() if pt]
     # initials = ' '.join(author["initials"])
