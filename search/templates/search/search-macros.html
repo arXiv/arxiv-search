@@ -167,7 +167,7 @@
     <p class="authors">
       <span class="{% if result.highlight.author %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Authors:</span>
       {% for author in result.authors[0:25] %}
-      <a href="{{ url_for_author_search(author.first_name, author.last_name) }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}
+      {% if author %}<a href="{{ url_for_author_search(author.first_name, author.last_name) }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}{% endif %}
       {% endfor -%}
       {% if result.authors | length > 25 %}, et al. ({{ result.authors | length - 25 }} additional authors not shown){% endif %}
     </p>

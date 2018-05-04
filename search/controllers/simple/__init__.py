@@ -144,6 +144,7 @@ def search(request_params: MultiDict) -> Response:
                 "search again.  If this problem persists, please report it to "
                 "help@arxiv.org."
             ) from e
+
         except Exception as e:
             logger.error('Unhandled exception: %s', str(e))
             raise
