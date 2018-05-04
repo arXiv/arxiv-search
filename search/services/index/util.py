@@ -11,7 +11,7 @@ from .exceptions import QueryError
 
 
 # We'll compile this ahead of time, since it gets called quite a lot.
-STRING_LITERAL = re.compile(r"(['\"][^'\"]*['\"])")
+STRING_LITERAL = re.compile(r"([\"][^\"]*[\"])")
 """Pattern for string literals (quoted) in search queries."""
 
 TEXISM = re.compile(r'(\$[^\$]+\$)')
@@ -85,11 +85,11 @@ def Q_(qtype: str, field: str, value: str, operator: str = 'or') -> Q:
     return Q(qtype, **{field: value}, operator=operator)
 
 
-def escape(term: str) -> str:
+def escape(term: str, quotes: bool = False) -> str:
     """Escape special characters."""
     escaped = []
     for i, char in enumerate(term):
-        if char in SPECIAL_CHARACTERS:
+        if char in SPECIAL_CHARACTERS or quotes and char == '"':
             escaped.append("\\")
         escaped.append(char)
     return "".join(escaped)

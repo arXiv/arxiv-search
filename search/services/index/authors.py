@@ -45,7 +45,25 @@ def Q_(qtype: str, field: str, value: str) -> Q:
 
 
 def part_query(term: str, path: str = "authors") -> Q:
-    """Build a query that matches within a single author/owner."""
+    """
+    Build a query that matches within a single author using name parts.
+
+    Anything before the first comma is treated as the author's surname, and
+    everything after the first comma is treated as the author's first name
+    or initials.
+
+    Parameters
+    ----------
+    term : str
+        Search term for a single author.
+    path : str
+        Nested document path.
+
+    Returns
+    -------
+    :class:`.Q`
+
+    """
     SURNAME = f"{path}__last_name"
     FORENAME = f"{path}__first_name"
     INITIALS = f"{path}__initials"
@@ -66,29 +84,37 @@ def part_query(term: str, path: str = "authors") -> Q:
         name_parts = [p.strip() for p in term.split(",")]
         surname = name_parts[0].strip()
         forename = " ".join(name_parts[1:]).strip()
-        if _has_wildcard(surname):
-            q_surname = Q("wildcard", **{SURNAME: surname})
+
+        # Doing a query string so that wildcards and literals are just handled.
+        q_surname = Q("query_string", fields=[f"{path}.last_name"],
+                      query=escape(surname), default_operator='AND',
+                      allow_leading_wildcard=False)
+
+        if forename:
+            q_forename = Q("query_string", fields=[f"{path}.first_name"],
+                           query=escape(forename), default_operator='AND',
+                           allow_leading_wildcard=False)
+
+            # It may be the case that the forename consists of initials or some
+            # other prefix/partial forename. For a match of this kind, each
+            # part of the forename part must be a prefix of a term in the
+            # forename.
+            if path == 'authors' and forename:
+                logger.debug('Consider initials: %s', forename)
+                q_prefix = []
+                for forename_part in forename.split():
+                    forename_part = forename_part.strip()
+                    q_prefix.append(Q("match", **{INITIALS: forename_part}))
+                if len(q_prefix) == 1:
+                    q_forename |= q_prefix[0]
+                elif len(q_prefix) > 1:
+                    q_forename |= reduce(iand, q_prefix)
+
+            # We will treat this as a search for a single author; surname and
+            # forename parts must match in the same (nested) author.
+            q = q_surname & q_forename
         else:
-            q_surname = Q("match_phrase", **{SURNAME: surname})
-        q_forename = Q("match",
-                       **{FORENAME: {'query': forename, 'operator': 'and'}})
-
-        # It may be the case that the forename consists of initials or some
-        # other prefix/partial forename. For a match of this kind, each part
-        # of the forename part must be a prefix of a term in the forename.
-        if path == 'authors':
-            q_prefix = []
-            for forename_part in forename.split():
-                forename_part = forename_part.strip()
-                q_prefix.append(Q("match", **{INITIALS: forename_part}))
-            if len(q_prefix) == 1:
-                q_forename |= q_prefix[0]
-            elif len(q_prefix) > 1:
-                q_forename |= reduce(iand, q_prefix)
-
-        # We will treat this as a search for a single author; surname and
-        # forename parts must match in the same (nested) author.
-        q = q_surname & q_forename
+            q = q_surname
     else:
         # Match across all fields within a single author. We don't know which
         # bits of the query match which bits of the author name. This will
@@ -103,12 +129,7 @@ def part_query(term: str, path: str = "authors") -> Q:
 
 def string_query(term: str, path: str = 'authors', operator: str = 'AND') -> Q:
     """Build a query that handles query strings within a single author."""
-    AUTHOR_QUERY_FIELDS = [
-        f"{path}.full_name",
-        f"{path}.last_name",
-        f"{path}.full_name_initialized"
-    ]
-    q = Q("query_string", fields=AUTHOR_QUERY_FIELDS,
+    q = Q("query_string", fields=[f"{path}.full_name"],
           default_operator=operator, allow_leading_wildcard=False,
           type="cross_fields", query=escape(term))
     return Q('nested', path=path, query=q, score_mode='sum')
@@ -148,7 +169,20 @@ def author_query(term: str, operator: str = 'AND') -> Q:
     """
     logger.debug(f"Author query for {term}")
     term = term.lower()
-    # term = term.lower()
+
+    # Check for balanced double-quotes.
+    if '"' in term and term.count('"') % 2 == 0:  # Probably a literal search.
+        logger.debug(f"Contains literal: {term}")
+
+        # Apply literal parts of the query separately.
+        return reduce(iand if operator == 'AND' else ior, [
+            (string_query(part, operator=operator)
+             | string_query(part, path="owners", operator=operator))
+            for part in re.split(STRING_LITERAL, term) if part.strip()
+        ])
+
+    term = term.replace('"', '')    # Just ignore unbalanced quotes.
+
     if ";" in term:     # Authors are individuated.
         logger.debug(f"Authors are individuated: {term}")
         return reduce(iand if operator == "AND" else ior, [
@@ -160,25 +194,29 @@ def author_query(term: str, operator: str = 'AND') -> Q:
         logger.debug(f"Forename is individuated: {term}")
         return part_query(term) | part_query(term, "owners")
 
-    if '"' in term:     # Probably a literal search.
-        logger.debug(f"Contains literal: {term}")
+    logger.debug(f"General author search: {term}")
 
-        # Apply literal parts of the query separately.
-        return reduce(iand if operator == 'AND' else ior, [
-            (string_query(part, operator=operator)
-             | string_query(part, path="owners", operator=operator))
-            for part in re.split(STRING_LITERAL, term) if part
-        ])
-
-    logger.debug(f"General search: {term}")
-
-    # All terms must match within the author/owner names as a whole.
-    q = Q('query_string', fields=['authors_combined'], query=escape(term),
-          default_operator='and')
     # We include both w/in author and among author matches, so that more
     # precise matches get more weight.
-    return q | ((string_query(term, operator=operator)
-                | string_query(term, path="owners", operator=operator)))
+    #
+    # A query_string query on the combined field will yield matches among
+    # authors.
+    q = Q('query_string', fields=['authors_combined'],
+          query=escape(term, quotes=True), default_operator='and')
+
+    # A nested query_string query on full name will match within individual
+    # authors.
+    q |= (
+        Q('nested', path='authors', score_mode='sum',
+          query=Q("query_string", fields=['authors.full_name'],
+                  default_operator=operator, allow_leading_wildcard=False,
+                  query=escape(term, quotes=True)))
+        | Q('nested', path='owners', score_mode='sum',
+            query=Q("query_string", fields=['owners.full_name'],
+                    default_operator=operator, allow_leading_wildcard=False,
+                    query=escape(term, quotes=True)))
+    )
+    return q
 
 
 def author_id_query(term: str, operator: str = 'and') -> Q:
