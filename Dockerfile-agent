@@ -4,7 +4,7 @@
 #  article metadata becomes available. Subscribes to a Kinesis stream for
 #  notifications about new metadata.
 
-FROM arxiv/search:0.1
+FROM arxiv/search:0.2
 
 WORKDIR /opt/arxiv
 
