@@ -148,6 +148,13 @@ class SearchSession(object):
     def _base_search(self) -> Search:
         return Search(using=self.es, index=self.index)
 
+    def _load_mapping(self) -> dict:
+        if not self.mapping or type(self.mapping) is not str:
+            raise IndexingError('Mapping not set')
+        with open(self.mapping) as f:
+            mappings: dict = json.load(f)
+        return mappings
+
     def cluster_available(self) -> bool:
         """
         Determine whether or not the ES cluster is available.
@@ -178,12 +185,64 @@ class SearchSession(object):
 
         """
         logger.debug('create ES index "%s"', self.index)
-        if not self.mapping or type(self.mapping) is not str:
-            raise IndexingError('Mapping not set')
         with handle_es_exceptions():
-            with open(self.mapping) as f:
-                mappings = json.load(f)
-            self.es.indices.create(self.index, mappings)
+            self.es.indices.create(self.index, self._load_mapping())
+
+    def reindex(self, old_index: str, new_index: str,
+                wait_for_completion: bool = False) -> dict:
+        """
+        Create a new index and reindex with the current mappings.
+
+        Creating the new index and performing the reindexing operation are two
+        separate actions via the ES API. If creation of the next index
+        succeeds but the request to reindex fails, no attempt is made to clean
+        up. If the new index already exists, will still attempt to perform
+        the reindex operation.
+
+        Parameters
+        ----------
+        old_index: str
+            Name of the index to copy from.
+        new_index: str
+            Name of the index to create and copy to.
+
+        Returns
+        -------
+        dict
+            Response from ElasticSearch reindex API. If `wait_for_completion`
+            is False (default), should include a `task` key with a task ID
+            that can be used to check the status of the reindexing operation.
+
+        """
+        logger.debug('reindex "%s" as "%s"', old_index, new_index)
+        with handle_es_exceptions():
+            self.es.indices.create(new_index, self._load_mapping())
+
+        response: dict = self.es.reindex({
+            "source": {"index": old_index},
+            "dest": {"index": new_index}
+        }, wait_for_completion=wait_for_completion)
+        return response
+
+    def get_task_status(self, task: str) -> dict:
+        """
+        Get the status of a running task in ES (e.g. reindex).
+
+        Parameters
+        ----------
+        task : str
+            A task ID, e.g. returned in response to an asynchronous reindexing
+            request.
+
+        Returns
+        -------
+        dict
+            Response from ElasticSearch task API.
+
+        """
+        with handle_es_exceptions():
+            response: dict = self.es.tasks.get(task)
+        return response
 
     def add_document(self, document: Document) -> None:
         """
@@ -420,6 +479,19 @@ def create_index() -> None:
 def exists(paper_id_v: str) -> bool:
     """Check whether a paper is present in the index."""
     return current_session().exists(paper_id_v)
+
+
+@wraps(SearchSession.reindex)
+def reindex(old_index: str, new_index: str,
+            wait_for_completion: bool = False) -> dict:
+    """Create a new index and reindex with the current mappings."""
+    return current_session().reindex(old_index, new_index, wait_for_completion)
+
+
+@wraps(SearchSession.get_task_status)
+def get_task_status(task: str) -> dict:
+    """Get the status of a running task in ES (e.g. reindex)."""
+    return current_session().get_task_status(task)
 
 
 def ok() -> bool:

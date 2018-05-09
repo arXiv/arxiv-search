@@ -15,7 +15,6 @@ from search.services import metadata, index
 from search.process import transform
 
 app = create_ui_web_app()
-app.app_context().push()
 
 
 @app.cli.command()
