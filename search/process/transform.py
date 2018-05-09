@@ -42,10 +42,9 @@ def _constructACMClass(meta: DocMeta) -> Optional[list]:
     return [obj.strip() for obj in meta.acm_class.split(';')]
 
 
-def _transformAuthor(author: dict) -> dict:
-    # TODO: we should not be stripping punctuation from the name here.
-    # This should be handled by the analyzer. This is related to ARXIVNG-543.
-    author['first_name'] = _strip_punctuation(author['first_name']).strip()
+def _transformAuthor(author: dict) -> Optional[Dict]:
+    if (not author['last_name']) and (not author['first_name']):
+        return None
     author['full_name'] = re.sub(r'\s+', ' ', f"{author['first_name']} {author['last_name']}")
     author['initials'] = [pt[0] for pt in author['first_name'].split() if pt]
     # initials = ' '.join(author["initials"])
@@ -55,11 +54,21 @@ def _transformAuthor(author: dict) -> dict:
 
 
 def _constructAuthors(meta: DocMeta) -> List[Dict]:
-    return [_transformAuthor(author) for author in meta.authors_parsed]
+    _authors = []
+    for author in meta.authors_parsed:
+        _author = _transformAuthor(author)
+        if _author:
+            _authors.append(_author)
+    return _authors
 
 
 def _constructAuthorOwners(meta: DocMeta) -> List[Dict]:
-    return [_transformAuthor(author) for author in meta.author_owners]
+    _authors = []
+    for author in meta.author_owners:
+        _author = _transformAuthor(author)
+        if _author:
+            _authors.append(_author)
+    return _authors
 
 
 def _getFirstSubDate(meta: DocMeta) -> Optional[str]:
@@ -82,7 +91,7 @@ def _constructDOI(meta: DocMeta) -> List[str]:
 
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType, bool]] = [
-    ("id", lambda meta: meta.paper_id if meta.is_current else _constructPaperVersion(meta), True),
+    ("id", _constructPaperVersion, True),
     ("abstract", "abstract_utf8", False),
     ("authors", _constructAuthors, True),
     ("authors_freeform", "authors_utf8", False),
@@ -102,8 +111,7 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("paper_id_v", _constructPaperVersion, True),
     ("primary_classification", "primary_classification", True),
     ("secondary_classification", "secondary_classification", True),
-    ("title", "title", True),
-    ("title_utf8", "title_utf8", True),
+    ("title", "title_utf8", True),
     # ("title_tex", "title", True),
     ("source", "source", True),
     ("version", "version", True),

@@ -2,12 +2,16 @@
 
 import re
 from typing import Any, Optional, Tuple, Union, List
+from string import punctuation
+
 from elasticsearch_dsl import Search, Q, SF
 
+from search.domain import Query
 from .exceptions import QueryError
 
+
 # We'll compile this ahead of time, since it gets called quite a lot.
-STRING_LITERAL = re.compile(r"(['\"][^'\"]*['\"])")
+STRING_LITERAL = re.compile(r"([\"][^\"]*[\"])")
 """Pattern for string literals (quoted) in search queries."""
 
 TEXISM = re.compile(r'(\$[^\$]+\$)')
@@ -16,11 +20,9 @@ TEXISM = re.compile(r'(\$[^\$]+\$)')
 MAX_RESULTS = 10_000
 """This is the maximum result offset for pagination."""
 
-HIGHLIGHT_TAG_OPEN = '<span class="search-hit mathjax">'
-HIGHLIGHT_TAG_CLOSE = '</span>'
-
-SPECIAL_CHARACTERS = ['+', '-', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
+SPECIAL_CHARACTERS = ['+', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
                       '}', '[', ']', '^', '~', ':', '\\', '/']
+DEFAULT_SORT = ['_score', '-announced_date_first', '_doc']
 
 
 def wildcardEscape(querystring: str) -> Tuple[str, bool]:
@@ -59,7 +61,8 @@ def wildcardEscape(querystring: str) -> Tuple[str, bool]:
 
 def is_literal_query(term: str) -> bool:
     """Determine whether the term is intended to be treated as a literal."""
-    return re.match('"[^"]+"', term) is not None
+    # return re.match('"[^"]+"', term) is not None
+    return '"' in term
 
 
 def is_tex_query(term: str) -> bool:
@@ -72,19 +75,44 @@ def strip_tex(term: str) -> str:
     return re.sub(TEXISM, '', term).strip()
 
 
-def Q_(qtype: str, field: str, value: str) -> Q:
+def Q_(qtype: str, field: str, value: str, operator: str = 'or') -> Q:
     """Construct a :class:`.Q`, but handle wildcards first."""
     value, wildcard = wildcardEscape(value)
     if wildcard:
-        return Q('wildcard', **{field: value})
-    return Q(qtype, **{field: value})
+        return Q('wildcard', **{field: {'value': value.lower()}})
+    if 'match' in qtype:
+        return Q(qtype, **{field: value})
+    return Q(qtype, **{field: value}, operator=operator)
 
 
-def escape(term: str) -> str:
+def escape(term: str, quotes: bool = False) -> str:
     """Escape special characters."""
     escaped = []
     for i, char in enumerate(term):
-        if char in SPECIAL_CHARACTERS:
+        if char in SPECIAL_CHARACTERS or quotes and char == '"':
             escaped.append("\\")
         escaped.append(char)
     return "".join(escaped)
+
+
+def strip_punctuation(s: str) -> str:
+    """Remove all punctuation characters from a string."""
+    return ''.join([c for c in s if c not in punctuation])
+
+
+def remove_single_characters(term: str) -> str:
+    """Remove any single characters in the search string."""
+    return ' '.join([part for part in term.split()
+                     if len(strip_punctuation(part)) > 1])
+
+
+def sort(query: Query, search: Search) -> Search:
+    """Apply sorting to a :class:`.Search`."""
+    if not query.order:
+        sort_params = DEFAULT_SORT
+    else:
+        direction = '-' if query.order.startswith('-') else ''
+        sort_params = [query.order, f'{direction}paper_id_v']
+    if sort_params is not None:
+        search = search.sort(*sort_params)
+    return search

@@ -5,6 +5,7 @@ from unittest import TestCase, mock
 from arxiv import status
 from search.domain import DocumentSet, Document
 from search.controllers import health_check
+from .util import catch_underscore_syntax
 
 
 class TestHealthCheck(TestCase):
@@ -36,3 +37,38 @@ class TestHealthCheck(TestCase):
         self.assertEqual(response, 'OK', "Response content should be OK")
         self.assertEqual(status_code, status.HTTP_200_OK,
                          "Should return 200 status code.")
+
+
+class TestUnderscoreHandling(TestCase):
+    """Test :func:`.catch_underscore_syntax`."""
+
+    def test_underscore_is_rewritten(self):
+        """User searches for an author name with `surname_f` format."""
+        query = "franklin_r"
+        after, classic_name = catch_underscore_syntax(query)
+        self.assertEqual(after, "franklin, r",
+                         "The underscore should be replaced with `, `.")
+        self.assertTrue(classic_name, "Should be identified as classic")
+
+    def test_false_positive(self):
+        """The underscore is followed by more than one character."""
+        query = "not_aname"
+        after, classic_name = catch_underscore_syntax(query)
+        self.assertEqual(query, after, "The query should not be rewritten")
+        self.assertFalse(classic_name, "Should not be identified as classic")
+
+    def test_multiple_authors(self):
+        """The user passes more than one name in classic format."""
+        # E-gads.
+        query = "franklin_r dole_b"
+        after, classic_name = catch_underscore_syntax(query)
+        self.assertEqual(after, "franklin, r; dole, b",
+                         "The underscore should be replaced with `, `.")
+        self.assertTrue(classic_name, "Should be identified as classic")
+
+    def test_nonsense_input(self):
+        """Garbage input is passed."""
+        try:
+            catch_underscore_syntax("")
+        except Exception as e:
+            self.fail(e)

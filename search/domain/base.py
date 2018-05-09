@@ -102,12 +102,9 @@ class Classification:
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        rep = f'{self.group}'
-        if self.archive:
-            rep += f':{self.archive}'
-            if self.category:
-                rep += f':{self.category}'
-        return rep
+        return ":".join(
+            [p for p in [self.group, self.archive, self.category] if p]
+        )
 
 
 class ClassificationList(list):
@@ -178,7 +175,6 @@ class Document:
     paper_id_v: str = field(default_factory=str)
     title: str = field(default_factory=str)
     title_tex: str = field(default_factory=str)
-    title_utf8: str = field(default_factory=str)
     source: Dict[str, Any] = field(default_factory=dict)
     version: int = 1
     latest: str = field(default_factory=str)

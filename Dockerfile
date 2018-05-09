@@ -3,7 +3,7 @@
 # Defines the runtime for the arXiv search service, which provides the main
 # UIs (and, eventually, APIs) for search.
 
-FROM arxiv/base
+FROM arxiv/base:0.6.1
 
 WORKDIR /opt/arxiv
 

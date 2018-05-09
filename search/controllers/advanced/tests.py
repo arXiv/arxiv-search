@@ -337,7 +337,6 @@ class TestUpdatequeryWithClassification(TestCase):
         self.assertEqual(len(q.primary_classification), 1)
         self.assertIsInstance(q.primary_classification[0], Classification)
         self.assertEqual(q.primary_classification[0].archive, 'cs')
-        self.assertEqual(q.primary_classification[0].group, 'cs')
 
     def test_multiple_classifications_are_selected(self):
         """Selected classifications are added to the query."""
@@ -358,7 +357,7 @@ class TestUpdatequeryWithClassification(TestCase):
         self.assertEqual(len(q.primary_classification), 1)
         self.assertIsInstance(q.primary_classification[0], Classification)
         self.assertIsNone(q.primary_classification[0].archive)
-        self.assertEqual(q.primary_classification[0].group, 'physics')
+        self.assertEqual(q.primary_classification[0].group, 'grp_physics')
 
     def test_physics_is_selected_specific_archive(self):
         """The physic group and specified archive are added to the query."""
@@ -369,7 +368,7 @@ class TestUpdatequeryWithClassification(TestCase):
         self.assertEqual(len(q.primary_classification), 1)
         self.assertIsInstance(q.primary_classification[0], Classification)
         self.assertEqual(q.primary_classification[0].archive, 'hep-ex')
-        self.assertEqual(q.primary_classification[0].group, 'physics')
+        self.assertEqual(q.primary_classification[0].group, 'grp_physics')
 
     def test_physics_is_selected_specific_archive_plus_other_groups(self):
         """The physics group and specified archive are added to the query."""
@@ -521,3 +520,97 @@ class TestPaginationParametersAreFunky(TestCase):
         })
         with self.assertRaises(BadRequest):
             advanced.search(request_data)
+
+
+class TestClassicAuthorSyntaxIsIntercepted(TestCase):
+    """
+    The user may have entered an author query using `surname_f` syntax.
+
+    This is an artefact of the classic search system, and not intended to be
+    supported. Nevertheless, users have become accustomed to this syntax. We
+    therefore rewrite the query using a comma, and show the user a warning
+    about the syntax change.
+    """
+
+    @mock.patch('search.controllers.advanced.index')
+    def test_all_fields_search_contains_classic_syntax(self, mock_index):
+        """User has entered a `surname_f` query in an all-fields term."""
+        request_data = MultiDict({
+            'advanced': True,
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'all',
+            'terms-0-term': 'franklin_r',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = advanced.search(request_data)
+        self.assertEqual(data['query'].terms[0].term, "franklin, r",
+                         "The query should be rewritten.")
+        self.assertTrue(data['has_classic_format'],
+                        "A flag denoting the syntax interception should be set"
+                        " in the response context, so that a message may be"
+                        " rendered in the template.")
+
+    @mock.patch('search.controllers.advanced.index')
+    def test_author_search_contains_classic_syntax(self, mock_index):
+        """User has entered a `surname_f` query in an author search."""
+        request_data = MultiDict({
+            'advanced': True,
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'author',
+            'terms-0-term': 'franklin_r',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = advanced.search(request_data)
+        self.assertEqual(data['query'].terms[0].term, "franklin, r",
+                         "The query should be rewritten.")
+        self.assertTrue(data['has_classic_format'],
+                        "A flag denoting the syntax interception should be set"
+                        " in the response context, so that a message may be"
+                        " rendered in the template.")
+
+    @mock.patch('search.controllers.advanced.index')
+    def test_all_fields_search_multiple_classic_syntax(self, mock_index):
+        """User has entered a classic query with multiple authors."""
+        request_data = MultiDict({
+            'advanced': True,
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'all',
+            'terms-0-term': 'j franklin_r hawking_s',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = advanced.search(request_data)
+        self.assertEqual(data['query'].terms[0].term,
+                         "j franklin, r; hawking, s",
+                         "The query should be rewritten.")
+        self.assertTrue(data['has_classic_format'],
+                        "A flag denoting the syntax interception should be set"
+                        " in the response context, so that a message may be"
+                        " rendered in the template.")
+
+    @mock.patch('search.controllers.advanced.index')
+    def test_title_search_contains_classic_syntax(self, mock_index):
+        """User has entered a `surname_f` query in a title search."""
+        request_data = MultiDict({
+            'advanced': True,
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'franklin_r',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = advanced.search(request_data)
+        self.assertEqual(data['query'].terms[0].term, "franklin_r",
+                         "The query should not be rewritten.")
+        self.assertFalse(data['has_classic_format'],
+                         "Flag should not be set, as no rewrite has occurred.")
