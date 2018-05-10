@@ -227,15 +227,15 @@ def author_id_query(term: str, operator: str = 'and') -> Q:
     """Generate a query part for Author ID using the ES DSL."""
     if operator == 'or':
         return (
-            Q("nested", path="authors",
-              query=Q("terms", **{"authors__author_id": term.split()}))
-            | Q("nested", path="owners",
+            Q("nested", path="owners",
                 query=Q("terms", **{"owners__author_id": term.split()}))
             | Q("terms", **{"submitter__author_id": term.split()})
         )
-    flds = ['authors.author_id', 'owners.author_id', 'submitter.author_id']
-    return Q("multi_match", type="cross_fields", fields=flds, query=term,
-             operator=operator)
+    return reduce(iand, [(
+        Q("nested", path="owners",
+            query=Q("term", **{"owners__author_id": part}))
+        | Q("term", **{"submitter__author_id": part})
+    ) for part in term.split()])
 
 
 def orcid_query(term: str, operator: str = 'and') -> Q:
