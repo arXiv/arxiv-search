@@ -201,7 +201,8 @@ class SearchSession(object):
 
         """
         with handle_es_exceptions():
-            return self.es.indices.exists(index_name)
+            _exists: bool = self.es.indices.exists(index_name)
+            return _exists
 
     def reindex(self, old_index: str, new_index: str,
                 wait_for_completion: bool = False) -> dict:
