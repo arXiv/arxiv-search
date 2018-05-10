@@ -59,6 +59,12 @@ def wildcardEscape(querystring: str) -> Tuple[str, bool]:
     return querystring, wildcard
 
 
+def has_wildcard(term: str) -> bool:
+    """Determine whether or not ``term`` contains a wildcard."""
+    return (('*' in term or '?' in term) and not
+            (term.startswith('*') or term.startswith('?')))
+
+
 def is_literal_query(term: str) -> bool:
     """Determine whether the term is intended to be treated as a literal."""
     # return re.match('"[^"]+"', term) is not None
