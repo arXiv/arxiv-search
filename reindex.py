@@ -21,7 +21,10 @@ def reindex(old_index: str, new_index: str):
     This will create `new_index` with the current configured mappings if it
     does not already exist.
     """
-    click.echo(f"Reindex papers in {old_index} to {new_index}")
+    click.echo(f"Reindex papers in `{old_index}` to `{new_index}`")
+    if not index.index_exists(old_index):
+        click.echo(f"Source index `{old_index}` does not exist.")
+
     r = index.reindex(old_index, new_index)
     if not r:
         raise click.ClickException("Failed to get or create new index")

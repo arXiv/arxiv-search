@@ -62,7 +62,6 @@ def handle_es_exceptions() -> Generator:
     try:
         yield
     except TransportError as e:
-        logger.error(e.error)
         if e.error == 'resource_already_exists_exception':
             logger.debug('Index already exists; move along')
             return
@@ -187,6 +186,22 @@ class SearchSession(object):
         logger.debug('create ES index "%s"', self.index)
         with handle_es_exceptions():
             self.es.indices.create(self.index, self._load_mapping())
+
+    def index_exists(self, index_name: str) -> bool:
+        """
+        Determine whether or not an index exists.
+
+        Parameters
+        ----------
+        index_name : str
+
+        Returns
+        -------
+        bool
+
+        """
+        with handle_es_exceptions():
+            return self.es.indices.exists(index_name)
 
     def reindex(self, old_index: str, new_index: str,
                 wait_for_completion: bool = False) -> dict:
@@ -479,6 +494,12 @@ def create_index() -> None:
 def exists(paper_id_v: str) -> bool:
     """Check whether a paper is present in the index."""
     return current_session().exists(paper_id_v)
+
+
+@wraps(SearchSession.index_exists)
+def index_exists(index_name: str) -> bool:
+    """Check whether an index exists."""
+    return current_session().index_exists(index_name)
 
 
 @wraps(SearchSession.reindex)
