@@ -52,9 +52,10 @@ def get_parameters_from_cookie() -> None:
 @blueprint.after_request
 def set_parameters_in_cookie(response: Response) -> Response:
     """Set request parameters in the cookie, to use as future defaults."""
-    data = {param: request.args[param] for param in PARAMS_TO_PERSIST
-            if param in request.args}
-    response.set_cookie(PARAMS_COOKIE_NAME, json.dumps(data))
+    if response.status_code == status.HTTP_200_OK:
+        data = {param: request.args[param] for param in PARAMS_TO_PERSIST
+                if param in request.args}
+        response.set_cookie(PARAMS_COOKIE_NAME, json.dumps(data))
     return response
 
 
