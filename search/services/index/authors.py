@@ -10,7 +10,7 @@ from elasticsearch_dsl import Search, Q, SF
 from arxiv.base import logging
 
 from .util import wildcardEscape, escape, STRING_LITERAL, \
-    remove_single_characters
+    remove_single_characters, has_wildcard
 
 logger = logging.getLogger(__name__)
 logger.propagate = False
@@ -31,15 +31,9 @@ def _remove_stopwords(term: str) -> str:
     return "".join(parts)
 
 
-def _has_wildcard(term: str) -> bool:
-    """Determine whether or not ``term`` contains a wildcard."""
-    return (('*' in term or '?' in term) and not
-            (term.startswith('*') or term.startswith('?')))
-
-
 def Q_(qtype: str, field: str, value: str) -> Q:
     """Generate an appropriate :class:`Q` based on wildcard presence."""
-    if _has_wildcard(value):
+    if has_wildcard(value):
         return Q("wildcard", **{field: {"value": escape(value)}})
     return Q(qtype, **{field: escape(value)})
 
@@ -92,7 +86,7 @@ def part_query(term: str, path: str = "authors") -> Q:
             # query string query. This has the disadvantage of losing term
             # order, but the advantage of handling wildcards as expected.
             logger.debug(f'Forename: {forename}')
-            if _has_wildcard(forename):
+            if has_wildcard(forename):
                 q_forename = Q("query_string", fields=[f"{path}.first_name"],
                                query=escape(forename),
                                auto_generate_phrase_queries=True,
