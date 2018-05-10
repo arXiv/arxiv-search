@@ -64,9 +64,6 @@ def part_query(term: str, path: str = "authors") -> Q:
     :class:`.Q`
 
     """
-    SURNAME = f"{path}__last_name"
-    FORENAME = f"{path}__first_name"
-    INITIALS = f"{path}__initials"
     AUTHOR_QUERY_FIELDS = [
         f"{path}.full_name",
         f"{path}.last_name",
@@ -91,9 +88,23 @@ def part_query(term: str, path: str = "authors") -> Q:
                       allow_leading_wildcard=False)
 
         if forename:
-            q_forename = Q("query_string", fields=[f"{path}.first_name"],
-                           query=escape(forename), default_operator='AND',
-                           allow_leading_wildcard=False)
+            # If a wildcard is provided in the forename, we treat it as a
+            # query string query. This has the disadvantage of losing term
+            # order, but the advantage of handling wildcards as expected.
+            logger.debug(f'Forename: {forename}')
+            if _has_wildcard(forename):
+                q_forename = Q("query_string", fields=[f"{path}.first_name"],
+                               query=escape(forename),
+                               auto_generate_phrase_queries=True,
+                               default_operator='AND',
+                               allow_leading_wildcard=False)
+
+            # Otherwise, we expect the forename to match as a phrase. The
+            # _prefix bit means that the last word can match as a prefix of the
+            # corresponding term.
+            else:
+                q_forename = Q("match_phrase_prefix",
+                               **{"authors__first_name": forename})
 
             # It may be the case that the forename consists of initials or some
             # other prefix/partial forename. For a match of this kind, each
@@ -101,14 +112,8 @@ def part_query(term: str, path: str = "authors") -> Q:
             # forename.
             if path == 'authors' and forename:
                 logger.debug('Consider initials: %s', forename)
-                q_prefix = []
-                for forename_part in forename.split():
-                    forename_part = forename_part.strip()
-                    q_prefix.append(Q("match", **{INITIALS: forename_part}))
-                if len(q_prefix) == 1:
-                    q_forename |= q_prefix[0]
-                elif len(q_prefix) > 1:
-                    q_forename |= reduce(iand, q_prefix)
+                q_forename |= Q("match_phrase_prefix",
+                                **{f"{path}__initials": forename})
 
             # We will treat this as a search for a single author; surname and
             # forename parts must match in the same (nested) author.
@@ -123,7 +128,6 @@ def part_query(term: str, path: str = "authors") -> Q:
               fields=AUTHOR_QUERY_FIELDS, default_operator='AND',
               allow_leading_wildcard=False,
               type="cross_fields", query=escape(term))
-
     return Q("nested", path=path, query=q, score_mode='sum')
 
 

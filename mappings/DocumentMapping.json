@@ -55,6 +55,17 @@
             "english_stop"
           ]
         },
+        "author_simple": {
+          "type": "custom",
+          "tokenizer": "whitespace",
+          "char_filter": [
+            "strip_dots_commas"
+          ],
+          "filter": [
+            "icu_folding",
+            "lowercase"
+          ]
+        },
         "author_folding": {
           "type": "custom",
           "tokenizer": "whitespace",
@@ -89,6 +100,12 @@
           ]
         },
         "folding": {
+          "filter": [
+            "icu_folding",
+            "lowercase"
+          ]
+        },
+        "author_simple": {
           "filter": [
             "icu_folding",
             "lowercase"
@@ -162,12 +179,12 @@
               }
             },
             "initials": {
-              "type": "keyword",
-              "normalizer": "author_folding",
+              "type": "text",
+              "analyzer": "author_simple",
               "fields": {
                 "folded": {
                   "type": "keyword",
-                  "normalizer": "author_folding"
+                  "normalizer": "author_simple"
                 }
               }
             },

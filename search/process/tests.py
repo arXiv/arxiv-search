@@ -43,7 +43,7 @@ class TestTransformMetdata(TestCase):
         self.assertEqual(doc.authors[0]['full_name'], 'B. Ivan Dole',
                          "full_name should be generated from first_name and"
                          " last_name")
-        self.assertEqual(doc.authors[0]['initials'], ["B", "I"],
+        self.assertEqual(doc.authors[0]['initials'], "B I",
                          "initials should be generated from first name")
 
     def test_authors_freeform(self):
@@ -72,7 +72,7 @@ class TestTransformMetdata(TestCase):
         self.assertEqual(doc.owners[0]['full_name'], 'B. Ivan Dole',
                          "full_name should be generated from first_name and"
                          " last_name")
-        self.assertEqual(doc.owners[0]['initials'], ["B", "I"],
+        self.assertEqual(doc.owners[0]['initials'], "B I",
                          "initials should be generated from first name")
 
     def test_submitted_date(self):
