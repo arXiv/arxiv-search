@@ -167,7 +167,22 @@ def _query_all_fields(term: str) -> Q:
         _query_msc_class(term, operator='or'),
         _query_primary(term, operator='or')
     ]
-    query = match_all_fields & Q("bool", should=queries)
+    conj_queries = [
+        author_query(term, operator='AND'),
+        _query_title(term, default_operator='and'),
+        _query_abstract(term, default_operator='and'),
+        _query_comments(term, default_operator='and'),
+        orcid_query(term, operator='and'),
+        author_id_query(term, operator='and'),
+        _query_doi(term, operator='and'),
+        _query_journal_ref(term, operator='and'),
+        _query_report_num(term, operator='and'),
+        _query_acm_class(term, operator='and'),
+        _query_msc_class(term, operator='and'),
+        _query_primary(term, operator='and')
+    ]
+    query = (match_all_fields | reduce(ior, conj_queries))
+    query &= Q("bool", should=queries)  # Partial matches across fields.
     scores = [SF({'weight': i + 1, 'filter': q})
               for i, q in enumerate(queries[::-1])]
     return Q('function_score', query=query, score_mode="sum", functions=scores,
