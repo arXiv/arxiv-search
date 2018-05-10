@@ -1,5 +1,6 @@
 """Provides the main search user interfaces."""
 
+import json
 from typing import Dict, Callable, Union, Any, Optional
 from functools import wraps
 from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
@@ -8,6 +9,7 @@ from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, Response, \
     url_for
 from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
+from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
 from arxiv import status
 from arxiv.base import logging
@@ -17,6 +19,43 @@ from search.controllers import simple, advanced, health_check
 logger = logging.getLogger(__name__)
 
 blueprint = Blueprint('ui', __name__, url_prefix='/')
+
+PARAMS_TO_PERSIST = ['order', 'size']
+"""These parametes should be persisted in a cookie."""
+
+PARAMS_COOKIE_NAME = 'arxiv-search-parameters'
+"""The name of the cookie to use to persist search parameters."""
+
+
+@blueprint.before_request
+def get_parameters_from_cookie() -> None:
+    """
+    Use parameter values in a cookie as defaults if not explicitly provided.
+
+    This will replace request.args with a :class:`.MultiDict` in order to
+    achieve mutability.
+    """
+    # If the cookie is not set, there is nothing to do.
+    if PARAMS_COOKIE_NAME not in request.cookies:
+        return
+
+    # We need the request args to be mutable.
+    request.args = MultiDict(request.args.items(multi=True))
+    data = json.loads(request.cookies[PARAMS_COOKIE_NAME])
+    for param in PARAMS_TO_PERSIST:
+        # Don't clobber the user's explicit request.
+        if param not in request.args and param in data:
+            request.args[param] = data[param]
+    # ``request`` is a proxy object; there is nothing to return.
+
+
+@blueprint.after_request
+def set_parameters_in_cookie(response: Response) -> Response:
+    """Set request parameters in the cookie, to use as future defaults."""
+    data = {param: request.args[param] for param in PARAMS_TO_PERSIST
+            if param in request.args}
+    response.set_cookie(PARAMS_COOKIE_NAME, json.dumps(data))
+    return response
 
 
 @blueprint.after_request
