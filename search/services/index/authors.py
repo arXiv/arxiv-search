@@ -242,12 +242,12 @@ def orcid_query(term: str, operator: str = 'and') -> Q:
     """Generate a query part for ORCID ID using the ES DSL."""
     if operator == 'or':
         return (
-            Q("nested", path="authors",
-              query=Q("terms", **{"authors__orcid": term.split()}))
-            | Q("nested", path="owners",
+            Q("nested", path="owners",
                 query=Q("terms", **{"owners__orcid": term.split()}))
             | Q("terms", **{"submitter__orcid": term.split()})
         )
-    flds = ['authors.orcid', 'owners.orcid', 'submitter.orcid']
-    return Q("multi_match", type="cross_fields", fields=flds, query=term,
-             operator=operator)
+    return reduce(iand, [(
+        Q("nested", path="owners",
+            query=Q("term", **{"owners__orcid": part}))
+        | Q("term", **{"submitter__orcid": part})
+    ) for part in term.split()])
