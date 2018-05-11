@@ -78,7 +78,8 @@ def part_query(term: str, path: str = "authors") -> Q:
 
         # Doing a query string so that wildcards and literals are just handled.
         q_surname = Q("query_string", fields=[f"{path}.last_name"],
-                      query=escape(surname), default_operator='AND',
+                      query=escape(surname),
+                      default_operator='AND',
                       allow_leading_wildcard=False)
 
         if forename:
@@ -200,7 +201,8 @@ def author_query(term: str, operator: str = 'AND') -> Q:
     # A query_string query on the combined field will yield matches among
     # authors.
     q = Q('query_string', fields=['authors_combined'],
-          query=escape(term, quotes=True), default_operator='and')
+          query=escape(term, quotes=True),
+          default_operator='and')
 
     # A nested query_string query on full name will match within individual
     # authors.

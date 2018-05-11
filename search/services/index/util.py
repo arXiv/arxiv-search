@@ -21,8 +21,8 @@ MAX_RESULTS = 10_000
 """This is the maximum result offset for pagination."""
 
 SPECIAL_CHARACTERS = ['+', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
-                      '}', '[', ']', '^', '~', ':', '\\', '/']
-DEFAULT_SORT = ['_score', '-announced_date_first', '_doc']
+                      '}', '[', ']', '^', '~', ':', '\\', '/', '-']
+DEFAULT_SORT = ['-announced_date_first', '_doc']
 
 
 def wildcardEscape(querystring: str) -> Tuple[str, bool]:
