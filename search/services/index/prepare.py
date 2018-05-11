@@ -19,7 +19,7 @@ from arxiv.base import logging
 
 from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
 from .util import strip_tex, Q_, is_tex_query, is_literal_query, escape, \
-    wildcardEscape, remove_single_characters
+    wildcardEscape, remove_single_characters, has_wildcard
 from .highlighting import HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
 from .authors import author_query, author_id_query, orcid_query
 
@@ -66,10 +66,14 @@ def _query_report_num(term: str, boost: int = 1, operator: str = 'and') -> Q:
 
 
 def _query_acm_class(term: str, operator: str = 'and') -> Q:
+    if has_wildcard(term):
+        return Q("wildcard", acm_class=term)
     return Q("match", acm_class={"query": term, "operator": operator})
 
 
 def _query_msc_class(term: str, operator: str = 'and') -> Q:
+    if has_wildcard(term):
+        return Q("wildcard", msc_class=term)
     return Q("match", msc_class={"query": term, "operator": operator})
 
 

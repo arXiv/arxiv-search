@@ -10,6 +10,8 @@ from wtforms import Form, BooleanField, StringField, SelectField, validators, \
 from wtforms.fields import HiddenField
 from wtforms import widgets
 
+from arxiv import taxonomy
+
 from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
 
 
@@ -91,13 +93,10 @@ class ClassificationForm(Form):
         ('q-fin', 'q_finance'),
         ('stat', 'statistics')
     ]
-    PHYSICS_ARCHIVES = [
-        ('all', 'all'), ('astro-ph', 'astro-ph'), ('cond-mat', 'cond-mat'),
-        ('gr-qc', 'gr-qc'), ('hep-ex', 'hep-ex'), ('hep-lat', 'hep-lat'),
-        ('hep-ph', 'hep-ph'), ('hep-th', 'hep-th'), ('math-ph', 'math-ph'),
-        ('nlin', 'nlin'), ('nucl-ex', 'nucl-ex'), ('nucl-th', 'nucl-th'),
-        ('physics', 'physics'), ('quant-ph', 'quant-ph')
-    ]
+    PHYSICS_ARCHIVES = [('all', 'all')] + \
+        [(archive, archive) for archive, description
+         in taxonomy.ARCHIVES_ACTIVE.items()
+         if description['in_group'] == 'grp_physics']
 
     computer_science = BooleanField('Computer Science (cs)')
     economics = BooleanField('Economics (econ)')
@@ -186,5 +185,5 @@ class AdvancedSearchForm(Form):
         ('-submitted_date', 'Submission date (newest first)'),
         ('submitted_date', 'Submission date (oldest first)'),
         ('', 'Relevance')
-    ], validators=[validators.Optional()], default='')
+    ], validators=[validators.Optional()], default='-announced_date_first')
     include_older_versions = BooleanField('Include older versions of papers')

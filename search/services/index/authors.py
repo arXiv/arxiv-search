@@ -10,7 +10,7 @@ from elasticsearch_dsl import Search, Q, SF
 from arxiv.base import logging
 
 from .util import wildcardEscape, escape, STRING_LITERAL, \
-    remove_single_characters
+    remove_single_characters, has_wildcard
 
 logger = logging.getLogger(__name__)
 logger.propagate = False
@@ -31,15 +31,9 @@ def _remove_stopwords(term: str) -> str:
     return "".join(parts)
 
 
-def _has_wildcard(term: str) -> bool:
-    """Determine whether or not ``term`` contains a wildcard."""
-    return (('*' in term or '?' in term) and not
-            (term.startswith('*') or term.startswith('?')))
-
-
 def Q_(qtype: str, field: str, value: str) -> Q:
     """Generate an appropriate :class:`Q` based on wildcard presence."""
-    if _has_wildcard(value):
+    if has_wildcard(value):
         return Q("wildcard", **{field: {"value": escape(value)}})
     return Q(qtype, **{field: escape(value)})
 
@@ -93,7 +87,7 @@ def part_query(term: str, path: str = "authors") -> Q:
             # query string query. This has the disadvantage of losing term
             # order, but the advantage of handling wildcards as expected.
             logger.debug(f'Forename: {forename}')
-            if _has_wildcard(forename):
+            if has_wildcard(forename):
                 q_forename = Q("query_string", fields=[f"{path}.first_name"],
                                query=escape(forename),
                                auto_generate_phrase_queries=True,
@@ -229,27 +223,27 @@ def author_id_query(term: str, operator: str = 'and') -> Q:
     """Generate a query part for Author ID using the ES DSL."""
     if operator == 'or':
         return (
-            Q("nested", path="authors",
-              query=Q("terms", **{"authors__author_id": term.split()}))
-            | Q("nested", path="owners",
+            Q("nested", path="owners",
                 query=Q("terms", **{"owners__author_id": term.split()}))
             | Q("terms", **{"submitter__author_id": term.split()})
         )
-    flds = ['authors.author_id', 'owners.author_id', 'submitter.author_id']
-    return Q("multi_match", type="cross_fields", fields=flds, query=term,
-             operator=operator)
+    return reduce(iand, [(
+        Q("nested", path="owners",
+            query=Q("term", **{"owners__author_id": part}))
+        | Q("term", **{"submitter__author_id": part})
+    ) for part in term.split()])
 
 
 def orcid_query(term: str, operator: str = 'and') -> Q:
     """Generate a query part for ORCID ID using the ES DSL."""
     if operator == 'or':
         return (
-            Q("nested", path="authors",
-              query=Q("terms", **{"authors__orcid": term.split()}))
-            | Q("nested", path="owners",
+            Q("nested", path="owners",
                 query=Q("terms", **{"owners__orcid": term.split()}))
             | Q("terms", **{"submitter__orcid": term.split()})
         )
-    flds = ['authors.orcid', 'owners.orcid', 'submitter.orcid']
-    return Q("multi_match", type="cross_fields", fields=flds, query=term,
-             operator=operator)
+    return reduce(iand, [(
+        Q("nested", path="owners",
+            query=Q("term", **{"owners__orcid": part}))
+        | Q("term", **{"submitter__orcid": part})
+    ) for part in term.split()])
