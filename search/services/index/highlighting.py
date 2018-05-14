@@ -50,6 +50,8 @@ def highlight(search: Search) -> Search:
     search = search.highlight('comments', number_of_fragments=0)
     # Highlight any field the name of which begins with "author".
     search = search.highlight('author*')
+    search = search.highlight('owner*')
+    search = search.highlight('submitter*')
     search = search.highlight('journal_ref', type='plain')
     search = search.highlight('acm_class', number_of_fragments=0)
     search = search.highlight('msc_class', number_of_fragments=0)
@@ -62,6 +64,9 @@ def highlight(search: Search) -> Search:
     search = search.highlight('abstract.tex', type='plain',
                               number_of_fragments=0)
     search = search.highlight('abstract.english', type='plain',
+                              number_of_fragments=0)
+
+    search = search.highlight('primary_classification*', type='plain',
                               number_of_fragments=0)
     return search
 
@@ -164,6 +169,9 @@ def add_highlighting(result: dict, raw: Response) -> dict:
         if hasattr(value, '__iter__'):
             value = '&hellip;'.join(value)
 
+        if 'primary_classification' in field:
+            field = 'primary_classification'
+
         # Non-TeX searches may hit inside of TeXisms. Highlighting those
         # fragments (i.e. inserting HTML) will break MathJax rendering.
         # To guard against this while preserving highlighting, we move
@@ -178,7 +186,8 @@ def add_highlighting(result: dict, raw: Response) -> dict:
         # truncated. So instead of highlighting author names themselves, we
         # set a 'flag' that can get picked up in the template and highlight
         # the entire author field.
-        if field.startswith('author'):
+        if field.startswith('author') or field.startswith('owner') \
+                or field.startswith('submitter'):
             field = 'author'
             value = True
         result['highlight'][field] = value
