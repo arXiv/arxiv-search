@@ -224,8 +224,8 @@ FLASKS3_FORCE_MIMETYPE = os.environ.get('FLASKS3_FORCE_MIMETYPE', 1)
 FLASKS3_ACTIVE = os.environ.get('FLASKS3_ACTIVE', 0)
 
 # Settings for display of release information
-RELEASE_NOTES_URL = 'https://confluence.cornell.edu/x/fjs2FQ'
-RELEASE_NOTES_TEXT = 'Search v0.2 released 2018-05-04'
+RELEASE_NOTES_URL = 'https://confluence.cornell.edu/x/mBtOFQ'
+RELEASE_NOTES_TEXT = 'Search v0.3 released 2018-05-14'
 
 
 # TODO: one place to set the version, update release notes text, JIRA issue
