@@ -221,6 +221,7 @@ def author_query(term: str, operator: str = 'AND') -> Q:
 
 def author_id_query(term: str, operator: str = 'and') -> Q:
     """Generate a query part for Author ID using the ES DSL."""
+    term = term.lower()     # Just in case.
     if operator == 'or':
         return (
             Q("nested", path="owners",
