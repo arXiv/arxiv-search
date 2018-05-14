@@ -109,27 +109,19 @@ def _query_primary(term: str, operator: str = 'and') -> Q:
 def _query_paper_id(term: str, operator: str = 'and') -> Q:
     operator = operator.lower()
     logger.debug(f'query paper ID with: {term}')
-    date_partial: Optional[str] = None
-    rmd: Optional[str] = None
-    try:
-        date_partial, rmd = match_date_partial(term)
-        logger.debug(f'found date partial: {date_partial}')
-    except ValueError:
-        pass
-    logger.debug(f'partial: {date_partial}; rem: {rmd}; op: {operator}')
-
-    if date_partial:
-        q = Q("term", announced_date_first=date_partial)
-        if operator == 'or' and rmd:
-            q |= (Q_('match', 'paper_id', escape(rmd), operator=operator)
-                  | Q_('match', 'paper_id_v', escape(rmd), operator=operator))
-        elif operator == 'and' and rmd:
-            q &= (Q_('match', 'paper_id', escape(rmd), operator=operator)
-                  | Q_('match', 'paper_id_v', escape(rmd), operator=operator))
-    else:
-        q = (Q_('match', 'paper_id', escape(term), operator=operator)
-             | Q_('match', 'paper_id_v', escape(term), operator=operator))
+    q = (Q_('match', 'paper_id', escape(term), operator=operator)
+         | Q_('match', 'paper_id_v', escape(term), operator=operator))
     return q
+
+
+def _query_combined(term: str) -> Q:
+    # Only wildcards in literals should be escaped.
+    wildcard_escaped, has_wildcard = wildcardEscape(term)
+    query_term = (wildcard_escaped if has_wildcard else escape(term)).lower()
+
+    # All terms must match in the combined field.
+    return Q("query_string", fields=['combined'], default_operator='AND',
+             allow_leading_wildcard=False, query=query_term)
 
 
 def _query_all_fields(term: str) -> Q:
@@ -178,16 +170,21 @@ def _query_all_fields(term: str) -> Q:
     if is_tex_query(term):
         return _tex_query('title', term) | _tex_query('abstract', term)
 
-    # Only wildcards in literals should be escaped.
-    wildcard_escaped, has_wildcard = wildcardEscape(term)
-    query_term = wildcard_escaped if has_wildcard else escape(term)
+    date_partial: Optional[str] = None
+    remainder: Optional[str] = None
+    try:
+        date_partial, remainder = match_date_partial(term)
+        logger.debug(f'found date partial: {date_partial}')
+    except ValueError:
+        pass
+    logger.debug(f'partial: {date_partial}; rem: {remainder}')
 
-    # All terms must match in the combined field.
-    _query = query_term.lower()
-    match_all_fields = Q("query_string", fields=['combined'],
-                         default_operator='AND',
-                         allow_leading_wildcard=False,
-                         query=escape(_query))
+    match_all_fields = _query_combined(term)
+    if date_partial:
+        _q = Q("term", announced_date_first=date_partial)
+        if remainder:
+            _q &= _query_combined(remainder)
+        match_all_fields |= _q
 
     # We include matches of any term in any field, so that we can highlight
     # and score appropriately.
@@ -206,6 +203,12 @@ def _query_all_fields(term: str) -> Q:
         _query_msc_class(term, operator='or'),
         _query_primary(term, operator='or')
     ]
+
+    if date_partial:
+        queries.insert(0, Q("term", announced_date_first=date_partial))
+
+    # If the whole query matches on a specific field, we should consider that
+    # responsive even if the query on the combined field does not respond.
     conj_queries = [
         _query_paper_id(term, operator='AND'),
         author_query(term, operator='AND'),
@@ -221,6 +224,7 @@ def _query_all_fields(term: str) -> Q:
         _query_msc_class(term, operator='and'),
         _query_primary(term, operator='and')
     ]
+
     query = (match_all_fields | reduce(ior, conj_queries))
     query &= Q("bool", should=queries)  # Partial matches across fields.
     scores = [SF({'weight': i + 1, 'filter': q})
