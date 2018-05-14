@@ -7,7 +7,7 @@ fields to query-building functions in the module.
 See :func:`._query_all_fields` for information on how results are scored.
 """
 
-from typing import Any, List, Tuple, Callable, Dict
+from typing import Any, List, Tuple, Callable, Dict, Optional
 from functools import reduce, wraps
 from operator import ior, iand
 import re
@@ -109,12 +109,13 @@ def _query_primary(term: str, operator: str = 'and') -> Q:
 def _query_paper_id(term: str, operator: str = 'and') -> Q:
     operator = operator.lower()
     logger.debug(f'query paper ID with: {term}')
+    date_partial: Optional[str] = None
+    rmd: Optional[str] = None
     try:
         date_partial, rmd = match_date_partial(term)
         logger.debug(f'found date partial: {date_partial}')
     except ValueError:
-        date_partial = None
-        rmd = None
+        pass
     logger.debug(f'partial: {date_partial}; rem: {rmd}; op: {operator}')
 
     if date_partial:
