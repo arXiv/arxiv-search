@@ -7,7 +7,7 @@ fields to query-building functions in the module.
 See :func:`._query_all_fields` for information on how results are scored.
 """
 
-from typing import Any, List, Tuple, Callable, Dict
+from typing import Any, List, Tuple, Callable, Dict, Optional
 from functools import reduce, wraps
 from operator import ior, iand
 import re
@@ -19,7 +19,7 @@ from arxiv.base import logging
 
 from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
 from .util import strip_tex, Q_, is_tex_query, is_literal_query, escape, \
-    wildcardEscape, remove_single_characters
+    wildcardEscape, remove_single_characters, has_wildcard, match_date_partial
 from .highlighting import HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
 from .authors import author_query, author_id_query, orcid_query
 
@@ -66,10 +66,14 @@ def _query_report_num(term: str, boost: int = 1, operator: str = 'and') -> Q:
 
 
 def _query_acm_class(term: str, operator: str = 'and') -> Q:
+    if has_wildcard(term):
+        return Q("wildcard", acm_class=term)
     return Q("match", acm_class={"query": term, "operator": operator})
 
 
 def _query_msc_class(term: str, operator: str = 'and') -> Q:
+    if has_wildcard(term):
+        return Q("wildcard", msc_class=term)
     return Q("match", msc_class={"query": term, "operator": operator})
 
 
@@ -81,6 +85,19 @@ def _query_doi(term: str, operator: str = 'and') -> Q:
 
 
 def _query_primary(term: str, operator: str = 'and') -> Q:
+    # In the 'or' case, we're basically just looking for hit highlighting
+    # after a match on the combined field. Since primary classification fields
+    # are keyword fields, they won't match the same way as the combined field
+    # (text). So we have to be a bit fuzzy here to get the highlight.
+    # TODO: in a future version, we should consider changes to the mappings
+    # to make this more straightforward.
+    if operator == 'or':
+        return reduce(ior, [(
+            Q("match", **{"primary_classification__category__id": {"query": part, "operator": operator}})
+            | Q("wildcard", **{"primary_classification.category.name": f"*{part}*"})
+            | Q("match", **{"primary_classification__archive__id": {"query": part, "operator": operator}})
+            | Q("wildcard", **{"primary_classification.archive.name": f"*{part}*"})
+        ) for part in term.split()])
     return (
         Q("match", **{"primary_classification__category__id": {"query": term, "operator": operator}})
         | Q("match", **{"primary_classification__category__name": {"query": term, "operator": operator}})
@@ -90,8 +107,21 @@ def _query_primary(term: str, operator: str = 'and') -> Q:
 
 
 def _query_paper_id(term: str, operator: str = 'and') -> Q:
-    return (Q_('match', 'paper_id', escape(term), operator=operator)
-            | Q_('match', 'paper_id_v', escape(term), operator=operator))
+    operator = operator.lower()
+    logger.debug(f'query paper ID with: {term}')
+    q = (Q_('match', 'paper_id', escape(term), operator=operator)
+         | Q_('match', 'paper_id_v', escape(term), operator=operator))
+    return q
+
+
+def _query_combined(term: str) -> Q:
+    # Only wildcards in literals should be escaped.
+    wildcard_escaped, has_wildcard = wildcardEscape(term)
+    query_term = (wildcard_escaped if has_wildcard else escape(term)).lower()
+
+    # All terms must match in the combined field.
+    return Q("query_string", fields=['combined'], default_operator='AND',
+             allow_leading_wildcard=False, query=query_term)
 
 
 def _query_all_fields(term: str) -> Q:
@@ -140,20 +170,26 @@ def _query_all_fields(term: str) -> Q:
     if is_tex_query(term):
         return _tex_query('title', term) | _tex_query('abstract', term)
 
-    # Only wildcards in literals should be escaped.
-    wildcard_escaped, has_wildcard = wildcardEscape(term)
-    query_term = wildcard_escaped if has_wildcard else escape(term)
+    date_partial: Optional[str] = None
+    remainder: Optional[str] = None
+    try:
+        date_partial, remainder = match_date_partial(term)
+        logger.debug(f'found date partial: {date_partial}')
+    except ValueError:
+        pass
+    logger.debug(f'partial: {date_partial}; rem: {remainder}')
 
-    # All terms must match in the combined field.
-    _query = query_term.lower()
-    match_all_fields = Q("query_string", fields=['combined'],
-                         default_operator='AND',
-                         allow_leading_wildcard=False,
-                         query=escape(_query))
+    match_all_fields = _query_combined(term)
+    if date_partial:
+        _q = Q("term", announced_date_first=date_partial)
+        if remainder:
+            _q &= _query_combined(remainder)
+        match_all_fields |= _q
 
     # We include matches of any term in any field, so that we can highlight
     # and score appropriately.
     queries = [
+        _query_paper_id(term, operator='or'),
         author_query(term, operator='OR'),
         _query_title(term, default_operator='or'),
         _query_abstract(term, default_operator='or'),
@@ -167,7 +203,30 @@ def _query_all_fields(term: str) -> Q:
         _query_msc_class(term, operator='or'),
         _query_primary(term, operator='or')
     ]
-    query = match_all_fields & Q("bool", should=queries)
+
+    if date_partial:
+        queries.insert(0, Q("term", announced_date_first=date_partial))
+
+    # If the whole query matches on a specific field, we should consider that
+    # responsive even if the query on the combined field does not respond.
+    conj_queries = [
+        _query_paper_id(term, operator='AND'),
+        author_query(term, operator='AND'),
+        _query_title(term, default_operator='and'),
+        _query_abstract(term, default_operator='and'),
+        _query_comments(term, default_operator='and'),
+        orcid_query(term, operator='and'),
+        author_id_query(term, operator='and'),
+        _query_doi(term, operator='and'),
+        _query_journal_ref(term, operator='and'),
+        _query_report_num(term, operator='and'),
+        _query_acm_class(term, operator='and'),
+        _query_msc_class(term, operator='and'),
+        _query_primary(term, operator='and')
+    ]
+
+    query = (match_all_fields | reduce(ior, conj_queries))
+    query &= Q("bool", should=queries)  # Partial matches across fields.
     scores = [SF({'weight': i + 1, 'filter': q})
               for i, q in enumerate(queries[::-1])]
     return Q('function_score', query=query, score_mode="sum", functions=scores,

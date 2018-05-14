@@ -133,6 +133,7 @@ def search(request_params: MultiDict) -> Response:
         else:
             logger.debug('form is invalid: %s', str(form.errors))
             if 'order' in form.errors or 'size' in form.errors:
+                print(form.errors, form.data)
                 # It's likely that the user tried to set these parameters
                 # manually, or that the search originated from somewhere else
                 # (and was configured incorrectly).
@@ -293,7 +294,7 @@ def group_search(args: MultiDict, groups_or_archives: str) -> Response:
             # group on the form.
             fld = dict(forms.ClassificationForm.PHYSICS_ARCHIVES).get(archive)
             if fld is None:
-                logger.warn('Invalid archive shortcut: {fld}')
+                logger.warn(f'Invalid archive shortcut: {fld}')
                 continue
             args['classification-physics'] = True
             # If there is more than one physics archives, only the last one

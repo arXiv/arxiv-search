@@ -59,6 +59,7 @@ def process_stream(duration: Optional[int] = None) -> None:
             verify=app.config.get('KINESIS_VERIFY', 'true') == 'true',
             duration=duration,
             start_type=start_type,
-            start_at=start_at
+            start_at=start_at,
+            sleep=float(app.config['KINESIS_SLEEP'])
         )
         processor.go()

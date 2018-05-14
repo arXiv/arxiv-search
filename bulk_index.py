@@ -15,7 +15,6 @@ from search.services import metadata, index
 from search.process import transform
 
 app = create_ui_web_app()
-app.app_context().push()
 
 
 @app.cli.command()
@@ -53,14 +52,18 @@ def populate(print_indexable: bool, paper_id: str, id_list: str,
                                label='Papers indexed') as index_bar:
             last = len(TO_INDEX) - 1
             for i, paper_id in enumerate(TO_INDEX):
+                this_meta = []
                 if load_cache:
                     try:
-                        meta += from_cache(cache_dir, paper_id)
-                        continue
+                        this_meta = from_cache(cache_dir, paper_id)
                     except RuntimeError as e:    # No document.
                         pass
 
-                chunk.append(paper_id)
+                if this_meta:
+                    meta += this_meta
+                else:
+                    chunk.append(paper_id)
+
                 if len(chunk) == retrieve_chunk_size or i == last:
                     try:
                         new_meta = metadata.bulk_retrieve(chunk)

@@ -208,6 +208,9 @@ KINESIS_CHECKPOINT_VOLUME = os.environ.get('KINESIS_CHECKPOINT_VOLUME',
 KINESIS_START_TYPE = os.environ.get('KINESIS_START_TYPE', 'AT_TIMESTAMP')
 KINESIS_START_AT = os.environ.get('KINESIS_START_AT')
 
+KINESIS_SLEEP = os.environ.get('KINESIS_SLEEP', '0.1')
+"""Amount of time to wait before moving on to the next record."""
+
 
 """
 Flask-S3 plugin settings.
@@ -221,8 +224,8 @@ FLASKS3_FORCE_MIMETYPE = os.environ.get('FLASKS3_FORCE_MIMETYPE', 1)
 FLASKS3_ACTIVE = os.environ.get('FLASKS3_ACTIVE', 0)
 
 # Settings for display of release information
-RELEASE_NOTES_URL = 'https://confluence.cornell.edu/x/fjs2FQ'
-RELEASE_NOTES_TEXT = 'Search v0.2 released 2018-05-04'
+RELEASE_NOTES_URL = 'https://confluence.cornell.edu/x/mBtOFQ'
+RELEASE_NOTES_TEXT = 'Search v0.3 released 2018-05-14'
 
 
 # TODO: one place to set the version, update release notes text, JIRA issue

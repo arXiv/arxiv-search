@@ -10,7 +10,7 @@ from elasticsearch_dsl import Search, Q, SF
 from arxiv.base import logging
 
 from .util import wildcardEscape, escape, STRING_LITERAL, \
-    remove_single_characters
+    remove_single_characters, has_wildcard
 
 logger = logging.getLogger(__name__)
 logger.propagate = False
@@ -31,15 +31,9 @@ def _remove_stopwords(term: str) -> str:
     return "".join(parts)
 
 
-def _has_wildcard(term: str) -> bool:
-    """Determine whether or not ``term`` contains a wildcard."""
-    return (('*' in term or '?' in term) and not
-            (term.startswith('*') or term.startswith('?')))
-
-
 def Q_(qtype: str, field: str, value: str) -> Q:
     """Generate an appropriate :class:`Q` based on wildcard presence."""
-    if _has_wildcard(value):
+    if has_wildcard(value):
         return Q("wildcard", **{field: {"value": escape(value)}})
     return Q(qtype, **{field: escape(value)})
 
@@ -64,9 +58,6 @@ def part_query(term: str, path: str = "authors") -> Q:
     :class:`.Q`
 
     """
-    SURNAME = f"{path}__last_name"
-    FORENAME = f"{path}__first_name"
-    INITIALS = f"{path}__initials"
     AUTHOR_QUERY_FIELDS = [
         f"{path}.full_name",
         f"{path}.last_name",
@@ -87,13 +78,28 @@ def part_query(term: str, path: str = "authors") -> Q:
 
         # Doing a query string so that wildcards and literals are just handled.
         q_surname = Q("query_string", fields=[f"{path}.last_name"],
-                      query=escape(surname), default_operator='AND',
+                      query=escape(surname),
+                      default_operator='AND',
                       allow_leading_wildcard=False)
 
         if forename:
-            q_forename = Q("query_string", fields=[f"{path}.first_name"],
-                           query=escape(forename), default_operator='AND',
-                           allow_leading_wildcard=False)
+            # If a wildcard is provided in the forename, we treat it as a
+            # query string query. This has the disadvantage of losing term
+            # order, but the advantage of handling wildcards as expected.
+            logger.debug(f'Forename: {forename}')
+            if has_wildcard(forename):
+                q_forename = Q("query_string", fields=[f"{path}.first_name"],
+                               query=escape(forename),
+                               auto_generate_phrase_queries=True,
+                               default_operator='AND',
+                               allow_leading_wildcard=False)
+
+            # Otherwise, we expect the forename to match as a phrase. The
+            # _prefix bit means that the last word can match as a prefix of the
+            # corresponding term.
+            else:
+                q_forename = Q("match_phrase_prefix",
+                               **{"authors__first_name": forename})
 
             # It may be the case that the forename consists of initials or some
             # other prefix/partial forename. For a match of this kind, each
@@ -101,14 +107,8 @@ def part_query(term: str, path: str = "authors") -> Q:
             # forename.
             if path == 'authors' and forename:
                 logger.debug('Consider initials: %s', forename)
-                q_prefix = []
-                for forename_part in forename.split():
-                    forename_part = forename_part.strip()
-                    q_prefix.append(Q("match", **{INITIALS: forename_part}))
-                if len(q_prefix) == 1:
-                    q_forename |= q_prefix[0]
-                elif len(q_prefix) > 1:
-                    q_forename |= reduce(iand, q_prefix)
+                q_forename |= Q("match_phrase_prefix",
+                                **{f"{path}__initials": forename})
 
             # We will treat this as a search for a single author; surname and
             # forename parts must match in the same (nested) author.
@@ -123,7 +123,6 @@ def part_query(term: str, path: str = "authors") -> Q:
               fields=AUTHOR_QUERY_FIELDS, default_operator='AND',
               allow_leading_wildcard=False,
               type="cross_fields", query=escape(term))
-
     return Q("nested", path=path, query=q, score_mode='sum')
 
 
@@ -202,7 +201,8 @@ def author_query(term: str, operator: str = 'AND') -> Q:
     # A query_string query on the combined field will yield matches among
     # authors.
     q = Q('query_string', fields=['authors_combined'],
-          query=escape(term, quotes=True), default_operator='and')
+          query=escape(term, quotes=True),
+          default_operator='and')
 
     # A nested query_string query on full name will match within individual
     # authors.
@@ -221,29 +221,30 @@ def author_query(term: str, operator: str = 'AND') -> Q:
 
 def author_id_query(term: str, operator: str = 'and') -> Q:
     """Generate a query part for Author ID using the ES DSL."""
+    term = term.lower()     # Just in case.
     if operator == 'or':
         return (
-            Q("nested", path="authors",
-              query=Q("terms", **{"authors__author_id": term.split()}))
-            | Q("nested", path="owners",
+            Q("nested", path="owners",
                 query=Q("terms", **{"owners__author_id": term.split()}))
             | Q("terms", **{"submitter__author_id": term.split()})
         )
-    flds = ['authors.author_id', 'owners.author_id', 'submitter.author_id']
-    return Q("multi_match", type="cross_fields", fields=flds, query=term,
-             operator=operator)
+    return reduce(iand, [(
+        Q("nested", path="owners",
+            query=Q("term", **{"owners__author_id": part}))
+        | Q("term", **{"submitter__author_id": part})
+    ) for part in term.split()])
 
 
 def orcid_query(term: str, operator: str = 'and') -> Q:
     """Generate a query part for ORCID ID using the ES DSL."""
     if operator == 'or':
         return (
-            Q("nested", path="authors",
-              query=Q("terms", **{"authors__orcid": term.split()}))
-            | Q("nested", path="owners",
+            Q("nested", path="owners",
                 query=Q("terms", **{"owners__orcid": term.split()}))
             | Q("terms", **{"submitter__orcid": term.split()})
         )
-    flds = ['authors.orcid', 'owners.orcid', 'submitter.orcid']
-    return Q("multi_match", type="cross_fields", fields=flds, query=term,
-             operator=operator)
+    return reduce(iand, [(
+        Q("nested", path="owners",
+            query=Q("term", **{"owners__orcid": part}))
+        | Q("term", **{"submitter__orcid": part})
+    ) for part in term.split()])

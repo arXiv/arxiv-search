@@ -21,8 +21,11 @@ MAX_RESULTS = 10_000
 """This is the maximum result offset for pagination."""
 
 SPECIAL_CHARACTERS = ['+', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
-                      '}', '[', ']', '^', '~', ':', '\\', '/']
-DEFAULT_SORT = ['_score', '-announced_date_first', '_doc']
+                      '}', '[', ']', '^', '~', ':', '\\', '/', '-']
+DEFAULT_SORT = ['-announced_date_first', '_doc']
+
+DATE_PARTIAL = r"(?:^|[\s])(\d{2})((?:0[1-9]{1})|(?:1[0-2]{1}))(?:$|[\s])"
+"""Used to match parts of author IDs that encode the announcement date."""
 
 
 def wildcardEscape(querystring: str) -> Tuple[str, bool]:
@@ -57,6 +60,12 @@ def wildcardEscape(querystring: str) -> Tuple[str, bool]:
     # Only unescaped wildcard characters should remain.
     wildcard = re.search(r'(?<!\\)([\*\?])', querystring) is not None
     return querystring, wildcard
+
+
+def has_wildcard(term: str) -> bool:
+    """Determine whether or not ``term`` contains a wildcard."""
+    return (('*' in term or '?' in term) and not
+            (term.startswith('*') or term.startswith('?')))
 
 
 def is_literal_query(term: str) -> bool:
@@ -116,3 +125,37 @@ def sort(query: Query, search: Search) -> Search:
     if sort_params is not None:
         search = search.sort(*sort_params)
     return search
+
+
+def match_date_partial(term: str) -> Tuple[str, str]:
+    """
+    Attempt to find a four-digit ID date partial (year + month).
+
+    This can be used to search for papers by announcement date.
+
+    Parameters
+    ----------
+    term : str
+        Search term.
+
+    Returns
+    -------
+    tuple
+        First element is date (str) in `yyyy-MM` format, second element is the
+        remainder of `term` (without the partial).
+
+    Raises
+    ------
+    ValueError
+        Raised if no date partial is found in `term`.
+
+    """
+    match = re.search(DATE_PARTIAL, term)
+    if match:
+        year, month = match.groups()
+        # This should be fine until 2091.
+        century = 19 if int(year) >= 91 else 20
+        date_partial = f"{century}{year}-{month}"   # year_month format in ES.
+        remainder = term[:match.start()] + " " + term[match.end():]
+        return date_partial, re.sub(r"\s+", " ", remainder).strip()
+    raise ValueError('Does not include an ID date partial')
