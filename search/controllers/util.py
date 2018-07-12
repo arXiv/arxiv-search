@@ -18,6 +18,10 @@ def doesNotStartWithWildcard(form: Form, field: StringField) -> None:
         return
     if field.data.startswith('?') or field.data.startswith('*'):
         raise validators.ValidationError('Search cannot start with a wildcard')
+    if any([part.startswith('?') or part.startswith('*')
+            for part in field.data.split()]):
+        raise validators.ValidationError('Search terms cannot start with a'
+                                         ' wildcard')
 
 
 def stripWhiteSpace(value: str) -> str:
