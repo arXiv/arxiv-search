@@ -26,7 +26,9 @@ class SimpleSearchForm(Form):
         ('paper_id', 'arXiv identifier'),
         ('doi', 'DOI'),
         ('orcid', 'ORCID'),
-        ('author_id', 'arXiv author ID')
+        ('author_id', 'arXiv author ID'),
+        ('help', 'Help pages'),
+        ('full_text', 'Full text')
     ])
     query = StringField('Search or Article ID',
                         filters=[stripWhiteSpace],
