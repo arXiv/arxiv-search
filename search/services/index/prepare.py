@@ -17,7 +17,8 @@ from elasticsearch_dsl import Search, Q, SF
 
 from arxiv.base import logging
 
-from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
+from search.domain import SimpleQuery, Query, AdvancedQuery, Classification, \
+    ClassificationList
 from .util import strip_tex, Q_, is_tex_query, is_literal_query, escape, \
     wildcardEscape, remove_single_characters, has_wildcard, match_date_partial
 from .highlighting import HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
@@ -231,6 +232,28 @@ def _query_all_fields(term: str) -> Q:
               for i, q in enumerate(queries[::-1])]
     return Q('function_score', query=query, score_mode="sum", functions=scores,
              boost_mode='multiply')
+
+
+def limit_by_classification(classifications: ClassificationList) -> Q:
+    """Generate a :class:`Q` to limit a query by by classification."""
+    def _to_q(classification: Classification) -> Q:
+        _qs = []
+        if classification.group:
+            _qs.append(
+                Q("match", **{"primary_classification__group__id": {"query": classification.group}})
+            )
+        if classification.archive:
+            _qs.append(
+                Q("match", **{"primary_classification__archive__id": {"query": classification.archive}})
+            )
+        if classification.category:
+            _qs.append(
+                Q("match", **{"primary_classification__category__id": {"query": classification.category}})
+            )
+        return reduce(iand, _qs)
+
+    return reduce(ior, [_to_q(clsn) for clsn in classifications])
+
 
 
 SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = dict([

@@ -36,5 +36,7 @@ class AdvancedQuery(Query):
     """
 
     date_range: Optional[DateRange] = None
-    primary_classification: ClassificationList = field(default_factory=ClassificationList)
+    primary_classification: ClassificationList = field(
+        default_factory=ClassificationList
+    )
     terms: FieldedSearchList = field(default_factory=FieldedSearchList)
