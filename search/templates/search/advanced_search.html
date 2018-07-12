@@ -228,10 +228,11 @@
               </div>
             </div>
             <div class="help has-text-grey is-size-7">
-              When limiting by date range, the lower bound of the "from" and "to" dates are
-              used. For example, searching with <code>From: 2012-02</code> and <code>To:
-              2013</code> will search for papers submitted from <code>2012-02-01</code> up to
-              (but not including) <code>2013-01-01</code>.
+              When limiting by date range, the lower bound of the "from" date
+              and the upper bound of the "to" date are used.<br/>For example,
+              searching with <code>From: 2012-02</code> and <code>To: 2013</code>
+              will search for papers submitted from
+              <code>2012-02-01</code> to <code>2013-12-31</code>.
             </div>
             <script>
               $('#date-to_date').focus(function() {
@@ -246,6 +247,15 @@
           </fieldset>
         </section>
         <section>
+          <div class="field">
+            <div class="control">
+              {% for subfield in form.abstracts %}
+              <label class="radio">
+                {{ subfield }} {{ subfield.label.text }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
           <div class="level">
             <div class="level-left">
               <div class="level-item">
@@ -318,7 +328,7 @@
     <p class="subtitle is-5">Refine your query: <a href="{{ current_url_sans_parameters('advanced') }}">{{ query }}</a> or <a href="{{ url_for('ui.advanced_search') }}">Start a new search</a></p>
     {% if results %}
         {{ search_macros.size_and_order(form, url_for('ui.advanced_search')) }}
-        {{ search_macros.search_results(form, results, metadata, external_url, url_for_page, url_for_author_search, is_current) }}
+        {{ search_macros.search_results(form, results, metadata, external_url, url_for_page, url_for_author_search, is_current, query.hide_abstracts) }}
     {% endif %}
   {% endif %}
 {% endblock %}

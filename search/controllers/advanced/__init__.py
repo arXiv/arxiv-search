@@ -9,7 +9,7 @@ parameters, and produce informative error messages for the user.
 
 from typing import Tuple, Dict, Any, Optional
 import re
-from datetime import date, timedelta, datetime
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
@@ -60,6 +60,7 @@ def search(request_params: MultiDict) -> Response:
     InternalServerError
         Raised when there is an unrecoverable error while interacting with the
         search index.
+
     """
     # We may need to intervene on the request parameters, so we'll
     # reinstantiate as a mutable MultiDict.
@@ -167,6 +168,7 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     Returns
     -------
     :class:`.AdvancedQuery`
+
     """
     q = AdvancedQuery()
     q = _update_query_with_dates(q, form.date.data)
@@ -177,6 +179,7 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     order = form.order.data
     if order and order != 'None':
         q.order = order
+    q.hide_abstracts = form.abstracts.data == form.HIDE_ABSTRACTS
     return q
 
 
@@ -213,7 +216,8 @@ def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
 def _update_query_with_terms(q: AdvancedQuery, terms_data: list) \
         -> AdvancedQuery:
     q.terms = FieldedSearchList([
-        FieldedSearchTerm(**term) for term in terms_data if term['term']    # type: ignore
+        FieldedSearchTerm(**term)       # type: ignore
+        for term in terms_data if term['term']
     ])
     return q
 
