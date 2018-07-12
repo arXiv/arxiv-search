@@ -150,6 +150,9 @@ class SimpleQuery(Query):
 
     search_field: str = field(default_factory=str)
     value: str = field(default_factory=str)
+    primary_classification: ClassificationList = field(
+        default_factory=ClassificationList
+    )
 
 
 @dataclass(init=True)

@@ -134,7 +134,6 @@ def search(request_params: MultiDict) -> Response:
         else:
             logger.debug('form is invalid: %s', str(form.errors))
             if 'order' in form.errors or 'size' in form.errors:
-                print(form.errors, form.data)
                 # It's likely that the user tried to set these parameters
                 # manually, or that the search originated from somewhere else
                 # (and was configured incorrectly).

@@ -7,17 +7,18 @@ to generate form HTML, validate request parameters, and produce informative
 error messages for the user.
 """
 
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, Optional, List
 
 from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
 from werkzeug import MultiDict, ImmutableMultiDict
 from flask import url_for
 
-from arxiv import status, identifier
+from arxiv import status, identifier, taxonomy
 
 from arxiv.base import logging
 from search.services import index, fulltext, metadata
-from search.domain import Query, SimpleQuery, asdict
+from search.domain import Query, SimpleQuery, asdict, Classification, \
+    ClassificationList
 from search.controllers.util import paginate, catch_underscore_syntax
 
 from .forms import SimpleSearchForm
@@ -28,7 +29,8 @@ logger = logging.getLogger(__name__)
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
 
-def search(request_params: MultiDict) -> Response:
+def search(request_params: MultiDict,
+           archives: Optional[List[str]] = None) -> Response:
     """
     Perform a simple search.
 
@@ -40,7 +42,9 @@ def search(request_params: MultiDict) -> Response:
 
     Parameters
     ----------
-    request_params : dict
+    request_params : :class:`.MultiDict`
+    archives : list
+        A list of archives within which the search should be performed.
 
     Returns
     -------
@@ -58,6 +62,9 @@ def search(request_params: MultiDict) -> Response:
         unexpected problem executing the query.
 
     """
+    if archives is not None and len(archives) == 0:
+        raise NotFound('No such archive')
+
     # We may need to intervene on the request parameters, so we'll
     # reinstantiate as a mutable MultiDict.
     if isinstance(request_params, ImmutableMultiDict):
@@ -116,6 +123,9 @@ def search(request_params: MultiDict) -> Response:
     if form.validate():
         logger.debug('form is valid')
         q = _query_from_form(form)
+
+        if archives is not None:
+            q = _update_with_archives(q, archives)
 
         # Pagination is handled outside of the form.
         q = paginate(q, request_params)
@@ -216,6 +226,26 @@ def retrieve_document(document_id: str) -> Response:
         logger.error('DocumentNotFound: %s', e)
         raise NotFound(f"Could not find a paper with id {document_id}") from e
     return {'document': result}, status.HTTP_200_OK, {}
+
+
+def _update_with_archives(q: SimpleQuery, archives: List[str]) -> SimpleQuery:
+    """
+    Search within a group or archive.
+
+    Parameters
+    ----------
+    q : :class:`SimpleQuery`
+    groups_or_archives : str
+
+    Returns
+    -------
+    :class:`SimpleQuery`
+    """
+    logger.debug('Search within %s', archives)
+    q.primary_classification = ClassificationList([
+        Classification(archive=archive) for archive in archives  # type: ignore
+    ])
+    return q
 
 
 def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:

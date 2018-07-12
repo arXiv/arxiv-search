@@ -11,7 +11,11 @@
 {% endblock title %}
 
 {% block within_content %}
-  <form method="GET" action="{{ url_for('ui.search') }}" {% if not query and not results %} class="breathe-vertical" {% endif %} aria-role="search">
+  <form method="GET" action="{{ url_for('ui.search', archives=archives) }}" {% if not query and not results %} class="breathe-vertical" {% endif %} aria-role="search">
+    {% if archives %}
+      Searching in archive{% if archives|length > 1 %}s{% endif %} <strong>{{ archives|join(", ") }}</strong>. <a href="{{ url_for('ui.search') }}?{{ current_url_params() }}">Search in all archives.</a>
+    {% endif %}
+    
     {% if has_classic_format %}
       {{ search_macros.show_classic_author_search() }}
     {% endif %}

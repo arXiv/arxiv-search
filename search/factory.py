@@ -9,6 +9,7 @@ from arxiv.base import Base
 from arxiv.base.middleware import wrap, request_logs
 from search.routes import ui
 from search.services import index
+from search.converters import ArchiveConverter
 
 s3 = FlaskS3()
 
@@ -21,6 +22,7 @@ def create_ui_web_app() -> Flask:
 
     app = Flask('search')
     app.config.from_pyfile('config.py')
+    app.url_map.converters['archive'] = ArchiveConverter
 
     index.init_app(app)
 

@@ -1,7 +1,7 @@
 """Provides the main search user interfaces."""
 
 import json
-from typing import Dict, Callable, Union, Any, Optional
+from typing import Dict, Callable, Union, Any, Optional, List
 from functools import wraps
 from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
 
@@ -68,17 +68,15 @@ def apply_response_headers(response: Response) -> Response:
     return response
 
 
+@blueprint.route('<archive:archives>', methods=['GET'])
 @blueprint.route('/', methods=['GET'])
-def search() -> Union[str, Response]:
-    """First pass at a search results page."""
-    response, code, headers = simple.search(request.args)
+def search(archives: Optional[List[str]] = None) -> Union[str, Response]:
+    """Simple search interface."""
+    response, code, headers = simple.search(request.args, archives)
     logger.debug(f"controller returned code: {code}")
     if code == status.HTTP_200_OK:
-        return render_template(
-            "search/search.html",
-            pagetitle="Search",
-            **response
-        )
+        return render_template("search/search.html", pagetitle="Search",
+                               archives=archives, **response)
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
           or code == status.HTTP_303_SEE_OTHER):
         return redirect(headers['Location'], code=code)
@@ -163,6 +161,16 @@ def url_for_page_builder() -> Dict[str, Callable]:
         url: str = url_unparse(parts)
         return url
     return dict(url_for_page=url_for_page)
+
+
+@blueprint.context_processor
+def current_url_params_builder() -> Dict[str, Callable]:
+    """Add a function that gets the GET params from the current URL."""
+    def current_url_params() -> str:
+        """Get the GET params from the current URL."""
+        params: str = url_encode(request.args)
+        return params
+    return dict(current_url_params=current_url_params)
 
 
 @blueprint.context_processor
