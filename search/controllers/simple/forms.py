@@ -32,6 +32,7 @@ class SimpleSearchForm(Form):
                         filters=[stripWhiteSpace],
                         validators=[doesNotStartWithWildcard])
     size = SelectField('results per page', default=50, choices=[
+        ('25', '25'),
         ('50', '50'),
         ('100', '100'),
         ('200', '200')
