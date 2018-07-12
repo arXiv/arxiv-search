@@ -1,5 +1,7 @@
 """Provides form rendering and validation for the advanced search feature."""
 
+import calendar
+import re
 from datetime import date, datetime
 from typing import Callable, Optional, List, Any
 
@@ -21,10 +23,12 @@ class MultiFormatDateField(DateField):
     def __init__(self, label: Optional[str] = None,
                  validators: Optional[List[Callable]] = None,
                  formats: List[str] = ['%Y-%m-%d %H:%M:%S'],
+                 default_upper_bound: bool = False,
                  **kwargs: Any) -> None:
         """Override to change ``format: str`` to ``formats: List[str]``."""
         super(DateField, self).__init__(label, validators, **kwargs)
         self.formats = formats
+        self.default_upper_bound = default_upper_bound
 
     def _value(self) -> str:
         if self.raw_data:
@@ -39,7 +43,17 @@ class MultiFormatDateField(DateField):
             self.data: Optional[date]
             for fmt in self.formats:
                 try:
-                    self.data = datetime.strptime(date_str, fmt).date()
+                    adj_date = datetime.strptime(date_str, fmt).date()
+                    if self.default_upper_bound:
+                        if not re.search(r'%[Bbm]', fmt):
+                            # when month does not appear in matching format
+                            adj_date = adj_date.replace(month=12, day=31)
+                        elif not re.search('%d', fmt):
+                            # when day does not appear in matching format
+                            last_day = calendar.monthrange(adj_date.year,
+                                                           adj_date.month)[1]
+                            adj_date = adj_date.replace(day=last_day)
+                    self.data = adj_date
                     return
                 except ValueError:
                     continue
@@ -146,7 +160,8 @@ class DateForm(Form):
     to_date = MultiFormatDateField(
         'to',
         validators=[validators.Optional(), yearInBounds],
-        formats=['%Y-%m-%d', '%Y-%m', '%Y']
+        formats=['%Y-%m-%d', '%Y-%m', '%Y'],
+        default_upper_bound=True
     )
 
     def validate_filter_by(self, field: RadioField) -> None:
