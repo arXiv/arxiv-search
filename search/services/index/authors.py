@@ -99,7 +99,7 @@ def part_query(term: str, path: str = "authors") -> Q:
             # corresponding term.
             else:
                 q_forename = Q("match_phrase_prefix",
-                               **{"authors__first_name": forename})
+                               **{f"{path}__first_name": forename})
 
             # It may be the case that the forename consists of initials or some
             # other prefix/partial forename. For a match of this kind, each

@@ -1,6 +1,6 @@
 # arxiv/kibana
 #
-# Runs Kibana 6.1.1. This Dockerfile is not strictly necessary, but it here
+# Runs Kibana 6.2.4. This Dockerfile is not strictly necessary, but it here
 # in case we want to run any additional plugins.
 #
 # As of version 0.1, this is here for local development purposes only and is
@@ -10,4 +10,4 @@
 # alongside Elasticsearch.
 
 
-FROM docker.elastic.co/kibana/kibana:6.1.1
+FROM docker.elastic.co/kibana/kibana:6.2.4
