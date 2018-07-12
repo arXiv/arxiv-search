@@ -26,6 +26,8 @@ from .authors import author_query, author_id_query, orcid_query
 
 logger = logging.getLogger(__name__)
 
+START_YEAR = 1991
+
 
 def _query_title(term: str, default_operator: str = 'AND') -> Q:
     if is_tex_query(term):
@@ -85,19 +87,22 @@ def _query_doi(term: str, operator: str = 'and') -> Q:
     return Q('match', doi={'query': term, 'operator': operator})
 
 
-def _query_announcement_date(term: str) -> Q:
+def _query_announcement_date(term: str) -> Optional[Q]:
     """
     Query against the original announcement date.
 
     If ``term`` looks like a year, will use a range search for all months in
     that year. If it looks like a year-month combo, will match.
     """
-    if re.match(r'^[0-9]{4}$', term):   # Looks like a year:
+    year_match = re.match(r'^([0-9]{4})$', term)    # Looks like a year.
+    if year_match and int(year_match.group(1)) >= START_YEAR:
         _range = {'gte': f'{term}-01', 'lte': f'{term}-12'}
         return Q('range', announced_date_first=_range)
-    elif re.match(r'^[0-9]{4}-[0-9]{2}$', term):
+
+    month_match = re.match(r'^([0-9]{4})-([0-9]{2})$', term)    # yyyy-MM.
+    if month_match and int(month_match.group(1)) >= START_YEAR:
         return Q('match', announced_date_first=term)
-    return Q('match_none')
+    return None
 
 
 def _query_primary(term: str, operator: str = 'and') -> Q:
@@ -228,7 +233,7 @@ def _query_all_fields(term: str) -> Q:
 
         # Also try to query against the announcement date.
         _q_date = _query_announcement_date(date_fragment)
-        if _q_date:
+        if _q_date is not None:
             queries.insert(0, _q_date)
             _q = _q_date if _q is None else _q | _q_date
 
