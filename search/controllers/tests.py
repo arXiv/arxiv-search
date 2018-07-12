@@ -1,11 +1,12 @@
 """Tests for :mod:`search.controllers`."""
 
 from unittest import TestCase, mock
+from datetime import date
 
 from arxiv import status
 from search.domain import DocumentSet, Document
 from search.controllers import health_check
-from .util import catch_underscore_syntax
+from .util import catch_underscore_syntax, is_old_papernum
 
 
 class TestHealthCheck(TestCase):
@@ -72,3 +73,16 @@ class TestUnderscoreHandling(TestCase):
             catch_underscore_syntax("")
         except Exception as e:
             self.fail(e)
+
+
+class TestOldPapernumDetection(TestCase):
+    """Test :func:`.is_old_papernum`."""
+
+    def test_is_old_papernum(self):
+        """User enters a 7-digit number that looks like an old papernum."""
+        self.assertFalse(is_old_papernum('9106001'))
+        self.assertTrue(is_old_papernum('9107001'))
+        self.assertFalse(is_old_papernum('9200001'))
+        self.assertTrue(is_old_papernum('9201001'))
+        self.assertTrue(is_old_papernum('0703999'))
+        self.assertFalse(is_old_papernum('0704001'))
