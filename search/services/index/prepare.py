@@ -242,7 +242,14 @@ def _query_all_fields(term: str) -> Q:
         if _q is not None:
             if remainder:
                 _q &= _query_combined(remainder)
-            match_all_fields |= _q
+
+            # The only way to know in the end whether the query matched on
+            # the announcement date is to wrap this in a top-level query and
+            # give it a ``_name``. This causes the ``_name`` to show up
+            # in the ``.meta.matched_queries`` property on the search result.
+            match_all_fields |= Q("bool", should=_q, minimum_should_match=1,
+                                  _name="announced_date_first")
+
 
     # If the whole query matches on a specific field, we should consider that
     # responsive even if the query on the combined field does not respond.

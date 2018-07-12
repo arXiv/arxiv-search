@@ -51,6 +51,7 @@ def highlight(search: Search) -> Search:
     # Highlight any field the name of which begins with "author".
     search = search.highlight('author*')
     search = search.highlight('owner*')
+    search = search.highlight('announced_date_first')
     search = search.highlight('submitter*')
     search = search.highlight('journal_ref', type='plain')
     search = search.highlight('acm_class', number_of_fragments=0)
@@ -162,6 +163,9 @@ def add_highlighting(result: dict, raw: Response) -> dict:
         return result   # Nothing to do.
 
     result['highlight'] = {}
+    # ``meta.matched_queries`` contains a list of query ``_name``s that
+    # matched. This is nice for non-string fields.
+    matched_fields = getattr(raw.meta, 'matched_queries', [])
     # The values here will (almost) always be list-like. So we need to stitch
     # them together.
     for field in dir(raw.meta.highlight):
@@ -191,6 +195,10 @@ def add_highlighting(result: dict, raw: Response) -> dict:
             field = 'author'
             value = True
         result['highlight'][field] = value
+
+    # We just want to know whether there was a hit on the announcement date.
+    result['highlight']['announced_date_first'] = \
+        bool('announced_date_first' in matched_fields)
 
     # If there is a hit in a TeX field, we prefer highlighting on that
     # field, since other tokenizers will clobber the TeX.
