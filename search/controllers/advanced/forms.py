@@ -188,3 +188,11 @@ class AdvancedSearchForm(Form):
         ('', 'Relevance')
     ], validators=[validators.Optional()], default='-announced_date_first')
     include_older_versions = BooleanField('Include older versions of papers')
+
+    HIDE_ABSTRACTS = 'hide'
+    SHOW_ABSTRACTS = 'show'
+
+    abstracts = RadioField('Abstracts', choices=[
+        (SHOW_ABSTRACTS, 'Show abstracts'),
+        (HIDE_ABSTRACTS, 'Hide abstracts')
+    ], default=SHOW_ABSTRACTS)

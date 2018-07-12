@@ -235,6 +235,7 @@ def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:
     q = SimpleQuery()
     q.search_field = form.searchtype.data
     q.value = form.query.data
+    q.hide_abstracts = form.abstracts.data == form.HIDE_ABSTRACTS
     order = form.order.data
     if order and order != 'None':
         q.order = order
