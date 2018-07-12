@@ -19,7 +19,8 @@ from arxiv.base import logging
 
 from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
 from .util import strip_tex, Q_, is_tex_query, is_literal_query, escape, \
-    wildcardEscape, remove_single_characters, has_wildcard, match_date_partial
+    wildcardEscape, remove_single_characters, has_wildcard, \
+    match_date_partial, match_date
 from .highlighting import HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
 from .authors import author_query, author_id_query, orcid_query
 
@@ -82,6 +83,21 @@ def _query_doi(term: str, operator: str = 'and') -> Q:
     if wildcard:
         return Q('wildcard', doi={'value': term.lower()})
     return Q('match', doi={'query': term, 'operator': operator})
+
+
+def _query_announcement_date(term: str) -> Q:
+    """
+    Query against the original announcement date.
+
+    If ``term`` looks like a year, will use a range search for all months in
+    that year. If it looks like a year-month combo, will match.
+    """
+    if re.match(r'^[0-9]{4}$', term):   # Looks like a year:
+        _range = {'gte': f'{term}-01', 'lte': f'{term}-12'}
+        return Q('range', announced_date_first=_range)
+    elif re.match(r'^[0-9]{4}-[0-9]{2}$', term):
+        return Q('match', announced_date_first=term)
+    return Q('match_none')
 
 
 def _query_primary(term: str, operator: str = 'and') -> Q:
@@ -170,21 +186,7 @@ def _query_all_fields(term: str) -> Q:
     if is_tex_query(term):
         return _tex_query('title', term) | _tex_query('abstract', term)
 
-    date_partial: Optional[str] = None
-    remainder: Optional[str] = None
-    try:
-        date_partial, remainder = match_date_partial(term)
-        logger.debug(f'found date partial: {date_partial}')
-    except ValueError:
-        pass
-    logger.debug(f'partial: {date_partial}; rem: {remainder}')
-
     match_all_fields = _query_combined(term)
-    if date_partial:
-        _q = Q("term", announced_date_first=date_partial)
-        if remainder:
-            _q &= _query_combined(remainder)
-        match_all_fields |= _q
 
     # We include matches of any term in any field, so that we can highlight
     # and score appropriately.
@@ -204,8 +206,36 @@ def _query_all_fields(term: str) -> Q:
         _query_primary(term, operator='or')
     ]
 
-    if date_partial:
-        queries.insert(0, Q("term", announced_date_first=date_partial))
+    # Look for and apply queries that involve announcement date.
+    date_fragment: Optional[str] = None
+    remainder: Optional[str] = None
+    try:
+        date_fragment, remainder = match_date(term)
+    except ValueError:
+        pass
+
+    logger.debug(f'date fragment: {date_fragment}; rem: {remainder}')
+
+    if date_fragment:
+        # Try to query using the legacy yyMM date partial format.
+        _q = None
+
+        date_partial = match_date_partial(date_fragment)
+        if date_partial is not None:
+            _q_partial = Q("term", announced_date_first=date_partial)
+            queries.insert(0, _q_partial)
+            _q = _q_partial if _q is None else _q | _q_partial
+
+        # Also try to query against the announcement date.
+        _q_date = _query_announcement_date(date_fragment)
+        if _q_date:
+            queries.insert(0, _q_date)
+            _q = _q_date if _q is None else _q | _q_date
+
+        if _q is not None:
+            if remainder:
+                _q &= _query_combined(remainder)
+            match_all_fields |= _q
 
     # If the whole query matches on a specific field, we should consider that
     # responsive even if the query on the combined field does not respond.
