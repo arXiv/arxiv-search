@@ -11,6 +11,7 @@ from typing import Any, List, Tuple, Callable, Dict, Optional
 from functools import reduce, wraps
 from operator import ior, iand
 import re
+from datetime import datetime
 from string import punctuation
 
 from elasticsearch_dsl import Search, Q, SF
@@ -27,6 +28,7 @@ from .authors import author_query, author_id_query, orcid_query
 logger = logging.getLogger(__name__)
 
 START_YEAR = 1991
+END_YEAR = datetime.now().year
 
 
 def _query_title(term: str, default_operator: str = 'AND') -> Q:
@@ -95,12 +97,12 @@ def _query_announcement_date(term: str) -> Optional[Q]:
     that year. If it looks like a year-month combo, will match.
     """
     year_match = re.match(r'^([0-9]{4})$', term)    # Looks like a year.
-    if year_match and int(year_match.group(1)) >= START_YEAR:
+    if year_match and END_YEAR >= int(year_match.group(1)) >= START_YEAR:
         _range = {'gte': f'{term}-01', 'lte': f'{term}-12'}
         return Q('range', announced_date_first=_range)
 
     month_match = re.match(r'^([0-9]{4})-([0-9]{2})$', term)    # yyyy-MM.
-    if month_match and int(month_match.group(1)) >= START_YEAR:
+    if month_match and END_YEAR >= int(month_match.group(1)) >= START_YEAR:
         return Q('match', announced_date_first=term)
     return None
 
