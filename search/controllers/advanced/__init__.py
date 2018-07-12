@@ -179,6 +179,7 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     order = form.order.data
     if order and order != 'None':
         q.order = order
+    q.hide_abstracts = form.abstracts.data == form.HIDE_ABSTRACTS
     return q
 
 
@@ -215,7 +216,8 @@ def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
 def _update_query_with_terms(q: AdvancedQuery, terms_data: list) \
         -> AdvancedQuery:
     q.terms = FieldedSearchList([
-        FieldedSearchTerm(**term) for term in terms_data if term['term']    # type: ignore
+        FieldedSearchTerm(**term)       # type: ignore
+        for term in terms_data if term['term']
     ])
     return q
 
