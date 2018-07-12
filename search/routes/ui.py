@@ -168,7 +168,8 @@ def current_url_params_builder() -> Dict[str, Callable]:
     """Add a function that gets the GET params from the current URL."""
     def current_url_params() -> str:
         """Get the GET params from the current URL."""
-        return url_encode(request.args)
+        params: str = url_encode(request.args)
+        return params
     return dict(current_url_params=current_url_params)
 
 

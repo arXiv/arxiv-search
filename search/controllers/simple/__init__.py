@@ -228,7 +228,7 @@ def retrieve_document(document_id: str) -> Response:
     return {'document': result}, status.HTTP_200_OK, {}
 
 
-def _update_with_archives(q: SimpleQuery, archives: List[str]) -> Response:
+def _update_with_archives(q: SimpleQuery, archives: List[str]) -> SimpleQuery:
     """
     Search within a group or archive.
 
@@ -242,9 +242,9 @@ def _update_with_archives(q: SimpleQuery, archives: List[str]) -> Response:
     :class:`SimpleQuery`
     """
     logger.debug('Search within %s', archives)
-    q.primary_classification = ClassificationList(
-        [Classification(archive=archive) for archive in archives]
-    )
+    q.primary_classification = ClassificationList([
+        Classification(archive=archive) for archive in archives  # type: ignore
+    ])
     return q
 
 
