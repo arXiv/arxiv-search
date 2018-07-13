@@ -10,7 +10,6 @@ See :func:`._query_all_fields` for information on how results are scored.
 from typing import Any, List, Tuple, Callable, Dict, Optional
 from functools import reduce, wraps
 from operator import ior, iand
-import re
 from string import punctuation
 
 from elasticsearch_dsl import Search, Q, SF
