@@ -290,6 +290,43 @@ class TestAdvancedSearchForm(TestCase):
         form = AdvancedSearchForm(data)
         self.assertTrue(form.validate())
 
+    # ARXIVNG-997
+    def test_end_date_bounding(self):
+        """If a user selects an end date, it must be bounded correctly."""
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
+            'date-filter_by': 'date_range',
+            'date-to_date': '2012'
+        })
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+        self.assertEqual(form.date.to_date.data,
+                         date(year=2012, month=12, day=31))
+
+        data['date-to_date'] = '2012-02'
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+        self.assertEqual(form.date.to_date.data,
+                         date(year=2012, month=2, day=29))
+
+        data['date-to_date'] = '2016-06'
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+        self.assertEqual(form.date.to_date.data,
+                         date(year=2016, month=6, day=30))
+
+        data['date-to_date'] = '2016-06-30'
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+        self.assertEqual(form.date.to_date.data,
+                         date(year=2016, month=6, day=30))
+
+        data['date-to_date'] = '2100-02'
+        form = AdvancedSearchForm(data)
+        self.assertFalse(form.validate())
+
     def test_year_must_be_after_1990(self):
         """If the user selects a specific year, it must be after 1990."""
         data = MultiDict({
