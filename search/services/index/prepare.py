@@ -21,8 +21,8 @@ from arxiv.base import logging
 from search.domain import SimpleQuery, Query, AdvancedQuery, Classification, \
     ClassificationList
 from .util import strip_tex, Q_, is_tex_query, is_literal_query, escape, \
-    wildcard_escape, remove_single_characters, has_wildcard, is_old_papernum \
-    parse_date
+    wildcard_escape, remove_single_characters, has_wildcard, is_old_papernum, \
+    parse_date, parse_date_partial
 
 from .highlighting import HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
 from .authors import author_query, author_id_query, orcid_query
