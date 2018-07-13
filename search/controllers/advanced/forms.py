@@ -13,9 +13,8 @@ from wtforms.fields import HiddenField
 from wtforms import widgets
 
 from arxiv import taxonomy
-
 from search.domain import DateRange
-from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
+from search.controllers.util import does_not_start_with_wildcard, strip_white_space
 
 
 class MultiFormatDateField(DateField):
@@ -67,8 +66,8 @@ class FieldForm(Form):
 
     # pylint: disable=too-few-public-methods
 
-    term = StringField("Search term...", filters=[stripWhiteSpace],
-                       validators=[doesNotStartWithWildcard])
+    term = StringField("Search term...", filters=[strip_white_space],
+                       validators=[does_not_start_with_wildcard])
     operator = SelectField("Operator", choices=[
         ('AND', 'AND'), ('OR', 'OR'), ('NOT', 'NOT')
     ], default='AND')
@@ -170,12 +169,12 @@ class DateForm(Form):
     SUBMITTED_CURRENT = DateRange.SUBMITTED_CURRENT
     ANNOUNCED = DateRange.ANNOUNCED
     DATE_TYPE_CHOICES = [
+        (SUBMITTED_CURRENT, 'Submission date (most recent)'),
         (SUBMITTED_ORIGINAL, 'Submission date (original)'),
-        (SUBMITTED_CURRENT, 'Submission date (current)'),
         (ANNOUNCED, 'Announcement date'),
     ]
     date_type = RadioField('Apply to', choices=DATE_TYPE_CHOICES,
-                           default=SUBMITTED_ORIGINAL,
+                           default=SUBMITTED_CURRENT,
                            description="You may filter on either submission"
                            " date or announcement date. Note that announcement"
                            " date supports only year and month granularity.")
