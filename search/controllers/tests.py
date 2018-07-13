@@ -6,7 +6,7 @@ from datetime import date
 from arxiv import status
 from search.domain import DocumentSet, Document
 from search.controllers import health_check
-from .util import catch_underscore_syntax, is_old_papernum
+from .util import catch_underscore_syntax
 
 
 class TestHealthCheck(TestCase):
