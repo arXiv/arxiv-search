@@ -170,12 +170,12 @@ class DateForm(Form):
     SUBMITTED_CURRENT = DateRange.SUBMITTED_CURRENT
     ANNOUNCED = DateRange.ANNOUNCED
     DATE_TYPE_CHOICES = [
+        (SUBMITTED_CURRENT, 'Submission date (most recent)'),
         (SUBMITTED_ORIGINAL, 'Submission date (original)'),
-        (SUBMITTED_CURRENT, 'Submission date (current)'),
         (ANNOUNCED, 'Announcement date'),
     ]
     date_type = RadioField('Apply to', choices=DATE_TYPE_CHOICES,
-                           default=SUBMITTED_ORIGINAL,
+                           default=SUBMITTED_CURRENT,
                            description="You may filter on either submission"
                            " date or announcement date. Note that announcement"
                            " date supports only year and month granularity.")
