@@ -259,6 +259,9 @@ def _update_query_with_dates(q: AdvancedQuery, date_data: MultiDict) \
             start_date=date_data['from_date'],
             end_date=date_data['to_date'],
         )
+
+    if q.date_range:
+        q.date_range.date_type = date_data['date_type']
     return q
 
 

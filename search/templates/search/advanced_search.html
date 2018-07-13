@@ -150,100 +150,115 @@
           </fieldset>
           <fieldset class="fieldset {% if form.date.errors %}is-warning{% endif %}">
             <legend class="legend">Date</legend>
-            {% if form.date.filter_by.errors %}
-              <div class="help is-warning">
-                {% for error in form.date.filter_by.errors %}
-                    {{ error }}
-                {% endfor %}
-              </div>
-            {% endif %}
-            {% for field in form.date.filter_by %}
-            <div class="field is-grouped">
-              <div class="control">
-                <div class="radio"> {# label tags are added by wtforms #}
-                  {{ field|safe }}
-                  {{ field.label }}
-                </div>
-              </div>
-              {# TODO: the JS bits here should be re-implemented elsewhere #}
-              {% if field.data == 'specific_year' %}
-              <div class="control is-datefield">
-                <label for="date-year" class="hidden-label">Enter four digit year</label>
-                {% if form.date.year.errors %}
-                  {{ form.date.year(placeholder="YYYY", class="input is-small is-danger")|safe }}
-                {% else %}
-                  {{ form.date.year(placeholder="YYYY", class="input is-small")|safe }}
+
+                {% if form.date.filter_by.errors %}
+                  <div class="help is-warning">
+                    {% for error in form.date.filter_by.errors %}
+                        {{ error }}
+                    {% endfor %}
+                  </div>
                 {% endif %}
+                {% for field in form.date.filter_by %}
+                <div class="field is-grouped">
+                  <div class="control">
+                    <div class="radio"> {# label tags are added by wtforms #}
+                      {{ field|safe }}
+                      {{ field.label }}
+                    </div>
+                  </div>
+                  {# TODO: the JS bits here should be re-implemented elsewhere #}
+                  {% if field.data == 'specific_year' %}
+                  <div class="control is-datefield">
+                    <label for="date-year" class="hidden-label">Enter four digit year</label>
+                    {% if form.date.year.errors %}
+                      {{ form.date.year(placeholder="YYYY", class="input is-small is-danger")|safe }}
+                    {% else %}
+                      {{ form.date.year(placeholder="YYYY", class="input is-small")|safe }}
+                    {% endif %}
+                    <script>
+                      $('#date-year').focus(function() {
+                        $('input[name="date-filter_by"]').attr('checked', false);
+                        $('input[value="specific_year"]').attr('checked', true);
+                      });
+                    </script>
+                    {% if form.date.year.errors %}
+                    <div class="help is-warning">
+                      {% for error in form.date.year.errors %}
+                      {{ error }}
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+                {% endfor %}
+                <div class="field is-grouped">
+                  <div class="control">
+                    <div class="control">{{ form.date.from_date.label }}</div>
+                    <div class="control is-datefield">
+                      {% if form.date.from_date.errors %}
+                      {{ form.date.from_date(placeholder="YYYY[-MM[-DD]]", class="input is-small is-danger")|safe }}
+                      {% else %}
+                      {{ form.date.from_date(placeholder="YYYY[-MM[-DD]]", class="input is-small")|safe }}
+                      {% endif %}
+                    </div>
+                    {% if form.date.from_date.errors %}
+                    <div class="help is-warning">
+                      {% for error in form.date.from_date.errors %}
+                      {{ error }}
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div class="control">
+                    <div class="control">{{ form.date.to_date.label }}</div>
+                    <div class="control is-datefield">
+                      {% if form.date.to_date.errors %}
+                      {{ form.date.to_date(placeholder="YYYY[-MM[-DD]]", class="input is-small is-danger")|safe }}
+                      {% else %}
+                      {{ form.date.to_date(placeholder="YYYY[-MM[-DD]]", class="input is-small")|safe }}
+                      {% endif %}
+                    </div>
+                    {% if form.date.to_date.errors %}
+                    <div class="help is-warning">
+                      {% for error in form.date.to_date.errors %}
+                      {{ error }}
+                      {% endfor %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="help has-text-grey is-size-7">
+                  When limiting by date range, the lower bound of the "from" date
+                  and the upper bound of the "to" date are used.<br/>For example,
+                  searching with <code>From: 2012-02</code> and <code>To: 2013</code>
+                  will search for papers submitted from
+                  <code>2012-02-01</code> to <code>2013-12-31</code>.
+                </div>
                 <script>
-                  $('#date-year').focus(function() {
+                  $('#date-to_date').focus(function() {
                     $('input[name="date-filter_by"]').attr('checked', false);
-                    $('input[value="specific_year"]').attr('checked', true);
+                    $('input[value="date_range"]').attr('checked', true);
+                  });
+                  $('#date-from_date').focus(function() {
+                    $('input[name="date-filter_by"]').attr('checked', false);
+                    $('input[value="date_range"]').attr('checked', true);
                   });
                 </script>
-                {% if form.date.year.errors %}
-                <div class="help is-warning">
-                  {% for error in form.date.year.errors %}
-                  {{ error }}
-                  {% endfor %}
+
+                <hr />
+
+                <div class="field">
+                  <div class="control">
+                    {% for subfield in form.date.date_type %}
+                    <label class="radio">
+                      {{ subfield }} {{ subfield.label.text }}
+                    </label>
+                    {% endfor %}
+                    <p class="help has-text-grey">{{ form.date.date_type.description }}</p>
+                  </div>
                 </div>
-                {% endif %}
-              </div>
-              {% endif %}
-            </div>
-            {% endfor %}
-            <div class="field is-grouped">
-              <div class="control">
-                <div class="control">{{ form.date.from_date.label }}</div>
-                <div class="control is-datefield">
-                  {% if form.date.from_date.errors %}
-                  {{ form.date.from_date(placeholder="YYYY[-MM[-DD]]", class="input is-small is-danger")|safe }}
-                  {% else %}
-                  {{ form.date.from_date(placeholder="YYYY[-MM[-DD]]", class="input is-small")|safe }}
-                  {% endif %}
-                </div>
-                {% if form.date.from_date.errors %}
-                <div class="help is-warning">
-                  {% for error in form.date.from_date.errors %}
-                  {{ error }}
-                  {% endfor %}
-                </div>
-                {% endif %}
-              </div>
-              <div class="control">
-                <div class="control">{{ form.date.to_date.label }}</div>
-                <div class="control is-datefield">
-                  {% if form.date.to_date.errors %}
-                  {{ form.date.to_date(placeholder="YYYY[-MM[-DD]]", class="input is-small is-danger")|safe }}
-                  {% else %}
-                  {{ form.date.to_date(placeholder="YYYY[-MM[-DD]]", class="input is-small")|safe }}
-                  {% endif %}
-                </div>
-                {% if form.date.to_date.errors %}
-                <div class="help is-warning">
-                  {% for error in form.date.to_date.errors %}
-                  {{ error }}
-                  {% endfor %}
-                </div>
-                {% endif %}
-              </div>
-            </div>
-            <div class="help has-text-grey is-size-7">
-              When limiting by date range, the lower bound of the "from" date
-              and the upper bound of the "to" date are used.<br/>For example,
-              searching with <code>From: 2012-02</code> and <code>To: 2013</code>
-              will search for papers submitted from
-              <code>2012-02-01</code> to <code>2013-12-31</code>.
-            </div>
-            <script>
-              $('#date-to_date').focus(function() {
-                $('input[name="date-filter_by"]').attr('checked', false);
-                $('input[value="date_range"]').attr('checked', true);
-              });
-              $('#date-from_date').focus(function() {
-                $('input[name="date-filter_by"]').attr('checked', false);
-                $('input[value="date_range"]').attr('checked', true);
-              });
-            </script>
+
           </fieldset>
         </section>
         <section>

@@ -79,11 +79,15 @@ def _date_range(q: AdvancedQuery) -> Range:
     if not q.date_range:
         return Q()
     params = {}
+    if q.date_range.date_type == q.date_range.ANNOUNCED:
+        fmt = '%Y-%m'
+    else:
+        fmt = '%Y-%m-%dT%H:%M:%S%z'
     if q.date_range.start_date:
-        params["gte"] = q.date_range.start_date.strftime('%Y-%m-%dT%H:%M:%S%z')
+        params["gte"] = q.date_range.start_date.strftime(fmt)
     if q.date_range.end_date:
-        params["lt"] = q.date_range.end_date.strftime('%Y-%m-%dT%H:%M:%S%z')
-    return Q('range', submitted_date=params)
+        params["lt"] = q.date_range.end_date.strftime(fmt)
+    return Q('range', **{q.date_range.date_type: params})
 
 
 def _grouped_terms_to_q(term_pair: tuple) -> Q:

@@ -14,6 +14,7 @@ from wtforms import widgets
 
 from arxiv import taxonomy
 
+from search.domain import DateRange
 from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
 
 
@@ -129,7 +130,8 @@ def yearInBounds(form: Form, field: DateField) -> None:
         return None
 
     start_of_time = date(year=1991, month=1, day=1)
-    if field.data < start_of_time or field.data > date.today():
+    upper_limit = date.today().replace(year=date.today().year + 1)
+    if field.data < start_of_time or field.data > upper_limit:
         raise ValidationError('Not a valid publication year')
 
 
@@ -163,6 +165,20 @@ class DateForm(Form):
         formats=['%Y-%m-%d', '%Y-%m', '%Y'],
         default_upper_bound=True
     )
+
+    SUBMITTED_ORIGINAL = DateRange.SUBMITTED_ORIGINAL
+    SUBMITTED_CURRENT = DateRange.SUBMITTED_CURRENT
+    ANNOUNCED = DateRange.ANNOUNCED
+    DATE_TYPE_CHOICES = [
+        (SUBMITTED_ORIGINAL, 'Submission date (original)'),
+        (SUBMITTED_CURRENT, 'Submission date (current)'),
+        (ANNOUNCED, 'Announcement date'),
+    ]
+    date_type = RadioField('Apply to', choices=DATE_TYPE_CHOICES,
+                           default=SUBMITTED_ORIGINAL,
+                           description="You may filter on either submission"
+                           " date or announcement date. Note that announcement"
+                           " date supports only year and month granularity.")
 
     def validate_filter_by(self, field: RadioField) -> None:
         """Ensure that related fields are filled."""

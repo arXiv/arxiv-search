@@ -80,6 +80,12 @@ class DateRange:
     end_date: datetime = datetime.now(tz=EASTERN)
     """The day/time at (just before) which the range ends."""
 
+    SUBMITTED_ORIGINAL = 'submitted_date_first'
+    SUBMITTED_CURRENT = 'submitted_date'
+    ANNOUNCED = 'announced_date_first'
+    date_type: str = field(default=SUBMITTED_CURRENT)
+    """The date associated with the paper that should be queried."""
+
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         _str = ''
