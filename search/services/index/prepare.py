@@ -21,7 +21,7 @@ from arxiv.base import logging
 from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
 from .util import strip_tex, Q_, is_tex_query, is_literal_query, escape, \
     wildcardEscape, remove_single_characters, has_wildcard, \
-    match_date_partial, match_date
+    parse_date_partial, parse_date
 from .highlighting import HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
 from .authors import author_query, author_id_query, orcid_query
 
@@ -199,7 +199,7 @@ def _query_all_fields(term: str) -> Q:
     # and score appropriately.
     queries = [
         _query_paper_id(term, operator='or'),
-        author_query(term, operator='OR'),
+        author_query(term, operator='or'),
         _query_title(term, default_operator='or'),
         _query_abstract(term, default_operator='or'),
         _query_comments(term, default_operator='or'),
@@ -213,43 +213,65 @@ def _query_all_fields(term: str) -> Q:
         _query_primary(term, operator='or')
     ]
 
-    # Look for and apply queries that involve announcement date.
+    # It is possible that the query includes a date-related term, which we
+    # interpret as an announcement date of v1 of the paper. We currently
+    # support both "standard" `yyyy` or `yyyy-MM`` formats as well as a
+    # legacy format ``yyMM``.
+    #
+    # The general strategy here is to first attempt to match a date fragment
+    # using one the formats above, and split the query so that we can handle
+    # the date fragment and the remainder of the query separately. If we find
+    # something that looks like a date fragment, we perform the all-fields
+    # search on the remainder and use the fragment to build queries against the
+    # announcement-date of the original paper version.
     date_fragment: Optional[str] = None
     remainder: Optional[str] = None
     try:
-        date_fragment, remainder = match_date(term)
+        date_fragment, remainder = parse_date(term)
     except ValueError:
         pass
 
-    logger.debug(f'date fragment: {date_fragment}; rem: {remainder}')
-
     if date_fragment:
-        # Try to query using the legacy yyMM date partial format.
-        _q = None
+        logger.debug('date: %s; remainder: %s', date_fragment, remainder)
+        match_date: Optional[Q] = None
+        match_date_partial: Optional[Q] = None
+        match_date_announced: Optional[Q] = None
+        match_dates: List[Q] = []
+        logger.debug('date_fragment: %s', date_fragment)
 
-        date_partial = match_date_partial(date_fragment)
+        # Try to query using legacy yyMM date partial format.
+        date_partial = parse_date_partial(date_fragment)
+        logger.debug('date_partial: %s', date_partial)
         if date_partial is not None:
-            _q_partial = Q("term", announced_date_first=date_partial)
-            queries.insert(0, _q_partial)
-            _q = _q_partial if _q is None else _q | _q_partial
+            match_date_partial = Q("term", announced_date_first=date_partial)
+            match_dates.append(match_date_partial)
 
-        # Also try to query against the announcement date.
-        _q_date = _query_announcement_date(date_fragment)
-        if _q_date is not None:
-            queries.insert(0, _q_date)
-            _q = _q_date if _q is None else _q | _q_date
+        # Also try using yyyy-MM and yyyy formats.
+        match_date_announced = _query_announcement_date(date_fragment)
+        if match_date_announced:
+            match_dates.append(match_date_announced)
 
-        if _q is not None:
-            if remainder:
-                _q &= _query_combined(remainder)
-
+        # Build the composite announcement date query here, using the
+        # sub-queries based on "standard" and legay date formats.
+        if match_dates:
             # The only way to know in the end whether the query matched on
             # the announcement date is to wrap this in a top-level query and
             # give it a ``_name``. This causes the ``_name`` to show up
             # in the ``.meta.matched_queries`` property on the search result.
-            match_all_fields |= Q("bool", should=_q, minimum_should_match=1,
-                                  _name="announced_date_first")
+            match_date = Q("bool", should=match_dates, minimum_should_match=1,
+                           _name="announced_date_first")
+            logger.debug('match date: %s', match_date)
+        queries.insert(0, match_date)
 
+        # Now join the announcement date query with the all-fields queries.
+        if match_date is not None:
+            if remainder:
+                match_remainder = _query_combined(remainder)
+                match_all_fields |= (match_remainder & match_date)
+            else:
+                match_all_fields = Q('bool',
+                                     should=[match_all_fields, match_date],
+                                     minimum_should_match=1)
 
     # If the whole query matches on a specific field, we should consider that
     # responsive even if the query on the combined field does not respond.

@@ -46,6 +46,8 @@ def _to_document(raw: Response) -> Document:
     result['score'] = raw.meta.score
     if type(result['abstract']) is str:
         result['preview']['abstract'] = preview(result['abstract'])
+
+    logger.debug('%s: add highlighting to result', raw.paper_id)
     result = add_highlighting(result, raw)
     return Document(**result)   # type: ignore
     # See https://github.com/python/mypy/issues/3937

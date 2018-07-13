@@ -159,17 +159,19 @@ def add_highlighting(result: dict, raw: Response) -> dict:
         items.
 
     """
-    if not hasattr(raw.meta, 'highlight'):
-        return result   # Nothing to do.
+    # There may or may not be highlighting in the result set.
+    highlighted_fields = getattr(raw.meta, 'highlight', None)
 
-    result['highlight'] = {}
     # ``meta.matched_queries`` contains a list of query ``_name``s that
     # matched. This is nice for non-string fields.
     matched_fields = getattr(raw.meta, 'matched_queries', [])
+
     # The values here will (almost) always be list-like. So we need to stitch
-    # them together.
-    for field in dir(raw.meta.highlight):
-        value = getattr(raw.meta.highlight, field)
+    # them together. Note that dir(None) won't return anything, so this block
+    # is skipped if there are no highlights from ES.
+    result['highlight'] = {}
+    for field in dir(highlighted_fields):
+        value = getattr(highlighted_fields, field)
         if hasattr(value, '__iter__'):
             value = '&hellip;'.join(value)
 

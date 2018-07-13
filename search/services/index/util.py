@@ -127,7 +127,7 @@ def sort(query: Query, search: Search) -> Search:
     return search
 
 
-def match_date(term: str) -> Tuple[str, str]:
+def parse_date(term: str) -> Tuple[str, str]:
     """
     Attempt to find date-related information in the query.
 
@@ -160,7 +160,7 @@ def match_date(term: str) -> Tuple[str, str]:
     raise ValueError('No date info detected')
 
 
-def match_date_partial(term: str) -> Optional[str]:
+def parse_date_partial(term: str) -> Optional[str]:
     """
     Convert a 4-digit ID date partial into a full year-month value.
 
