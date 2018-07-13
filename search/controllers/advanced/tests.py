@@ -473,7 +473,7 @@ class TestUpdateQueryWithDates(TestCase):
 
     def test_past_12_is_selected(self):
         """Query selects the past twelve months."""
-        date_data = {'filter_by': 'past_12'}
+        date_data = {'filter_by': 'past_12', 'date_type': 'submitted_date'}
         q = advanced._update_query_with_dates(Query(), date_data)
         self.assertIsInstance(q, Query)
         self.assertIsInstance(q.date_range, DateRange)
@@ -486,7 +486,7 @@ class TestUpdateQueryWithDates(TestCase):
 
     def test_all_dates_is_selected(self):
         """Query does not select on date."""
-        date_data = {'filter_by': 'all_dates'}
+        date_data = {'filter_by': 'all_dates', 'date_type': 'submitted_date'}
         q = advanced._update_query_with_dates(AdvancedQuery(), date_data)
         self.assertIsInstance(q, AdvancedQuery)
         self.assertIsNone(q.date_range)
@@ -495,7 +495,8 @@ class TestUpdateQueryWithDates(TestCase):
         """Start and end dates are set, one year apart."""
         date_data = {
             'filter_by': 'specific_year',
-            'year': date(year=1999, month=1, day=1)
+            'year': date(year=1999, month=1, day=1),
+            'date_type': 'submitted_date'
         }
         q = advanced._update_query_with_dates(AdvancedQuery(), date_data)
         self.assertIsInstance(q, AdvancedQuery)
@@ -512,6 +513,7 @@ class TestUpdateQueryWithDates(TestCase):
             'filter_by': 'date_range',
             'from_date': from_date,
             'to_date': to_date,
+            'date_type': 'submitted_date'
         }
         q = advanced._update_query_with_dates(AdvancedQuery(), date_data)
         self.assertIsInstance(q, AdvancedQuery)
