@@ -25,7 +25,7 @@ SPECIAL_CHARACTERS = ['+', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
 DEFAULT_SORT = ['-announced_date_first', '_doc']
 
 DATE_PARTIAL = r"(?:^|[\s])(\d{2})((?:0[1-9]{1})|(?:1[0-2]{1}))(?:$|[\s])"
-"""Used to match parts of author IDs that encode the announcement date."""
+"""Used to match parts of paper IDs that encode the announcement date."""
 
 OLD_ID_NUMBER = \
    r'(910[7-9]|911[0-2]|9[2-9](0[1-9]|1[0-2])|0[0-6](0[1-9]|1[0-2])|070[1-3])'\
@@ -142,9 +142,42 @@ def sort(query: Query, search: Search) -> Search:
     return search
 
 
-def match_date_partial(term: str) -> Tuple[str, str]:
+def parse_date(term: str) -> Tuple[str, str]:
     """
-    Attempt to find a four-digit ID date partial (year + month).
+    Attempt to find date-related information in the query.
+
+    Parameters
+    ----------
+    term : str
+        Search term.
+
+    Returns
+    -------
+    tuple
+        First element is the responding date-related fragment, second element
+        is the remainder of `term` (without the date).
+
+    Raises
+    ------
+    ValueError
+        Raised if no date-related information is found in `term`.
+
+    """
+    match = re.search(r'(?:^|[\s]+)([0-9]{4}-[0-9]{2})(?:$|[\s]+)', term)
+    if match:
+        remainder = term[:match.start()] + " " + term[match.end():]
+        return match.group(1), remainder.strip()
+
+    match = re.search(r'(?:^|[\s]+)([0-9]{4})(?:$|[\s]+)', term)
+    if match:   # Looks like a year:
+        remainder = term[:match.start()] + " " + term[match.end():]
+        return match.group(1), remainder.strip()
+    raise ValueError('No date info detected')
+
+
+def parse_date_partial(term: str) -> Optional[str]:
+    """
+    Convert a 4-digit ID date partial into a full year-month value.
 
     This can be used to search for papers by announcement date.
 
@@ -155,14 +188,8 @@ def match_date_partial(term: str) -> Tuple[str, str]:
 
     Returns
     -------
-    tuple
-        First element is date (str) in `yyyy-MM` format, second element is the
-        remainder of `term` (without the partial).
-
-    Raises
-    ------
-    ValueError
-        Raised if no date partial is found in `term`.
+    str
+        Date in `yyyy-MM` format, if found.
 
     """
     match = re.search(DATE_PARTIAL, term)
@@ -171,6 +198,5 @@ def match_date_partial(term: str) -> Tuple[str, str]:
         # This should be fine until 2091.
         century = 19 if int(year) >= 91 else 20
         date_partial = f"{century}{year}-{month}"   # year_month format in ES.
-        remainder = term[:match.start()] + " " + term[match.end():]
-        return date_partial, re.sub(r"\s+", " ", remainder).strip()
-    raise ValueError('Does not include an ID date partial')
+        return date_partial
+    return None

@@ -134,7 +134,7 @@ def string_query(term: str, path: str = 'authors', operator: str = 'AND') -> Q:
     return Q('nested', path=path, query=q, score_mode='sum')
 
 
-def author_query(term: str, operator: str = 'AND') -> Q:
+def author_query(term: str, operator: str = 'and') -> Q:
     """
     Construct a query based on author (and owner) names.
 

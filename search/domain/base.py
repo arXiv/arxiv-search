@@ -123,6 +123,7 @@ class Query:
     page_size: int = field(default=50)
     page_start: int = field(default=0)
     include_older_versions: bool = field(default=False)
+    hide_abstracts: bool = field(default=False)
 
     @property
     def page_end(self) -> int:
@@ -149,6 +150,9 @@ class SimpleQuery(Query):
 
     search_field: str = field(default_factory=str)
     value: str = field(default_factory=str)
+    primary_classification: ClassificationList = field(
+        default_factory=ClassificationList
+    )
 
 
 @dataclass(init=True)

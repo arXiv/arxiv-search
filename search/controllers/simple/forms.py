@@ -4,7 +4,7 @@ from datetime import date
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
     FormField, SelectMultipleField, DateField, ValidationError, FieldList, \
-    widgets
+    widgets, RadioField
 from wtforms.fields import HiddenField
 
 from search.controllers.util import does_not_start_with_wildcard, strip_white_space
@@ -46,6 +46,14 @@ class SimpleSearchForm(Form):
         ('submitted_date', 'Submission date (oldest first)'),
         ('', 'Relevance')
     ], validators=[validators.Optional()], default='-announced_date_first')
+
+    HIDE_ABSTRACTS = 'hide'
+    SHOW_ABSTRACTS = 'show'
+
+    abstracts = RadioField('Abstracts', choices=[
+        (SHOW_ABSTRACTS, 'Show abstracts'),
+        (HIDE_ABSTRACTS, 'Hide abstracts')
+    ], default=SHOW_ABSTRACTS)
 
     def validate_query(form: Form, field: StringField) -> None:
         """Validate the length of the querystring, if searchtype is set."""
