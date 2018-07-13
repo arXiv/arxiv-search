@@ -27,8 +27,18 @@ DEFAULT_SORT = ['-announced_date_first', '_doc']
 DATE_PARTIAL = r"(?:^|[\s])(\d{2})((?:0[1-9]{1})|(?:1[0-2]{1}))(?:$|[\s])"
 """Used to match parts of author IDs that encode the announcement date."""
 
+OLD_ID_NUMBER = \
+   r'(910[7-9]|911[0-2]|9[2-9](0[1-9]|1[0-2])|0[0-6](0[1-9]|1[0-2])|070[1-3])'\
+   r'(00[1-9]|0[1-9][0-9]|[1-9][0-9][0-9])'
+"""
+The number part of the old arXiv identifier looks like YYMMNNN.
 
-def wildcardEscape(querystring: str) -> Tuple[str, bool]:
+The old arXiv identifier scheme was used between 1991-07 and 2007-03
+(inclusive).
+"""
+
+
+def wildcard_escape(querystring: str) -> Tuple[str, bool]:
     """
     Detect wildcard characters, and escape any that occur within a literal.
 
@@ -79,6 +89,11 @@ def is_tex_query(term: str) -> bool:
     return re.match(TEXISM, term) is not None
 
 
+def is_old_papernum(term: str) -> bool:
+    """Check whether term matches 7-digit pattern for old arXiv ID numbers."""
+    return re.fullmatch(OLD_ID_NUMBER, term) is not None
+
+
 def strip_tex(term: str) -> str:
     """Remove TeX-isms from a term."""
     return re.sub(TEXISM, '', term).strip()
@@ -86,7 +101,7 @@ def strip_tex(term: str) -> str:
 
 def Q_(qtype: str, field: str, value: str, operator: str = 'or') -> Q:
     """Construct a :class:`.Q`, but handle wildcards first."""
-    value, wildcard = wildcardEscape(value)
+    value, wildcard = wildcard_escape(value)
     if wildcard:
         return Q('wildcard', **{field: {'value': value.lower()}})
     if 'match' in qtype:

@@ -19,7 +19,8 @@ from arxiv.base import logging
 
 from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
 from .util import strip_tex, Q_, is_tex_query, is_literal_query, escape, \
-    wildcardEscape, remove_single_characters, has_wildcard, match_date_partial
+    wildcard_escape, remove_single_characters, has_wildcard, \
+    match_date_partial, is_old_papernum
 from .highlighting import HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
 from .authors import author_query, author_id_query, orcid_query
 
@@ -78,7 +79,7 @@ def _query_msc_class(term: str, operator: str = 'and') -> Q:
 
 
 def _query_doi(term: str, operator: str = 'and') -> Q:
-    value, wildcard = wildcardEscape(term)
+    value, wildcard = wildcard_escape(term)
     if wildcard:
         return Q('wildcard', doi={'value': term.lower()})
     return Q('match', doi={'query': term, 'operator': operator})
@@ -111,12 +112,14 @@ def _query_paper_id(term: str, operator: str = 'and') -> Q:
     logger.debug(f'query paper ID with: {term}')
     q = (Q_('match', 'paper_id', escape(term), operator=operator)
          | Q_('match', 'paper_id_v', escape(term), operator=operator))
+    if is_old_papernum(term):
+        q |= Q('wildcard', paper_id=f'*/{term}')
     return q
 
 
 def _query_combined(term: str) -> Q:
     # Only wildcards in literals should be escaped.
-    wildcard_escaped, has_wildcard = wildcardEscape(term)
+    wildcard_escaped, has_wildcard = wildcard_escape(term)
     query_term = (wildcard_escaped if has_wildcard else escape(term)).lower()
 
     # All terms must match in the combined field.
