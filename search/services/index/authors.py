@@ -9,7 +9,7 @@ from elasticsearch_dsl import Search, Q, SF
 
 from arxiv.base import logging
 
-from .util import wildcardEscape, escape, STRING_LITERAL, \
+from .util import wildcard_escape, escape, STRING_LITERAL, \
     remove_single_characters, has_wildcard
 
 logger = logging.getLogger(__name__)

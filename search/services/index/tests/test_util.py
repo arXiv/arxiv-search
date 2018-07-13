@@ -38,3 +38,16 @@ class TestMatchDatePartial(TestCase):
         ym = util.parse_date_partial(term)
         self.assertEqual(ym, '1995-05')
         self.assertEqual(rmd, 'old paper', 'Should have a remainder')
+
+
+class TestOldPapernumDetection(TestCase):
+    """Test :func:`.index.util.is_old_papernum`."""
+
+    def test_is_old_papernum(self):
+        """User enters a 7-digit number that looks like an old papernum."""
+        self.assertFalse(util.is_old_papernum('9106001'))
+        self.assertTrue(util.is_old_papernum('9107001'))
+        self.assertFalse(util.is_old_papernum('9200001'))
+        self.assertTrue(util.is_old_papernum('9201001'))
+        self.assertTrue(util.is_old_papernum('0703999'))
+        self.assertFalse(util.is_old_papernum('0704001'))
