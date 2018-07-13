@@ -14,6 +14,7 @@ from typing import Any
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.response import Response
 import bleach
+from flask import escape
 
 from .util import TEXISM
 
@@ -98,6 +99,7 @@ def preview(value: str, fragment_size: int = 400,
         A preview that is approximately ``fragment_size`` long.
 
     """
+    value = value.replace('$$', '$')
     if start_tag in value and end_tag in value:
         start = value.index(start_tag)
         end = value.index(end_tag) + len(end_tag)
@@ -131,8 +133,18 @@ def preview(value: str, fragment_size: int = 400,
     # For paranoia's sake, make sure that no other HTML makes it through.
     # This will also clean up any unbalanced tags, in case we screwed up
     # generating the preview.
-    snippet: str = bleach.clean(value[start:end].strip(),
-                                tags=['span'], attributes={'span': 'class'})
+    #
+    # There is a bug in Bleach that leads to unexpected KeyError exceptions
+    # on strings with equations.
+    # See https://github.com/mozilla/bleach/issues/381
+    # In these cases, we will simply HTML-escape the string and move on.
+    try:
+        snippet: str = bleach.clean(value[start:end].strip(),
+                                    tags=['span'],
+                                    attributes={'span': 'class'})
+    except KeyError:
+        v = value[start:end].strip()
+        snippet = escape(v)
     snippet = (
         ('&hellip;' if start > 0 else '')
         + snippet
@@ -226,7 +238,14 @@ def add_highlighting(result: dict, raw: Response) -> dict:
 def _strip_highlight_and_enclose(match: Any) -> str:
     # typing: ignore
     value: str = match.group(0)
-    new_value = bleach.clean(value, strip=True, tags=[])
+    # There is a bug in Bleach that leads to unexpected KeyError exceptions
+    # on strings with equations.
+    # See https://github.com/mozilla/bleach/issues/381
+    # In these cases, we will simply HTML-escape the string and move on.
+    try:
+        new_value = bleach.clean(value, strip=True, tags=[])
+    except KeyError:
+        new_value = escape(value)
 
     # If HTML was removed, we will assume that it was highlighting HTML.
     if len(new_value) < len(value):
