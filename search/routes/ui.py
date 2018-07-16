@@ -193,7 +193,14 @@ def current_url_sans_parameters_builder() -> Dict[str, Callable]:
 def url_for_author_search_builder() -> Dict[str, Callable]:
     """Inject a function to build author name query URLs."""
     def url_for_author_search(forename: str, surname: str) -> str:
-        parts = url_parse(url_for('ui.search'))
+        # If we are in an archive-specific context, we want to preserve that
+        # when generating URLs for author queries in search results.
+        archives = request.view_args.get('archives')
+        if archives:
+            target = url_for('ui.search', archives=archives)
+        else:
+            target = url_for('ui.search')
+        parts = url_parse(target)
         forename_part = ' '.join([part[0] for part in forename.split()])
         name = f'{surname}, {forename_part}' if forename_part else surname
         parts = parts.replace(query=url_encode({
