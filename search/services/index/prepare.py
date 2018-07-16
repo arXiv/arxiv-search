@@ -217,6 +217,25 @@ def _query_all_fields(term: str) -> Q:
         _query_primary(term, operator='or')
     ]
 
+    # If the whole query matches on a specific field, we should consider that
+    # responsive even if the query on the combined field does not respond.
+    match_individual_field = reduce(ior, [
+        _query_paper_id(term, operator='AND'),
+        author_query(term, operator='AND'),
+        _query_title(term, default_operator='and'),
+        _query_abstract(term, default_operator='and'),
+        _query_comments(term, default_operator='and'),
+        orcid_query(term, operator='and'),
+        author_id_query(term, operator='and'),
+        _query_doi(term, operator='and'),
+        _query_journal_ref(term, operator='and'),
+        _query_report_num(term, operator='and'),
+        _query_acm_class(term, operator='and'),
+        _query_msc_class(term, operator='and'),
+        _query_primary(term, operator='and')
+    ])
+
+
     # It is possible that the query includes a date-related term, which we
     # interpret as an announcement date of v1 of the paper. We currently
     # support both "standard" `yyyy` or `yyyy-MM`` formats as well as a
@@ -272,30 +291,32 @@ def _query_all_fields(term: str) -> Q:
             if remainder:
                 match_remainder = _query_combined(remainder)
                 match_all_fields |= (match_remainder & match_date)
+
+                match_individual_sans_date = reduce(ior, [
+                    _query_paper_id(remainder, operator='AND'),
+                    author_query(remainder, operator='AND'),
+                    _query_title(remainder, default_operator='and'),
+                    _query_abstract(remainder, default_operator='and'),
+                    _query_comments(remainder, default_operator='and'),
+                    orcid_query(remainder, operator='and'),
+                    author_id_query(remainder, operator='and'),
+                    _query_doi(remainder, operator='and'),
+                    _query_journal_ref(remainder, operator='and'),
+                    _query_report_num(remainder, operator='and'),
+                    _query_acm_class(remainder, operator='and'),
+                    _query_msc_class(remainder, operator='and'),
+                    _query_primary(remainder, operator='and')
+                ])
+                match_individual_field = Q('bool', should=[
+                        match_individual_field,
+                        match_individual_sans_date & match_date
+                    ], minimum_should_match=1)
             else:
                 match_all_fields = Q('bool',
                                      should=[match_all_fields, match_date],
                                      minimum_should_match=1)
 
-    # If the whole query matches on a specific field, we should consider that
-    # responsive even if the query on the combined field does not respond.
-    conj_queries = [
-        _query_paper_id(term, operator='AND'),
-        author_query(term, operator='AND'),
-        _query_title(term, default_operator='and'),
-        _query_abstract(term, default_operator='and'),
-        _query_comments(term, default_operator='and'),
-        orcid_query(term, operator='and'),
-        author_id_query(term, operator='and'),
-        _query_doi(term, operator='and'),
-        _query_journal_ref(term, operator='and'),
-        _query_report_num(term, operator='and'),
-        _query_acm_class(term, operator='and'),
-        _query_msc_class(term, operator='and'),
-        _query_primary(term, operator='and')
-    ]
-
-    query = (match_all_fields | reduce(ior, conj_queries))
+    query = (match_all_fields | match_individual_field)
     query &= Q("bool", should=queries)  # Partial matches across fields.
     scores = [SF({'weight': i + 1, 'filter': q})
               for i, q in enumerate(queries[::-1])]

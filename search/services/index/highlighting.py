@@ -211,8 +211,10 @@ def add_highlighting(result: dict, raw: Response) -> dict:
         result['highlight'][field] = value
 
     # We just want to know whether there was a hit on the announcement date.
-    result['highlight']['announced_date_first'] = \
+    result['highlight']['announced_date_first'] = (
         bool('announced_date_first' in matched_fields)
+        | bool('announced_date_first_individual' in matched_fields)
+    )
 
     # If there is a hit in a TeX field, we prefer highlighting on that
     # field, since other tokenizers will clobber the TeX.
