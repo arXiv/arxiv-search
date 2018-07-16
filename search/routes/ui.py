@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 blueprint = Blueprint('ui', __name__, url_prefix='/')
 
-PARAMS_TO_PERSIST = ['order', 'size', 'hide_abstracts', 'date-date_type']
+PARAMS_TO_PERSIST = ['order', 'size', 'abstracts', 'date-date_type']
 """These parameters should be persisted in a cookie."""
 
 PARAMS_COOKIE_NAME = 'arxiv-search-parameters'
