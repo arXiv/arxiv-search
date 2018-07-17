@@ -15,11 +15,12 @@ def does_not_start_with_wildcard(form: Form, field: StringField) -> None:
     if not field.data:
         return
     if field.data.startswith('?') or field.data.startswith('*'):
-        raise validators.ValidationError('Search cannot start with a wildcard')
+        raise validators.ValidationError(
+            'Search cannot start with a wildcard (? *).')
     if any([part.startswith('?') or part.startswith('*')
             for part in field.data.split()]):
         raise validators.ValidationError('Search terms cannot start with a'
-                                         ' wildcard')
+                                         ' wildcard (? *).')
 
 
 def has_balanced_quotes(form: Form, field: StringField) -> None:
@@ -27,7 +28,7 @@ def has_balanced_quotes(form: Form, field: StringField) -> None:
     if not field.data:
         return
     if '"' in field.data and field.data.count('"') % 2 != 0:
-        raise validators.ValidationError('Missing closing quote (")')
+        raise validators.ValidationError('Missing closing quote (").')
 
 
 def strip_white_space(value: str) -> str:
