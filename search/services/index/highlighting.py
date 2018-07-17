@@ -217,8 +217,8 @@ def add_highlighting(result: dict, raw: Response) -> dict:
     # field, since other tokenizers will clobber the TeX.
     for field in ['abstract', 'title']:
         if f'{field}.tex' in result['highlight']:
-            result['highlight'][field] = \
-                result['highlight'].pop(f'{field}.tex')
+            result['highlight'][field] = result['highlight'][f'{field}.tex']
+            del result['highlight'][f'{field}.tex']
 
     for field in ['abstract.tex', 'abstract.english', 'abstract']:
         if field in result['highlight']:
