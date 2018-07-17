@@ -175,7 +175,7 @@
       <span class="{% if result.match.abstract %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Abstract</span>:
       <span class="abstract-short has-text-grey-dark mathjax" id="{{result.id}}-abstract-short" style="display: inline;">
         {{ result.preview.abstract | safe }}
-        <a class="is-size-7" style="white-space: nowrap;" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'inline'; document.getElementById('{{result.id}}-abstract-short').style.display = 'none';">&#9661; More</a>
+        {%if result.truncated.abstract %}<a class="is-size-7" style="white-space: nowrap;" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'inline'; document.getElementById('{{result.id}}-abstract-short').style.display = 'none';">&#9661; More</a>{% endif %}
       </span>
       <span class="abstract-full has-text-grey-dark mathjax" id="{{result.id}}-abstract-full" style="display: none;">
         {% if result.highlight.abstract %}{{ result.highlight.abstract | safe }}{% else %}{{ result.abstract }}{% endif %}

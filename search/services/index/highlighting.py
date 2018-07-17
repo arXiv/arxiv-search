@@ -174,8 +174,6 @@ def add_highlighting(result: dict, raw: Response) -> dict:
     # The values here will (almost) always be list-like. So we need to stitch
     # them together. Note that dir(None) won't return anything, so this block
     # is skipped if there are no highlights from ES.
-    result['highlight'] = {}
-    result['match']: Dict[str, bool] = {}  # Hit on field, but no highlighting.
     for field in dir(highlighted_fields):
         value = getattr(highlighted_fields, field)
         if hasattr(value, '__iter__'):
