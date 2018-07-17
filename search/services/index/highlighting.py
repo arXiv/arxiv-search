@@ -14,6 +14,7 @@ from typing import Any
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.response import Response
 import bleach
+from flask import escape
 
 from .util import TEXISM
 
@@ -39,7 +40,8 @@ def highlight(search: Search) -> Search:
     # Highlight class .search-hit defined in search.sass
     search = search.highlight_options(
         pre_tags=[HIGHLIGHT_TAG_OPEN],
-        post_tags=[HIGHLIGHT_TAG_CLOSE]
+        post_tags=[HIGHLIGHT_TAG_CLOSE],
+        require_field_match=False
     )
     search = search.highlight('title', type='plain', number_of_fragments=0)
     search = search.highlight('title.english', type='plain',
@@ -51,6 +53,7 @@ def highlight(search: Search) -> Search:
     # Highlight any field the name of which begins with "author".
     search = search.highlight('author*')
     search = search.highlight('owner*')
+    search = search.highlight('announced_date_first')
     search = search.highlight('submitter*')
     search = search.highlight('journal_ref', type='plain')
     search = search.highlight('acm_class', number_of_fragments=0)
@@ -60,11 +63,10 @@ def highlight(search: Search) -> Search:
 
     # Setting number_of_fragments to 0 tells ES to highlight the entire
     # abstract.
-    search = search.highlight('abstract', type='plain', number_of_fragments=0)
+    search = search.highlight('abstract', number_of_fragments=0)
     search = search.highlight('abstract.tex', type='plain',
                               number_of_fragments=0)
-    search = search.highlight('abstract.english', type='plain',
-                              number_of_fragments=0)
+    search = search.highlight('abstract.english', number_of_fragments=0)
 
     search = search.highlight('primary_classification*', type='plain',
                               number_of_fragments=0)
@@ -97,6 +99,8 @@ def preview(value: str, fragment_size: int = 400,
         A preview that is approximately ``fragment_size`` long.
 
     """
+    # value = re.sub('')
+    # value = value.replace('$$', '$')
     if start_tag in value and end_tag in value:
         start = value.index(start_tag)
         end = value.index(end_tag) + len(end_tag)
@@ -126,18 +130,21 @@ def preview(value: str, fragment_size: int = 400,
     remaining = max(0, fragment_size - (end - start))
     end += _end_safely(value[end:], remaining, start_tag=start_tag,
                        end_tag=end_tag)
+    snippet = value[start:end].strip()
+    last_open = snippet.rfind(HIGHLIGHT_TAG_OPEN)
+    last_close = snippet.rfind(HIGHLIGHT_TAG_CLOSE)
 
-    # For paranoia's sake, make sure that no other HTML makes it through.
-    # This will also clean up any unbalanced tags, in case we screwed up
-    # generating the preview.
-    snippet: str = bleach.clean(value[start:end].strip(),
-                                tags=['span'], attributes={'span': 'class'})
+    if last_open > last_close and last_open >= 0:
+        snippet += HIGHLIGHT_TAG_CLOSE
     snippet = (
         ('&hellip;' if start > 0 else '')
         + snippet
         + ('&hellip;' if end < len(value) else '')
     )
     return snippet
+
+
+# def _highlight(value: str, pattern: )
 
 
 def add_highlighting(result: dict, raw: Response) -> dict:
@@ -158,14 +165,17 @@ def add_highlighting(result: dict, raw: Response) -> dict:
         items.
 
     """
-    if not hasattr(raw.meta, 'highlight'):
-        return result   # Nothing to do.
+    # There may or may not be highlighting in the result set.
+    highlighted_fields = getattr(raw.meta, 'highlight', None)
+    # ``meta.matched_queries`` contains a list of query ``_name``s that
+    # matched. This is nice for non-string fields.
+    matched_fields = getattr(raw.meta, 'matched_queries', [])
 
-    result['highlight'] = {}
     # The values here will (almost) always be list-like. So we need to stitch
-    # them together.
-    for field in dir(raw.meta.highlight):
-        value = getattr(raw.meta.highlight, field)
+    # them together. Note that dir(None) won't return anything, so this block
+    # is skipped if there are no highlights from ES.
+    for field in dir(highlighted_fields):
+        value = getattr(highlighted_fields, field)
         if hasattr(value, '__iter__'):
             value = '&hellip;'.join(value)
 
@@ -180,6 +190,7 @@ def add_highlighting(result: dict, raw: Response) -> dict:
         if field in ['title', 'title.english',
                      'abstract', 'abstract.english']:
             value = _highlight_whole_texism(value)
+            value = _escape(value)
 
         # A hit on authors may originate in several different fields, most
         # of which are not displayed. And in any case, author names may be
@@ -188,16 +199,26 @@ def add_highlighting(result: dict, raw: Response) -> dict:
         # the entire author field.
         if field.startswith('author') or field.startswith('owner') \
                 or field.startswith('submitter'):
-            field = 'author'
-            value = True
+            result['match']['author'] = True
+            continue
+
         result['highlight'][field] = value
+
+    for field in matched_fields:
+        if field not in result['highlight']:
+            result['match'][field] = True
+
+    # We just want to know whether there was a hit on the announcement date.
+    result['match']['announced_date_first'] = (
+        bool('announced_date_first' in matched_fields)
+    )
 
     # If there is a hit in a TeX field, we prefer highlighting on that
     # field, since other tokenizers will clobber the TeX.
     for field in ['abstract', 'title']:
         if f'{field}.tex' in result['highlight']:
-            result['highlight'][field] = \
-                result['highlight'].pop(f'{field}.tex')
+            result['highlight'][field] = result['highlight'][f'{field}.tex']
+            del result['highlight'][f'{field}.tex']
 
     for field in ['abstract.tex', 'abstract.english', 'abstract']:
         if field in result['highlight']:
@@ -214,19 +235,58 @@ def add_highlighting(result: dict, raw: Response) -> dict:
 
 
 def _strip_highlight_and_enclose(match: Any) -> str:
-    # typing: ignore
+    """Move any highlights within a TeXism to outside the TeXism."""
     value: str = match.group(0)
-    new_value = bleach.clean(value, strip=True, tags=[])
-
+    if HIGHLIGHT_TAG_OPEN not in value and HIGHLIGHT_TAG_CLOSE not in value:
+        return value
+    value = value.replace(HIGHLIGHT_TAG_OPEN, "")
+    value = value.replace(HIGHLIGHT_TAG_CLOSE, "")
     # If HTML was removed, we will assume that it was highlighting HTML.
-    if len(new_value) < len(value):
-        return f'{HIGHLIGHT_TAG_OPEN}{new_value}{HIGHLIGHT_TAG_CLOSE}'
+    # if len(new_value) < len(value):
+    value = f'{HIGHLIGHT_TAG_OPEN}{value}{HIGHLIGHT_TAG_CLOSE}'
     return value
 
 
 def _highlight_whole_texism(value: str) -> str:
     """Move highlighting from within TeXism to encapsulate whole statement."""
     return re.sub(TEXISM, _strip_highlight_and_enclose, value)
+
+
+def _escape(value: str) -> str:
+    """
+    Escape anything that isn't part of highlighting.
+
+    Ideally, we'd use bleach.clean to do this for us. Unfortunately, it just
+    gets too tripped up on equation content to use it reliably. Sometimes it
+    throws exceptions when it hits equations that look like (but are not)
+    HTML, and other times it panics. Since we really only have one tag-pair
+    that we care to preserve, this approach works well enough for our purposes.
+    """
+    tag_o = HIGHLIGHT_TAG_OPEN
+    tag_c = HIGHLIGHT_TAG_CLOSE
+    _new = ""
+    i = 0
+    while True:
+        i_o = value[i:].index(tag_o) if tag_o in value[i:] else None
+        i_c = value[i:].index(tag_c) if tag_c in value[i:] else None
+        if i_o is None and i_c is None:
+            _new += str(escape(value[i:]))
+            break
+        if i_o is not None and i_c is not None:
+            if i_o < i_c:
+                _sub = str(escape(value[i:i + i_o])) + tag_o
+                i += i_o + len(tag_o)
+            elif i_c < i_o:
+                _sub = str(escape(value[i:i + i_c])) + tag_c
+                i += i_c + len(tag_c)
+        elif i_o is not None and i_c is None:
+            _sub = str(escape(value[i:i + i_o])) + tag_o
+            i += i_o + len(tag_o)
+        elif i_c is not None and i_o is None:
+            _sub = str(escape(value[i:i + i_c])) + tag_c
+            i += i_c + len(tag_c)
+        _new += _sub
+    return _new
 
 
 def _start_safely(value: str, start: int, end: int, fragment_size: int,
@@ -260,11 +320,17 @@ def _end_safely(value: str, remaining: int,
                 end_tag: str = HIGHLIGHT_TAG_CLOSE) -> int:
     """Find a fragment end that doesn't break TeXisms or HTML."""
     # Should match on either a TeXism or a TeXism enclosed in highlight tags.
-    ptn = r'(\$[^\$]+\$)|({}\$[^\$]+\${})'.format(start_tag, end_tag)
+    # TeXisms may be enclosed in pairs of $$ or $.
+    ptn = r'|'.join([
+        r'([\$]{2}[^\$]+[\$]{2})',
+        r'([\$]{1}[^\$]+[\$]{1})',
+        r'(%s[\$]{2}[^\$]+[\$]{2}%s)' % (start_tag, end_tag),
+        r'(%s[\$]{1}[^\$]+[\$]{1}%s)' % (start_tag, end_tag),
+        r'(%s[^\$]+%s)' % (start_tag, end_tag)
+    ])
     m = re.search(ptn, value)
     if m is None:   # Nothing to worry about; the coast is clear.
         return remaining
-
     ptn_start = m.start()
     ptn_end = m.end()
     if remaining <= ptn_start:  # The ideal end falls before the next TeX/tag.

@@ -46,7 +46,7 @@ def populate(print_indexable: bool, paper_id: str, id_list: str,
     index_chunk_size = 250
     chunk: List[str] = []
     meta: List[DocMeta] = []
-
+    index.current_session().create_index()
     try:
         with click.progressbar(length=approx_size,
                                label='Papers indexed') as index_bar:

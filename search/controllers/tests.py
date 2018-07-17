@@ -1,6 +1,7 @@
 """Tests for :mod:`search.controllers`."""
 
 from unittest import TestCase, mock
+from datetime import date
 
 from arxiv import status
 from search.domain import DocumentSet, Document

@@ -1,6 +1,6 @@
 # arxiv/eleasticsearch
 #
-# Runs Elasticsearch 6.1.1, with additional plugins.
+# Runs Elasticsearch 6.2.4, with additional plugins.
 #
 # To run, use the ``docker-compose.yml`` config in this directory to spin up
 # alongside Kibana. Or:
@@ -12,7 +12,7 @@
 #
 # ES should be available on tcp://localhost:9200.
 
-FROM docker.elastic.co/elasticsearch/elasticsearch:6.1.1
+FROM docker.elastic.co/elasticsearch/elasticsearch:6.2.4
 
 # Install plugins.
 #

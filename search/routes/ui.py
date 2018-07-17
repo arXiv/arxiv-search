@@ -1,7 +1,7 @@
 """Provides the main search user interfaces."""
 
 import json
-from typing import Dict, Callable, Union, Any, Optional
+from typing import Dict, Callable, Union, Any, Optional, List
 from functools import wraps
 from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 blueprint = Blueprint('ui', __name__, url_prefix='/')
 
-PARAMS_TO_PERSIST = ['order', 'size']
+PARAMS_TO_PERSIST = ['order', 'size', 'abstracts', 'date-date_type']
 """These parameters should be persisted in a cookie."""
 
 PARAMS_COOKIE_NAME = 'arxiv-search-parameters'
@@ -68,17 +68,15 @@ def apply_response_headers(response: Response) -> Response:
     return response
 
 
+@blueprint.route('<archive:archives>', methods=['GET'])
 @blueprint.route('/', methods=['GET'])
-def search() -> Union[str, Response]:
-    """First pass at a search results page."""
-    response, code, headers = simple.search(request.args)
+def search(archives: Optional[List[str]] = None) -> Union[str, Response]:
+    """Simple search interface."""
+    response, code, headers = simple.search(request.args, archives)
     logger.debug(f"controller returned code: {code}")
     if code == status.HTTP_200_OK:
-        return render_template(
-            "search/search.html",
-            pagetitle="Search",
-            **response
-        )
+        return render_template("search/search.html", pagetitle="Search",
+                               archives=archives, **response)
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
           or code == status.HTTP_303_SEE_OTHER):
         return redirect(headers['Location'], code=code)
@@ -166,6 +164,16 @@ def url_for_page_builder() -> Dict[str, Callable]:
 
 
 @blueprint.context_processor
+def current_url_params_builder() -> Dict[str, Callable]:
+    """Add a function that gets the GET params from the current URL."""
+    def current_url_params() -> str:
+        """Get the GET params from the current URL."""
+        params: str = url_encode(request.args)
+        return params
+    return dict(current_url_params=current_url_params)
+
+
+@blueprint.context_processor
 def current_url_sans_parameters_builder() -> Dict[str, Callable]:
     """Add a function to strip GET parameters from the current URL."""
     def current_url_sans_parameters(*params_to_remove: str) -> str:
@@ -185,7 +193,14 @@ def current_url_sans_parameters_builder() -> Dict[str, Callable]:
 def url_for_author_search_builder() -> Dict[str, Callable]:
     """Inject a function to build author name query URLs."""
     def url_for_author_search(forename: str, surname: str) -> str:
-        parts = url_parse(url_for('ui.search'))
+        # If we are in an archive-specific context, we want to preserve that
+        # when generating URLs for author queries in search results.
+        archives = request.view_args.get('archives')
+        if archives:
+            target = url_for('ui.search', archives=archives)
+        else:
+            target = url_for('ui.search')
+        parts = url_parse(target)
         forename_part = ' '.join([part[0] for part in forename.split()])
         name = f'{surname}, {forename_part}' if forename_part else surname
         parts = parts.replace(query=url_encode({

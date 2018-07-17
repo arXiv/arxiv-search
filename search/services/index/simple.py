@@ -4,7 +4,7 @@ from elasticsearch_dsl import Search
 
 from search.domain import SimpleQuery
 
-from .prepare import SEARCH_FIELDS
+from .prepare import SEARCH_FIELDS, limit_by_classification
 from .util import sort
 
 
@@ -28,6 +28,8 @@ def simple_search(search: Search, query: SimpleQuery) -> Search:
     """
     search = search.filter("term", is_current=True)
     q = SEARCH_FIELDS[query.search_field](query.value)
+    if query.primary_classification:
+        q &= limit_by_classification(query.primary_classification)
     search = search.query(q)
     search = sort(query, search)
     return search

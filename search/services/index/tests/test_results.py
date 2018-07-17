@@ -27,7 +27,7 @@ class TestResultsHighlightAbstract(TestCase):
         preview = highlighting.preview(self.value, fragment_size=350,
                                        start_tag=self.start_tag,
                                        end_tag=self.end_tag)
-        self.assertEqual(len(preview), 338)
+        self.assertGreaterEqual(338, len(preview))
 
     def test_preview_with_close_highlights(self):
         """Two highlights in the abstract are close together."""

@@ -311,14 +311,14 @@ class TestTransformMetdata(TestCase):
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.acm_class, ["F.4.1", "D.2.4"])
 
-    def test_metadata_id(self):
+    def test_doi(self):
         """Field ``doi`` is populated from ``doi``."""
         meta = DocMeta(**{
             'paper_id': '1234.56789',
             'doi': '10.1103/PhysRevD.76.104043'
         })
         doc = transform.to_search_document(meta)
-        self.assertEqual(doc.doi, '10.1103/PhysRevD.76.104043')
+        self.assertEqual(doc.doi, ['10.1103/PhysRevD.76.104043'])
 
     def test_metadata_id(self):
         """Field ``comments`` is populated from ``comments_utf8``."""

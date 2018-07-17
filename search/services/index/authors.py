@@ -9,7 +9,7 @@ from elasticsearch_dsl import Search, Q, SF
 
 from arxiv.base import logging
 
-from .util import wildcardEscape, escape, STRING_LITERAL, \
+from .util import wildcard_escape, escape, STRING_LITERAL, \
     remove_single_characters, has_wildcard
 
 logger = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ def part_query(term: str, path: str = "authors") -> Q:
             # corresponding term.
             else:
                 q_forename = Q("match_phrase_prefix",
-                               **{"authors__first_name": forename})
+                               **{f"{path}__first_name": forename})
 
             # It may be the case that the forename consists of initials or some
             # other prefix/partial forename. For a match of this kind, each
@@ -134,7 +134,7 @@ def string_query(term: str, path: str = 'authors', operator: str = 'AND') -> Q:
     return Q('nested', path=path, query=q, score_mode='sum')
 
 
-def author_query(term: str, operator: str = 'AND') -> Q:
+def author_query(term: str, operator: str = 'and') -> Q:
     """
     Construct a query based on author (and owner) names.
 

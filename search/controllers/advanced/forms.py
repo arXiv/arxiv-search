@@ -1,5 +1,7 @@
 """Provides form rendering and validation for the advanced search feature."""
 
+import calendar
+import re
 from datetime import date, datetime
 from typing import Callable, Optional, List, Any
 
@@ -11,8 +13,9 @@ from wtforms.fields import HiddenField
 from wtforms import widgets
 
 from arxiv import taxonomy
-
-from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
+from search.domain import DateRange
+from search.controllers.util import does_not_start_with_wildcard, \
+                                    strip_white_space, has_balanced_quotes
 
 
 class MultiFormatDateField(DateField):
@@ -21,10 +24,12 @@ class MultiFormatDateField(DateField):
     def __init__(self, label: Optional[str] = None,
                  validators: Optional[List[Callable]] = None,
                  formats: List[str] = ['%Y-%m-%d %H:%M:%S'],
+                 default_upper_bound: bool = False,
                  **kwargs: Any) -> None:
         """Override to change ``format: str`` to ``formats: List[str]``."""
         super(DateField, self).__init__(label, validators, **kwargs)
         self.formats = formats
+        self.default_upper_bound = default_upper_bound
 
     def _value(self) -> str:
         if self.raw_data:
@@ -39,7 +44,17 @@ class MultiFormatDateField(DateField):
             self.data: Optional[date]
             for fmt in self.formats:
                 try:
-                    self.data = datetime.strptime(date_str, fmt).date()
+                    adj_date = datetime.strptime(date_str, fmt).date()
+                    if self.default_upper_bound:
+                        if not re.search(r'%[Bbm]', fmt):
+                            # when month does not appear in matching format
+                            adj_date = adj_date.replace(month=12, day=31)
+                        elif not re.search('%d', fmt):
+                            # when day does not appear in matching format
+                            last_day = calendar.monthrange(adj_date.year,
+                                                           adj_date.month)[1]
+                            adj_date = adj_date.replace(day=last_day)
+                    self.data = adj_date
                     return
                 except ValueError:
                     continue
@@ -52,8 +67,9 @@ class FieldForm(Form):
 
     # pylint: disable=too-few-public-methods
 
-    term = StringField("Search term...", filters=[stripWhiteSpace],
-                       validators=[doesNotStartWithWildcard])
+    term = StringField("Search term...", filters=[strip_white_space],
+                       validators=[does_not_start_with_wildcard,
+                                   has_balanced_quotes])
     operator = SelectField("Operator", choices=[
         ('AND', 'AND'), ('OR', 'OR'), ('NOT', 'NOT')
     ], default='AND')
@@ -115,7 +131,8 @@ def yearInBounds(form: Form, field: DateField) -> None:
         return None
 
     start_of_time = date(year=1991, month=1, day=1)
-    if field.data < start_of_time or field.data > date.today():
+    upper_limit = date.today().replace(year=date.today().year + 1)
+    if field.data < start_of_time or field.data > upper_limit:
         raise ValidationError('Not a valid publication year')
 
 
@@ -146,8 +163,23 @@ class DateForm(Form):
     to_date = MultiFormatDateField(
         'to',
         validators=[validators.Optional(), yearInBounds],
-        formats=['%Y-%m-%d', '%Y-%m', '%Y']
+        formats=['%Y-%m-%d', '%Y-%m', '%Y'],
+        default_upper_bound=True
     )
+
+    SUBMITTED_ORIGINAL = DateRange.SUBMITTED_ORIGINAL
+    SUBMITTED_CURRENT = DateRange.SUBMITTED_CURRENT
+    ANNOUNCED = DateRange.ANNOUNCED
+    DATE_TYPE_CHOICES = [
+        (SUBMITTED_CURRENT, 'Submission date (most recent)'),
+        (SUBMITTED_ORIGINAL, 'Submission date (original)'),
+        (ANNOUNCED, 'Announcement date'),
+    ]
+    date_type = RadioField('Apply to', choices=DATE_TYPE_CHOICES,
+                           default=SUBMITTED_CURRENT,
+                           description="You may filter on either submission"
+                           " date or announcement date. Note that announcement"
+                           " date supports only year and month granularity.")
 
     def validate_filter_by(self, field: RadioField) -> None:
         """Ensure that related fields are filled."""
@@ -175,6 +207,7 @@ class AdvancedSearchForm(Form):
     classification = FormField(ClassificationForm)
     date = FormField(DateForm)
     size = SelectField('results per page', default=50, choices=[
+        ('25', '25'),
         ('50', '50'),
         ('100', '100'),
         ('200', '200')
@@ -187,3 +220,11 @@ class AdvancedSearchForm(Form):
         ('', 'Relevance')
     ], validators=[validators.Optional()], default='-announced_date_first')
     include_older_versions = BooleanField('Include older versions of papers')
+
+    HIDE_ABSTRACTS = 'hide'
+    SHOW_ABSTRACTS = 'show'
+
+    abstracts = RadioField('Abstracts', choices=[
+        (SHOW_ABSTRACTS, 'Show abstracts'),
+        (HIDE_ABSTRACTS, 'Hide abstracts')
+    ], default=SHOW_ABSTRACTS)

@@ -4,10 +4,11 @@ from datetime import date
 
 from wtforms import Form, BooleanField, StringField, SelectField, validators, \
     FormField, SelectMultipleField, DateField, ValidationError, FieldList, \
-    widgets
+    widgets, RadioField
 from wtforms.fields import HiddenField
 
-from search.controllers.util import doesNotStartWithWildcard, stripWhiteSpace
+from search.controllers.util import does_not_start_with_wildcard, \
+                                    has_balanced_quotes, strip_white_space
 
 
 class SimpleSearchForm(Form):
@@ -26,12 +27,16 @@ class SimpleSearchForm(Form):
         ('paper_id', 'arXiv identifier'),
         ('doi', 'DOI'),
         ('orcid', 'ORCID'),
-        ('author_id', 'arXiv author ID')
+        ('author_id', 'arXiv author ID'),
+        ('help', 'Help pages'),
+        ('full_text', 'Full text')
     ])
     query = StringField('Search or Article ID',
-                        filters=[stripWhiteSpace],
-                        validators=[doesNotStartWithWildcard])
+                        filters=[strip_white_space],
+                        validators=[does_not_start_with_wildcard,
+                                    has_balanced_quotes])
     size = SelectField('results per page', default=50, choices=[
+        ('25', '25'),
         ('50', '50'),
         ('100', '100'),
         ('200', '200')
@@ -43,6 +48,14 @@ class SimpleSearchForm(Form):
         ('submitted_date', 'Submission date (oldest first)'),
         ('', 'Relevance')
     ], validators=[validators.Optional()], default='-announced_date_first')
+
+    HIDE_ABSTRACTS = 'hide'
+    SHOW_ABSTRACTS = 'show'
+
+    abstracts = RadioField('Abstracts', choices=[
+        (SHOW_ABSTRACTS, 'Show abstracts'),
+        (HIDE_ABSTRACTS, 'Hide abstracts')
+    ], default=SHOW_ABSTRACTS)
 
     def validate_query(form: Form, field: StringField) -> None:
         """Validate the length of the querystring, if searchtype is set."""
