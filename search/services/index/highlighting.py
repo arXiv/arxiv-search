@@ -145,6 +145,7 @@ def preview(value: str, fragment_size: int = 400,
     except KeyError:
         v = value[start:end].strip()
         snippet = escape(v)
+
     snippet = (
         ('&hellip;' if start > 0 else '')
         + snippet
@@ -236,9 +237,19 @@ def add_highlighting(result: dict, raw: Response) -> dict:
     return result
 
 
+
+def _tex_fix(snippet: str) -> str:
+    print(snippet)
+    snippet = snippet.replace(f"${HIGHLIGHT_TAG_OPEN}$", f"{HIGHLIGHT_TAG_OPEN}$$")
+    snippet = snippet.replace(f"${HIGHLIGHT_TAG_CLOSE}$", f"$${HIGHLIGHT_TAG_CLOSE}")
+    return snippet
+
+
 def _strip_highlight_and_enclose(match: Any) -> str:
     # typing: ignore
     value: str = match.group(0)
+    if HIGHLIGHT_TAG_OPEN not in value and HIGHLIGHT_TAG_CLOSE not in value:
+        return value
     # There is a bug in Bleach that leads to unexpected KeyError exceptions
     # on strings with equations.
     # See https://github.com/mozilla/bleach/issues/381
@@ -250,7 +261,7 @@ def _strip_highlight_and_enclose(match: Any) -> str:
 
     # If HTML was removed, we will assume that it was highlighting HTML.
     if len(new_value) < len(value):
-        return f'{HIGHLIGHT_TAG_OPEN}{new_value}{HIGHLIGHT_TAG_CLOSE}'
+        value = f'{HIGHLIGHT_TAG_OPEN}{new_value}{HIGHLIGHT_TAG_CLOSE}'
     return value
 
 

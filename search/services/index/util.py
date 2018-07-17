@@ -14,7 +14,7 @@ from .exceptions import QueryError
 STRING_LITERAL = re.compile(r"([\"][^\"]*[\"])")
 """Pattern for string literals (quoted) in search queries."""
 
-TEXISM = re.compile(r'(\$[^\$]+\$)')
+TEXISM = re.compile(r'([\$]{1,2}[^\$]+[\$]{1,2})')
 
 # TODO: make this configurable.
 MAX_RESULTS = 10_000
