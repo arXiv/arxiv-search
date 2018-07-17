@@ -40,7 +40,8 @@ def highlight(search: Search) -> Search:
     # Highlight class .search-hit defined in search.sass
     search = search.highlight_options(
         pre_tags=[HIGHLIGHT_TAG_OPEN],
-        post_tags=[HIGHLIGHT_TAG_CLOSE]
+        post_tags=[HIGHLIGHT_TAG_CLOSE],
+        require_field_match=False
     )
     search = search.highlight('title', type='plain', number_of_fragments=0)
     search = search.highlight('title.english', type='plain',
@@ -62,11 +63,10 @@ def highlight(search: Search) -> Search:
 
     # Setting number_of_fragments to 0 tells ES to highlight the entire
     # abstract.
-    search = search.highlight('abstract', type='plain', number_of_fragments=0)
+    search = search.highlight('abstract', number_of_fragments=0)
     search = search.highlight('abstract.tex', type='plain',
                               number_of_fragments=0)
-    search = search.highlight('abstract.english', type='plain',
-                              number_of_fragments=0)
+    search = search.highlight('abstract.english', number_of_fragments=0)
 
     search = search.highlight('primary_classification*', type='plain',
                               number_of_fragments=0)
@@ -131,12 +131,20 @@ def preview(value: str, fragment_size: int = 400,
     end += _end_safely(value[end:], remaining, start_tag=start_tag,
                        end_tag=end_tag)
     snippet = value[start:end].strip()
+    last_open = snippet.rfind(HIGHLIGHT_TAG_OPEN)
+    last_close = snippet.rfind(HIGHLIGHT_TAG_CLOSE)
+
+    if last_open > last_close and last_open >= 0:
+        snippet += HIGHLIGHT_TAG_CLOSE
     snippet = (
         ('&hellip;' if start > 0 else '')
         + snippet
         + ('&hellip;' if end < len(value) else '')
     )
     return snippet
+
+
+# def _highlight(value: str, pattern: )
 
 
 def add_highlighting(result: dict, raw: Response) -> dict:
@@ -159,7 +167,6 @@ def add_highlighting(result: dict, raw: Response) -> dict:
     """
     # There may or may not be highlighting in the result set.
     highlighted_fields = getattr(raw.meta, 'highlight', None)
-
     # ``meta.matched_queries`` contains a list of query ``_name``s that
     # matched. This is nice for non-string fields.
     matched_fields = getattr(raw.meta, 'matched_queries', [])
@@ -167,7 +174,6 @@ def add_highlighting(result: dict, raw: Response) -> dict:
     # The values here will (almost) always be list-like. So we need to stitch
     # them together. Note that dir(None) won't return anything, so this block
     # is skipped if there are no highlights from ES.
-    result['highlight'] = {}
     for field in dir(highlighted_fields):
         value = getattr(highlighted_fields, field)
         if hasattr(value, '__iter__'):
@@ -193,12 +199,17 @@ def add_highlighting(result: dict, raw: Response) -> dict:
         # the entire author field.
         if field.startswith('author') or field.startswith('owner') \
                 or field.startswith('submitter'):
-            field = 'author'
-            value = True
+            result['match']['author'] = True
+            continue
+
         result['highlight'][field] = value
 
+    for field in matched_fields:
+        if field not in result['highlight']:
+            result['match'][field] = True
+
     # We just want to know whether there was a hit on the announcement date.
-    result['highlight']['announced_date_first'] = (
+    result['match']['announced_date_first'] = (
         bool('announced_date_first' in matched_fields)
     )
 
@@ -314,12 +325,12 @@ def _end_safely(value: str, remaining: int,
         r'([\$]{2}[^\$]+[\$]{2})',
         r'([\$]{1}[^\$]+[\$]{1})',
         r'(%s[\$]{2}[^\$]+[\$]{2}%s)' % (start_tag, end_tag),
-        r'(%s[\$]{1}[^\$]+[\$]{1}%s)' % (start_tag, end_tag)
+        r'(%s[\$]{1}[^\$]+[\$]{1}%s)' % (start_tag, end_tag),
+        r'(%s[^\$]+%s)' % (start_tag, end_tag)
     ])
     m = re.search(ptn, value)
     if m is None:   # Nothing to worry about; the coast is clear.
         return remaining
-
     ptn_start = m.start()
     ptn_end = m.end()
     if remaining <= ptn_start:  # The ideal end falls before the next TeX/tag.

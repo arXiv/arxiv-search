@@ -215,6 +215,12 @@ class Document:
     preview: dict = field(default_factory=dict)
     """Contains truncations of field values for preview/snippet display."""
 
+    match: dict = field(default_factory=dict)
+    """Contains fields that matched but lack highlighting."""
+
+    truncated: dict = field(default_factory=dict)
+    """Contains fields for which the preview is truncated."""
+
     def __post_init__(self) -> None:
         """Set latest_version, if not already set."""
         if not self.latest_version and self.latest:

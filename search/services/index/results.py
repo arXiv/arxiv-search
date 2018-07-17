@@ -23,7 +23,10 @@ logger.propagate = False
 def _to_document(raw: Response) -> Document:
     """Transform an ES search result back into a :class:`.Document`."""
     # typing: ignore
-    result: Dict[str, Any] = {'preview': {}}
+    result: Dict[str, Any] = {}
+    result['highlight'] = {}
+    result['match']: Dict[str, bool] = {}  # Hit on field, but no highlighting.
+    result['truncated']: Dict[str, bool] = {}    # Preview is truncated.
     for key in Document.fields():
         if not hasattr(raw, key):
             continue
@@ -46,6 +49,8 @@ def _to_document(raw: Response) -> Document:
     result['score'] = raw.meta.score
     if type(result['abstract']) is str:
         result['preview']['abstract'] = preview(result['abstract'])
+        if result['preview']['abstract'].endswith('&hellip;'):
+            result['truncated']['abstract'] = True
 
     logger.debug('%s: add highlighting to result', raw.paper_id)
     result = add_highlighting(result, raw)
