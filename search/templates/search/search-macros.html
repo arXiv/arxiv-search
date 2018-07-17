@@ -157,7 +157,6 @@
     </div>
     {# Note: mathjax class should be applied to any element that requires MathJax processing #}
     <p class="title is-5 mathjax">
-
       {% if result.highlight.title %}
         {{ result.highlight.title | safe }}
       {% else %}
@@ -165,7 +164,7 @@
       {% endif %}
     </p>
     <p class="authors">
-      <span class="{% if result.highlight.author %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Authors:</span>
+      <span class="{% if result.match.author %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Authors:</span>
       {% for author in result.authors[0:25] %}
       {% if author %}<a href="{{ url_for_author_search(author.first_name, author.last_name) }}">{{ author.first_name }} {{ author.last_name }}{% if author.suffix %} {{ author.suffix }}{%- endif -%}</a>{{ ", " if not loop.last }}{% endif %}
       {% endfor -%}
@@ -173,7 +172,7 @@
     </p>
     {% if not hide_abstracts %}
     <p class="abstract mathjax">
-      <span class="has-text-black-bis has-text-weight-semibold">Abstract</span>:
+      <span class="{% if result.match.abstract %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Abstract</span>:
       <span class="abstract-short has-text-grey-dark mathjax" id="{{result.id}}-abstract-short" style="display: inline;">
         {{ result.preview.abstract | safe }}
         <a class="is-size-7" style="white-space: nowrap;" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'inline'; document.getElementById('{{result.id}}-abstract-short').style.display = 'none';">&#9661; More</a>
@@ -186,12 +185,12 @@
     {% endif %}
 
     <p class="is-size-7"><span class="has-text-black-bis has-text-weight-semibold">Submitted</span> {{ result.submitted_date.strftime('%-d %B, %Y') }}; {% if result.version > 1 %}<span class="has-text-black-bis has-text-weight-semibold">v1</span> submitted {{ result.submitted_date_first.strftime('%-d %B, %Y') }};{% endif %}
-      <span class="{% if result.highlight.announced_date_first %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">originally announced</span> {{ result.announced_date_first.strftime('%B %Y') }}.
+      <span class="{% if result.match.announced_date_first %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">originally announced</span> {{ result.announced_date_first.strftime('%B %Y') }}.
       {% if not is_current(result) %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}
     </p>
     {% if result.comments %}
     <p class="comments is-size-7">
-      <span class="has-text-black-bis has-text-weight-semibold">Comments:</span>
+      <span class="{% if result.match.comments %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Comments:</span>
       <span class="has-text-grey-dark mathjax">{% if result.highlight.comments %}{{ result.highlight.comments | safe }}{% else %}{{ result.comments }}{% endif %}</span>
     </p>
     {% endif %}
@@ -199,17 +198,17 @@
     {% if result.report_num or result.acm_class or result.msc_class %}
       <p class="comments is-size-7">
         {% if result.report_num %}
-          <span class="has-text-black-bis has-text-weight-semibold">Report number:</span>
+          <span class="{% if result.match.report_num %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Report number:</span>
           {% if result.highlight.report_num %}{{ result.highlight.report_num | safe }}{% else %}{{ result.report_num }}{% endif %}
         {% endif %}
 
         {% if result.msc_class %}
-          <span class="has-text-black-bis has-text-weight-semibold">MSC Class:</span>
+          <span class="{% if result.match.msc_class %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">MSC Class:</span>
           {% if result.highlight.msc_class %}{{ result.highlight.msc_class | safe }} ({{ result.msc_class }}){% else %}{{ result.msc_class }}{% endif %}
         {% endif %}
 
         {% if result.acm_class %}
-          <span class="has-text-black-bis has-text-weight-semibold">ACM Class:</span>
+          <span class="{% if result.match.acm_class %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">ACM Class:</span>
           {% if result.highlight.acm_class %}{{ result.highlight.acm_class | safe }} ({{ result.acm_class }}){% else %}{{ result.acm_class }}{% endif %}
         {% endif %}
       </p>
@@ -217,7 +216,7 @@
 
     {% if result.journal_ref %}
       <p class="comments is-size-7">
-        <span class="has-text-black-bis has-text-weight-semibold">Journal ref:</span>
+        <span class="{% if result.match.journal_ref %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Journal ref:</span>
         {% if result.highlight.journal_ref %}{{ result.highlight.journal_ref | safe }}{% else %}{{ result.journal_ref }}{% endif %}
       </p>
     {% endif %}

@@ -48,7 +48,8 @@ def _query_abstract(term: str, default_operator: str = 'AND') -> Q:
     if is_literal_query(term):
         fields += ["abstract"]
     return Q("query_string", fields=fields, default_operator=default_operator,
-             allow_leading_wildcard=False, query=escape(term))
+             allow_leading_wildcard=False, query=escape(term),
+             _name="abstract")
 
 
 def _query_comments(term: str, default_operator: str = 'AND') -> Q:
