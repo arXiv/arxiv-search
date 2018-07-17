@@ -14,7 +14,8 @@ from wtforms import widgets
 
 from arxiv import taxonomy
 from search.domain import DateRange
-from search.controllers.util import does_not_start_with_wildcard, strip_white_space
+from search.controllers.util import does_not_start_with_wildcard, \
+                                    strip_white_space, has_balanced_quotes
 
 
 class MultiFormatDateField(DateField):
@@ -67,7 +68,8 @@ class FieldForm(Form):
     # pylint: disable=too-few-public-methods
 
     term = StringField("Search term...", filters=[strip_white_space],
-                       validators=[does_not_start_with_wildcard])
+                       validators=[does_not_start_with_wildcard,
+                                   has_balanced_quotes])
     operator = SelectField("Operator", choices=[
         ('AND', 'AND'), ('OR', 'OR'), ('NOT', 'NOT')
     ], default='AND')

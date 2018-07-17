@@ -22,6 +22,14 @@ def does_not_start_with_wildcard(form: Form, field: StringField) -> None:
                                          ' wildcard')
 
 
+def has_balanced_quotes(form: Form, field: StringField) -> None:
+    """Check that ``value`` has balanced (paired) quotes."""
+    if not field.data:
+        return
+    if '"' in field.data and field.data.count('"') % 2 != 0:
+        raise validators.ValidationError('Missing closing quote (")')
+
+
 def strip_white_space(value: str) -> str:
     """Strip whitespace from form input."""
     if not value:
