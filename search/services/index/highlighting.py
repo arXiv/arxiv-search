@@ -99,7 +99,8 @@ def preview(value: str, fragment_size: int = 400,
         A preview that is approximately ``fragment_size`` long.
 
     """
-    value = value.replace('$$', '$')
+    # value = re.sub('')
+    # value = value.replace('$$', '$')
     if start_tag in value and end_tag in value:
         start = value.index(start_tag)
         end = value.index(end_tag) + len(end_tag)
@@ -129,23 +130,7 @@ def preview(value: str, fragment_size: int = 400,
     remaining = max(0, fragment_size - (end - start))
     end += _end_safely(value[end:], remaining, start_tag=start_tag,
                        end_tag=end_tag)
-
-    # For paranoia's sake, make sure that no other HTML makes it through.
-    # This will also clean up any unbalanced tags, in case we screwed up
-    # generating the preview.
-    #
-    # There is a bug in Bleach that leads to unexpected KeyError exceptions
-    # on strings with equations.
-    # See https://github.com/mozilla/bleach/issues/381
-    # In these cases, we will simply HTML-escape the string and move on.
-    try:
-        snippet: str = bleach.clean(value[start:end].strip(),
-                                    tags=['span'],
-                                    attributes={'span': 'class'})
-    except KeyError:
-        v = value[start:end].strip()
-        snippet = escape(v)
-
+    snippet = value[start:end].strip()
     snippet = (
         ('&hellip;' if start > 0 else '')
         + snippet
@@ -199,6 +184,7 @@ def add_highlighting(result: dict, raw: Response) -> dict:
         if field in ['title', 'title.english',
                      'abstract', 'abstract.english']:
             value = _highlight_whole_texism(value)
+            value = _escape(value)
 
         # A hit on authors may originate in several different fields, most
         # of which are not displayed. And in any case, author names may be
@@ -237,37 +223,59 @@ def add_highlighting(result: dict, raw: Response) -> dict:
     return result
 
 
-
-def _tex_fix(snippet: str) -> str:
-    print(snippet)
-    snippet = snippet.replace(f"${HIGHLIGHT_TAG_OPEN}$", f"{HIGHLIGHT_TAG_OPEN}$$")
-    snippet = snippet.replace(f"${HIGHLIGHT_TAG_CLOSE}$", f"$${HIGHLIGHT_TAG_CLOSE}")
-    return snippet
-
-
 def _strip_highlight_and_enclose(match: Any) -> str:
-    # typing: ignore
+    """Move any highlights within a TeXism to outside the TeXism."""
     value: str = match.group(0)
     if HIGHLIGHT_TAG_OPEN not in value and HIGHLIGHT_TAG_CLOSE not in value:
         return value
-    # There is a bug in Bleach that leads to unexpected KeyError exceptions
-    # on strings with equations.
-    # See https://github.com/mozilla/bleach/issues/381
-    # In these cases, we will simply HTML-escape the string and move on.
-    try:
-        new_value = bleach.clean(value, strip=True, tags=[])
-    except KeyError:
-        new_value = escape(value)
-
+    value = value.replace(HIGHLIGHT_TAG_OPEN, "")
+    value = value.replace(HIGHLIGHT_TAG_CLOSE, "")
     # If HTML was removed, we will assume that it was highlighting HTML.
-    if len(new_value) < len(value):
-        value = f'{HIGHLIGHT_TAG_OPEN}{new_value}{HIGHLIGHT_TAG_CLOSE}'
+    # if len(new_value) < len(value):
+    value = f'{HIGHLIGHT_TAG_OPEN}{value}{HIGHLIGHT_TAG_CLOSE}'
     return value
 
 
 def _highlight_whole_texism(value: str) -> str:
     """Move highlighting from within TeXism to encapsulate whole statement."""
     return re.sub(TEXISM, _strip_highlight_and_enclose, value)
+
+
+def _escape(value: str) -> str:
+    """
+    Escape anything that isn't part of highlighting.
+
+    Ideally, we'd use bleach.clean to do this for us. Unfortunately, it just
+    gets too tripped up on equation content to use it reliably. Sometimes it
+    throws exceptions when it hits equations that look like (but are not)
+    HTML, and other times it panics. Since we really only have one tag-pair
+    that we care to preserve, this approach works well enough for our purposes.
+    """
+    tag_o = HIGHLIGHT_TAG_OPEN
+    tag_c = HIGHLIGHT_TAG_CLOSE
+    _new = ""
+    i = 0
+    while True:
+        i_o = value[i:].index(tag_o) if tag_o in value[i:] else None
+        i_c = value[i:].index(tag_c) if tag_c in value[i:] else None
+        if i_o is None and i_c is None:
+            _new += str(escape(value[i:]))
+            break
+        if i_o is not None and i_c is not None:
+            if i_o < i_c:
+                _sub = str(escape(value[i:i + i_o])) + tag_o
+                i += i_o + len(tag_o)
+            elif i_c < i_o:
+                _sub = str(escape(value[i:i + i_c])) + tag_c
+                i += i_c + len(tag_c)
+        elif i_o is not None and i_c is None:
+            _sub = str(escape(value[i:i + i_o])) + tag_o
+            i += i_o + len(tag_o)
+        elif i_c is not None and i_o is None:
+            _sub = str(escape(value[i:i + i_c])) + tag_c
+            i += i_c + len(tag_c)
+        _new += _sub
+    return _new
 
 
 def _start_safely(value: str, start: int, end: int, fragment_size: int,
@@ -301,7 +309,13 @@ def _end_safely(value: str, remaining: int,
                 end_tag: str = HIGHLIGHT_TAG_CLOSE) -> int:
     """Find a fragment end that doesn't break TeXisms or HTML."""
     # Should match on either a TeXism or a TeXism enclosed in highlight tags.
-    ptn = r'(\$[^\$]+\$)|({}\$[^\$]+\${})'.format(start_tag, end_tag)
+    # TeXisms may be enclosed in pairs of $$ or $.
+    ptn = r'|'.join([
+        r'([\$]{2}[^\$]+[\$]{2})',
+        r'([\$]{1}[^\$]+[\$]{1})',
+        r'(%s[\$]{2}[^\$]+[\$]{2}%s)' % (start_tag, end_tag),
+        r'(%s[\$]{1}[^\$]+[\$]{1}%s)' % (start_tag, end_tag)
+    ])
     m = re.search(ptn, value)
     if m is None:   # Nothing to worry about; the coast is clear.
         return remaining
