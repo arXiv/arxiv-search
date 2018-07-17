@@ -25,8 +25,8 @@ def _to_document(raw: Response) -> Document:
     # typing: ignore
     result: Dict[str, Any] = {}
     result['highlight'] = {}
-    result['match']: Dict[str, bool] = {}  # Hit on field, but no highlighting.
-    result['truncated']: Dict[str, bool] = {}    # Preview is truncated.
+    result['match'] = {}  # Hit on field, but no highlighting.
+    result['truncated'] = {}    # Preview is truncated.
     for key in Document.fields():
         if not hasattr(raw, key):
             continue
