@@ -290,6 +290,27 @@ class TestQueryFromForm(TestCase):
         self.assertTrue(form.validate(), "Form should be valid.")
         self.assertEqual(form.query.data, 'foo title')
 
+    def test_querystring_has_unbalanced_quotes(self):
+        """Querystring has an odd number of quote characters."""
+        data = MultiDict({
+            'searchtype': 'title',
+            'query': '"rhubarb'
+        })
+        form = SimpleSearchForm(data)
+        self.assertFalse(form.validate(), "Form should be invalid")
+
+        data['query'] = '"rhubarb"'
+        form = SimpleSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid")
+
+        data['query'] = '"rhubarb" "pie'
+        form = SimpleSearchForm(data)
+        self.assertFalse(form.validate(), "Form should be invalid")
+
+        data['query'] = '"rhubarb" "pie"'
+        form = SimpleSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid")
+
 
 class TestPaginationParametersAreFunky(TestCase):
     """

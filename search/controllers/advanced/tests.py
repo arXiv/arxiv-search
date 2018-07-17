@@ -361,6 +361,28 @@ class TestAdvancedSearchForm(TestCase):
         self.assertEqual(form.terms[0].term.data, 'foo',
                          "Whitespace should be stripped.")
 
+    def test_querystring_has_unbalanced_quotes(self):
+        """Querystring has an odd number of quote characters."""
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': '"rhubarb'
+        })
+        form = AdvancedSearchForm(data)
+        self.assertFalse(form.validate(), "Form should be invalid")
+
+        data['terms-0-term'] = '"rhubarb"'
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid")
+
+        data['terms-0-term'] = '"rhubarb" "pie'
+        form = AdvancedSearchForm(data)
+        self.assertFalse(form.validate(), "Form should be invalid")
+
+        data['terms-0-term'] = '"rhubarb" "pie"'
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid")
+
 
 class TestUpdatequeryWithClassification(TestCase):
     """:func:`.advanced._update_query_with_classification` adds classfnxn."""
