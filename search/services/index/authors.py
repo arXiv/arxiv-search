@@ -174,7 +174,7 @@ def author_query(term: str, operator: str = 'and') -> Q:
         logger.debug(f"Contains literal: {term}")
 
         # Apply literal parts of the query separately.
-        return reduce(iand if operator == 'AND' else ior, [
+        return reduce(iand if operator.upper() == 'AND' else ior, [
             (string_query(part, operator=operator)
              | string_query(part, path="owners", operator=operator))
             for part in re.split(STRING_LITERAL, term) if part.strip()
@@ -184,7 +184,8 @@ def author_query(term: str, operator: str = 'and') -> Q:
 
     if ";" in term:     # Authors are individuated.
         logger.debug(f"Authors are individuated: {term}")
-        return reduce(iand if operator == "AND" else ior, [
+        logger.debug(f"Operator: {operator}")
+        return reduce(iand if operator.upper() == "AND" else ior, [
             (part_query(author_part) | part_query(author_part, "owners"))
             for author_part in term.split(";") if author_part
         ])
