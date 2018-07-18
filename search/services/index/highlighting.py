@@ -40,8 +40,7 @@ def highlight(search: Search) -> Search:
     # Highlight class .search-hit defined in search.sass
     search = search.highlight_options(
         pre_tags=[HIGHLIGHT_TAG_OPEN],
-        post_tags=[HIGHLIGHT_TAG_CLOSE],
-        require_field_match=False
+        post_tags=[HIGHLIGHT_TAG_CLOSE]
     )
     search = search.highlight('title', type='plain', number_of_fragments=0)
     search = search.highlight('title.english', type='plain',
@@ -222,6 +221,7 @@ def add_highlighting(result: dict, raw: Response) -> dict:
 
     for field in ['abstract.tex', 'abstract.english', 'abstract']:
         if field in result['highlight']:
+            print(field)
             value = result['highlight'][field]
             abstract_snippet = preview(value)
             result['preview']['abstract'] = abstract_snippet
