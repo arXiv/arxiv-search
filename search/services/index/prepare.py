@@ -285,7 +285,7 @@ def _query_all_fields(term: str) -> Q:
             match_date = Q("bool", should=match_dates, minimum_should_match=1,
                            _name="announced_date_first")
             logger.debug('match date: %s', match_date)
-        queries.insert(0, match_date)
+            queries.insert(0, match_date)
 
         # Now join the announcement date query with the all-fields queries.
         if match_date is not None:
