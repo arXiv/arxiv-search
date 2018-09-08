@@ -40,7 +40,7 @@ from .exceptions import QueryError, IndexConnectionError, DocumentNotFound, \
 from .util import MAX_RESULTS
 from .advanced import advanced_search
 from .simple import simple_search
-from .highlighting import highlight
+from . import highlighting
 from . import results
 
 logger = logging.getLogger(__name__)
@@ -400,7 +400,7 @@ class SearchSession(object):
         if highlight:
             # Highlighting is performed by Elasticsearch; here we include the
             # fields and configuration for highlighting.
-            current_search = highlight(current_search)
+            current_search = highlighting.highlight(current_search)
 
         with handle_es_exceptions():
             # Slicing the search adds pagination parameters to the request.

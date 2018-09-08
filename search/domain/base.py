@@ -125,6 +125,9 @@ class ClassificationList(list):
 class Query:
     """Represents a search query originating from the UI or API."""
 
+    MAXIMUM_PAGE_SIZE = 500
+    """The maximum number of records that can be retrieved."""
+
     SUPPORTED_FIELDS = [
         ('all', 'All fields'),
         ('title', 'Title'),

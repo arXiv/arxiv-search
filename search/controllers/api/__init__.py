@@ -24,6 +24,40 @@ Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 EASTERN = timezone('US/Eastern')
 
 
+def search(params: MultiDict) -> Response:
+    """
+    Handle a search request from the API.
+
+    Parameters
+    ----------
+    params : :class:`MultiDict`
+        GET query parameters from the request.
+
+    Returns
+    -------
+    dict
+        Response data (to serialize).
+    int
+        HTTP status code.
+    dict
+        Extra headers for the response.
+    """
+    q = APIQuery()
+    terms = _get_fielded_terms(params)
+    if terms is not None:
+        q.terms = terms
+    date_range = _get_date_params(params)
+    if date_range is not None:
+        q.date_range = date_range
+
+    classifications = _get_classifications(params)
+    if classifications is not None:
+        q.primary_classification = classifications
+
+    q = paginate(q, params)
+    return asdict(index.search(q, highlight=False)), status.HTTP_200_OK, {}
+
+
 def _get_fielded_terms(params: MultiDict) -> Optional[FieldedSearchList]:
     terms = FieldedSearchList()
     for field, _ in Query.SUPPORTED_FIELDS:
@@ -70,21 +104,3 @@ def _get_classifications(params: MultiDict) -> Optional[ClassificationList]:
     if len(classifications) == 0:
         return
     return classifications
-
-
-def search(params: MultiDict) -> Response:
-    """Handle a search request from the API."""
-    q = APIQuery()
-    terms = _get_fielded_terms(params)
-    if terms is not None:
-        q.terms = terms
-    date_range = _get_date_params(params)
-    if date_range is not None:
-        q.date_range = date_range
-
-    classifications = _get_classifications(params)
-    if classifications is not None:
-        q.primary_classification = classifications
-
-    q = paginate(q, params)
-    return asdict(index.search(q, highlight=False)), 200, {}

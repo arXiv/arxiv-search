@@ -52,8 +52,8 @@ def paginate(query: Query, data: dict) -> Query:
     :class:`.Query`
 
     """
-    query.page_start = int(data.get('start', 0))
-    query.page_size = int(data.get('size', 50))
+    query.page_start = max(int(data.get('start', 0)), 0)
+    query.page_size = min(int(data.get('size', 50)), Query.MAXIMUM_PAGE_SIZE)
     return query
 
 
