@@ -9,28 +9,13 @@ from wtforms.fields import HiddenField
 
 from search.controllers.util import does_not_start_with_wildcard, \
                                     has_balanced_quotes, strip_white_space
+from ...domain import Query
 
 
 class SimpleSearchForm(Form):
     """Provides a simple field-query search form."""
 
-    searchtype = SelectField("Field", choices=[
-        ('all', 'All fields'),
-        ('title', 'Title'),
-        ('author', 'Author(s)'),
-        ('abstract', 'Abstract'),
-        ('comments', 'Comments'),
-        ('journal_ref', 'Journal reference'),
-        ('acm_class', 'ACM classification'),
-        ('msc_class', 'MSC classification'),
-        ('report_num', 'Report number'),
-        ('paper_id', 'arXiv identifier'),
-        ('doi', 'DOI'),
-        ('orcid', 'ORCID'),
-        ('author_id', 'arXiv author ID'),
-        ('help', 'Help pages'),
-        ('full_text', 'Full text')
-    ])
+    searchtype = SelectField("Field", choices=Query.SUPPORTED_FIELDS)
     query = StringField('Search or Article ID',
                         filters=[strip_white_space],
                         validators=[does_not_start_with_wildcard,

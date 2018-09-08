@@ -33,7 +33,7 @@ from elasticsearch_dsl import Search, Q
 from search.context import get_application_config, get_application_global
 from arxiv.base import logging
 from search.domain import Document, DocumentSet, Query, AdvancedQuery, \
-    SimpleQuery, asdict
+    SimpleQuery, asdict, APIQuery
 
 from .exceptions import QueryError, IndexConnectionError, DocumentNotFound, \
     IndexingError, OutsideAllowedRange, MappingError
@@ -358,7 +358,7 @@ class SearchSession(object):
         return Document(**record['_source'])    # type: ignore
         # See https://github.com/python/mypy/issues/3937
 
-    def search(self, query: Query) -> DocumentSet:
+    def search(self, query: Query, highlight: bool = True) -> DocumentSet:
         """
         Perform a search.
 
@@ -389,7 +389,7 @@ class SearchSession(object):
         logger.debug('got current search request %s', str(query))
         current_search = self._base_search()
         try:
-            if isinstance(query, AdvancedQuery):
+            if isinstance(query, AdvancedQuery) or isinstance(query, APIQuery):
                 current_search = advanced_search(current_search, query)
             elif isinstance(query, SimpleQuery):
                 current_search = simple_search(current_search, query)
@@ -397,16 +397,17 @@ class SearchSession(object):
             logger.error('Malformed query: %s', str(e))
             raise QueryError('Malformed query') from e
 
-        # Highlighting is performed by Elasticsearch; here we include the
-        # fields and configuration for highlighting.
-        current_search = highlight(current_search)
+        if highlight:
+            # Highlighting is performed by Elasticsearch; here we include the
+            # fields and configuration for highlighting.
+            current_search = highlight(current_search)
 
         with handle_es_exceptions():
             # Slicing the search adds pagination parameters to the request.
             resp = current_search[query.page_start:query.page_end].execute()
 
         # Perform post-processing on the search results.
-        return results.to_documentset(query, resp)
+        return results.to_documentset(query, resp, highlight=highlight)
 
     def exists(self, paper_id_v: str) -> bool:
         """Determine whether a paper exists in the index."""
@@ -456,9 +457,9 @@ def current_session() -> SearchSession:
 
 
 @wraps(SearchSession.search)
-def search(query: Query) -> DocumentSet:
+def search(query: Query, highlight: bool = True) -> DocumentSet:
     """Retrieve search results."""
-    return current_session().search(query)
+    return current_session().search(query, highlight=highlight)
 
 
 @wraps(SearchSession.add_document)

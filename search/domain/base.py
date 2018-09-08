@@ -125,6 +125,24 @@ class ClassificationList(list):
 class Query:
     """Represents a search query originating from the UI or API."""
 
+    SUPPORTED_FIELDS = [
+        ('all', 'All fields'),
+        ('title', 'Title'),
+        ('author', 'Author(s)'),
+        ('abstract', 'Abstract'),
+        ('comments', 'Comments'),
+        ('journal_ref', 'Journal reference'),
+        ('acm_class', 'ACM classification'),
+        ('msc_class', 'MSC classification'),
+        ('report_num', 'Report number'),
+        ('paper_id', 'arXiv identifier'),
+        ('doi', 'DOI'),
+        ('orcid', 'ORCID'),
+        ('author_id', 'arXiv author ID'),
+        ('help', 'Help pages'),
+        ('full_text', 'Full text')
+    ]
+
     order: Optional[str] = field(default=None)
     page_size: int = field(default=50)
     page_start: int = field(default=0)

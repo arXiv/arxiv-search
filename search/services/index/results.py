@@ -10,6 +10,7 @@ from math import floor
 from typing import Any, Dict
 
 from elasticsearch_dsl.response import Response
+from elasticsearch_dsl.utils import AttrList, AttrDict
 from search.domain import Document, Query, DocumentSet
 from arxiv.base import logging
 
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 logger.propagate = False
 
 
-def _to_document(raw: Response) -> Document:
+def _to_document(raw: Response, highlight: bool = True) -> Document:
     """Transform an ES search result back into a :class:`.Document`."""
     # typing: ignore
     result: Dict[str, Any] = {}
@@ -31,6 +32,14 @@ def _to_document(raw: Response) -> Document:
         if not hasattr(raw, key):
             continue
         value = getattr(raw, key)
+
+        # We want to prevent ES-specific data types from escaping the module
+        # API.
+        if isinstance(value, AttrList):
+            value = value._l_
+        elif isinstance(value, AttrDict):
+            value = value.to_dict()
+
         if key == 'announced_date_first' and value and isinstance(value, str):
             value = datetime.strptime(value, '%Y-%m').date()
         if key in ['submitted_date', 'submitted_date_first',
@@ -47,18 +56,20 @@ def _to_document(raw: Response) -> Document:
 
         result[key] = value
     result['score'] = raw.meta.score
-    if type(result['abstract']) is str:
+    if type(result['abstract']) is str and highlight:
         result['preview']['abstract'] = preview(result['abstract'])
         if result['preview']['abstract'].endswith('&hellip;'):
             result['truncated']['abstract'] = True
 
-    logger.debug('%s: add highlighting to result', raw.paper_id)
-    result = add_highlighting(result, raw)
+    if highlight:
+        logger.debug('%s: add highlighting to result', raw.paper_id)
+        result = add_highlighting(result, raw)
     return Document(**result)   # type: ignore
     # See https://github.com/python/mypy/issues/3937
 
 
-def to_documentset(query: Query, response: Response) -> DocumentSet:
+def to_documentset(query: Query, response: Response, highlight: bool = True) \
+        -> DocumentSet:
     """
     Transform a response from ES to a :class:`.DocumentSet`.
 
@@ -93,6 +104,6 @@ def to_documentset(query: Query, response: Response) -> DocumentSet:
             'page_size': query.page_size,
             'max_pages': max_pages
         },
-        'results': [_to_document(raw) for raw in response]
+        'results': [_to_document(raw, highlight=highlight) for raw in response]
     })
     # See https://github.com/python/mypy/issues/3937
