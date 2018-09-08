@@ -328,7 +328,7 @@
     <div class="is-clearfix" style="height: 2.5em"> {# TODO - adjust this layout so that it matches across all forms less awkwardly #}
       <div class="is-pulled-right">
         {% if query %}
-        <a href="{{ url_with_params("ui.search", {}, {"order": query.order, "size": query.page_size}) }}">Simple Search</a>
+        <a href="{{ url_with_params("ui.search", {}, {"order": query.order, "size": query.size}) }}">Simple Search</a>
         {% else %}
         <a href="{{ url_with_params("ui.search", {}, {"order": form.order.data, "size": form.size.data }) }}">Simple Search</a>
         {% endif %}
@@ -353,7 +353,7 @@
       <div class="level-right">
         <div class="level-item">
           {% if query %}
-          <a href="{{ url_with_params("ui.search", {}, {"order": query.order, "size": query.page_size}) }}">Simple Search</a>
+          <a href="{{ url_with_params("ui.search", {}, {"order": query.order, "size": query.size}) }}">Simple Search</a>
           {% else %}
           <a href="{{ url_with_params("ui.search", {}, {"order": form.order.data, "size": form.size.data }) }}">Simple Search</a>
           {% endif %}

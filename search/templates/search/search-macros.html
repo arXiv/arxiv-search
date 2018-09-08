@@ -34,7 +34,7 @@
 {% macro pagination(metadata, url_for_page) -%}
   <nav class="pagination is-small is-centered breathe-horizontal" role="navigation" aria-label="pagination">
     {% if metadata.current_page > 1 %}
-    <a href="{{ url_for_page(metadata.current_page - 1, metadata.page_size) }}"
+    <a href="{{ url_for_page(metadata.current_page - 1, metadata.size) }}"
       class="pagination-previous">Previous
     </a>
     {% else %}
@@ -43,7 +43,7 @@
     </a>
     {% endif %}
     {% if metadata.current_page < metadata.total_pages %}
-      <a href="{% if metadata.current_page + 1 <= metadata.max_pages %}{{ url_for_page(metadata.current_page + 1, metadata.page_size) }}{% endif %}"
+      <a href="{% if metadata.current_page + 1 <= metadata.max_pages %}{{ url_for_page(metadata.current_page + 1, metadata.size) }}{% endif %}"
         class="pagination-next" {% if metadata.current_page + 1 > metadata.max_pages %}disabled="true"{% endif %}>Next
       </a>
     {% else %}
@@ -54,7 +54,7 @@
     <ul class="pagination-list">
 
       <li>
-        <a href="{{ url_for_page(1, metadata.page_size) }}"
+        <a href="{{ url_for_page(1, metadata.size) }}"
           class="pagination-link {% if metadata.current_page == 1 %}is-current{% endif %}"
           aria-label="Goto page 1">1
         </a>
@@ -63,7 +63,7 @@
       {% if metadata.total_pages < 8 %}
         {% for p in range(2, metadata.total_pages + 1) %}
         <li>
-          <a href="{{ url_for_page(p, metadata.page_size) }}"
+          <a href="{{ url_for_page(p, metadata.size) }}"
             class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
             aria-label="Page {{ p }}"
             aria-current="page">{{ p }}
@@ -74,7 +74,7 @@
         {% if metadata.current_page <= 3 %}                             {# Close to the start page #}
           {% for p in range(2, 6) %}
           <li>
-            <a href="{{ url_for_page(p, metadata.page_size) }}"
+            <a href="{{ url_for_page(p, metadata.size) }}"
               class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
               aria-label="Page {{ p }}"
               aria-current="page">{{ p }}
@@ -86,7 +86,7 @@
           <li><span class="pagination-ellipsis">&hellip;</span></li>
           {% for p in range(metadata.total_pages - 4, metadata.total_pages + 1) %}
           <li>
-            <a href="{{ url_for_page(p, metadata.page_size) }}"
+            <a href="{{ url_for_page(p, metadata.size) }}"
               class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
               aria-label="Page {{ p }}"
               aria-current="page">{{ p }}
@@ -98,7 +98,7 @@
           {% for p in range(metadata.current_page - 1, metadata.current_page + 2) %}
           {% if p <= metadata.max_pages %}
           <li>
-            <a href="{{ url_for_page(p, metadata.page_size) }}"
+            <a href="{{ url_for_page(p, metadata.size) }}"
               class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
               aria-label="Page {{ p }}"
               aria-current="page">{{ p }}

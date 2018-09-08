@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "DocumentSet",
+  "description": "A set of documents that respond to a query.",
+  "type": "object",
+  "required": ["metadata", "results"],
+  "properties": {
+    "metadata": {
+      "description": "Summary information about the search, including pagination.",
+      "properties": {
+        "start": {
+          "description": "Offset (zero-based) of first result in this documentset from start of original search results.",
+          "type": "integer"
+        },
+        "end": {
+          "description": "Offset (zero-based) of last result in this documentset from start of original search results.",
+          "type": "integer"
+        },
+        "total": {
+          "description": "Total number of documents that respond to this query.",
+          "type": "integer"
+        },
+        "current_page": {
+          "description": "Estimated page number, based on start and size parameters.",
+          "type": "integer"
+        },
+        "max_pages": {
+          "description": "Estimated last page in the entire search results, based on size and total parameters.",
+          "type": "integer"
+        },
+        "total_pages": {
+          "description": "Estimated number of pages in the entire search results, based on size and total parameters.",
+          "type": "integer"
+        }
+      }
+    },
+    "results": {
+      "type": "object",
+      "$ref": "Document.json#Document"
+    }
+  }
+}

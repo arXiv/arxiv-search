@@ -21,11 +21,16 @@ logger = logging.getLogger(__name__)
 logger.propagate = False
 
 
+def _to_author(author_data: dict) -> dict:
+    """Prevent e-mail, other extraneous data, from escaping."""
+    return {k: v for k, v in author_data.items() if k != 'email'}
+
+
 def _to_document(raw: Response, highlight: bool = True) -> Document:
     """Transform an ES search result back into a :class:`.Document`."""
     # typing: ignore
     result: Dict[str, Any] = {}
-    result['highlight'] = {}
+
     result['match'] = {}  # Hit on field, but no highlighting.
     result['truncated'] = {}    # Preview is truncated.
     for key in Document.fields():
@@ -39,6 +44,11 @@ def _to_document(raw: Response, highlight: bool = True) -> Document:
             value = value._l_
         elif isinstance(value, AttrDict):
             value = value.to_dict()
+
+        if key in ['authors', 'owners']:
+            value = [_to_author(au) for au in value]
+        elif key == 'submitter':
+            value = _to_author(value)
 
         if key == 'announced_date_first' and value and isinstance(value, str):
             value = datetime.strptime(value, '%Y-%m').date()
@@ -62,8 +72,10 @@ def _to_document(raw: Response, highlight: bool = True) -> Document:
             result['truncated']['abstract'] = True
 
     if highlight:
+        result['highlight'] = {}
         logger.debug('%s: add highlighting to result', raw.paper_id)
         result = add_highlighting(result, raw)
+    
     return Document(**result)   # type: ignore
     # See https://github.com/python/mypy/issues/3937
 
@@ -87,21 +99,21 @@ def to_documentset(query: Query, response: Response, highlight: bool = True) \
         page, along with pagination metadata.
 
     """
-    max_pages = int(MAX_RESULTS/query.page_size)
-    N_pages_raw = response['hits']['total']/query.page_size
+    max_pages = int(MAX_RESULTS/query.size)
+    N_pages_raw = response['hits']['total']/query.size
     N_pages = int(floor(N_pages_raw)) + \
-        int(N_pages_raw % query.page_size > 0)
+        int(N_pages_raw % query.size > 0)
     logger.debug('got %i results', response['hits']['total'])
 
     return DocumentSet(**{  # type: ignore
         'metadata': {
             'start': query.page_start,
-            'end': min(query.page_start + query.page_size,
+            'end': min(query.page_start + query.size,
                        response['hits']['total']),
             'total': response['hits']['total'],
             'current_page': query.page,
             'total_pages': N_pages,
-            'page_size': query.page_size,
+            'size': query.size,
             'max_pages': max_pages
         },
         'results': [_to_document(raw, highlight=highlight) for raw in response]

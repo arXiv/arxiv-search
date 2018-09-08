@@ -12,13 +12,23 @@ info:
 servers:
   - url: https://arxiv.org/api
 paths:
-  /papers:
+  /:
     get:
       operationId: queryPapers
       description: |
         Returns all published arXiv papers that respond to the specified
         query parameters. By default, returns most recent papers first.
       parameters:
+        - name: all
+          in: query
+          description: |
+            Performs a query across all fields. Has the same behavior as the
+            simple search function on the main arXiv website.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
         - name: primary_category
           in: query
           description: |
@@ -26,6 +36,7 @@ paths:
             should be limited.
           required: false
           style: form
+          explode: true
           schema:
             type: array
             items:
@@ -36,14 +47,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../schema/DocumentSet.json#DocumentSet'
+                $ref: './resources/DocumentSet.json#DocumentSet'
         default:
           description: unexpected error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /papers/{id}:
+  /{id}:
     get:
       description: Return metadata about an arXiv paper by arXiv ID.
       operationId: getPaperByID
@@ -60,7 +71,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../schema/Document.json#Document'
+                $ref: './resources/Document.json#Document'
         default:
           description: unexpected error
           content:

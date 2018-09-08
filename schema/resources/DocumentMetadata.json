@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
-    "title": "Document",
-    "description": "Prototype schema for arXiv documents",
+    "title": "DocumentMetadata",
+    "description": "Schema for arXiv document metadata provided by the docmeta endpoint.",
     "definitions": {
         "category": {
             "type": "object",

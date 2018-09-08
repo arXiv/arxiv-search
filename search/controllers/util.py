@@ -53,7 +53,7 @@ def paginate(query: Query, data: dict) -> Query:
 
     """
     query.page_start = max(int(data.get('start', 0)), 0)
-    query.page_size = min(int(data.get('size', 50)), Query.MAXIMUM_PAGE_SIZE)
+    query.size = min(int(data.get('size', 50)), Query.MAXIMUM_size)
     return query
 
 

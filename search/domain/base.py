@@ -125,7 +125,7 @@ class ClassificationList(list):
 class Query:
     """Represents a search query originating from the UI or API."""
 
-    MAXIMUM_PAGE_SIZE = 500
+    MAXIMUM_size = 500
     """The maximum number of records that can be retrieved."""
 
     SUPPORTED_FIELDS = [
@@ -147,7 +147,7 @@ class Query:
     ]
 
     order: Optional[str] = field(default=None)
-    page_size: int = field(default=50)
+    size: int = field(default=50)
     page_start: int = field(default=0)
     include_older_versions: bool = field(default=False)
     hide_abstracts: bool = field(default=False)
@@ -155,12 +155,12 @@ class Query:
     @property
     def page_end(self) -> int:
         """Get the index/offset of the end of the page."""
-        return self.page_start + self.page_size
+        return self.page_start + self.size
 
     @property
     def page(self) -> int:
         """Get the approximate page number."""
-        return 1 + int(round(self.page_start/self.page_size))
+        return 1 + int(round(self.page_start/self.size))
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""

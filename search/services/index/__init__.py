@@ -270,7 +270,8 @@ class SearchSession(object):
         Parameters
         ----------
         document : :class:`.Document`
-            Must be a valid search document, per ``schema/Document.json``.
+            Must be a valid search document, per
+            ``schema/DocumentMetadata.json``.
 
         Raises
         ------
@@ -297,7 +298,8 @@ class SearchSession(object):
         Parameters
         ----------
         document : :class:`.Document`
-            Must be a valid search document, per ``schema/Document.json``.
+            Must be a valid search document, per
+            ``schema/DocumentMetadata.json``.
         docs_per_chunk: int
             Number of documents to send to ES in a single chunk
         Raises
@@ -379,7 +381,7 @@ class SearchSession(object):
 
         """
         # Make sure that the user is not requesting a nonexistant page.
-        max_pages = int(MAX_RESULTS/query.page_size)
+        max_pages = int(MAX_RESULTS/query.size)
         if query.page > max_pages:
             _message = f'Requested page {query.page}, but max is {max_pages}'
             logger.error(_message)
