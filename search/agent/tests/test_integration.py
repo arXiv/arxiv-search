@@ -10,7 +10,7 @@ import json
 import threading
 
 from search.agent import process_stream
-from search.agent.base import StopProcessing
+from arxiv.base.agent import StopProcessing
 from search.services import metadata
 from search.domain import DocMeta
 from search.factory import create_ui_web_app

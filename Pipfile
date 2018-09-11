@@ -51,7 +51,6 @@ werkzeug = "==0.13"
 wtforms = "==2.1"
 bleach = "*"
 
-
 [dev-packages]
 
 coveralls = "*"
