@@ -23,8 +23,11 @@
       }
     },
     "results": {
-      "type": "object",
-      "$ref": "Document.json#Document"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "$ref": "Document.json"
+      }
     }
   }
 }

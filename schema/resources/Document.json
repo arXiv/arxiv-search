@@ -68,13 +68,13 @@
     "owners": {
       "items": {
         "type": "object",
-        "$ref": "Person.json#Person"
+        "$ref": "./Person.json"
       }
     },
     "authors": {
       "items": {
         "type": "object",
-        "$ref": "Person.json#Person"
+        "$ref": "./Person.json"
       },
       "minItems": 1,
       "type": "array"
@@ -147,11 +147,11 @@
       "uniqueItems": true
     },
     "primary_classification": {
-      "$ref": "#/definitions/classification"
+      "$ref": "./Document.json#/definitions/classification"
     },
     "secondary_classification": {
       "type": "array",
-      "items": {"$ref": "#/definitions/classification"}
+      "items": {"$ref": "./Document.json#/definitions/classification"}
     },
     "report_num": {
       "type": "string"
@@ -174,7 +174,7 @@
     "submitter": {
       "description": "Submitter data. Name may not match those associated with user account, since user data is copied to submission data at the time of submission creation.",
       "type": "object",
-      "$ref": "Person.json#Person"
+      "$ref": "./Person.json"
     },
     "title": {
       "type": "string"
@@ -212,7 +212,6 @@
     "is_withdrawn",
     "license",
     "paper_id",
-    "paper_id_v",
     "primary_classification",
     "title",
     "source",

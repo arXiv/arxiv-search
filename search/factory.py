@@ -47,7 +47,6 @@ def create_api_web_app() -> Flask:
     app.json_encoder = ISO8601JSONEncoder
     app.config.from_pyfile('config.py')
 
-
     index.init_app(app)
 
     Base(app)
