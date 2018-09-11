@@ -11,43 +11,6 @@ from search.domain import DocumentSet, Document, Classification, Person
 class BaseSerializer(object):
     """Base class for API serializers."""
 
-    # def __init__(cls, document_set: DocumentSet) -> None:
-    #     """Initialize with a :class:`DocumentSet`."""
-        # cls._document_set = document_set
-
-
-# class AtomXMLSerializer(BaseSerializer):
-#     """."""
-#
-#     ATOM = "http://www.w3.org/2005/Atom"
-#     OPENSEARCH = "http://a9.com/-/spec/opensearch/1.1/"
-#     ARXIV = "http://arxiv.org/schemas/atom"
-#     NSMAP = {
-#         None: ATOM,
-#         "opensearch": OPENSEARCH,
-#         "arxiv": ARXIV
-#     }
-#     fields = {
-#         'title': '{%s}title' % ATOM,
-#         'id': '{%s}id' % ATOM,
-#         'submitted_date': '{%s}published' % ATOM,
-#         'modified_date': '{%s}updated' % ATOM,
-#         'abstract': '{%s}summary' % ATOM,
-#         ''
-#     }
-#
-#     def __init__(cls, *args, **kwargs) -> None:
-#         super(AtomXMLSerializer, cls).__init__(*args, **kwargs)
-#         cls._root = etree.Element('feed', nsmap=cls.NSMAP)
-#
-#     def transform(cls):
-#         for document in cls.iter_documents():
-#
-#
-#
-#     def __repr__(cls) -> str:
-#         return etree.tostring(cls._root, pretty_print=True)
-
 
 class JSONSerializer(BaseSerializer):
     """Serializes a :class:`DocumentSet` as JSON."""
@@ -177,3 +140,36 @@ def as_json(document_or_document_set: Union[DocumentSet, Document]) -> str:
     if type(document_or_document_set) is DocumentSet:
         return JSONSerializer.serialize(document_or_document_set)  # type: ignore
     return JSONSerializer.serialize_document(document_or_document_set)  # type: ignore
+
+
+# class AtomXMLSerializer(BaseSerializer):
+#     """."""
+#
+#     ATOM = "http://www.w3.org/2005/Atom"
+#     OPENSEARCH = "http://a9.com/-/spec/opensearch/1.1/"
+#     ARXIV = "http://arxiv.org/schemas/atom"
+#     NSMAP = {
+#         None: ATOM,
+#         "opensearch": OPENSEARCH,
+#         "arxiv": ARXIV
+#     }
+#     fields = {
+#         'title': '{%s}title' % ATOM,
+#         'id': '{%s}id' % ATOM,
+#         'submitted_date': '{%s}published' % ATOM,
+#         'modified_date': '{%s}updated' % ATOM,
+#         'abstract': '{%s}summary' % ATOM,
+#         ''
+#     }
+#
+#     def __init__(cls, *args, **kwargs) -> None:
+#         super(AtomXMLSerializer, cls).__init__(*args, **kwargs)
+#         cls._root = etree.Element('feed', nsmap=cls.NSMAP)
+#
+#     def transform(cls):
+#         for document in cls.iter_documents():
+#
+#
+#
+#     def __repr__(cls) -> str:
+#         return etree.tostring(cls._root, pretty_print=True)

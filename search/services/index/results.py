@@ -54,6 +54,8 @@ def to_document(raw: Union[Response, dict], highlight: bool = True) \
             if key not in raw:
                 continue
             value = raw.get(key)
+        else:
+            continue
 
         # We want to prevent ES-specific data types from escaping the module
         # API.
@@ -88,7 +90,9 @@ def to_document(raw: Union[Response, dict], highlight: bool = True) \
 
     if type(raw) is Response:
         result['score'] = raw.meta.score    # type: ignore
-    if type(result['abstract']) is str and highlight:
+    if type(result.get('abstract')) is str and highlight:
+        if 'preview' not in result:
+            result['preview'] = {}
         result['preview']['abstract'] = preview(result['abstract'])
         if result['preview']['abstract'].endswith('&hellip;'):
             result['truncated']['abstract'] = True
