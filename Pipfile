@@ -50,8 +50,6 @@ typed-ast = "==1.1.0"
 werkzeug = "==0.13"
 wtforms = "==2.1"
 bleach = "*"
-"17e504d" = {path = "./../arxiv-base-ui"}
-
 
 [dev-packages]
 
