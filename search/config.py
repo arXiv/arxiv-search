@@ -9,8 +9,6 @@ import os
 ON = 'yes'
 OFF = 'no'
 
-SERVER_NAME = os.environ.get('SERVER_NAME', 'localhost')
-
 DEBUG = os.environ.get('DEBUG') == ON
 """enable/disable debug mode"""
 
