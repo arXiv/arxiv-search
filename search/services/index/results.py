@@ -29,10 +29,10 @@ def _to_author(author_data: dict) -> Person:
             continue
         elif key == 'name':
             key = 'full_name'
-        if key not in Person.__dataclass_fields__:
+        if key not in Person.fields():
             continue
         data[key] = value
-    return Person(**data)
+    return Person(**data)   # type: ignore
 
 
 def to_document(raw: Union[Response, dict], highlight: bool = True) \
@@ -45,12 +45,15 @@ def to_document(raw: Union[Response, dict], highlight: bool = True) \
     result['truncated'] = {}    # Preview is truncated.
 
     for key in Document.fields():
-        if not hasattr(raw, key):
+        if type(raw) is Response:
+            if not hasattr(raw, key):
+                continue
+            value = getattr(raw, key)
+
+        elif type(raw) is dict:
             if key not in raw:
                 continue
             value = raw.get(key)
-        else:
-            value = getattr(raw, key)
 
         # We want to prevent ES-specific data types from escaping the module
         # API.
@@ -60,9 +63,9 @@ def to_document(raw: Union[Response, dict], highlight: bool = True) \
             value = value.to_dict()
 
         if key == 'primary_classification':
-            value = Classification(**value)
+            value = Classification(**value)  # type: ignore
         elif key == 'secondary_classification':
-            value = [Classification(**v) for v in value]
+            value = [Classification(**v) for v in value]  # type: ignore
         elif key in ['authors', 'owners']:
             value = [_to_author(au) for au in value]
         elif key == 'submitter':
@@ -83,16 +86,17 @@ def to_document(raw: Union[Response, dict], highlight: bool = True) \
 
         result[key] = value
 
-    if hasattr(raw, 'meta'):
-        result['score'] = raw.meta.score
+    if type(raw) is Response:
+        result['score'] = raw.meta.score    # type: ignore
     if type(result['abstract']) is str and highlight:
         result['preview']['abstract'] = preview(result['abstract'])
         if result['preview']['abstract'].endswith('&hellip;'):
             result['truncated']['abstract'] = True
 
-    if highlight:
+    if highlight and type(raw) is Response:
         result['highlight'] = {}
-        logger.debug('%s: add highlighting to result', raw.paper_id)
+        logger.debug('%s: add highlighting to result',
+                     raw.paper_id)  # type: ignore
         result = add_highlighting(result, raw)
 
     return Document(**result)   # type: ignore

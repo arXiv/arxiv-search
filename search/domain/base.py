@@ -35,6 +35,11 @@ class Person:
     author_id: Optional[str] = field(default=None)
     """Legacy arXiv author identifier."""
 
+    @classmethod
+    def fields(cls) -> List[str]:
+        """Get the names of fields on this class."""
+        return cls.__dataclass_fields__.keys()  # type: ignore
+
 
 @dataclass
 class DocMeta:
@@ -213,9 +218,9 @@ class Document:
     id: str = field(default_factory=str)
     abstract: str = field(default_factory=str)
     abstract_tex: str = field(default_factory=str)
-    authors: List[Dict] = field(default_factory=list)
+    authors: List[Person] = field(default_factory=list)
     authors_freeform: str = field(default_factory=str)
-    owners: List[Dict] = field(default_factory=list)
+    owners: List[Person] = field(default_factory=list)
     modified_date: str = field(default_factory=str)
     updated_date: str = field(default_factory=str)
     is_current: bool = True
@@ -229,7 +234,7 @@ class Document:
     version: int = 1
     latest: str = field(default_factory=str)
     latest_version: int = 0
-    submitter: Dict = field(default_factory=dict)
+    submitter: Optional[Person] = field(default=None)
     report_num: str = field(default_factory=str)
     proxy: bool = False
     msc_class: List[str] = field(default_factory=list)

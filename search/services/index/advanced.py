@@ -1,17 +1,18 @@
 """Supports the advanced search feature."""
 
-from typing import Any
+from typing import Any, Union
 
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
 
-from search.domain import AdvancedQuery, Classification
+from search.domain import AdvancedQuery, Classification, APIQuery
 
 from .prepare import SEARCH_FIELDS
 from .util import sort
 
 
-def advanced_search(search: Search, query: AdvancedQuery) -> Search:
+def advanced_search(search: Search,
+                    query: Union[AdvancedQuery, APIQuery]) -> Search:
     """
     Prepare a :class:`.Search` from a :class:`.AdvancedQuery`.
 
@@ -19,8 +20,9 @@ def advanced_search(search: Search, query: AdvancedQuery) -> Search:
     ----------
     search : :class:`.Search`
         An Elasticsearch search in preparation.
-    query : :class:`.AdvancedQuery`
-        An advanced query, originating from the advanced search controller.
+    query : :class:`.AdvancedQuery` or :class:`APIQuery`
+        An advanced query, originating from the advanced search controller or
+        the API, respectively.
 
     Returns
     -------
@@ -62,7 +64,7 @@ def _classification(field: str, classification: Classification) -> Match:
     return query
 
 
-def _classifications(q: AdvancedQuery) -> Match:
+def _classifications(q: Union[AdvancedQuery, APIQuery]) -> Match:
     """Get a query part for classifications on an :class:`.AdvancedQuery`."""
     if not q.primary_classification:
         return Q()
@@ -74,7 +76,7 @@ def _classifications(q: AdvancedQuery) -> Match:
     return query
 
 
-def _date_range(q: AdvancedQuery) -> Range:
+def _date_range(q: Union[AdvancedQuery, APIQuery]) -> Range:
     """Generate a query part for a date range."""
     if not q.date_range:
         return Q()
@@ -121,7 +123,7 @@ def _get_operator(obj: Any) -> str:
     return obj.operator     # type: ignore
 
 
-def _group_terms(query: AdvancedQuery) -> tuple:
+def _group_terms(query: Union[AdvancedQuery, APIQuery]) -> tuple:
     """Group fielded search terms into a set of nested tuples."""
     terms = query.terms[:]
     for operator in ['NOT', 'AND', 'OR']:
@@ -136,7 +138,7 @@ def _group_terms(query: AdvancedQuery) -> tuple:
     return terms[0]     # type: ignore
 
 
-def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
+def _fielded_terms_to_q(query: Union[AdvancedQuery, APIQuery]) -> Match:
     if len(query.terms) == 1:
         return SEARCH_FIELDS[query.terms[0].field](query.terms[0].term)
     elif len(query.terms) > 1:

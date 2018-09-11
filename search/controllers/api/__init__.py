@@ -19,14 +19,14 @@ from arxiv.base import logging
 from search.services import index, fulltext, metadata
 from search.controllers.util import paginate
 from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
-    DateRange, ClassificationList, Classification, asdict
+    DateRange, ClassificationList, Classification, asdict, DocumentSet, \
+    Document
 
 logger = logging.getLogger(__name__)
-Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 EASTERN = timezone('US/Eastern')
 
 
-def search(params: MultiDict) -> Response:
+def search(params: MultiDict) -> Tuple[DocumentSet, int, Dict[str, Any]]:
     """
     Handle a search request from the API.
 
@@ -56,11 +56,11 @@ def search(params: MultiDict) -> Response:
     if classifications is not None:
         q.primary_classification = classifications
 
-    q = paginate(q, params)
+    q = paginate(q, params)     # type: ignore
     return index.search(q, highlight=False), status.HTTP_200_OK, {}
 
 
-def paper(paper_id: str) -> Response:
+def paper(paper_id: str) -> Tuple[Document, int, Dict[str, Any]]:
     """
     Handle a request for paper metadata from the API.
 
@@ -97,11 +97,13 @@ def _get_fielded_terms(params: MultiDict) -> Optional[FieldedSearchList]:
     for field, _ in Query.SUPPORTED_FIELDS:
         values = params.getlist(field)
         for value in values:
-            terms.append(
-                FieldedSearchTerm(operator='AND', field=field, term=value)
-            )
+            terms.append(FieldedSearchTerm(     # type: ignore
+                operator='AND',
+                field=field,
+                term=value
+            ))
     if len(terms) == 0:
-        return
+        return None
     return terms
 
 
@@ -120,8 +122,8 @@ def _get_date_params(params: MultiDict) -> Optional[DateRange]:
             raise BadRequest({'field': field, 'reason': 'invalid datetime'})
         date_params[field] = dt
     if date_params:
-        return DateRange(**date_params)
-    return
+        return DateRange(**date_params)  # type: ignore
+    return None
 
 
 def _get_classifications(params: MultiDict) -> Optional[ClassificationList]:
@@ -133,8 +135,8 @@ def _get_classifications(params: MultiDict) -> Optional[ClassificationList]:
                 'reason': 'not a valid archive'
             })
         classifications.append(
-            Classification(archive=value)
+            Classification(archive=value)   # type: ignore
         )
     if len(classifications) == 0:
-        return
+        return None
     return classifications

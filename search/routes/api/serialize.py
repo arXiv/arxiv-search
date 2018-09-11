@@ -105,14 +105,20 @@ class JSONSerializer(BaseSerializer):
             'acm_class': doc.acm_class,
             'owners': [
                 cls._transform_person(owner) for owner in doc.owners
+                if owner is not None
             ],
             'authors': [
                 cls._transform_person(author) for author in doc.authors
+                if author is not None
             ],
             'comments': doc.comments,
             'submitted_date': doc.submitted_date,
             'submitted_date_first': doc.submitted_date_first,
-            'announced_date_first': doc.announced_date_first.strftime('%Y-%m'),
+            'announced_date_first': (
+                doc.announced_date_first.strftime('%Y-%m')
+                if doc.announced_date_first is not None
+                else None
+            ),
             'paper_id': doc.paper_id_v,
             'doi': doc.doi,
             'formats': [
@@ -133,7 +139,10 @@ class JSONSerializer(BaseSerializer):
             ],
             'report_num': doc.report_num,
             'source': doc.source,  # TODO: link?
-            'submitter': cls._transform_person(doc.submitter),
+            'submitter': (
+                cls._transform_person(doc.submitter)
+                if doc.submitter is not None else None
+            ),
             'title': doc.title,
             'version': doc.version,
             'latest': cls._transform_latest(doc),
@@ -142,7 +151,7 @@ class JSONSerializer(BaseSerializer):
     @classmethod
     def serialize(cls, document_set: DocumentSet) -> str:
         """Generate JSON for a :class:`DocumentSet`."""
-        return jsonify({
+        serialized: str = jsonify({
             'results': [
                 cls.transform_document(doc)
                 for doc in document_set.results
@@ -154,15 +163,17 @@ class JSONSerializer(BaseSerializer):
                 'total': document_set.metadata.get('total'),
             },
         })
+        return serialized
 
     @classmethod
     def serialize_document(cls, document: Document) -> str:
         """Generate JSON for a single :class:`Document`."""
-        return jsonify(cls.transform_document(document))
+        serialized: str = jsonify(cls.transform_document(document))
+        return serialized
 
 
 def as_json(document_or_document_set: Union[DocumentSet, Document]) -> str:
     """Serialize a :class:`DocumentSet` as JSON."""
     if type(document_or_document_set) is DocumentSet:
-        return JSONSerializer.serialize(document_or_document_set)
-    return JSONSerializer.serialize_document(document_or_document_set)
+        return JSONSerializer.serialize(document_or_document_set)  # type: ignore
+    return JSONSerializer.serialize_document(document_or_document_set)  # type: ignore
