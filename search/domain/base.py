@@ -18,6 +18,25 @@ def asdict(obj: Any) -> dict:
 
 
 @dataclass
+class Person:
+    """Represents an author, owner, or other person in metadata."""
+
+    full_name: str
+    last_name: str = field(default_factory=str)
+    first_name: str = field(default_factory=str)
+    suffix: str = field(default_factory=str)
+
+    affiliation: List[str] = field(default_factory=list)
+    """Institutional affiliations."""
+
+    orcid: Optional[str] = field(default=None)
+    """ORCID identifier."""
+
+    author_id: Optional[str] = field(default=None)
+    """Legacy arXiv author identifier."""
+
+
+@dataclass
 class DocMeta:
     """Metadata for an arXiv paper, retrieved from the core repository."""
 
@@ -102,14 +121,14 @@ class DateRange:
 class Classification:
     """Represents an arXiv classification for a paper."""
 
-    group: Optional[str] = None
-    archive: Optional[str] = None
-    category: Optional[str] = None
+    group: Optional[dict] = None
+    archive: Optional[dict] = None
+    category: Optional[dict] = None
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         return ":".join(
-            [p for p in [self.group, self.archive, self.category] if p]
+            [p['id'] for p in [self.group, self.archive, self.category] if p]
         )
 
 

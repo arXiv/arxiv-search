@@ -75,6 +75,9 @@ def handle_es_exceptions() -> Generator:
         elif e.error == 'parsing_exception':
             logger.error('ES parsing_exception: %s', e.info)
             raise QueryError(e.info) from e
+        elif e.status_code == 404:
+            logger.error('Caught NotFoundError: %s', e)
+            raise DocumentNotFound('No such document')
         logger.error('Problem communicating with ES: %s' % e.error)
         raise IndexConnectionError(
             'Problem communicating with ES: %s' % e.error
@@ -357,7 +360,7 @@ class SearchSession(object):
         if not record:
             logger.error("No such document: %s", document_id)
             raise DocumentNotFound('No such document')
-        return Document(**record['_source'])    # type: ignore
+        return results.to_document(record['_source'], highlight=False)
         # See https://github.com/python/mypy/issues/3937
 
     def search(self, query: Query, highlight: bool = True) -> DocumentSet:

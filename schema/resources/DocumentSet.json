@@ -19,18 +19,6 @@
         "total": {
           "description": "Total number of documents that respond to this query.",
           "type": "integer"
-        },
-        "current_page": {
-          "description": "Estimated page number, based on start and size parameters.",
-          "type": "integer"
-        },
-        "max_pages": {
-          "description": "Estimated last page in the entire search results, based on size and total parameters.",
-          "type": "integer"
-        },
-        "total_pages": {
-          "description": "Estimated number of pages in the entire search results, based on size and total parameters.",
-          "type": "integer"
         }
       }
     },

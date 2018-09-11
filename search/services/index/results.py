@@ -7,11 +7,11 @@ The primary public function in this module is :func:`.to_documentset`.
 import re
 from datetime import datetime
 from math import floor
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from elasticsearch_dsl.response import Response
 from elasticsearch_dsl.utils import AttrList, AttrDict
-from search.domain import Document, Query, DocumentSet
+from search.domain import Document, Query, DocumentSet, Classification, Person
 from arxiv.base import logging
 
 from .util import MAX_RESULTS, TEXISM
@@ -21,22 +21,36 @@ logger = logging.getLogger(__name__)
 logger.propagate = False
 
 
-def _to_author(author_data: dict) -> dict:
+def _to_author(author_data: dict) -> Person:
     """Prevent e-mail, other extraneous data, from escaping."""
-    return {k: v for k, v in author_data.items() if k != 'email'}
+    data = {}
+    for key, value in author_data.items():
+        if key == 'email':
+            continue
+        elif key == 'name':
+            key = 'full_name'
+        if key not in Person.__dataclass_fields__:
+            continue
+        data[key] = value
+    return Person(**data)
 
 
-def _to_document(raw: Response, highlight: bool = True) -> Document:
+def to_document(raw: Union[Response, dict], highlight: bool = True) \
+        -> Document:
     """Transform an ES search result back into a :class:`.Document`."""
     # typing: ignore
     result: Dict[str, Any] = {}
 
     result['match'] = {}  # Hit on field, but no highlighting.
     result['truncated'] = {}    # Preview is truncated.
+
     for key in Document.fields():
         if not hasattr(raw, key):
-            continue
-        value = getattr(raw, key)
+            if key not in raw:
+                continue
+            value = raw.get(key)
+        else:
+            value = getattr(raw, key)
 
         # We want to prevent ES-specific data types from escaping the module
         # API.
@@ -45,27 +59,32 @@ def _to_document(raw: Response, highlight: bool = True) -> Document:
         elif isinstance(value, AttrDict):
             value = value.to_dict()
 
-        if key in ['authors', 'owners']:
+        if key == 'primary_classification':
+            value = Classification(**value)
+        elif key == 'secondary_classification':
+            value = [Classification(**v) for v in value]
+        elif key in ['authors', 'owners']:
             value = [_to_author(au) for au in value]
         elif key == 'submitter':
             value = _to_author(value)
 
-        if key == 'announced_date_first' and value and isinstance(value, str):
+        elif key == 'announced_date_first' and \
+                value and isinstance(value, str):
             value = datetime.strptime(value, '%Y-%m').date()
-        if key in ['submitted_date', 'submitted_date_first',
-                   'submitted_date_latest']:
+        elif key in ['submitted_date', 'submitted_date_first',
+                     'submitted_date_latest']:
             try:
                 value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S%z')
             except (ValueError, TypeError):
-                logger.warning(
-                    f'Could not parse {key}: {value} as datetime'
-                )
+                logger.warning(f'Could not parse {key}: {value} as datetime')
                 pass
-        if key in ['acm_class', 'msc_class'] and value:
+        elif key in ['acm_class', 'msc_class'] and value:
             value = '; '.join(value)
 
         result[key] = value
-    result['score'] = raw.meta.score
+
+    if hasattr(raw, 'meta'):
+        result['score'] = raw.meta.score
     if type(result['abstract']) is str and highlight:
         result['preview']['abstract'] = preview(result['abstract'])
         if result['preview']['abstract'].endswith('&hellip;'):
@@ -75,7 +94,7 @@ def _to_document(raw: Response, highlight: bool = True) -> Document:
         result['highlight'] = {}
         logger.debug('%s: add highlighting to result', raw.paper_id)
         result = add_highlighting(result, raw)
-    
+
     return Document(**result)   # type: ignore
     # See https://github.com/python/mypy/issues/3937
 
@@ -116,6 +135,6 @@ def to_documentset(query: Query, response: Response, highlight: bool = True) \
             'size': query.size,
             'max_pages': max_pages
         },
-        'results': [_to_document(raw, highlight=highlight) for raw in response]
+        'results': [to_document(raw, highlight=highlight) for raw in response]
     })
     # See https://github.com/python/mypy/issues/3937

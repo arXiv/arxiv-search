@@ -2,7 +2,7 @@ openapi: "3.0.0"
 info:
   version: "0.1"
   title: "arXiv Search API"
-  description: "A RESTful API for arXiv documents."
+  description: "A RESTful API for arXiv metadata."
   termsOfService: "https://arxiv.org/help/general",
   contact:
     name: "arXiv API Team"

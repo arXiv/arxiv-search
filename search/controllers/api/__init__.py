@@ -14,12 +14,14 @@ from werkzeug.exceptions import InternalServerError, BadRequest, NotFound
 from flask import url_for
 
 from arxiv import status, taxonomy
+from arxiv.base import logging
 
 from search.services import index, fulltext, metadata
 from search.controllers.util import paginate
 from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
     DateRange, ClassificationList, Classification, asdict
 
+logger = logging.getLogger(__name__)
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 EASTERN = timezone('US/Eastern')
 
@@ -55,7 +57,39 @@ def search(params: MultiDict) -> Response:
         q.primary_classification = classifications
 
     q = paginate(q, params)
-    return asdict(index.search(q, highlight=False)), status.HTTP_200_OK, {}
+    return index.search(q, highlight=False), status.HTTP_200_OK, {}
+
+
+def paper(paper_id: str) -> Response:
+    """
+    Handle a request for paper metadata from the API.
+
+    Parameters
+    ----------
+    paper_id : str
+        arXiv paper ID for the requested paper.
+
+    Returns
+    -------
+    dict
+        Response data (to serialize).
+    int
+        HTTP status code.
+    dict
+        Extra headers for the response.
+
+    Raises
+    ------
+    :class:`NotFound`
+        Raised when there is no document with the provided paper ID.
+
+    """
+    try:
+        document = index.get_document(paper_id)
+    except index.DocumentNotFound as e:
+        logger.error('Document not found')
+        raise NotFound('No such document') from e
+    return document, status.HTTP_200_OK, {}
 
 
 def _get_fielded_terms(params: MultiDict) -> Optional[FieldedSearchList]:

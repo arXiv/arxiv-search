@@ -1,297 +1,221 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "title": "Document",
-    "description": "Schema for arXiv document metadata returned by the search API.",
-    "definitions": {
-        "category": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            },
-            "required": ["id", "name"]
-        },
-        "archive": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            },
-            "required": ["id", "name"]
-        },
-        "group": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            },
-            "required": ["id", "name"]
-        },
-        "classification": {
-            "type": "object",
-            "properties": {
-                "archive": {"$ref": "#/definitions/archive"},
-                "group": {"$ref": "#/definitions/group"},
-                "category": {"$ref": "#/definitions/category"}
-            }
-        }
-    },
-    "type": "object",
-    "properties": {
-        "abs_categories": {
-            "description": "Categories as they would appear on the /abs page",
-            "type": "string"
-        },
-        "abstract": {
-            "type": "string"
-        },
-        "abstract_utf8": {
-            "description": "abstract field with texisms converted to utf-8 equivalents",
-            "type": "string"
-        },
-        "acm_class": {
-            "description": "Classifications from ACM Computing Classification System",
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "uniqueItems": true
-        },
-        "owners": {
-            "items": {
-                "type": "object",
-                "properties": {
-                    "first_name": {
-                        "type": "string"
-                    },
-                    "last_name": {
-                        "type": "string"
-                    },
-                    "suffix": {
-                        "type": "string"
-                    },
-                    "affiliation": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "minItems": 0
-                    },
-                    "orcid": {
-                        "type": "string"
-                    }
-                },
-                "required": ["last_name"]
-            }
-        },
-        "authors": {
-            "items": {
-                "type": "object",
-                "properties": {
-                    "first_name": {
-                        "type": "string"
-                    },
-                    "last_name": {
-                        "type": "string"
-                    },
-                    "suffix": {
-                        "type": "string"
-                    },
-                    "author_id": {
-                        "type": "string"
-                    },
-                    "orcid": {
-                        "type": "string"
-                    },
-                    "affiliation": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "minItems": 0
-                    }
-                },
-                "required": ["last_name"]
-            },
-            "minItems": 1,
-            "type": "array"
-        },
-        "comments": {
-            "type": ["string"]
-        },
-        "comments_utf8": {
-            "description": "comments field with texisms converted to utf-8 equivalents",
-            "type": ["string"]
-        },
-        "submitted_date": {
-            "description": "Date this version of paper was submitted",
-            "type": "string"
-        },
-        "submitted_date_all": {
-            "description": "Submitted dates of all of the versions of this paper",
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "minItems": 0
-        },
-        "announced_date_first": {
-          "desription": "Date (year and month) the paper was originally announced",
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Document",
+  "description": "Schema for arXiv document metadata returned by the search API.",
+  "definitions": {
+    "category": {
+      "type": "object",
+      "properties": {
+        "id": {
           "type": "string"
         },
-        "modified_date": {
-            "description": "Date this version of paper .abs file was last modified",
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name"]
+    },
+    "archive": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name"]
+    },
+    "group": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name"]
+    },
+    "classification": {
+      "type": "object",
+      "properties": {
+        "archive": {"$ref": "#/definitions/archive"},
+        "group": {"$ref": "#/definitions/group"},
+        "category": {"$ref": "#/definitions/category"}
+      }
+    }
+  },
+  "type": "object",
+  "properties": {
+    "abs_categories": {
+      "description": "Categories as they would appear on the /abs page",
+      "type": "string"
+    },
+    "abstract": {
+      "type": "string"
+    },
+    "acm_class": {
+      "description": "Classifications from ACM Computing Classification System",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "owners": {
+      "items": {
+        "type": "object",
+        "$ref": "Person.json#Person"
+      }
+    },
+    "authors": {
+      "items": {
+        "type": "object",
+        "$ref": "Person.json#Person"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "comments": {
+      "type": ["string"]
+    },
+    "submitted_date": {
+      "description": "Date this version of paper was submitted.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "announced_date_first": {
+      "desription": "Year and month (``%Y-%m``) the paper was originally announced.",
+      "type": "string"
+    },
+    "paper_id": {
+      "description": "arXiv paper identifier with version affix.",
+      "type": "string"
+    },
+    "doi": {
+      "type": "string"
+    },
+    "formats": {
+      "description": "Derivative paper formats available to users",
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "properties": {
+          "format": {
             "type": "string"
+          },
+          "href": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "fulltext": {
+      "type": "string"
+    },
+    "is_current": {
+      "type": "boolean"
+    },
+    "is_withdrawn": {
+      "type": "boolean"
+    },
+    "journal_ref": {
+      "type": ["string"]
+    },
+    "license": {
+      "type": "object",
+      "properties": {
+        "href": {
+          "type": ["string", "null"]
+        },
+        "label": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "msc_class": {
+      "description": "Classifications from American Mathematical Society Mathematical Subject Classification (MSC)",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "primary_classification": {
+      "$ref": "#/definitions/classification"
+    },
+    "secondary_classification": {
+      "type": "array",
+      "items": {"$ref": "#/definitions/classification"}
+    },
+    "report_num": {
+      "type": "string"
+    },
+    "source": {
+      "properties": {
+        "flags": {
+          "type": ["string", "null"]
+        },
+        "format": {
+          "type": ["string", "null"]
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": ["size_bytes"]
+    },
+    "submitter": {
+      "description": "Submitter data. Name may not match those associated with user account, since user data is copied to submission data at the time of submission creation.",
+      "type": "object",
+      "$ref": "Person.json#Person"
+    },
+    "title": {
+      "type": "string"
+    },
+    "version": {
+      "description": "The version number for this paper.",
+      "minimum": 1,
+      "type": "integer"
+    },
+    "latest": {
+      "description": "arXiv paper identifier (with version affix) of latest version of this paper.",
+      "type": "object",
+      "properties": {
+        "version": {
+          "description": "Number of the latest version of this paper.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "href": {
+          "type": "string",
+          "format": "uri"
         },
         "paper_id": {
-            "description": "Version-independent arXiv paper identifier.",
-            "type": "string"
-        },
-        "paper_id_v": {
-            "description": "arXiv paper identifier with version affix.",
-            "type": "string"
-        },
-        "doi": {
-            "type": "string"
-        },
-        "formats": {
-            "description": "Derivative paper formats available to users",
-            "type": "array",
-            "minItems": 0
-        },
-        "fulltext": {
-            "type": "string"
-        },
-        "is_current": {
-            "type": "boolean"
-        },
-        "is_withdrawn": {
-            "type": "boolean"
-        },
-        "journal_ref": {
-            "type": ["string"]
-        },
-        "journal_ref_utf8": {
-            "description": "journal_ref field with texisms converted to utf-8 equivalents",
-            "type": ["string"]
-        },
-        "license": {
-            "type": "object",
-            "properties": {
-                "uri": {
-                    "type": ["string", "null"]
-                },
-                "label": {
-                    "type": ["string", "null"]
-                }
-            }
-        },
-        "metadata_id": {
-            "type": "integer"
-        },
-        "msc_class": {
-            "description": "Classifications from American Mathematical Society Mathematical Subject Classification (MSC)",
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "uniqueItems": true
-        },
-        "primary_classification": {
-            "$ref": "#/definitions/classification"
-        },
-        "secondary_classification": {
-            "type": "array",
-            "items": {"$ref": "#/definitions/classification"}
-        },
-        "proxy": {
-            "type": "boolean"
-        },
-        "report_num": {
-            "type": "string"
-        },
-        "source": {
-            "properties": {
-                "flags": {
-                    "type": ["string", "null"]
-                },
-                "format": {
-                    "type": ["string", "null"]
-                },
-                "size_bytes": {
-                    "minimum": 0,
-                    "type": "integer"
-                }
-            },
-            "required": ["size_bytes"]
-        },
-        "submitter": {
-            "description": "Submitter data. Name may not match those associated with user account, since user data is copied to submission data at the time of submission creation.",
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "is_author": {
-                    "type": "boolean"
-                },
-                "author_id": {
-                    "type:": "string"
-                },
-                "orcid": {
-                    "type": "string"
-                }
-            },
-            "required": ["name"]
-        },
-        "title": {
-            "type": "string"
-        },
-        "title_utf8": {
-            "description": "Title field with texisms converted to utf-8 equivalents",
-            "type": "string"
-        },
-        "version": {
-            "description": "The version number for this paper.",
-            "minimum": 1,
-            "type": "integer"
-        },
-        "latest_version": {
-            "description": "Number of the latest version of this paper.",
-            "minimum": 1,
-            "type": "integer"
-        },
-        "latest": {
-            "description": "arXiv paper identifier (with version affix) of latest version of this paper.",
-            "type": "string"
+          "description": "Paper ID with version affix of latest version.",
+          "type": "string"
         }
-    },
-    "required": [
-        "abstract",
-        "authors",
-        "submitted_date",
-        "submitted_date_latest",
-        "submitted_date_first",
-        "is_current",
-        "is_withdrawn",
-        "license",
-        "paper_id",
-        "paper_id_v",
-        "primary_classification",
-        "title",
-        "source",
-        "version"
-    ]
+      }
+    }
+  },
+  "required": [
+    "abstract",
+    "authors",
+    "submitted_date",
+    "is_current",
+    "is_withdrawn",
+    "license",
+    "paper_id",
+    "paper_id_v",
+    "primary_classification",
+    "title",
+    "source",
+    "version"
+  ]
 }

@@ -150,7 +150,7 @@
         "announced_first": {
           "desription": "Date (year and month) the paper was originally announced",
           "type": "string"
-        }
+        },
         "updated_date": {
             "description": "Date this version of paper was last touched",
             "type": "string"

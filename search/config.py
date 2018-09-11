@@ -228,5 +228,19 @@ RELEASE_NOTES_URL = 'https://confluence.cornell.edu/x/8H5OFQ'
 RELEASE_NOTES_TEXT = 'Search v0.4 released 2018-07-18'
 
 
+EXTERNAL_URL_SCHEME = os.environ.get('EXTERNAL_URL_SCHEME', 'https')
+BASE_SERVER = os.environ.get('BASE_SERVER', 'arxiv.org')
+
+URLS = [
+    ("pdf", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("pdfonly", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("dvi", "/dvi/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("html", "/html/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("ps", "/ps/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("source", "/e-print/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("other", "/format/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+]
+
+
 # TODO: one place to set the version, update release notes text, JIRA issue
 # collector, etc.
