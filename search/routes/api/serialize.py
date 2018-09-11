@@ -150,7 +150,7 @@ class JSONSerializer(BaseSerializer):
             'metadata': {
                 'start': document_set.metadata.get('start'),
                 'end': document_set.metadata.get('end'),
-                'offset': document_set.metadata.get('offset'),
+                'size': document_set.metadata.get('size'),
                 'total': document_set.metadata.get('total'),
             },
         })

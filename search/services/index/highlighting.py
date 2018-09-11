@@ -223,7 +223,6 @@ def add_highlighting(result: dict, raw: Response) -> dict:
 
     for field in ['abstract.tex', 'abstract.english', 'abstract']:
         if field in result['highlight']:
-            print(field)
             value = result['highlight'][field]
             abstract_snippet = preview(value)
             result['preview']['abstract'] = abstract_snippet

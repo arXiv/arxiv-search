@@ -52,9 +52,9 @@ class TestSearch(TestCase):
             ),
             primary_classification=ClassificationList([
                 Classification(
-                    group='physics',
-                    archive='physics',
-                    category='hep-th'
+                    group={'id': 'physics'},
+                    archive={'id': 'physics'},
+                    category={'id': 'hep-th'}
                 )
             ]),
             terms=FieldedSearchList([
