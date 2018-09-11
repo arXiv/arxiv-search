@@ -3,13 +3,13 @@
   .content .arxiv-result p {
     margin-bottom: 0.25em; }
   .content .arxiv-result span.tag {
-    height: 1.65em; }
+    height: 1.25rem; }
   .content .arxiv-result .list-title {
     font-size: 1.05em; }
 
 .search-hit {
-  color: #287916;
-  background-color: #EEFFE8;
+  color: #287916 !important;
+  background-color: #EEFFE8 !important;
   font-weight: bold; }
 
 /* may want to move this section up to baseui */
@@ -69,6 +69,9 @@
   overflow: hidden;
   padding: 0;
   position: absolute; }
+
+.is-datefield {
+  max-width: 8rem; }
 
 /* TODO fold into base as an extension of bulma's default has-addons class */
 .field.has-addons-tablet .control:not(:last-child) {

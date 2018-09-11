@@ -31,3 +31,4 @@ def process_stream(duration: Optional[int] = None) -> None:
     # integrations with metadata service, search index.
     agent.process_stream(MetadataRecordProcessor, app.config,
                          duration=duration)
+

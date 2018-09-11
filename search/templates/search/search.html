@@ -11,7 +11,14 @@
 {% endblock title %}
 
 {% block within_content %}
-  <form method="GET" action="{{ url_for('ui.search') }}" {% if not query and not results %} class="breathe-vertical" {% endif %} aria-role="search">
+  <form method="GET" action="{{ url_for('ui.search', archives=archives) }}" {% if not query and not results %} class="breathe-vertical" {% endif %} aria-role="search">
+    {% if archives %}
+      Searching in archive{% if archives|length > 1 %}s{% endif %} <strong>{{ archives|join(", ") }}</strong>. <a href="{{ url_for('ui.search') }}?{{ current_url_params() }}">Search in all archives.</a>
+    {% endif %}
+    
+    {% if has_classic_format %}
+      {{ search_macros.show_classic_author_search() }}
+    {% endif %}
     <div class="field has-addons-tablet">
       <div class="control is-expanded">
         <label for="query" class="hidden-label">Search term or terms</label>
@@ -36,6 +43,15 @@
           <button class="button is-link is-medium">Search</button>
       </div>
     </div>
+    <div class="field">
+      <div class="control is-size-7">
+        {% for subfield in form.abstracts %}
+        <label class="radio">
+          {{ subfield }} {{ subfield.label.text }}
+        </label>
+        {% endfor %}
+      </div>
+    </div>
     <div class="is-clearfix" style="height: 2.5em"> {# TODO - adjust this layout so that it matches across all forms less awkwardly #}
       <div class="is-pulled-right">
         {% if query %}
@@ -55,44 +71,12 @@
         Sorry, your query for <span class="is-warning">{{ query.search_field }}: {{ query.value }}</span> produced no results.
       </p>
     {% endif %}
-    <div class="box">
-      <h2 class="title is-5">Tips</h2>
-      <p class="title is-6">Wildcards:</p>
-        <ul>
-         <li>Use ? to replace a single character or * to replace any number of characters.</li>
-         <li>Can be used in any field, but not in the first character position. See Journal References tips for exceptions.</li>
-        </ul>
-      <p class="title is-6">Expressions:</p>
-        <ul>
-           <li>TeX expressions can be searched, enclosed in single $ characters.</li>
-        </ul>
-      <p class="title is-6">Phrases:</p>
-        <ul>
-          <li>Enclose phrases in double quotes for exact matches in title, abstract, and comments.</li>
-        </ul>
-      <p class="title is-6">Authors:</p>
-        <ul>
-          <li>Diacritic character variants are automatically searched in the Author(s) field.</li>
-          <li>To search multiple authors in the same Author(s) field, separate author names with a ; (semicolon).</li>
-          <li>Author names enclosed in quotes will be searched literally - exact matches only will be displayed.</li>
-        </ul>
-      <p class="title is-6">Dates:</p>
-        <ul>
-          <li>Sorting by announcement date will use the year and month the <em>original version</em> (v1) of the paper was announced.</li>
-          <li>Sorting by submission date will use the year, month and day the <em>latest version</em> of the paper was submitted.</li>
-        </ul>
-      <p class="title is-6">Journal References:</p>
-        <ul>
-          <li>If a journal reference search contains a wildcard, matches will be made using wildcard matching as expected. For example, <strong>math*</strong> will match <em>math</em>, <em>maths</em>, <em>mathematics</em>.</li>
-          <li>If a journal reference search does <strong>not</strong> contain a wildcard, only exact phrases entered will be matched. For example, <strong>math</strong> would match <em>math</em> or <em>math and science</em> but not <em>maths</em> or <em>mathematics</em>.</li>
-          <li>All journal reference searches that do not contain a wildcard are literal searches: a search for <strong>Physica A</strong> will match all papers with journal references containing <em>Physica A</em>, but a search for <strong>Physica A, 245 (1997) 181</strong> will only return the paper with journal reference <em>Physica A, 245 (1997) 181</em>.</li>
-        </ul>
-    </div>
+    {{ search_macros.help_tips() }}
   {% endif %}
 
   {% if results %}
       {{ search_macros.size_and_order(form, url_for('ui.search')) }}
-      {{ search_macros.search_results(form, results, metadata, external_url, url_for_page, url_for_author_search, is_current) }}
+      {{ search_macros.search_results(form, results, metadata, external_url, url_for_page, url_for_author_search, is_current, query.hide_abstracts) }}
   {% endif %}
 
 {% endblock %}

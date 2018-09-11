@@ -1,6 +1,7 @@
 {%- extends "base/base.html" %}
 
 {% block addl_head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-tooltip.min.css')}}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css')}}" />
 
   <script
@@ -27,7 +28,8 @@
     	},
       fieldValues: {
         "components": ["16000"],  // Search component.
-        "versions": ["14108"]  // Release search-0.1
+        "versions": ["14134"],  // Release search-0.4
+        "customfield_11401": window.location.href
       }
     };
     </script>
@@ -35,10 +37,15 @@
 {% endblock addl_head %}
 
 {% block content %}
-  <div class="is-pulled-right">
-    <button class="button is-small" id="feedback-button">Feedback?</button>
+  <div class="level is-marginless">
+    <div class="level-left">
+      <h1 class="title is-clearfix">{% block title %}Search{% endblock title %}</h1>
+    </div>
+    <div class="level-right">
+      <span class="help" style="display: inline-block;"><a href="{{ config.RELEASE_NOTES_URL }}">{{ config.RELEASE_NOTES_TEXT }}</a>&nbsp;&nbsp;</span>
+      <button class="button is-small" id="feedback-button">Feedback?</button>
+    </div>
   </div>
-  <h1 class="title is-clearfix">{% block title %}Search{% endblock title %}</h1>
     <content>
       {% block within_content %}
         Specific results here

@@ -15,11 +15,14 @@ class TestTransformMetdata(TestCase):
         """Field ``id`` is populated from ``paper_id``."""
         meta = DocMeta(**{'paper_id': '1234.56789'})
         doc = transform.to_search_document(meta)
-        self.assertEqual(doc.id, '1234.56789')
+        self.assertEqual(doc.id, '1234.56789v1')
 
     def test_abstract(self):
-        """Field ``abstract`` is populated from ``abstract``."""
-        meta = DocMeta(**{'paper_id': '1234.56789', 'abstract': 'abstract!'})
+        """Field ``abstract`` is populated from ``abstract_utf8``."""
+        meta = DocMeta(**{
+            'paper_id': '1234.56789',
+            'abstract_utf8': 'abstract!'
+        })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.abstract, 'abstract!')
 
@@ -35,12 +38,12 @@ class TestTransformMetdata(TestCase):
             ]
         })
         doc = transform.to_search_document(meta)
-        self.assertEqual(doc.authors[0]['first_name'], 'B Ivan')
+        self.assertEqual(doc.authors[0]['first_name'], 'B. Ivan')
         self.assertEqual(doc.authors[0]['last_name'], 'Dole')
-        self.assertEqual(doc.authors[0]['full_name'], 'B Ivan Dole',
+        self.assertEqual(doc.authors[0]['full_name'], 'B. Ivan Dole',
                          "full_name should be generated from first_name and"
                          " last_name")
-        self.assertEqual(doc.authors[0]['initials'], ["B", "I"],
+        self.assertEqual(doc.authors[0]['initials'], "B I",
                          "initials should be generated from first name")
 
     def test_authors_freeform(self):
@@ -64,12 +67,12 @@ class TestTransformMetdata(TestCase):
             ]
         })
         doc = transform.to_search_document(meta)
-        self.assertEqual(doc.owners[0]['first_name'], 'B Ivan')
+        self.assertEqual(doc.owners[0]['first_name'], 'B. Ivan')
         self.assertEqual(doc.owners[0]['last_name'], 'Dole')
-        self.assertEqual(doc.owners[0]['full_name'], 'B Ivan Dole',
+        self.assertEqual(doc.owners[0]['full_name'], 'B. Ivan Dole',
                          "full_name should be generated from first_name and"
                          " last_name")
-        self.assertEqual(doc.owners[0]['initials'], ["B", "I"],
+        self.assertEqual(doc.owners[0]['initials'], "B I",
                          "initials should be generated from first name")
 
     def test_submitted_date(self):
@@ -213,22 +216,22 @@ class TestTransformMetdata(TestCase):
                          meta.secondary_classification)
 
     def test_title(self):
-        """Field ``title`` is populated from ``title``."""
+        """Field ``title`` is populated from ``title_utf8``."""
         meta = DocMeta(**{
             'paper_id': '1234.56789',
-            'title': 'foo title'
+            'title_utf8': 'foo title'
         })
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.title, 'foo title')
 
     def test_title_utf8(self):
-        """Field ``title_utf8`` is populated from ``title_utf8``."""
+        """Field ``title`` is populated from ``title_utf8``."""
         meta = DocMeta(**{
             'paper_id': '1234.56789',
             'title_utf8': 'foö title'
         })
         doc = transform.to_search_document(meta)
-        self.assertEqual(doc.title_utf8, 'foö title')
+        self.assertEqual(doc.title, 'foö title')
 
     def test_source(self):
         """Field ``source`` is populated from ``source``."""
@@ -308,14 +311,14 @@ class TestTransformMetdata(TestCase):
         doc = transform.to_search_document(meta)
         self.assertEqual(doc.acm_class, ["F.4.1", "D.2.4"])
 
-    def test_metadata_id(self):
+    def test_doi(self):
         """Field ``doi`` is populated from ``doi``."""
         meta = DocMeta(**{
             'paper_id': '1234.56789',
             'doi': '10.1103/PhysRevD.76.104043'
         })
         doc = transform.to_search_document(meta)
-        self.assertEqual(doc.doi, '10.1103/PhysRevD.76.104043')
+        self.assertEqual(doc.doi, ['10.1103/PhysRevD.76.104043'])
 
     def test_metadata_id(self):
         """Field ``comments`` is populated from ``comments_utf8``."""
@@ -353,7 +356,7 @@ class TestTransformBulkDocmeta(TestCase):
             if doc.version == 2:
                 self.assertEqual(doc.latest, f"{doc.paper_id}v2")
                 self.assertTrue(doc.is_current)
-                self.assertEqual(doc.id, doc.paper_id)
+                self.assertEqual(doc.id, doc.paper_id_v)
             else:
                 self.assertFalse(doc.is_current)
                 self.assertEqual(doc.id, doc.paper_id_v)

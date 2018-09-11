@@ -7,17 +7,19 @@ to generate form HTML, validate request parameters, and produce informative
 error messages for the user.
 """
 
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, Optional, List
 
 from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
+from werkzeug import MultiDict, ImmutableMultiDict
 from flask import url_for
 
-from arxiv import status, identifier
+from arxiv import status, identifier, taxonomy
 
 from arxiv.base import logging
 from search.services import index, fulltext, metadata
-from search.domain import Query, SimpleQuery, asdict
-from search.controllers.util import paginate
+from search.domain import Query, SimpleQuery, asdict, Classification, \
+    ClassificationList
+from search.controllers.util import paginate, catch_underscore_syntax
 
 from .forms import SimpleSearchForm
 # from search.routes.ui import external_url_builder
@@ -27,7 +29,8 @@ logger = logging.getLogger(__name__)
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
 
-def search(request_params: dict) -> Response:
+def search(request_params: MultiDict,
+           archives: Optional[List[str]] = None) -> Response:
     """
     Perform a simple search.
 
@@ -39,7 +42,9 @@ def search(request_params: dict) -> Response:
 
     Parameters
     ----------
-    request_params : dict
+    request_params : :class:`.MultiDict`
+    archives : list
+        A list of archives within which the search should be performed.
 
     Returns
     -------
@@ -57,6 +62,14 @@ def search(request_params: dict) -> Response:
         unexpected problem executing the query.
 
     """
+    if archives is not None and len(archives) == 0:
+        raise NotFound('No such archive')
+
+    # We may need to intervene on the request parameters, so we'll
+    # reinstantiate as a mutable MultiDict.
+    if isinstance(request_params, ImmutableMultiDict):
+        request_params = MultiDict(request_params.items(multi=True))
+
     logger.debug('simple search form')
     response_data = {}  # type: Dict[str, Any]
 
@@ -78,24 +91,45 @@ def search(request_params: dict) -> Response:
     if arxiv_id:
         return {}, status.HTTP_301_MOVED_PERMANENTLY,\
             {'Location': f'https://arxiv.org/abs/{arxiv_id}'}
-        # TODO: use URL constructor to generate URL
-        #{'Location': external_url_builder('browse', 'abstract', arxiv_id=arxiv_id)}
+
+    # Here we intervene on the user's query to look for holdouts from the
+    # classic search system's author indexing syntax (surname_f). We
+    # rewrite with a comma, and show a warning to the user about the
+    # change.
+    response_data['has_classic_format'] = False
+    if 'searchtype' in request_params and 'query' in request_params:
+        if request_params['searchtype'] in ['author', 'all']:
+            _query, _classic = catch_underscore_syntax(request_params['query'])
+            response_data['has_classic_format'] = _classic
+            request_params['query'] = _query
 
     # Fall back to form-based search.
     form = SimpleSearchForm(request_params)
 
-    # Temporary workaround to support classic help search
-    if form.query.data and form.searchtype.data == 'help':
-        return {}, status.HTTP_301_MOVED_PERMANENTLY,\
-            {'Location': 'https://arxiv.org/help/search?method=and'
-             f'&format=builtin-short&sort=score&words={form.query.data}'}
+    if form.query.data:
+        # Temporary workaround to support classic help search
+        if form.searchtype.data == 'help':
+            return {}, status.HTTP_301_MOVED_PERMANENTLY,\
+                {'Location': 'https://arxiv.org/help/search?method=and'
+                 f'&format=builtin-short&sort=score&words={form.query.data}'}
+
+        # Support classic "expeirmental" search
+        elif form.searchtype.data == 'full_text':
+            return {}, status.HTTP_301_MOVED_PERMANENTLY,\
+                {'Location': 'http://search.arxiv.org:8081/'
+                             f'?in=&query={form.query.data}'}
 
     q: Optional[Query]
     if form.validate():
         logger.debug('form is valid')
         q = _query_from_form(form)
+
+        if archives is not None:
+            q = _update_with_archives(q, archives)
+
         # Pagination is handled outside of the form.
         q = paginate(q, request_params)
+
         try:
             # Execute the search. We'll use the results directly in
             #  template rendering, so they get added directly to the
@@ -120,6 +154,10 @@ def search(request_params: dict) -> Response:
                 "search again.  If this problem persists, please report it to "
                 "help@arxiv.org."
             ) from e
+
+        except Exception as e:
+            logger.error('Unhandled exception: %s', str(e))
+            raise
     else:
         logger.debug('form is invalid: %s', str(form.errors))
         if 'order' in form.errors or 'size' in form.errors:
@@ -190,6 +228,26 @@ def retrieve_document(document_id: str) -> Response:
     return {'document': result}, status.HTTP_200_OK, {}
 
 
+def _update_with_archives(q: SimpleQuery, archives: List[str]) -> SimpleQuery:
+    """
+    Search within a group or archive.
+
+    Parameters
+    ----------
+    q : :class:`SimpleQuery`
+    groups_or_archives : str
+
+    Returns
+    -------
+    :class:`SimpleQuery`
+    """
+    logger.debug('Search within %s', archives)
+    q.primary_classification = ClassificationList([
+        Classification(archive=archive) for archive in archives  # type: ignore
+    ])
+    return q
+
+
 def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:
     """
     Generate a :class:`.SimpleQuery` from valid :class:`.SimpleSearchForm`.
@@ -207,6 +265,7 @@ def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:
     q = SimpleQuery()
     q.search_field = form.searchtype.data
     q.value = form.query.data
+    q.hide_abstracts = form.abstracts.data == form.HIDE_ABSTRACTS
     order = form.order.data
     if order and order != 'None':
         q.order = order

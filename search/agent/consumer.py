@@ -2,6 +2,7 @@
 
 import json
 import os
+import time
 from typing import List, Any, Optional, Dict
 from arxiv.base import logging
 from search.services import metadata, index
@@ -29,6 +30,7 @@ class MetadataRecordProcessor(BaseConsumer):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize exception counter."""
+        self.sleep: float = kwargs.pop('sleep', 0.1)
         super(MetadataRecordProcessor, self).__init__(*args, **kwargs)  # type: ignore
         self._error_count = 0
 
@@ -294,6 +296,7 @@ class MetadataRecordProcessor(BaseConsumer):
             documents failed.
 
         """
+        time.sleep(self.sleep)
         logger.info(f'Processing record {record["SequenceNumber"]}')
         if self._error_count > self.MAX_ERRORS:
             raise IndexingFailed('Too many errors')

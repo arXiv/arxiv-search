@@ -1,258 +1,364 @@
-"""Functions for preparing a :class:`.Search` (prior to execution)."""
+"""
+Functions for preparing a :class:`.Search` (prior to execution).
 
-from typing import Any
+The primary public object is ``SEARCH_FIELDS``, which maps :class:`.Query`
+fields to query-building functions in the module.
+
+See :func:`._query_all_fields` for information on how results are scored.
+"""
+
+from typing import Any, List, Tuple, Callable, Dict, Optional
 from functools import reduce, wraps
-from operator import ior
+from operator import ior, iand
+import re
+from datetime import datetime
+from string import punctuation
 
 from elasticsearch_dsl import Search, Q, SF
-from elasticsearch_dsl.query import Range, Match, Bool
 
-from search.domain import SimpleQuery, Query, AdvancedQuery, Classification
-from .util import strip_tex, Q_, HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE, \
-    is_tex_query
-from .authors import construct_author_query, construct_author_id_query
+from arxiv.base import logging
 
+from search.domain import SimpleQuery, Query, AdvancedQuery, Classification, \
+    ClassificationList
+from .util import strip_tex, Q_, is_tex_query, is_literal_query, escape, \
+    wildcard_escape, remove_single_characters, has_wildcard, is_old_papernum, \
+    parse_date, parse_date_partial
 
-ALL_SEARCH_FIELDS = ['author', 'title', 'abstract', 'comments', 'journal_ref',
-                     'acm_class', 'msc_class', 'report_num', 'paper_id', 'doi',
-                     'orcid', 'author_id']
-TEX_FIELDS = ['title', 'abstract', 'comments']
+from .highlighting import HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
+from .authors import author_query, author_id_query, orcid_query
 
+logger = logging.getLogger(__name__)
 
-def _get_sort_parameters(query: Query) -> list:
-    if not query.order:
-        return ['_score', '_doc']
-    direction = '-' if query.order.startswith('-') else ''
-    return [query.order, f'{direction}paper_id_v']
+START_YEAR = 1991
+END_YEAR = datetime.now().year
 
 
-def _apply_sort(query: Query, search: Search) -> Search:
-    sort_params = _get_sort_parameters(query)
-    if sort_params is not None:
-        search = search.sort(*sort_params)
-    return search
+def _query_title(term: str, default_operator: str = 'AND') -> Q:
+    if is_tex_query(term):
+        return Q("match", **{f'title.tex': {'query': term}})
+    fields = ['title.english']
+    if is_literal_query(term):
+        fields += ['title']
+    return Q("query_string", fields=fields, default_operator=default_operator,
+             allow_leading_wildcard=False, query=escape(term))
 
 
-def _classification_to_q(field: str, classification: Classification) -> Match:
-    q = Q()
-    if classification.group:
-        field_name = '%s__group__id' % field
-        q &= Q('match', **{field_name: classification.group})
-    if classification.archive:
-        field_name = '%s__archive__id' % field
-        q &= Q('match', **{field_name: classification.archive})
-    if classification.category:
-        field_name = '%s__category__id' % field
-        q &= Q('match', **{field_name: classification.category})
-    return q    # Q('nested', path=field, query=q)
+def _query_abstract(term: str, default_operator: str = 'AND') -> Q:
+    fields = ["abstract.english"]
+    if is_literal_query(term):
+        fields += ["abstract"]
+    return Q("query_string", fields=fields, default_operator=default_operator,
+             allow_leading_wildcard=False, query=escape(term),
+             _name="abstract")
 
 
-def _classifications_to_q(query: AdvancedQuery) -> Match:
-    if not query.primary_classification:
-        return Q()
-    q = _classification_to_q('primary_classification',
-                             query.primary_classification[0])
-    if len(query.primary_classification) > 1:
-        for classification in query.primary_classification[1:]:
-            q |= _classification_to_q('primary_classification', classification)
+def _query_comments(term: str, default_operator: str = 'AND') -> Q:
+    return Q("query_string", fields=["comments"],
+             default_operator=default_operator,
+             allow_leading_wildcard=False, query=escape(term))
+
+
+def _tex_query(field: str, term: str, operator: str = 'and') -> Q:
+    return Q("match",
+             **{f'{field}.tex': {'query': term, 'operator': operator}})
+
+
+def _query_journal_ref(term: str, boost: int = 1, operator: str = 'and') -> Q:
+    return Q("query_string", fields=["journal_ref"], default_operator=operator,
+             allow_leading_wildcard=False, query=escape(term))
+
+
+def _query_report_num(term: str, boost: int = 1, operator: str = 'and') -> Q:
+    return Q("query_string", fields=["report_num"], default_operator=operator,
+             allow_leading_wildcard=False, query=escape(term))
+
+
+def _query_acm_class(term: str, operator: str = 'and') -> Q:
+    if has_wildcard(term):
+        return Q("wildcard", acm_class=term)
+    return Q("match", acm_class={"query": term, "operator": operator})
+
+
+def _query_msc_class(term: str, operator: str = 'and') -> Q:
+    if has_wildcard(term):
+        return Q("wildcard", msc_class=term)
+    return Q("match", msc_class={"query": term, "operator": operator})
+
+
+def _query_doi(term: str, operator: str = 'and') -> Q:
+    value, wildcard = wildcard_escape(term)
+    if wildcard:
+        return Q('wildcard', doi={'value': term.lower()})
+    return Q('match', doi={'query': term, 'operator': operator})
+
+
+def _query_announcement_date(term: str) -> Optional[Q]:
+    """
+    Query against the original announcement date.
+
+    If ``term`` looks like a year, will use a range search for all months in
+    that year. If it looks like a year-month combo, will match.
+    """
+    year_match = re.match(r'^([0-9]{4})$', term)    # Looks like a year.
+    if year_match and END_YEAR >= int(year_match.group(1)) >= START_YEAR:
+        _range = {'gte': f'{term}-01', 'lte': f'{term}-12'}
+        return Q('range', announced_date_first=_range)
+
+    month_match = re.match(r'^([0-9]{4})-([0-9]{2})$', term)    # yyyy-MM.
+    if month_match and END_YEAR >= int(month_match.group(1)) >= START_YEAR:
+        return Q('match', announced_date_first=term)
+    return None
+
+
+def _query_primary(term: str, operator: str = 'and') -> Q:
+    # In the 'or' case, we're basically just looking for hit highlighting
+    # after a match on the combined field. Since primary classification fields
+    # are keyword fields, they won't match the same way as the combined field
+    # (text). So we have to be a bit fuzzy here to get the highlight.
+    # TODO: in a future version, we should consider changes to the mappings
+    # to make this more straightforward.
+    if operator == 'or':
+        return reduce(ior, [(
+            Q("match", **{"primary_classification__category__id": {"query": part, "operator": operator}})
+            | Q("wildcard", **{"primary_classification.category.name": f"*{part}*"})
+            | Q("match", **{"primary_classification__archive__id": {"query": part, "operator": operator}})
+            | Q("wildcard", **{"primary_classification.archive.name": f"*{part}*"})
+        ) for part in term.split()])
+    return (
+        Q("match", **{"primary_classification__category__id": {"query": term, "operator": operator}})
+        | Q("match", **{"primary_classification__category__name": {"query": term, "operator": operator}})
+        | Q("match", **{"primary_classification__archive__id": {"query": term, "operator": operator}})
+        | Q("match", **{"primary_classification__archive__name": {"query": term, "operator": operator}})
+    )
+
+
+def _query_paper_id(term: str, operator: str = 'and') -> Q:
+    operator = operator.lower()
+    logger.debug(f'query paper ID with: {term}')
+    q = (Q_('match', 'paper_id', escape(term), operator=operator)
+         | Q_('match', 'paper_id_v', escape(term), operator=operator))
+    if is_old_papernum(term):
+        q |= Q('wildcard', paper_id=f'*/{term}')
     return q
 
 
-def _daterange_to_q(query: AdvancedQuery) -> Range:
-    if not query.date_range:
-        return Q()
-    params = {}
-    if query.date_range.start_date:
-        params["gte"] = query.date_range.start_date \
-            .strftime('%Y-%m-%dT%H:%M:%S%z')
-    if query.date_range.end_date:
-        params["lt"] = query.date_range.end_date\
-            .strftime('%Y-%m-%dT%H:%M:%S%z')
-    return Q('range', submitted_date=params)
+def _query_combined(term: str) -> Q:
+    # Only wildcards in literals should be escaped.
+    wildcard_escaped, has_wildcard = wildcard_escape(term)
+    query_term = (wildcard_escaped if has_wildcard else escape(term)).lower()
+
+    # All terms must match in the combined field.
+    return Q("query_string", fields=['combined'], default_operator='AND',
+             allow_leading_wildcard=False, query=query_term)
 
 
-def _field_term_to_q(field: str, term: str) -> Q:
-    """Generate a query fragment for a query on a specific field."""
-    # Searching with TeXisms in non-TeX-tokenized fields leads to
-    # spurious results and challenges with highlighting.
-    term_sans_tex = strip_tex(term).lower()
-    # These terms have fields for both TeX and English normalization.
-    if field in ['title', 'abstract']:
-        # Boost the TeX field, since these will be exact matches, and we
-        # prefer them to partial matches within TeXisms.
-        if is_tex_query(term):
-            return Q("match", **{f'{field}.tex': {'query': term, 'boost': 2}})
-        return (
-            Q("query_string", fields=[
-                field,
-                f'{field}_utf8',
-                f'{field}__english',
-                f'{field}_utf8__english'
-              ],
-              default_operator='AND',
-              analyze_wildcard=True,
-              allow_leading_wildcard=False,
-              query=term_sans_tex)
-        )
+def _query_all_fields(term: str) -> Q:
+    """
+    Construct a query against all fields.
 
-    # These terms have no additional fields.
-    elif field in ['comments']:
-        return Q("simple_query_string", fields=[field],
-                 query=term_sans_tex)
-    # These terms require a match_phrase search.
-    elif field in ['journal_ref', 'report_num']:
-        return Q_('match_phrase', field, term_sans_tex)
-    # These terms require a simple match.
-    elif field in ['acm_class', 'msc_class', 'doi']:
-        return Q_('match', field, term)
-    # Search both with and without version.
-    elif field == 'paper_id':
-        return (
-            Q_('match', 'paper_id', term_sans_tex)
-            | Q_('match', 'paper_id_v', term_sans_tex)
-        )
-    elif field in ['orcid', 'author_id']:
-        return construct_author_id_query(field, term)
-    elif field == 'author':
-        return construct_author_query(term_sans_tex)
-    return Q_("match", field, term)
+    The heart of the query is a `query_string` search against a "combined"
+    field, which contains tokens from all of the searchable metadata fields on
+    each paper. All tokens in the query must match in that combined field.
 
+    The reason that we do it this way, instead of combining queries across
+    multiple fields, is that:
 
-def _grouped_terms_to_q(term_pair: tuple) -> Q:
-    """Generate a :class:`.Q` from grouped terms."""
-    term_a_raw, operator, term_b_raw = term_pair
+    - To query in a term-centric way across fields (e.g. the `cross_fields`
+      query type for `query_string` or `multi_match` searches), all of those
+      fields must have the same analyzer. It's a drag to constrain analyzer
+      choice on individual fields, so this way we can do what we want with
+      individual fields but also support a consistent all-fields search that
+      behaves the way that users expect.
+    - Performing a disjunct search across all fields can't guarantee that all
+      terms match (if we use the disjunct operator within each field), and
+      can't handle queries that span fieds (if we use the conjunect operator
+      within each field).
 
-    if type(term_a_raw) is tuple:
-        term_a = _grouped_terms_to_q(term_a_raw)
-    else:
-        if term_a_raw.field == 'all':
-            q_ar = [_field_term_to_q(field, term_a_raw.term)
-                    for field in ALL_SEARCH_FIELDS]
-            term_a = reduce(ior, q_ar)
-        else:
-            term_a = _field_term_to_q(term_a_raw.field, term_a_raw.term)
+    In addition to the combined query, we also perform dijunct queries across
+    individual fields to generate field-specific hits, and to provide control
+    over scoring.
 
-    if type(term_b_raw) is tuple:
-        term_b = _grouped_terms_to_q(term_b_raw)
-    else:
-        if term_b_raw.field == 'all':
-            q_ar = [_field_term_to_q(field, term_b_raw.term)
-                    for field in ALL_SEARCH_FIELDS]
-            term_b = reduce(ior, q_ar)
-        else:
-            term_b = _field_term_to_q(term_b_raw.field, term_b_raw.term)
+    Weights are applied using :class:`.SF` (score functions). In the current
+    implementation, fields are given monotonically decreasing weights in the
+    order applied below. More complex score functions may be introduced, and
+    that should happen here.
 
-    if operator == 'OR':
-        return term_a | term_b
-    elif operator == 'AND':
-        return term_a & term_b
-    elif operator == 'NOT':
-        return term_a & ~term_b
-    else:
-        # TODO: Confirm proper exception.
-        raise TypeError("Invalid operator for terms")
+    Parameters
+    ----------
+    term : str
+        A query string.
 
+    Returns
+    -------
+    :class:`.Q`
+        A search-ready query part, including score functions.
 
-def _get_operator(obj: Any) -> str:
-    if type(obj) is tuple:
-        return _get_operator(obj[0])
-    return obj.operator     # type: ignore
+    """
+    # We only perform TeX queries on title and abstract.
+    if is_tex_query(term):
+        return _tex_query('title', term) | _tex_query('abstract', term)
+
+    match_all_fields = _query_combined(term)
+
+    # We include matches of any term in any field, so that we can highlight
+    # and score appropriately.
+    queries = [
+        _query_paper_id(term, operator='or'),
+        author_query(term, operator='or'),
+        _query_title(term, default_operator='or'),
+        _query_abstract(term, default_operator='or'),
+        _query_comments(term, default_operator='or'),
+        orcid_query(term, operator='or'),
+        author_id_query(term, operator='or'),
+        _query_doi(term, operator='or'),
+        _query_journal_ref(term, operator='or'),
+        _query_report_num(term, operator='or'),
+        _query_acm_class(term, operator='or'),
+        _query_msc_class(term, operator='or'),
+        _query_primary(term, operator='or')
+    ]
+
+    # If the whole query matches on a specific field, we should consider that
+    # responsive even if the query on the combined field does not respond.
+    match_individual_field = reduce(ior, [
+        _query_paper_id(term, operator='AND'),
+        author_query(term, operator='AND'),
+        _query_title(term, default_operator='and'),
+        _query_abstract(term, default_operator='and'),
+        _query_comments(term, default_operator='and'),
+        orcid_query(term, operator='and'),
+        author_id_query(term, operator='and'),
+        _query_doi(term, operator='and'),
+        _query_journal_ref(term, operator='and'),
+        _query_report_num(term, operator='and'),
+        _query_acm_class(term, operator='and'),
+        _query_msc_class(term, operator='and'),
+        _query_primary(term, operator='and')
+    ])
 
 
-def _group_terms(query: AdvancedQuery) -> tuple:
-    """Group fielded search terms into a set of nested tuples."""
-    terms = query.terms[:]
-    for operator in ['NOT', 'AND', 'OR']:
-        i = 0
-        while i < len(terms) - 1:
-            if _get_operator(terms[i+1]) == operator:
-                terms[i] = (terms[i], operator, terms[i+1])
-                terms.pop(i+1)
-                i -= 1
-            i += 1
-    assert len(terms) == 1
-    return terms[0]     # type: ignore
+    # It is possible that the query includes a date-related term, which we
+    # interpret as an announcement date of v1 of the paper. We currently
+    # support both "standard" `yyyy` or `yyyy-MM`` formats as well as a
+    # legacy format ``yyMM``.
+    #
+    # The general strategy here is to first attempt to match a date fragment
+    # using one the formats above, and split the query so that we can handle
+    # the date fragment and the remainder of the query separately. If we find
+    # something that looks like a date fragment, we perform the all-fields
+    # search on the remainder and use the fragment to build queries against the
+    # announcement-date of the original paper version.
+    date_fragment: Optional[str] = None
+    remainder: Optional[str] = None
+    try:
+        date_fragment, remainder = parse_date(term)
+    except ValueError:
+        pass
+
+    if date_fragment:
+        logger.debug('date: %s; remainder: %s', date_fragment, remainder)
+        match_date: Optional[Q] = None
+        match_date_partial: Optional[Q] = None
+        match_date_announced: Optional[Q] = None
+        match_dates: List[Q] = []
+        logger.debug('date_fragment: %s', date_fragment)
+
+        # Try to query using legacy yyMM date partial format.
+        date_partial = parse_date_partial(date_fragment)
+        logger.debug('date_partial: %s', date_partial)
+        if date_partial is not None:
+            match_date_partial = Q("term", announced_date_first=date_partial)
+            match_dates.append(match_date_partial)
+
+        # Also try using yyyy-MM and yyyy formats.
+        match_date_announced = _query_announcement_date(date_fragment)
+        if match_date_announced:
+            match_dates.append(match_date_announced)
+
+        # Build the composite announcement date query here, using the
+        # sub-queries based on "standard" and legay date formats.
+        if match_dates:
+            # The only way to know in the end whether the query matched on
+            # the announcement date is to wrap this in a top-level query and
+            # give it a ``_name``. This causes the ``_name`` to show up
+            # in the ``.meta.matched_queries`` property on the search result.
+            match_date = Q("bool", should=match_dates, minimum_should_match=1,
+                           _name="announced_date_first")
+            logger.debug('match date: %s', match_date)
+            queries.insert(0, match_date)
+
+        # Now join the announcement date query with the all-fields queries.
+        if match_date is not None:
+            if remainder:
+                match_remainder = _query_combined(remainder)
+                match_all_fields |= (match_remainder & match_date)
+
+                match_individual_sans_date = reduce(ior, [
+                    _query_paper_id(remainder, operator='AND'),
+                    author_query(remainder, operator='AND'),
+                    _query_title(remainder, default_operator='and'),
+                    _query_abstract(remainder, default_operator='and'),
+                    _query_comments(remainder, default_operator='and'),
+                    orcid_query(remainder, operator='and'),
+                    author_id_query(remainder, operator='and'),
+                    _query_doi(remainder, operator='and'),
+                    _query_journal_ref(remainder, operator='and'),
+                    _query_report_num(remainder, operator='and'),
+                    _query_acm_class(remainder, operator='and'),
+                    _query_msc_class(remainder, operator='and'),
+                    _query_primary(remainder, operator='and')
+                ])
+                match_individual_field = Q('bool', should=[
+                        match_individual_field,
+                        match_individual_sans_date & match_date
+                    ], minimum_should_match=1)
+            else:
+                match_all_fields = Q('bool',
+                                     should=[match_all_fields, match_date],
+                                     minimum_should_match=1)
+
+    query = (match_all_fields | match_individual_field)
+    query &= Q("bool", should=queries)  # Partial matches across fields.
+    scores = [SF({'weight': i + 1, 'filter': q})
+              for i, q in enumerate(queries[::-1])]
+    return Q('function_score', query=query, score_mode="sum", functions=scores,
+             boost_mode='multiply')
 
 
-def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
-    if len(query.terms) == 1:
-        term = query.terms[0]
+def limit_by_classification(classifications: ClassificationList) -> Q:
+    """Generate a :class:`Q` to limit a query by by classification."""
+    def _to_q(classification: Classification) -> Q:
+        _qs = []
+        if classification.group:
+            _qs.append(
+                Q("match", **{"primary_classification__group__id": {"query": classification.group}})
+            )
+        if classification.archive:
+            _qs.append(
+                Q("match", **{"primary_classification__archive__id": {"query": classification.archive}})
+            )
+        if classification.category:
+            _qs.append(
+                Q("match", **{"primary_classification__category__id": {"query": classification.category}})
+            )
+        return reduce(iand, _qs)
 
-        if term.field == 'all':
-            q_ar = [_field_term_to_q(field, term.term)
-                    for field in ALL_SEARCH_FIELDS]
-            q = reduce(ior, q_ar)
-        else:
-            q = _field_term_to_q(term.field, term.term)
-
-        return q
-    elif len(query.terms) > 1:
-        return _grouped_terms_to_q(_group_terms(query))
-    return Q('match_all')
-
-
-def simple(search: Search, query: SimpleQuery) -> Search:
-    """Prepare a :class:`.Search` from a :class:`.SimpleQuery`."""
-    search = search.filter("term", is_current=True)
-    if query.search_field == 'all':
-        use = TEX_FIELDS if is_tex_query(query.value) else ALL_SEARCH_FIELDS
-        q_ar = [_field_term_to_q(field, query.value)
-                for field in use]
-        q = reduce(ior, q_ar)
-    else:
-        q = _field_term_to_q(query.search_field, query.value)
-    search = search.query(q)
-    search = _apply_sort(query, search)
-    return search
+    return reduce(ior, [_to_q(clsn) for clsn in classifications])
 
 
-def advanced(search: Search, query: AdvancedQuery) -> Search:
-    """Prepare a :class:`.Search` from a :class:`.AdvancedQuery`."""
-    # Classification and date are treated as filters; this foreshadows the
-    # behavior of faceted search.
-    if not query.include_older_versions:
-        search = search.filter("term", is_current=True)
-    q = (
-        _fielded_terms_to_q(query)
-        & _daterange_to_q(query)
-        & _classifications_to_q(query)
-    )
-    if query.order is None or query.order == 'relevance':
-        # Boost the current version heavily when sorting by relevance.
-        q = Q('function_score', query=q, boost=5, boost_mode="multiply",
-              score_mode="max",
-              functions=[
-                SF({'weight': 5, 'filter': Q('term', is_current=True)})
-              ])
-    search = _apply_sort(query, search)
-    search = search.query(q)
-    return search
 
-
-def highlight(search: Search) -> Search:
-    """Apply hit highlighting to the search, before execution."""
-    # Highlight class .search-hit defined in search.sass
-    search = search.highlight_options(
-        pre_tags=[HIGHLIGHT_TAG_OPEN],
-        post_tags=[HIGHLIGHT_TAG_CLOSE]
-    )
-    search = search.highlight('title', type='plain', number_of_fragments=0)
-    search = search.highlight('title.tex', type='plain', number_of_fragments=0)
-    search = search.highlight('title_utf8', type='plain',
-                              number_of_fragments=0)
-
-    search = search.highlight('comments', number_of_fragments=0)
-    # Highlight any field the name of which begins with "author".
-    search = search.highlight('author*')
-    search = search.highlight('journal_ref', type='plain')
-    search = search.highlight('acm_class', number_of_fragments=0)
-    search = search.highlight('msc_class', number_of_fragments=0)
-    search = search.highlight('doi', type='plain')
-    search = search.highlight('report_num', type='plain')
-
-    # Setting number_of_fragments to 0 tells ES to highlight the entire
-    # abstract.
-    search = search.highlight('abstract', type='plain', number_of_fragments=0)
-    search = search.highlight('abstract.tex', type='plain',
-                              number_of_fragments=0)
-    return search
+SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = dict([
+    ('author', author_query),
+    ('title', _query_title),
+    ('abstract', _query_abstract),
+    ('comments', _query_comments),
+    ('journal_ref', _query_journal_ref),
+    ('report_num', _query_report_num),
+    ('acm_class', _query_acm_class),
+    ('msc_class', _query_msc_class),
+    ('doi', _query_doi),
+    ('paper_id', _query_paper_id),
+    ('orcid', orcid_query),
+    ('author_id', author_id_query),
+    ('all', _query_all_fields)
+])

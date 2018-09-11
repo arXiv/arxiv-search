@@ -290,6 +290,43 @@ class TestAdvancedSearchForm(TestCase):
         form = AdvancedSearchForm(data)
         self.assertTrue(form.validate())
 
+    # ARXIVNG-997
+    def test_end_date_bounding(self):
+        """If a user selects an end date, it must be bounded correctly."""
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'foo',
+            'date-filter_by': 'date_range',
+            'date-to_date': '2012'
+        })
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+        self.assertEqual(form.date.to_date.data,
+                         date(year=2012, month=12, day=31))
+
+        data['date-to_date'] = '2012-02'
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+        self.assertEqual(form.date.to_date.data,
+                         date(year=2012, month=2, day=29))
+
+        data['date-to_date'] = '2016-06'
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+        self.assertEqual(form.date.to_date.data,
+                         date(year=2016, month=6, day=30))
+
+        data['date-to_date'] = '2016-06-30'
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate())
+        self.assertEqual(form.date.to_date.data,
+                         date(year=2016, month=6, day=30))
+
+        data['date-to_date'] = '2100-02'
+        form = AdvancedSearchForm(data)
+        self.assertFalse(form.validate())
+
     def test_year_must_be_after_1990(self):
         """If the user selects a specific year, it must be after 1990."""
         data = MultiDict({
@@ -324,6 +361,28 @@ class TestAdvancedSearchForm(TestCase):
         self.assertEqual(form.terms[0].term.data, 'foo',
                          "Whitespace should be stripped.")
 
+    def test_querystring_has_unbalanced_quotes(self):
+        """Querystring has an odd number of quote characters."""
+        data = MultiDict({
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': '"rhubarb'
+        })
+        form = AdvancedSearchForm(data)
+        self.assertFalse(form.validate(), "Form should be invalid")
+
+        data['terms-0-term'] = '"rhubarb"'
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid")
+
+        data['terms-0-term'] = '"rhubarb" "pie'
+        form = AdvancedSearchForm(data)
+        self.assertFalse(form.validate(), "Form should be invalid")
+
+        data['terms-0-term'] = '"rhubarb" "pie"'
+        form = AdvancedSearchForm(data)
+        self.assertTrue(form.validate(), "Form should be valid")
+
 
 class TestUpdatequeryWithClassification(TestCase):
     """:func:`.advanced._update_query_with_classification` adds classfnxn."""
@@ -337,7 +396,6 @@ class TestUpdatequeryWithClassification(TestCase):
         self.assertEqual(len(q.primary_classification), 1)
         self.assertIsInstance(q.primary_classification[0], Classification)
         self.assertEqual(q.primary_classification[0].archive, 'cs')
-        self.assertEqual(q.primary_classification[0].group, 'cs')
 
     def test_multiple_classifications_are_selected(self):
         """Selected classifications are added to the query."""
@@ -358,7 +416,7 @@ class TestUpdatequeryWithClassification(TestCase):
         self.assertEqual(len(q.primary_classification), 1)
         self.assertIsInstance(q.primary_classification[0], Classification)
         self.assertIsNone(q.primary_classification[0].archive)
-        self.assertEqual(q.primary_classification[0].group, 'physics')
+        self.assertEqual(q.primary_classification[0].group, 'grp_physics')
 
     def test_physics_is_selected_specific_archive(self):
         """The physic group and specified archive are added to the query."""
@@ -369,7 +427,7 @@ class TestUpdatequeryWithClassification(TestCase):
         self.assertEqual(len(q.primary_classification), 1)
         self.assertIsInstance(q.primary_classification[0], Classification)
         self.assertEqual(q.primary_classification[0].archive, 'hep-ex')
-        self.assertEqual(q.primary_classification[0].group, 'physics')
+        self.assertEqual(q.primary_classification[0].group, 'grp_physics')
 
     def test_physics_is_selected_specific_archive_plus_other_groups(self):
         """The physics group and specified archive are added to the query."""
@@ -437,7 +495,7 @@ class TestUpdateQueryWithDates(TestCase):
 
     def test_past_12_is_selected(self):
         """Query selects the past twelve months."""
-        date_data = {'filter_by': 'past_12'}
+        date_data = {'filter_by': 'past_12', 'date_type': 'submitted_date'}
         q = advanced._update_query_with_dates(Query(), date_data)
         self.assertIsInstance(q, Query)
         self.assertIsInstance(q.date_range, DateRange)
@@ -450,7 +508,7 @@ class TestUpdateQueryWithDates(TestCase):
 
     def test_all_dates_is_selected(self):
         """Query does not select on date."""
-        date_data = {'filter_by': 'all_dates'}
+        date_data = {'filter_by': 'all_dates', 'date_type': 'submitted_date'}
         q = advanced._update_query_with_dates(AdvancedQuery(), date_data)
         self.assertIsInstance(q, AdvancedQuery)
         self.assertIsNone(q.date_range)
@@ -459,7 +517,8 @@ class TestUpdateQueryWithDates(TestCase):
         """Start and end dates are set, one year apart."""
         date_data = {
             'filter_by': 'specific_year',
-            'year': date(year=1999, month=1, day=1)
+            'year': date(year=1999, month=1, day=1),
+            'date_type': 'submitted_date'
         }
         q = advanced._update_query_with_dates(AdvancedQuery(), date_data)
         self.assertIsInstance(q, AdvancedQuery)
@@ -476,6 +535,7 @@ class TestUpdateQueryWithDates(TestCase):
             'filter_by': 'date_range',
             'from_date': from_date,
             'to_date': to_date,
+            'date_type': 'submitted_date'
         }
         q = advanced._update_query_with_dates(AdvancedQuery(), date_data)
         self.assertIsInstance(q, AdvancedQuery)
@@ -521,3 +581,97 @@ class TestPaginationParametersAreFunky(TestCase):
         })
         with self.assertRaises(BadRequest):
             advanced.search(request_data)
+
+
+class TestClassicAuthorSyntaxIsIntercepted(TestCase):
+    """
+    The user may have entered an author query using `surname_f` syntax.
+
+    This is an artefact of the classic search system, and not intended to be
+    supported. Nevertheless, users have become accustomed to this syntax. We
+    therefore rewrite the query using a comma, and show the user a warning
+    about the syntax change.
+    """
+
+    @mock.patch('search.controllers.advanced.index')
+    def test_all_fields_search_contains_classic_syntax(self, mock_index):
+        """User has entered a `surname_f` query in an all-fields term."""
+        request_data = MultiDict({
+            'advanced': True,
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'all',
+            'terms-0-term': 'franklin_r',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = advanced.search(request_data)
+        self.assertEqual(data['query'].terms[0].term, "franklin, r",
+                         "The query should be rewritten.")
+        self.assertTrue(data['has_classic_format'],
+                        "A flag denoting the syntax interception should be set"
+                        " in the response context, so that a message may be"
+                        " rendered in the template.")
+
+    @mock.patch('search.controllers.advanced.index')
+    def test_author_search_contains_classic_syntax(self, mock_index):
+        """User has entered a `surname_f` query in an author search."""
+        request_data = MultiDict({
+            'advanced': True,
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'author',
+            'terms-0-term': 'franklin_r',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = advanced.search(request_data)
+        self.assertEqual(data['query'].terms[0].term, "franklin, r",
+                         "The query should be rewritten.")
+        self.assertTrue(data['has_classic_format'],
+                        "A flag denoting the syntax interception should be set"
+                        " in the response context, so that a message may be"
+                        " rendered in the template.")
+
+    @mock.patch('search.controllers.advanced.index')
+    def test_all_fields_search_multiple_classic_syntax(self, mock_index):
+        """User has entered a classic query with multiple authors."""
+        request_data = MultiDict({
+            'advanced': True,
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'all',
+            'terms-0-term': 'j franklin_r hawking_s',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = advanced.search(request_data)
+        self.assertEqual(data['query'].terms[0].term,
+                         "j franklin, r; hawking, s",
+                         "The query should be rewritten.")
+        self.assertTrue(data['has_classic_format'],
+                        "A flag denoting the syntax interception should be set"
+                        " in the response context, so that a message may be"
+                        " rendered in the template.")
+
+    @mock.patch('search.controllers.advanced.index')
+    def test_title_search_contains_classic_syntax(self, mock_index):
+        """User has entered a `surname_f` query in a title search."""
+        request_data = MultiDict({
+            'advanced': True,
+            'terms-0-operator': 'AND',
+            'terms-0-field': 'title',
+            'terms-0-term': 'franklin_r',
+            'size': 50,
+            'order': ''
+        })
+        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+
+        data, code, headers = advanced.search(request_data)
+        self.assertEqual(data['query'].terms[0].term, "franklin_r",
+                         "The query should not be rewritten.")
+        self.assertFalse(data['has_classic_format'],
+                         "Flag should not be set, as no rewrite has occurred.")

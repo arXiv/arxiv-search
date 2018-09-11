@@ -47,13 +47,32 @@ is only accessible from the CUL network.
 ```bash
 pipenv install
 FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run python create_index.py
-FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run python populate_test_metadata.py
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run python bulk_index.py
 ```
 
-``populate_test_metadata.py`` without parameters populate the index with the
+``bulk_index.py`` without parameters populate the index with the
 list of papers defined in ``tests/data/sample.json``. It take several minutes
 to run. Individual paper IDs may be specified with the ``--paper_id``
 parameter.
+
+To check for missing records, use ``audit.py``:
+
+```bash
+ELASTICSEARCH_HOST=127.0.0.1 ELASTICSEARCH_INDEX=arxiv pipenv run python audit.py -l list_of_papers.txt -o missing.txt
+```
+
+### Reindexing
+
+ElasticSearch can perform reindexing by copying documents from one index to
+another index with a different mapping. ``reindex.py`` will initiate the
+reindexing process, and poll for completion until all of the documents are
+processed. If the destination index does not already exist, it will be created
+using the current configured mapping.
+
+```bash
+FLASK_APP=app.py ELASTICSEARCH_HOST=127.0.0.1 pipenv run python reindex.py OLD_INDEX NEW_INDEX
+```
+
 
 ### Flask dev server
 
