@@ -135,11 +135,11 @@ class JSONSerializer(BaseSerializer):
         return serialized
 
 
-def as_json(document_or_document_set: Union[DocumentSet, Document]) -> str:
+def as_json(document_or_set: Union[DocumentSet, Document]) -> str:
     """Serialize a :class:`DocumentSet` as JSON."""
-    if type(document_or_document_set) is DocumentSet:
-        return JSONSerializer.serialize(document_or_document_set)  # type: ignore
-    return JSONSerializer.serialize_document(document_or_document_set)  # type: ignore
+    if type(document_or_set) is DocumentSet:
+        return JSONSerializer.serialize(document_or_set)  # type: ignore
+    return JSONSerializer.serialize_document(document_or_set)  # type: ignore
 
 
 # class AtomXMLSerializer(BaseSerializer):

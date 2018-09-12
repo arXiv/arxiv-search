@@ -241,6 +241,7 @@ URLS = [
     ("other", "/format/<arxiv:paper_id>v<string:version>", BASE_SERVER),
 ]
 
+JWT_SECRET = os.environ.get('JWT_SECRET', 'foosecret')
 
 # TODO: one place to set the version, update release notes text, JIRA issue
 # collector, etc.

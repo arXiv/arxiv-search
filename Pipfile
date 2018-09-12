@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 arxiv-base = "==0.11.1rc5"
+arxiv-auth = "==0.1.0rc14"
 boto = "==2.48.0"
 "boto3" = "==1.6.6"
 botocore = "==1.9.6"

@@ -9,7 +9,7 @@ from datetime import datetime
 from math import floor
 from typing import Any, Dict, Union
 
-from elasticsearch_dsl.response import Response
+from elasticsearch_dsl.response import Response, Hit
 from elasticsearch_dsl.utils import AttrList, AttrDict
 from search.domain import Document, Query, DocumentSet, Classification, Person
 from arxiv.base import logging
@@ -35,8 +35,7 @@ def _to_author(author_data: dict) -> Person:
     return Person(**data)   # type: ignore
 
 
-def to_document(raw: Union[Response, dict], highlight: bool = True) \
-        -> Document:
+def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
     """Transform an ES search result back into a :class:`.Document`."""
     # typing: ignore
     result: Dict[str, Any] = {}
@@ -44,8 +43,9 @@ def to_document(raw: Union[Response, dict], highlight: bool = True) \
     result['match'] = {}  # Hit on field, but no highlighting.
     result['truncated'] = {}    # Preview is truncated.
 
+    logger.debug('Raw data is a %s instance', type(raw))
     for key in Document.fields():
-        if type(raw) is Response:
+        if type(raw) is Hit:
             if not hasattr(raw, key):
                 continue
             value = getattr(raw, key)

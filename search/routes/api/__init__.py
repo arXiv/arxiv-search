@@ -16,10 +16,10 @@ from arxiv.base import logging
 from werkzeug.exceptions import InternalServerError
 from search.controllers import api
 
-from . import serialize
+from . import serialize, exceptions
 
-# from arxiv.users.auth.decorators import scoped
-# from arxiv.users.auth import scopes
+from arxiv.users.auth.decorators import scoped
+from arxiv.users.auth import scopes
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +29,11 @@ ATOM_XML = "application/atom+xml"
 JSON = "application/json"
 
 
-# @scoped(scopes.READ_API)
 @blueprint.route('/', methods=['GET'])
+@scoped(required=scopes.READ_PUBLIC)
 def search() -> Response:
     """Main query endpoint."""
+    logger.debug('Got query: %s', request.args)
     data, status_code, headers = api.search(request.args)
     # requested = request.accept_mimetypes.best_match([JSON, ATOM_XML])
     # if requested == ATOM_XML:
@@ -41,6 +42,7 @@ def search() -> Response:
 
 
 @blueprint.route('<arxiv:paper_id>v<string:version>', methods=['GET'])
+@scoped(required=scopes.READ_PUBLIC)
 def paper(paper_id: str, version: str) -> Response:
     """Document metadata endpoint."""
     data, status_code, headers = api.paper(f'{paper_id}v{version}')

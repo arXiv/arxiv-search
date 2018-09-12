@@ -12,6 +12,8 @@ from search.services import index
 from search.converters import ArchiveConverter
 from search.encode import ISO8601JSONEncoder
 
+from arxiv.users import auth
+
 s3 = FlaskS3()
 
 
@@ -50,8 +52,13 @@ def create_api_web_app() -> Flask:
     index.init_app(app)
 
     Base(app)
+    auth.Auth(app)
     app.register_blueprint(api.blueprint)
 
-    wrap(app, [request_logs.ClassicLogsMiddleware])
+    wrap(app, [request_logs.ClassicLogsMiddleware,
+               auth.middleware.AuthMiddleware])
+
+    for error, handler in api.exceptions.get_handlers():
+            app.errorhandler(error)(handler)
 
     return app

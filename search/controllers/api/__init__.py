@@ -57,7 +57,9 @@ def search(params: MultiDict) -> Tuple[DocumentSet, int, Dict[str, Any]]:
         q.primary_classification = classifications
 
     q = paginate(q, params)     # type: ignore
-    return index.search(q, highlight=False), status.HTTP_200_OK, {}
+    document_set = index.search(q, highlight=False)
+    logger.debug('Got document set with %i results', len(document_set.results))
+    return document_set, status.HTTP_200_OK, {}
 
 
 def paper(paper_id: str) -> Tuple[Document, int, Dict[str, Any]]:
