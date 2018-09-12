@@ -174,6 +174,8 @@ def add_highlighting(result: dict, raw: Response) -> dict:
     # them together. Note that dir(None) won't return anything, so this block
     # is skipped if there are no highlights from ES.
     for field in dir(highlighted_fields):
+        if field.startswith('_'):
+            continue
         value = getattr(highlighted_fields, field)
         if hasattr(value, '__iter__'):
             value = '&hellip;'.join(value)
@@ -221,7 +223,6 @@ def add_highlighting(result: dict, raw: Response) -> dict:
 
     for field in ['abstract.tex', 'abstract.english', 'abstract']:
         if field in result['highlight']:
-            print(field)
             value = result['highlight'][field]
             abstract_snippet = preview(value)
             result['preview']['abstract'] = abstract_snippet

@@ -18,6 +18,30 @@ def asdict(obj: Any) -> dict:
 
 
 @dataclass
+class Person:
+    """Represents an author, owner, or other person in metadata."""
+
+    full_name: str
+    last_name: str = field(default_factory=str)
+    first_name: str = field(default_factory=str)
+    suffix: str = field(default_factory=str)
+
+    affiliation: List[str] = field(default_factory=list)
+    """Institutional affiliations."""
+
+    orcid: Optional[str] = field(default=None)
+    """ORCID identifier."""
+
+    author_id: Optional[str] = field(default=None)
+    """Legacy arXiv author identifier."""
+
+    @classmethod
+    def fields(cls) -> List[str]:
+        """Get the names of fields on this class."""
+        return cls.__dataclass_fields__.keys()  # type: ignore
+
+
+@dataclass
 class DocMeta:
     """Metadata for an arXiv paper, retrieved from the core repository."""
 
@@ -102,14 +126,14 @@ class DateRange:
 class Classification:
     """Represents an arXiv classification for a paper."""
 
-    group: Optional[str] = None
-    archive: Optional[str] = None
-    category: Optional[str] = None
+    group: Optional[dict] = None
+    archive: Optional[dict] = None
+    category: Optional[dict] = None
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         return ":".join(
-            [p for p in [self.group, self.archive, self.category] if p]
+            [p['id'] for p in [self.group, self.archive, self.category] if p]
         )
 
 
@@ -125,8 +149,29 @@ class ClassificationList(list):
 class Query:
     """Represents a search query originating from the UI or API."""
 
+    MAXIMUM_size = 500
+    """The maximum number of records that can be retrieved."""
+
+    SUPPORTED_FIELDS = [
+        ('all', 'All fields'),
+        ('title', 'Title'),
+        ('author', 'Author(s)'),
+        ('abstract', 'Abstract'),
+        ('comments', 'Comments'),
+        ('journal_ref', 'Journal reference'),
+        ('acm_class', 'ACM classification'),
+        ('msc_class', 'MSC classification'),
+        ('report_num', 'Report number'),
+        ('paper_id', 'arXiv identifier'),
+        ('doi', 'DOI'),
+        ('orcid', 'ORCID'),
+        ('author_id', 'arXiv author ID'),
+        ('help', 'Help pages'),
+        ('full_text', 'Full text')
+    ]
+
     order: Optional[str] = field(default=None)
-    page_size: int = field(default=50)
+    size: int = field(default=50)
     page_start: int = field(default=0)
     include_older_versions: bool = field(default=False)
     hide_abstracts: bool = field(default=False)
@@ -134,12 +179,12 @@ class Query:
     @property
     def page_end(self) -> int:
         """Get the index/offset of the end of the page."""
-        return self.page_start + self.page_size
+        return self.page_start + self.size
 
     @property
     def page(self) -> int:
         """Get the approximate page number."""
-        return 1 + int(round(self.page_start/self.page_size))
+        return 1 + int(round(self.page_start/self.size))
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
@@ -173,9 +218,9 @@ class Document:
     id: str = field(default_factory=str)
     abstract: str = field(default_factory=str)
     abstract_tex: str = field(default_factory=str)
-    authors: List[Dict] = field(default_factory=list)
+    authors: List[Person] = field(default_factory=list)
     authors_freeform: str = field(default_factory=str)
-    owners: List[Dict] = field(default_factory=list)
+    owners: List[Person] = field(default_factory=list)
     modified_date: str = field(default_factory=str)
     updated_date: str = field(default_factory=str)
     is_current: bool = True
@@ -189,7 +234,7 @@ class Document:
     version: int = 1
     latest: str = field(default_factory=str)
     latest_version: int = 0
-    submitter: Dict = field(default_factory=dict)
+    submitter: Optional[Person] = field(default=None)
     report_num: str = field(default_factory=str)
     proxy: bool = False
     msc_class: List[str] = field(default_factory=list)
