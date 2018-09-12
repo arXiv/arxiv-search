@@ -13,6 +13,9 @@ from werkzeug.exceptions import NotFound, Forbidden, Unauthorized, \
 from flask import make_response, Response, jsonify
 
 from arxiv import status
+from arxiv.base import logging
+
+logger = logging.getLogger(__name__)
 
 _handlers = []
 
@@ -95,7 +98,12 @@ def handle_bad_request(error: BadRequest) -> Response:
 @handler(InternalServerError)
 def handle_internal_server_error(error: InternalServerError) -> Response:
     """Render the base 500 error page."""
-    rendered = jsonify({'code': error.code, 'error': error.description})
+    if isinstance(error, HTTPException):
+        rendered = jsonify({'code': error.code, 'error': error.description})
+    else:
+        logger.error('Caught unhandled exception: %s', error)
+        rendered = jsonify({'code': status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            'error': 'Unexpected error'})
     response = make_response(rendered)
     response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     return response
