@@ -21,7 +21,7 @@ The current release supports only JSON serialization, provided by
 implemented.
 
 A formal description of the API (OpenAPI 3.0) and resources (JSON Schema) can
-be found at `https://github.com/cul-it/arxiv-search/tree/master/schema`_.
+be found at `https://github.com/cul-it/arxiv-search/tree/develop/schema`_.
 
 The service endpoints are defined in :mod:`search.routes.api`:
 

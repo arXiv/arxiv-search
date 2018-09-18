@@ -3,18 +3,18 @@ Architectural overview
 
 Context
 =======
+The arXiv search system supports queries about arXiv papers both from human
+users and from API clients (via the arXiv API gateway). Most readers arrive
+at the search interface via a small search bar in the running header of
+arxiv.org pages, or by clicking on the name of an author on the abstract page
+or other listings.
+
 .. _figure-ng-search-context:
 
 .. figure:: _static/diagrams/ng-search-context.png
    :target: _static/diagrams/ng-search-context.png
 
    System context for arXiv search.
-
-The arXiv search system supports queries about arXiv papers both from human
-users and from API clients (via the arXiv API gateway). Most readers arrive
-at the search interface via a small search bar in the running header of
-arxiv.org pages, or by clicking on the name of an author on the abstract page
-or other listings.
 
 The search system draws content from the core metadata repository (currently
 the classic arXiv application, via the ``docmeta`` endpoint), and (future)

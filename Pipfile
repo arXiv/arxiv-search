@@ -52,3 +52,6 @@ lxml = "*"
 
 [dev-packages]
 coveralls = "*"
+sphinx = "*"
+sphinxcontrib-websupport = "*"
+sphinx-autodoc-typehints = "*"
