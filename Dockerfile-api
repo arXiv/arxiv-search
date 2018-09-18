@@ -1,11 +1,14 @@
-# arxiv/search
+# arxiv/search-api
 #
-# Defines the runtime for the arXiv search service, which provides the main
-# UIs (and, eventually, APIs) for search.
+# Defines the runtime for the arXiv search API, which provides a metadata
+# query API backed by Elasticsearch.
 
 FROM arxiv/base:0.6.1
 
 WORKDIR /opt/arxiv
+
+# Install MySQL.
+RUN yum install -y which mysql mysql-devel
 
 # Add Python application and configuration.
 ADD app.py /opt/arxiv/
@@ -19,7 +22,7 @@ ENV PATH "/opt/arxiv:${PATH}"
 ADD schema /opt/arxiv/schema
 ADD mappings /opt/arxiv/mappings
 ADD search /opt/arxiv/search
-ADD wsgi.py /opt/arxiv/
+ADD wsgi-api.py /opt/arxiv/wsgi.py
 RUN pip install uwsgi
 
 ADD bin/start_search.sh /opt/arxiv/
@@ -51,5 +54,6 @@ CMD ["--http-socket", ":8000", \
      "--threads", "1", \
      "--async", "100", \
      "--ugreen", \
-     "--mount", "/search=wsgi.py", \
+     "--buffer-size", "65535", \
+     "--mount", "/metadata=wsgi.py", \
      "--logformat", "%(addr) %(addr) - %(user_id)|%(session_id) [%(rtime)] [%(uagent)] \"%(method) %(uri) %(proto)\" %(status) %(size) %(micros) %(ttfb)"]
