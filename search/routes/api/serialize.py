@@ -142,17 +142,18 @@ def as_json(document_or_set: Union[DocumentSet, Document]) -> str:
     return JSONSerializer.serialize_document(document_or_set)  # type: ignore
 
 
-# class AtomXMLSerializer(BaseSerializer):
-#     """."""
-#
-#     ATOM = "http://www.w3.org/2005/Atom"
-#     OPENSEARCH = "http://a9.com/-/spec/opensearch/1.1/"
-#     ARXIV = "http://arxiv.org/schemas/atom"
-#     NSMAP = {
-#         None: ATOM,
-#         "opensearch": OPENSEARCH,
-#         "arxiv": ARXIV
-#     }
+# TODO: implement me!
+class AtomXMLSerializer(BaseSerializer):
+    """Atom XML serializer for paper metadata."""
+
+    ATOM = "http://www.w3.org/2005/Atom"
+    OPENSEARCH = "http://a9.com/-/spec/opensearch/1.1/"
+    ARXIV = "http://arxiv.org/schemas/atom"
+    NSMAP = {
+        None: ATOM,
+        "opensearch": OPENSEARCH,
+        "arxiv": ARXIV
+    }
 #     fields = {
 #         'title': '{%s}title' % ATOM,
 #         'id': '{%s}id' % ATOM,

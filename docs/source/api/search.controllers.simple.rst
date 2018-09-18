@@ -9,12 +9,8 @@ search.controllers.simple package
 Submodules
 ----------
 
-search.controllers.simple.forms module
---------------------------------------
+.. toctree::
 
-.. automodule:: search.controllers.simple.forms
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   search.controllers.simple.forms
+   search.controllers.simple.tests
 

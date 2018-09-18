@@ -9,12 +9,8 @@ search.process package
 Submodules
 ----------
 
-search.process.transform module
--------------------------------
+.. toctree::
 
-.. automodule:: search.process.transform
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   search.process.tests
+   search.process.transform
 

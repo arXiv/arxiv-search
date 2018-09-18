@@ -6,31 +6,19 @@ search.services package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    search.services.index
+    search.services.tests
+
 Submodules
 ----------
 
-search.services.fulltext module
--------------------------------
+.. toctree::
 
-.. automodule:: search.services.fulltext
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search.services.index module
-----------------------------
-
-.. automodule:: search.services.index
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search.services.metadata module
--------------------------------
-
-.. automodule:: search.services.metadata
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   search.services.fulltext
+   search.services.metadata
 
