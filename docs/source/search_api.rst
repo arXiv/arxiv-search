@@ -21,7 +21,7 @@ The current release supports only JSON serialization, provided by
 implemented.
 
 A formal description of the API (OpenAPI 3.0) and resources (JSON Schema) can
-be found at `https://github.com/cul-it/arxiv-search/tree/develop/schema`_.
+be found at `<https://github.com/cul-it/arxiv-search/tree/develop/schema>`_.
 
 The service endpoints are defined in :mod:`search.routes.api`:
 
@@ -32,5 +32,5 @@ The service endpoints are defined in :mod:`search.routes.api`:
 
 Requests are handled by the controllers in :mod:`search.controllers.api`. As of
 this writing, the :class:`search.domain.api.APIQuery` domain class is identical
-to :class:`search.domain.api.AdvancedQuery`, but this may change in future
+to :class:`search.domain.advanced.AdvancedQuery`, but this may change in future
 versions.
