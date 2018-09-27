@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
 
 
-def search(params: MultiDict) -> Tuple[DocumentSet, int, Dict[str, Any]]:
+def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
     Handle a search request from the API.
 
@@ -66,7 +66,7 @@ def search(params: MultiDict) -> Tuple[DocumentSet, int, Dict[str, Any]]:
     return {'results': document_set, 'query': q}, status.HTTP_200_OK, {}
 
 
-def paper(paper_id: str) -> Tuple[Document, int, Dict[str, Any]]:
+def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
     Handle a request for paper metadata from the API.
 

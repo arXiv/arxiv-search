@@ -407,7 +407,7 @@ class SearchSession(object):
             # fields and configuration for highlighting.
             current_search = highlighting.highlight(current_search)
 
-        if hasattr(query, 'include_fields'):
+        if isinstance(query, APIQuery):
             current_search = current_search.extra(
                 _source={'include': query.include_fields}
             )
