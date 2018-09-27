@@ -1,6 +1,6 @@
 """Controller for search API requests."""
 
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, Optional, List
 import re
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
@@ -56,10 +56,14 @@ def search(params: MultiDict) -> Tuple[DocumentSet, int, Dict[str, Any]]:
     if classifications is not None:
         q.primary_classification = classifications
 
+    include_fields = _get_include_fields(params)
+    if include_fields:
+        q.include_fields += include_fields
+
     q = paginate(q, params)     # type: ignore
     document_set = index.search(q, highlight=False)
     logger.debug('Got document set with %i results', len(document_set.results))
-    return document_set, status.HTTP_200_OK, {}
+    return {'results': document_set, 'query': q}, status.HTTP_200_OK, {}
 
 
 def paper(paper_id: str) -> Tuple[Document, int, Dict[str, Any]]:
@@ -91,7 +95,16 @@ def paper(paper_id: str) -> Tuple[Document, int, Dict[str, Any]]:
     except index.DocumentNotFound as e:
         logger.error('Document not found')
         raise NotFound('No such document') from e
-    return document, status.HTTP_200_OK, {}
+    return {'results': document}, status.HTTP_200_OK, {}
+
+
+def _get_include_fields(params: MultiDict) -> List[str]:
+    include_fields = params.getlist('include')
+    allowed_fields = Document.fields()
+    if include_fields:
+        print(include_fields)
+        return [field for field in include_fields if field in allowed_fields]
+    return []
 
 
 def _get_fielded_terms(params: MultiDict) -> Optional[FieldedSearchList]:

@@ -165,6 +165,7 @@ class Query:
         ('paper_id', 'arXiv identifier'),
         ('doi', 'DOI'),
         ('orcid', 'ORCID'),
+        ('license', 'License (URI)'),
         ('author_id', 'arXiv author ID'),
         ('help', 'Help pages'),
         ('full_text', 'Full text')

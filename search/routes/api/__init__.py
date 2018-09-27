@@ -38,7 +38,7 @@ def search() -> Response:
     # requested = request.accept_mimetypes.best_match([JSON, ATOM_XML])
     # if requested == ATOM_XML:
     #     return serialize.as_atom(data), status, headers
-    return serialize.as_json(data), status_code, headers
+    return serialize.as_json(data['results'], query=data['query']), status_code, headers
 
 
 @blueprint.route('<arxiv:paper_id>v<string:version>', methods=['GET'])
@@ -46,4 +46,4 @@ def search() -> Response:
 def paper(paper_id: str, version: str) -> Response:
     """Document metadata endpoint."""
     data, status_code, headers = api.paper(f'{paper_id}v{version}')
-    return serialize.as_json(data), status_code, headers
+    return serialize.as_json(data['results']), status_code, headers

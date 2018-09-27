@@ -41,6 +41,18 @@ paths:
             type: array
             items:
               type: string
+        - name: include
+          in: query
+          description: |
+            Fields to include in the result set, in addition to paper ID and
+            version.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
           description: All arXiv papers that respond to specified query.

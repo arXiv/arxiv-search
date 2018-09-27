@@ -407,6 +407,11 @@ class SearchSession(object):
             # fields and configuration for highlighting.
             current_search = highlighting.highlight(current_search)
 
+        if hasattr(query, 'include_fields'):
+            current_search = current_search.extra(
+                _source={'include': query.include_fields}
+            )
+
         with handle_es_exceptions():
             # Slicing the search adds pagination parameters to the request.
             resp = current_search[query.page_start:query.page_end].execute()
