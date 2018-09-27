@@ -8,11 +8,13 @@ from typing import NamedTuple, Optional
 
 
 def get_default_extra_fields() -> List[str]:
+    """These are the default extra fields."""
     return ['title']
 
 
 def get_required_fields() -> List[str]:
-    return ['paper_id', 'paper_id_v', 'version']
+    """These fields should always be included."""
+    return ['paper_id', 'paper_id_v', 'version', 'href']
 
 
 @dataclass
@@ -22,16 +24,16 @@ class APIQuery(Query):
 
     Similar to an advanced query.
     """
+
     date_range: Optional[DateRange] = None
     primary_classification: ClassificationList = field(
         default_factory=ClassificationList
     )
     terms: FieldedSearchList = field(default_factory=FieldedSearchList)
-
     include_fields: List[str] = field(default_factory=get_default_extra_fields)
 
     def __post_init__(self) -> None:
+        """Be sure that the required fields are prepended to include_fields."""
         self.include_fields = list(
             set(get_required_fields() + self.include_fields)
         )
-        print(self.include_fields)

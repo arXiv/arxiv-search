@@ -117,17 +117,18 @@ class JSONSerializer(BaseSerializer):
             )),
             ('title', doc.title),
             ('version', doc.version),
-            ('latest', cls._transform_latest(doc))
+            ('latest', cls._transform_latest(doc)),
+            ('href', url_for("api.paper", paper_id=doc.paper_id,
+                             version=doc.version, _external=True))
         ]
 
         # Only return fields that have been explicitly requested.
         if query is not None:
             _data = {field: value for field, value in fields
                      if field in query.include_fields}
-            _data['href'] = url_for("api.paper", paper_id=doc.paper_id,
-                                    version=doc.version, _external=True)
-            return _data
-        return {field: value for field, value in fields}
+        else:
+            _data = {field: value for field, value in fields}
+        return _data
 
     @classmethod
     def serialize(cls, document_set: DocumentSet,

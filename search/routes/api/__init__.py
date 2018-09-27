@@ -38,7 +38,8 @@ def search() -> Response:
     # requested = request.accept_mimetypes.best_match([JSON, ATOM_XML])
     # if requested == ATOM_XML:
     #     return serialize.as_atom(data), status, headers
-    return serialize.as_json(data['results'], query=data['query']), status_code, headers
+    response_data = serialize.as_json(data['results'], query=data['query'])
+    return response_data, status_code, headers
 
 
 @blueprint.route('<arxiv:paper_id>v<string:version>', methods=['GET'])
