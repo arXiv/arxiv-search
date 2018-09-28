@@ -92,6 +92,10 @@
       "type": "string"
     },
     "paper_id": {
+      "description": "arXiv paper identifier without version affix.",
+      "type": "string"
+    },
+    "paper_id_v": {
       "description": "arXiv paper identifier with version affix.",
       "type": "string"
     },
@@ -114,6 +118,10 @@
           }
         }
       }
+    },
+    "href": {
+      "type": "string",
+      "format": "uri"
     },
     "fulltext": {
       "type": "string"
@@ -195,26 +203,31 @@
         },
         "href": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "Location of the detailed metadata record available via the API"
+        },
+        "canonical": {
+          "type": "string",
+          "format": "uri",
+          "description": "Canonical arXiv URI."
         },
         "paper_id": {
           "description": "Paper ID with version affix of latest version.",
           "type": "string"
         }
       }
+    },
+    "canonical": {
+      "type": "string",
+      "format": "uri",
+      "description": "Canonical arXiv URI."
     }
   },
   "required": [
-    "abstract",
-    "authors",
-    "submitted_date",
-    "is_current",
-    "is_withdrawn",
-    "license",
     "paper_id",
-    "primary_classification",
-    "title",
-    "source",
-    "version"
+    "paper_id_v",
+    "version",
+    "href",
+    "canonical"
   ]
 }

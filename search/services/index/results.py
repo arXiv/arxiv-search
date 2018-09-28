@@ -43,7 +43,6 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
     result['match'] = {}  # Hit on field, but no highlighting.
     result['truncated'] = {}    # Preview is truncated.
 
-    logger.debug('Raw data is a %s instance', type(raw))
     for key in Document.fields():
         if type(raw) is Hit:
             if not hasattr(raw, key):

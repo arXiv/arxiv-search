@@ -30,7 +30,5 @@ The service endpoints are defined in :mod:`search.routes.api`:
 - The paper metadata endpoint :func:`search.routes.api.paper` provides more
   detailed metadata for a specific arXiv e-print.
 
-Requests are handled by the controllers in :mod:`search.controllers.api`. As of
-this writing, the :class:`search.domain.api.APIQuery` domain class is identical
-to :class:`search.domain.advanced.AdvancedQuery`, but this may change in future
-versions.
+Requests are handled by the controllers in :mod:`search.controllers.api`, using
+the :class:`search.domain.api.APIQuery` domain class.

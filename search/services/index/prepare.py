@@ -142,6 +142,11 @@ def _query_paper_id(term: str, operator: str = 'and') -> Q:
     return q
 
 
+def _license_query(term: str, operator: str = 'and') -> Q:
+    """Search by license, using its URI (exact)."""
+    return Q('term', **{'license__uri': term})
+
+
 def _query_combined(term: str) -> Q:
     # Only wildcards in literals should be escaped.
     wildcard_escaped, has_wildcard = wildcard_escape(term)
@@ -331,20 +336,31 @@ def limit_by_classification(classifications: ClassificationList) -> Q:
         _qs = []
         if classification.group:
             _qs.append(
-                Q("match", **{"primary_classification__group__id": {"query": classification.group}})
+                Q("match", **{
+                    "primary_classification__group__id": {
+                        "query": classification.group
+                    }
+                })
             )
         if classification.archive:
             _qs.append(
-                Q("match", **{"primary_classification__archive__id": {"query": classification.archive}})
+                Q("match", **{
+                    "primary_classification__archive__id": {
+                        "query": classification.archive
+                    }
+                })
             )
         if classification.category:
             _qs.append(
-                Q("match", **{"primary_classification__category__id": {"query": classification.category}})
+                Q("match", **{
+                    "primary_classification__category__id": {
+                        "query": classification.category
+                    }
+                })
             )
         return reduce(iand, _qs)
 
     return reduce(ior, [_to_q(clsn) for clsn in classifications])
-
 
 
 SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = dict([
@@ -360,5 +376,6 @@ SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = dict([
     ('paper_id', _query_paper_id),
     ('orcid', orcid_query),
     ('author_id', author_id_query),
+    ('license', _license_query),
     ('all', _query_all_fields)
 ])
