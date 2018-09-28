@@ -54,6 +54,8 @@ class JSONSerializer(BaseSerializer):
             "href": url_for("api.paper", paper_id=document.paper_id,
                             version=document.latest_version,
                             _external=True),
+            "canonical": url_for("abs", paper_id=document.paper_id,
+                                 version=document.latest_version),
             "version": document.latest_version
         }
 
@@ -119,7 +121,9 @@ class JSONSerializer(BaseSerializer):
             ('version', doc.version),
             ('latest', cls._transform_latest(doc)),
             ('href', url_for("api.paper", paper_id=doc.paper_id,
-                             version=doc.version, _external=True))
+                             version=doc.version, _external=True)),
+            ('canonical', url_for("abs", paper_id=doc.paper_id,
+                                  version=doc.version))
         ]
 
         # Only return fields that have been explicitly requested.

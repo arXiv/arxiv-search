@@ -203,19 +203,31 @@
         },
         "href": {
           "type": "string",
-          "format": "uri"
+          "format": "uri",
+          "description": "Location of the detailed metadata record available via the API"
+        },
+        "canonical": {
+          "type": "string",
+          "format": "uri",
+          "description": "Canonical arXiv URI."
         },
         "paper_id": {
           "description": "Paper ID with version affix of latest version.",
           "type": "string"
         }
       }
-    }
+    },
+    "canonical": {
+      "type": "string",
+      "format": "uri",
+      "description": "Canonical arXiv URI."
+    },
   },
   "required": [
     "paper_id",
     "paper_id_v",
     "version",
-    "href"
+    "href",
+    "canonical"
   ]
 }

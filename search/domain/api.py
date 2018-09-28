@@ -14,7 +14,7 @@ def get_default_extra_fields() -> List[str]:
 
 def get_required_fields() -> List[str]:
     """These fields should always be included."""
-    return ['paper_id', 'paper_id_v', 'version', 'href']
+    return ['paper_id', 'paper_id_v', 'version', 'href', 'canonical']
 
 
 @dataclass
