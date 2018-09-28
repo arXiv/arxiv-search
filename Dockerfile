@@ -8,7 +8,6 @@ FROM arxiv/base:0.6.1
 WORKDIR /opt/arxiv
 
 # Add Python application and configuration.
-ADD requirements/prod.txt /opt/arxiv/requirements.txt
 ADD app.py /opt/arxiv/
 ADD Pipfile /opt/arxiv/
 ADD Pipfile.lock /opt/arxiv/

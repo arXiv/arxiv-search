@@ -1,16 +1,18 @@
 openapi: "3.0.0"
 info:
-  version: "0.1"
+  version: "0.1.2"
   title: "arXiv Search API"
-  description: "A RESTful API for arXiv metadata."
-  termsOfService: "https://arxiv.org/help/general",
+  description: |
+    A query API for arXiv paper metadata.
+  termsOfService: "https://arxiv.org/help/general"
   contact:
     name: "arXiv API Team"
     email: nextgen@arxiv.org
   license:
     name: MIT
 servers:
-  - url: https://arxiv.org/api
+  - url: https://api.arxiv.org/metadata/
+    description: Metadata API endpoint.
 paths:
   /:
     get:
@@ -23,7 +25,142 @@ paths:
           in: query
           description: |
             Performs a query across all fields. Has the same behavior as the
-            simple search function on the main arXiv website.
+            simple search function on the main arXiv website. Supports quoted
+            literals, wildcards, etc.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: author
+          in: query
+          description: |
+            Search by author name. For the most precise name search, use
+            ``surname(s), forename(s)`` or ``surname(s), initial(s)``. Author
+            names enclosed in quotes will return only exact matches only.
+            Diacritic character variants are automatically searched. For
+            more information about the limitations of searching by author name,
+            see https://blogs.cornell.edu/arxiv/2018/05/04/release-search-v0-2-some-notes-on-names/.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: title
+          in: query
+          description: |
+            Text search in paper titles. Supports quoted literals and
+            wildcards.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: abstract
+          in: query
+          description: |
+            Text search in paper abstracts. Supports quoted literals and
+            wildcards.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: comments
+          in: query
+          description: |
+            Text search in paper comments. Supports quoted literals and
+            wildcards. See https://arxiv.org/help/prep#comments for a
+            description of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: journal_ref
+          in: query
+          description: |
+            Text search in journal reference. Supports quoted literals and
+            wildcards. See https://arxiv.org/help/prep#journal for a
+            description of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: report_num
+          in: query
+          description: |
+            Text search in report number. Supports quoted literals and
+            wildcards. See https://arxiv.org/help/prep#report for a description
+            of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: acm_class
+          in: query
+          description: |
+            Keyword match on ACM classification code. Supports wildcards. See
+            https://arxiv.org/help/prep#acm for a description of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: msc_class
+          in: query
+          description: |
+            Keyword match on MSC classification code. Supports wildcards. See
+            https://arxiv.org/help/prep#msc for a description of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: doi
+          in: query
+          description: |
+            Keyword match on DOI. Supports wildcards. See
+            https://arxiv.org/help/prep#doi for a description of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: paper_id
+          in: query
+          description: |
+            Keyword match on arXiv paper ID, with our without a version affix.
+            Supports wildcards. See https://arxiv.org/help/arxiv_identifier for
+            information about arXiv paper identifiers.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: orcid
+          in: query
+          description: |
+            Match on author ORCID ID. For information about ORCID IDs,
+            see https://arxiv.org/help/orcid. Note that ORCID IDs are only
+            available for the submitter and any author-owners who have claimed
+            the paper. See also
+            https://blogs.cornell.edu/arxiv/2018/05/04/release-search-v0-2-some-notes-on-names/.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+        - name: author_id
+          in: query
+          description: |
+            Match on arXiv author identifier. For more information about author
+            identifiers, see https://arxiv.org/help/author_identifiers. Note
+            that author identifiers are only available for the submitter and
+            any author-owners who have claimed the paper. See also
+            https://blogs.cornell.edu/arxiv/2018/05/04/release-search-v0-2-some-notes-on-names/.
           required: false
           style: form
           explode: true
@@ -33,7 +170,8 @@ paths:
           in: query
           description: |
             Slug for the primary category or categories to which results
-            should be limited.
+            should be limited. Valid categories are defined at
+            https://github.com/cul-it/arxiv-base/blob/master/arxiv/taxonomy/__init__.py#L306.
           required: false
           style: form
           explode: true
@@ -41,6 +179,55 @@ paths:
             type: array
             items:
               type: string
+        - name: include
+          in: query
+          description: |
+            Fields to include in the result set, in addition to paper ID and
+            version. See ``DocumentMetadata.json`` specification for all
+            available fields.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: start_date
+          in: query
+          description: |
+            Limit results to papers submitted or announced (see ``date_type``)
+            on or after this date.
+          required: false
+          style: form
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: |
+            Limit results to papers submitted or announced (see ``date_type``)
+            on or before this date.
+          required: false
+          style: form
+          schema:
+            type: string
+            format: date
+        - name: date_type
+          in: query
+          description: |
+            The date property used to apply ``start_date`` and ``end_date``
+            filters. Note that ``announced_date_first`` has only year and month
+            precision.
+          required: false
+          style: form
+          schema:
+            type: string
+            default: submitted_date
+            enum:
+              - submitted_date_first
+              - submitted_date
+              - announced_date_first
+
       responses:
         '200':
           description: All arXiv papers that respond to specified query.
@@ -56,7 +243,10 @@ paths:
                 $ref: '#/components/schemas/Error'
   /{id}:
     get:
-      description: Return metadata about an arXiv paper by arXiv ID.
+      description: |
+        Get metadata about an arXiv paper by arXiv ID. See
+        https://arxiv.org/help/arxiv_identifier for information about arXiv
+        paper identifiers.
       operationId: getPaperByID
       parameters:
         - name: id

@@ -6,23 +6,17 @@ search.agent package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    search.agent.tests
+
 Submodules
 ----------
 
-search.agent.base module
-------------------------
+.. toctree::
 
-.. automodule:: search.agent.base
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search.agent.consumer module
-----------------------------
-
-.. automodule:: search.agent.consumer
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   search.agent.consumer
 

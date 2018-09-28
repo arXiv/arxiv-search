@@ -9,28 +9,9 @@ search.domain package
 Submodules
 ----------
 
-search.domain.advanced module
------------------------------
+.. toctree::
 
-.. automodule:: search.domain.advanced
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search.domain.author module
----------------------------
-
-.. automodule:: search.domain.author
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search.domain.base module
--------------------------
-
-.. automodule:: search.domain.base
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   search.domain.advanced
+   search.domain.api
+   search.domain.base
 

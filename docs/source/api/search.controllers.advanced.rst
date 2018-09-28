@@ -9,12 +9,8 @@ search.controllers.advanced package
 Submodules
 ----------
 
-search.controllers.advanced.forms module
-----------------------------------------
+.. toctree::
 
-.. automodule:: search.controllers.advanced.forms
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   search.controllers.advanced.forms
+   search.controllers.advanced.tests
 
