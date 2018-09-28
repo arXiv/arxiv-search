@@ -183,7 +183,8 @@ paths:
           in: query
           description: |
             Fields to include in the result set, in addition to paper ID and
-            version.
+            version. See ``DocumentMetadata.json`` specification for all
+            available fields.
           required: false
           style: form
           explode: true
