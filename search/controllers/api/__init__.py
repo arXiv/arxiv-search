@@ -124,7 +124,7 @@ def _get_fielded_terms(params: MultiDict) -> Optional[FieldedSearchList]:
 
 def _get_date_params(params: MultiDict) -> Optional[DateRange]:
     date_params = {}
-    for field in ['start_date', 'end_date', 'date_type']:
+    for field in ['start_date', 'end_date']:
         value = params.getlist(field)
         if not value:
             continue
@@ -136,6 +136,8 @@ def _get_date_params(params: MultiDict) -> Optional[DateRange]:
         except ValueError:
             raise BadRequest({'field': field, 'reason': 'invalid datetime'})
         date_params[field] = dt
+    if 'date_type' in params:
+        date_params['date_type'] = params.get('date_type')
     if date_params:
         return DateRange(**date_params)  # type: ignore
     return None
