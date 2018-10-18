@@ -132,13 +132,13 @@
   <li class="arxiv-result">
     <div class="level is-marginless">
       <p class="list-title level-left">
-        {% set display_paper_id = result.paper_id if is_current(result) else result.paper_id_v %}
+        {%- set display_paper_id = result.paper_id if is_current(result) else result.paper_id_v -%}
         <a href="{{ external_url('browse', 'abstract', paper_id=display_paper_id) }}">arXiv:{{ display_paper_id }}</a>
         <span>&nbsp;{{ paper_format_links(result, external_url, display_paper_id) }}&nbsp;</span>
-        <span class="tag is-small {% if result.highlight.primary_classification %}search-hit{% else %}is-link{% endif %} tooltip is-tooltip-right" data-tooltip="{{ result.primary_classification.category.name }}">{{ result.primary_classification.category.id }}</span>
-        {% if result.secondary_category %}
-          {% for secondary in result.secondary_category %}
-            <span class="tag is-small is-grey">{{ secondary.archive }} {{ secondary.category }}</span>
+        <span class="tag is-small {% if result.highlight.primary_classification %}search-hit{% else %}is-link{% endif %} tooltip is-tooltip-top" data-tooltip="{{ result.primary_classification.category.name }}">{{ result.primary_classification.category.id }}</span>
+        {% if result.secondary_classification %}
+          {% for secondary in result.secondary_classification %}
+            <span class="tag is-small is-grey tooltip is-tooltip-top" data-tooltip="{{secondary.category.name}}">{{ secondary.category.id }}</span>
           {% endfor %}
         {% endif -%}
       </p>
