@@ -131,27 +131,33 @@
 {% for result in results %}
   <li class="arxiv-result">
     <div class="level is-marginless">
-      <p class="list-title level-left">
-        {% set display_paper_id = result.paper_id if is_current(result) else result.paper_id_v %}
+      <div class="level-left">
+      <p class="list-title level-item">
+        {%- set display_paper_id = result.paper_id if is_current(result) else result.paper_id_v -%}
         <a href="{{ external_url('browse', 'abstract', paper_id=display_paper_id) }}">arXiv:{{ display_paper_id }}</a>
         <span>&nbsp;{{ paper_format_links(result, external_url, display_paper_id) }}&nbsp;</span>
-        <span class="tag is-small {% if result.highlight.primary_classification %}search-hit{% else %}is-link{% endif %} tooltip is-tooltip-right" data-tooltip="{{ result.primary_classification.category.name }}">{{ result.primary_classification.category.id }}</span>
-        {% if result.secondary_category %}
-          {% for secondary in result.secondary_category %}
-            <span class="tag is-small is-grey">{{ secondary.archive }} {{ secondary.category }}</span>
+        <div class="tags">
+        <span class="tag is-small {% if result.highlight.primary_classification %}search-hit{% else %}is-link{% endif %} tooltip is-tooltip-top" data-tooltip="{{ result.primary_classification.category.name }}">{{ result.primary_classification.category.id }}</span>
+        {% if result.secondary_classification %}
+          {% for secondary in result.secondary_classification %}
+            <span class="tag is-small {% if result.highlight.secondary_classification %}search-hit{% else %}is-grey{% endif %} tooltip is-tooltip-top" data-tooltip="{{secondary.category.name}}">{{ secondary.category.id }}</span>
           {% endfor %}
         {% endif -%}
+      </div>
       </p>
+      </div>
       {% if result.doi %}
-      <div class="field is-grouped is-grouped-multiline level-right">
-        {% for doi in result.doi %}
-        <div class="control">
-          <div class="tags has-addons">
-            <span class="tag is-dark is-size-7">doi</span>
-            <span class="tag is-light is-size-7"><a class="" href="https://doi.org/{{ doi }}">{{ doi }} <i class="fa fa-external-link" aria-hidden="true"></i></a></span>
+      <div class="level-right">
+        <div class="field is-grouped is-grouped-multiline level-item">
+          {% for doi in result.doi %}
+          <div class="control">
+            <div class="tags has-addons">
+              <span class="tag is-dark is-size-7">doi</span>
+              <span class="tag is-light is-size-7"><a class="" href="https://doi.org/{{ doi }}">{{ doi }} <i class="fa fa-external-link" aria-hidden="true"></i></a></span>
+            </div>
           </div>
+          {% endfor %}
         </div>
-        {% endfor %}
       </div>
       {% endif %}
     </div>
