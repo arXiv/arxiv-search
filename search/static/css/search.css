@@ -3,11 +3,7 @@
   .content .arxiv-result p {
     margin-bottom: 0.25em; }
   .content .arxiv-result .tags {
-    margin-bottom: 0.25rem; }
-    .content .arxiv-result .tags:last-child {
-      margin-bottom: 0; }
-    .content .arxiv-result .tags:not(:last-child) {
-      margin-bottom: 0; }
+    margin-bottom: 0; }
   .content .arxiv-result span.tag {
     height: 1.25rem; }
   .content .arxiv-result .list-title {
