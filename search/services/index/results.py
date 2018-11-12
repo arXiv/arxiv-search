@@ -97,7 +97,6 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
         if result['preview']['abstract'].endswith('&hellip;'):
             result['truncated']['abstract'] = True
 
-    logger.debug('highlight: %s, raw type: %s', highlight, type(raw))
     if highlight and type(raw) in [Response, Hit]:
         result['highlight'] = {}
         logger.debug('%s: add highlighting to result',
