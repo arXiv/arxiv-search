@@ -69,6 +69,8 @@ def highlight(search: Search) -> Search:
 
     search = search.highlight('primary_classification*', type='plain',
                               number_of_fragments=0)
+    search = search.highlight('secondary_classification*', type='plain',
+                              number_of_fragments=0)
     return search
 
 
@@ -182,6 +184,8 @@ def add_highlighting(result: dict, raw: Response) -> dict:
 
         if 'primary_classification' in field:
             field = 'primary_classification'
+        if 'secondary_classification' in field:
+            field = 'secondary_classification'
 
         # Non-TeX searches may hit inside of TeXisms. Highlighting those
         # fragments (i.e. inserting HTML) will break MathJax rendering.

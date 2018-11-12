@@ -75,6 +75,7 @@ def search(archives: Optional[List[str]] = None) -> Union[str, Response]:
     response, code, headers = simple.search(request.args, archives)
     logger.debug(f"controller returned code: {code}")
     if code == status.HTTP_200_OK:
+        logger.debug('OK! %s', response)
         return render_template("search/search.html", pagetitle="Search",
                                archives=archives, **response)
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
