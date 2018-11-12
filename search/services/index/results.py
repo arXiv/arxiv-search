@@ -89,6 +89,7 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
 
     if type(raw) is Response:
         result['score'] = raw.meta.score    # type: ignore
+
     if type(result.get('abstract')) is str and highlight:
         if 'preview' not in result:
             result['preview'] = {}
@@ -96,7 +97,8 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
         if result['preview']['abstract'].endswith('&hellip;'):
             result['truncated']['abstract'] = True
 
-    if highlight and type(raw) is Response:
+    logger.debug('highlight: %s, raw type: %s', highlight, type(raw))
+    if highlight and type(raw) in [Response, Hit]:
         result['highlight'] = {}
         logger.debug('%s: add highlighting to result',
                      raw.paper_id)  # type: ignore

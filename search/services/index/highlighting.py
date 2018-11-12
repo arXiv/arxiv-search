@@ -9,14 +9,17 @@ abridged display in the search results.
 """
 
 import re
-from typing import Any
+from typing import Any, Union
 
 from elasticsearch_dsl import Search, Q, SF
-from elasticsearch_dsl.response import Response
+from elasticsearch_dsl.response import Response, Hit
 import bleach
 from flask import escape
+from arxiv.base import logging
 
 from .util import TEXISM
+
+logger = logging.getLogger(__name__)
 
 HIGHLIGHT_TAG_OPEN = '<span class="search-hit mathjax">'
 HIGHLIGHT_TAG_CLOSE = '</span>'
@@ -148,7 +151,7 @@ def preview(value: str, fragment_size: int = 400,
 # def _highlight(value: str, pattern: )
 
 
-def add_highlighting(result: dict, raw: Response) -> dict:
+def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
     """
     Add hit highlighting to a search result.
 
