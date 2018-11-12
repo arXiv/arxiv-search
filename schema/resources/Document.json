@@ -193,38 +193,38 @@
     "category": {
       "type": "object",
       "properties": {
-        "fid": {
+        "id": {
           "type": "string"
         },
         "name": {
           "type": "string"
         }
       },
-      "required": ["fid", "name"]
+      "required": ["id", "name"]
     },
     "archive": {
       "type": "object",
       "properties": {
-        "fid": {
+        "id": {
           "type": "string"
         },
         "name": {
           "type": "string"
         }
       },
-      "required": ["fid", "name"]
+      "required": ["id", "name"]
     },
     "group": {
       "type": "object",
       "properties": {
-        "fid": {
+        "id": {
           "type": "string"
         },
         "name": {
           "type": "string"
         }
       },
-      "required": ["fid", "name"]
+      "required": ["id", "name"]
     },
     "classification": {
       "type": "object",
