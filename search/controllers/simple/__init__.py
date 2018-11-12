@@ -154,6 +154,11 @@ def search(request_params: MultiDict,
                 "search again.  If this problem persists, please report it to "
                 "help@arxiv.org."
             ) from e
+        except index.OutsideAllowedRange as e:
+            raise BadRequest(
+                "Hello clever friend. You can't get results in that range"
+                " right now."
+            ) from e
 
         except Exception as e:
             logger.error('Unhandled exception: %s', str(e))
