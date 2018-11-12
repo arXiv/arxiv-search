@@ -1,5 +1,4 @@
 {
-    "$schema": "http://json-schema.org/schema#",
     "title": "DocumentMetadata",
     "description": "Schema for arXiv document metadata provided by the docmeta endpoint.",
     "definitions": {
@@ -148,7 +147,7 @@
             "minItems": 0
         },
         "announced_first": {
-          "desription": "Date (year and month) the paper was originally announced",
+          "description": "Date (year and month) the paper was originally announced",
           "type": "string"
         },
         "updated_date": {
