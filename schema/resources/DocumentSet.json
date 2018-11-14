@@ -1,5 +1,4 @@
 {
-  "$schema": "http://json-schema.org/schema#",
   "title": "DocumentSet",
   "description": "A set of documents that respond to a query.",
   "type": "object",
@@ -26,7 +25,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "$ref": "Document.json"
+        "$ref": "Document.json#Document"
       }
     }
   }

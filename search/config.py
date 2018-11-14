@@ -57,7 +57,7 @@ default enables URL generation without a request context but with an
 application context.
 """
 
-APPLICATION_ROOT = os.environ.get('APPLICATION_ROOT', None)
+APPLICATION_ROOT = os.environ.get('APPLICATION_ROOT', '/')
 """
 If the application does not occupy a whole domain or subdomain this can be set
 to the path where the application is configured to live. This is for session

@@ -130,6 +130,11 @@ def search(request_params: MultiDict) -> Response:
                     "your search again.  If this problem persists, please "
                     "report it to help@arxiv.org."
                 ) from e
+            except index.OutsideAllowedRange as e:
+                raise BadRequest(
+                    "Hello clever friend. You can't get results in that range"
+                    " right now."
+                ) from e
             response_data['query'] = q
         else:
             logger.debug('form is invalid: %s', str(form.errors))
