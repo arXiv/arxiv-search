@@ -339,25 +339,18 @@
     {% if has_classic_format %}
       {{ search_macros.show_classic_author_search() }}
     {% endif %}
-    <div class="level">
-      <div class="level-left" style="max-width: 90%;"> <!-- width adjustment for long query strings -->
-        <div class="level-item">
-          <a class="button" href="{{ url_for('ui.advanced_search') }}">Start a new search</a>
-        </div>
-        <div class="level-item">
-          <a class="button is-link" href="{{ current_url_sans_parameters('advanced') }}">Refine This Query</a>
-        </div>
-        <div class="level-item" style="word-wrap:break-word; max-width: 70%;"><a href="{{ current_url_sans_parameters('advanced') }}">{{ query }}</a>
-        </div> <!-- styling here is also to fit long query strings without breaking layout -->
+
+    <div class="columns">
+      <div class="column is-two-thirds-tablet">
+        <p class="is-marginless">Query: <a href="{{ current_url_sans_parameters('advanced') }}">{{ query }}</a></p>
+        <a class="button is-link" href="{{ current_url_sans_parameters('advanced') }}">Refine query</a> <a class="button" href="{{ url_for('ui.advanced_search') }}">New search</a>
       </div>
-      <div class="level-right">
-        <div class="level-item">
-          {% if query %}
-          <a href="{{ url_with_params("ui.search", {}, {"order": query.order, "size": query.size}) }}">Simple Search</a>
-          {% else %}
-          <a href="{{ url_with_params("ui.search", {}, {"order": form.order.data, "size": form.size.data }) }}">Simple Search</a>
-          {% endif %}
-        </div>
+      <div class="column is-one-third-tablet is-hidden-mobile">
+        {% if query %}
+        <a href="{{ url_with_params("ui.search", {}, {"order": query.order, "size": query.size}) }}">Simple Search</a>
+        {% else %}
+        <a href="{{ url_with_params("ui.search", {}, {"order": form.order.data, "size": form.size.data }) }}">Simple Search</a>
+        {% endif %}
       </div>
     </div>
 
