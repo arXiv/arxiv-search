@@ -342,15 +342,19 @@
 
     <div class="columns">
       <div class="column is-two-thirds-tablet">
-        <p class="is-marginless">Query: <a href="{{ current_url_sans_parameters('advanced') }}">{{ query }}</a></p>
-        <a class="button is-link" href="{{ current_url_sans_parameters('advanced') }}">Refine query</a> <a class="button" href="{{ url_for('ui.advanced_search') }}">New search</a>
+        <p style="margin-bottom: .5em">Query: <a href="{{ current_url_sans_parameters('advanced') }}">{{ query }}</a></p>
+        <div class="buttons">
+          <a class="button is-link" href="{{ current_url_sans_parameters('advanced') }}">Refine query</a><a class="button" href="{{ url_for('ui.advanced_search') }}">New search</a>
+        </div>
       </div>
       <div class="column is-one-third-tablet is-hidden-mobile">
-        {% if query %}
-        <a href="{{ url_with_params("ui.search", {}, {"order": query.order, "size": query.size}) }}">Simple Search</a>
-        {% else %}
-        <a href="{{ url_with_params("ui.search", {}, {"order": form.order.data, "size": form.size.data }) }}">Simple Search</a>
-        {% endif %}
+        <p class="has-text-right" style="margin-top: 1em">
+          {% if query %}
+          <a href="{{ url_with_params("ui.search", {}, {"order": query.order, "size": query.size}) }}">Simple Search</a>
+          {% else %}
+          <a href="{{ url_with_params("ui.search", {}, {"order": form.order.data, "size": form.size.data }) }}">Simple Search</a>
+          {% endif %}
+        </p>
       </div>
     </div>
 
