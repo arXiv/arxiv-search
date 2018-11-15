@@ -41,7 +41,8 @@
     <div class="level-left">
       <h1 class="title is-clearfix">{% block title %}Search{% endblock title %}</h1>
     </div>
-    <div class="level-right">
+    <div class="level-right is-hidden-mobile">
+      <!-- feedback for mobile is moved to footer -->
       <span class="help" style="display: inline-block;"><a href="{{ config.RELEASE_NOTES_URL }}">{{ config.RELEASE_NOTES_TEXT }}</a>&nbsp;&nbsp;</span>
       <button class="button is-small" id="feedback-button">Feedback?</button>
     </div>
@@ -50,5 +51,10 @@
       {% block within_content %}
         Specific results here
       {% endblock within_content %}
+      <div class="is-hidden-tablet">
+        <!-- feedback for mobile only -->
+        <span class="help" style="display: inline-block;"><a href="{{ config.RELEASE_NOTES_URL }}">{{ config.RELEASE_NOTES_TEXT }}</a>&nbsp;&nbsp;</span>
+        <button class="button is-small" id="feedback-button">Feedback?</button>
+      </div>
     </content>
 {% endblock content %}
