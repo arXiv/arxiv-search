@@ -188,6 +188,9 @@ def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
         if 'primary_classification' in field:
             field = 'primary_classification'
         if 'secondary_classification' in field:
+            value = value \
+                .split(HIGHLIGHT_TAG_OPEN, 1)[1] \
+                .split(HIGHLIGHT_TAG_CLOSE, 1)[0]
             field = 'secondary_classification'
 
         # Non-TeX searches may hit inside of TeXisms. Highlighting those

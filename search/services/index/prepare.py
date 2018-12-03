@@ -118,18 +118,20 @@ def _query_primary(term: str, operator: str = 'and') -> Q:
     # TODO: in a future version, we should consider changes to the mappings
     # to make this more straightforward.
     if operator == 'or':
-        return reduce(ior, [(
+        _q = reduce(ior, [(
             Q("match", **{"primary_classification__category__id": {"query": part, "operator": operator}})
             | Q("wildcard", **{"primary_classification.category.name": f"*{part}*"})
             | Q("match", **{"primary_classification__archive__id": {"query": part, "operator": operator}})
             | Q("wildcard", **{"primary_classification.archive.name": f"*{part}*"})
         ) for part in term.split()])
-    return (
-        Q("match", **{"primary_classification__category__id": {"query": term, "operator": operator}})
-        | Q("match", **{"primary_classification__category__name": {"query": term, "operator": operator}})
-        | Q("match", **{"primary_classification__archive__id": {"query": term, "operator": operator}})
-        | Q("match", **{"primary_classification__archive__name": {"query": term, "operator": operator}})
-    )
+    else:
+        _q = (
+            Q("match", **{"primary_classification__category__id": {"query": term, "operator": operator}})
+            | Q("match", **{"primary_classification__category__name": {"query": term, "operator": operator}})
+            | Q("match", **{"primary_classification__archive__id": {"query": term, "operator": operator}})
+            | Q("match", **{"primary_classification__archive__name": {"query": term, "operator": operator}})
+        )
+    return _q
 
 
 def _query_secondary(term: str, operator: str = 'and') -> Q:
@@ -239,7 +241,7 @@ def _query_all_fields(term: str) -> Q:
         _query_acm_class(term, operator='or'),
         _query_msc_class(term, operator='or'),
         _query_primary(term, operator='or'),
-        _query_secondary(term, operator='or')
+        _query_secondary(term, operator='or'),
     ]
 
     # If the whole query matches on a specific field, we should consider that
@@ -257,9 +259,9 @@ def _query_all_fields(term: str) -> Q:
         _query_report_num(term, operator='and'),
         _query_acm_class(term, operator='and'),
         _query_msc_class(term, operator='and'),
-        _query_primary(term, operator='and')
+        _query_primary(term, operator='and'),
+        _query_secondary(term, operator='and')
     ])
-
 
     # It is possible that the query includes a date-related term, which we
     # interpret as an announcement date of v1 of the paper. We currently
