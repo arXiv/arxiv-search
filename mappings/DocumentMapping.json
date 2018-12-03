@@ -449,10 +449,14 @@
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "normalizer": "simple",
+                  "copy_to": ["combined"]
                 },
                 "name": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "normalizer": "simple",
+                  "copy_to": ["combined"]
                 }
               }
             },
@@ -460,10 +464,14 @@
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "normalizer": "simple",
+                  "copy_to": ["combined"]
                 },
                 "name": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "normalizer": "simple",
+                  "copy_to": ["combined"]
                 }
               }
             }
