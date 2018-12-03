@@ -234,6 +234,7 @@ BASE_SERVER = os.environ.get('BASE_SERVER', 'arxiv.org')
 URLS = [
     ("pdf", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),
     ("abs", "/abs/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("abs_by_id", "/abs/<arxiv:paper_id>", BASE_SERVER),
     ("pdfonly", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),
     ("dvi", "/dvi/<arxiv:paper_id>v<string:version>", BASE_SERVER),
     ("html", "/html/<arxiv:paper_id>v<string:version>", BASE_SERVER),

@@ -132,6 +132,24 @@ def _query_primary(term: str, operator: str = 'and') -> Q:
     )
 
 
+def _query_secondary(term: str, operator: str = 'and') -> Q:
+    if operator == 'or':
+        q = reduce(ior, [(
+            Q("match", **{"secondary_classification__category__id": {"query": part, "operator": operator}})
+            | Q("wildcard", **{"secondary_classification.category.name": f"*{part}*"})
+            | Q("match", **{"secondary_classification__archive__id": {"query": part, "operator": operator}})
+            | Q("wildcard", **{"secondary_classification.archive.name": f"*{part}*"})
+        ) for part in term.split()])
+    else:
+        q = (
+            Q("match", **{"secondary_classification__category__id": {"query": term, "operator": operator}})
+            | Q("match", **{"secondary_classification__category__name": {"query": term, "operator": operator}})
+            | Q("match", **{"secondary_classification__archive__id": {"query": term, "operator": operator}})
+            | Q("match", **{"secondary_classification__archive__name": {"query": term, "operator": operator}})
+        )
+    return Q("nested", path="secondary_classification", query=q)
+
+
 def _query_paper_id(term: str, operator: str = 'and') -> Q:
     operator = operator.lower()
     logger.debug(f'query paper ID with: {term}')
@@ -220,7 +238,8 @@ def _query_all_fields(term: str) -> Q:
         _query_report_num(term, operator='or'),
         _query_acm_class(term, operator='or'),
         _query_msc_class(term, operator='or'),
-        _query_primary(term, operator='or')
+        _query_primary(term, operator='or'),
+        _query_secondary(term, operator='or')
     ]
 
     # If the whole query matches on a specific field, we should consider that
@@ -372,6 +391,7 @@ SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = dict([
     ('report_num', _query_report_num),
     ('acm_class', _query_acm_class),
     ('msc_class', _query_msc_class),
+    ('cross_list_category', _query_secondary),
     ('doi', _query_doi),
     ('paper_id', _query_paper_id),
     ('orcid', orcid_query),

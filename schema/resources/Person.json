@@ -1,5 +1,4 @@
 {
-  "$schema": "http://json-schema.org/schema#",
   "title": "Person",
   "description": "Schema for person in metadata returned by the search API.",
   "type": "object",
