@@ -114,7 +114,8 @@ class DocMetaSession(object):
                 f'{document_id}: retrieve metadata from {target} with SSL'
                 f' verify {self._verify_cert}'
             )
-            response = requests.get(target, verify=self._verify_cert)
+            response = requests.get(target, verify=self._verify_cert,
+                                    headers={'User-Agent': 'arXiv/system'})
         except requests.exceptions.SSLError as e:
             logger.error('SSLError: %s', e)
             raise SecurityException('SSL failed: %s' % e) from e

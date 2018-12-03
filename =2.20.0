@@ -1,0 +1,11 @@
+Installing requests…
+Requirement already satisfied: requests in /Users/brp53/.local/share/virtualenvs/arxiv-search-sJgjMA70/lib/python3.6/site-packages
+Requirement already satisfied: idna<2.8,>=2.5 in /Users/brp53/.local/share/virtualenvs/arxiv-search-sJgjMA70/lib/python3.6/site-packages (from requests)
+Requirement already satisfied: chardet<3.1.0,>=3.0.2 in /Users/brp53/.local/share/virtualenvs/arxiv-search-sJgjMA70/lib/python3.6/site-packages (from requests)
+Requirement already satisfied: urllib3<1.25,>=1.21.1 in /Users/brp53/.local/share/virtualenvs/arxiv-search-sJgjMA70/lib/python3.6/site-packages (from requests)
+Requirement already satisfied: certifi>=2017.4.17 in /Users/brp53/.local/share/virtualenvs/arxiv-search-sJgjMA70/lib/python3.6/site-packages (from requests)
+
+Adding requests to Pipfile's [packages]…
+Installing dependencies from Pipfile.lock (d9f678)…
+To activate this project's virtualenv, run the following:
+ $ pipenv shell
