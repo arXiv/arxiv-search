@@ -23,10 +23,10 @@
         },
         "arxiv-base": {
             "hashes": [
-                "sha256:2c3eb57d1cab3af774b72b2ea0cd673d0e67d78f41dbbc11b6ee648c38bb92c9"
+                "sha256:159a2c54ce7f0d562c5df28318b92086df8155e7aa29f7586835b9aaab74b749"
             ],
             "index": "pypi",
-            "version": "==0.11.1rc6"
+            "version": "==0.11.1"
         },
         "bleach": {
             "hashes": [
