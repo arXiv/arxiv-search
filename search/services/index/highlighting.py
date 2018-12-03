@@ -71,9 +71,9 @@ def highlight(search: Search) -> Search:
     search = search.highlight('abstract.english', number_of_fragments=0)
 
     search = search.highlight('primary_classification*', type='plain',
-                              number_of_fragments=0)
+                              number_of_fragments=0, require_field_match=False)
     search = search.highlight('secondary_classification*', type='plain',
-                              number_of_fragments=0)
+                              number_of_fragments=0, require_field_match=False)
     return search
 
 
@@ -148,9 +148,6 @@ def preview(value: str, fragment_size: int = 400,
     return snippet
 
 
-# def _highlight(value: str, pattern: )
-
-
 def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
     """
     Add hit highlighting to a search result.
@@ -174,7 +171,6 @@ def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
     # ``meta.matched_queries`` contains a list of query ``_name``s that
     # matched. This is nice for non-string fields.
     matched_fields = getattr(raw.meta, 'matched_queries', [])
-
     # The values here will (almost) always be list-like. So we need to stitch
     # them together. Note that dir(None) won't return anything, so this block
     # is skipped if there are no highlights from ES.
@@ -184,7 +180,6 @@ def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
         value = getattr(highlighted_fields, field)
         if hasattr(value, '__iter__'):
             value = '&hellip;'.join(value)
-
         if 'primary_classification' in field:
             field = 'primary_classification'
         if 'secondary_classification' in field:
