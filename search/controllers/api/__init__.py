@@ -150,7 +150,7 @@ def _get_classifications(params: MultiDict) -> Optional[ClassificationList]:
                 'field': 'primary_classification',
                 'reason': 'not a valid archive'
             })
-        classifications.append(Classification(archive={'id': value}))
+        classifications.append(Classification(archive={'id': value}))   # type: ignore
     if len(classifications) == 0:
         return None
     return classifications
