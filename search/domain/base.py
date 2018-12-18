@@ -6,6 +6,8 @@ from operator import attrgetter
 from pytz import timezone
 import re
 
+from arxiv import taxonomy
+
 from dataclasses import dataclass, field
 from dataclasses import asdict as _asdict
 
@@ -130,11 +132,38 @@ class Classification:
     archive: Optional[dict] = None
     category: Optional[dict] = None
 
+    @property
+    def group_display(self) -> str:
+        if "name" in self.group:
+            return self.group["name"]
+        return taxonomy.get_group_display(self.group["id"])
+
+    @property
+    def archive_display(self) -> str:
+        if "name" in self.archive:
+            return self.archive["name"]
+        return taxonomy.get_archive_display(self.archive["id"])
+
+    @property
+    def category_display(self) -> str:
+        if "name" in self.category:
+            return self.category["name"]
+        return taxonomy.get_category_display(self.category["id"])
+
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        return ":".join(
-            [p['id'] for p in [self.group, self.archive, self.category] if p]
-        )
+        s = ""
+        if self.group:
+            s += self.group_display
+        if self.archive:
+            if s:
+                s += " :: "
+            s += self.archive_display
+        if self.category:
+            if s:
+                s += " :: "
+            s += self.category_display
+        return s
 
 
 class ClassificationList(list):

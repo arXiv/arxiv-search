@@ -169,7 +169,7 @@ def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
 
     # These are from hits within child documents, e.g.
     # secondary_classification.
-    inner_hits = getattr(raw.meta, 'inner_hits', [])
+    inner_hits = getattr(raw.meta, 'inner_hits', None)
 
     # The values here will (almost) always be list-like. So we need to stitch
     # them together. Note that dir(None) won't return anything, so this block
@@ -207,9 +207,12 @@ def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
         if field not in result['highlight']:
             result['match'][field] = True
 
-    result['match']['secondary_classification'] = [
-        ih.category.id for ih in inner_hits.secondary_classification
-    ]
+    # We're using inner_hits to see which category in particular responded to
+    # the query.
+    if hasattr(inner_hits, 'secondary_classification'):
+        result['match']['secondary_classification'] = [
+            ih.category.id for ih in inner_hits.secondary_classification
+        ]
 
     # We just want to know whether there was a hit on the announcement date.
     result['match']['announced_date_first'] = (
