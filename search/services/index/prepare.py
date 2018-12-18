@@ -342,7 +342,7 @@ def limit_by_classification(classifications: ClassificationList) -> Q:
             _qs.append(
                 Q("match", **{
                     "primary_classification__group__id": {
-                        "query": classification.group
+                        "query": classification.group['id']
                     }
                 })
             )
@@ -350,7 +350,7 @@ def limit_by_classification(classifications: ClassificationList) -> Q:
             _qs.append(
                 Q("match", **{
                     "primary_classification__archive__id": {
-                        "query": classification.archive
+                        "query": classification.archive['id']
                     }
                 })
             )
@@ -358,7 +358,7 @@ def limit_by_classification(classifications: ClassificationList) -> Q:
             _qs.append(
                 Q("match", **{
                     "primary_classification__category__id": {
-                        "query": classification.category
+                        "query": classification.category['id']
                     }
                 })
             )

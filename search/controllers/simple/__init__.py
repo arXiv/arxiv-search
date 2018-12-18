@@ -248,7 +248,7 @@ def _update_with_archives(q: SimpleQuery, archives: List[str]) -> SimpleQuery:
     """
     logger.debug('Search within %s', archives)
     q.primary_classification = ClassificationList([
-        Classification(archive=archive) for archive in archives  # type: ignore
+        Classification(archive={'id': 'archive'}) for archive in archives
     ])
     return q
 

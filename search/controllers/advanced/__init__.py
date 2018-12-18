@@ -200,18 +200,18 @@ def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
             # Fix for these typing issues is coming soon!
             #  See: https://github.com/python/mypy/pull/4397
             q.primary_classification.append(
-                Classification(archive=archive)  # type: ignore
+                Classification(archive={'id': archive})  # type: ignore
             )
     if data.get('physics') and 'physics_archives' in data:
         if 'all' in data['physics_archives']:
             q.primary_classification.append(
-                Classification(group='grp_physics')  # type: ignore
+                Classification(group={'id': 'grp_physics'})  # type: ignore
             )
         else:
             q.primary_classification.append(
                 Classification(     # type: ignore
-                    group='grp_physics',
-                    archive=data['physics_archives']
+                    group={'id': 'grp_physics'},
+                    archive={'id': data['physics_archives']}
                 )
             )
     return q

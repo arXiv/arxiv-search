@@ -57,10 +57,10 @@ def _classification(field: str, classification: Classification) -> Match:
     query = Q()
     if classification.group:
         field_name = '%s__group__id' % field
-        query &= Q('match', **{field_name: classification.group})
+        query &= Q('match', **{field_name: classification.group['id']})
     if classification.archive:
         field_name = '%s__archive__id' % field
-        query &= Q('match', **{field_name: classification.archive})
+        query &= Q('match', **{field_name: classification.archive['id']})
     return query
 
 
