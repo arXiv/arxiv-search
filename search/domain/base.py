@@ -126,14 +126,14 @@ class DateRange:
 class Classification:
     """Represents an arXiv classification for a paper."""
 
-    group: Optional[dict] = None
-    archive: Optional[dict] = None
-    category: Optional[dict] = None
+    group: Optional[str] = None
+    archive: Optional[str] = None
+    category: Optional[str] = None
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         return ":".join(
-            [p['id'] for p in [self.group, self.archive, self.category] if p]
+            [p for p in [self.group, self.archive, self.category] if p]
         )
 
 
