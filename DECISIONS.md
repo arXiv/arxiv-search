@@ -40,5 +40,6 @@
 - 2018-12-18. Removing cross-list functionality in v0.1 was a regression. Users
   expect to be able to search by cross-list category just like primary
   category. We decided to include cross-list/secondary category in the
-  all-fields search, and also add a cross-list option to the advanced search
-  interface.
+  all-fields search, add a cross-list field to the advanced search interface,
+  and include cross-list classification in shortcut routes and the advanced
+  interface's classification filter (with option to exclude).

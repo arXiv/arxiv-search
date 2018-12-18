@@ -231,9 +231,14 @@ class SimpleQuery(Query):
 
     search_field: str = field(default_factory=str)
     value: str = field(default_factory=str)
-    primary_classification: ClassificationList = field(
+
+    classification: ClassificationList = field(
         default_factory=ClassificationList
     )
+    """Classification(s) by which to limit results."""
+
+    include_cross_list: bool = field(default=True)
+    """If True, secondaries are considered when limiting by classification."""
 
 
 @dataclass(init=True)

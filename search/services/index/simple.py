@@ -28,8 +28,12 @@ def simple_search(search: Search, query: SimpleQuery) -> Search:
     """
     search = search.filter("term", is_current=True)
     q = SEARCH_FIELDS[query.search_field](query.value)
-    if query.primary_classification:
-        q &= limit_by_classification(query.primary_classification)
+    if query.classification:
+        _q = limit_by_classification(query.classification)
+        if query.include_cross_list:
+            _q |= limit_by_classification(query.classification,
+                                          "secondary_classification")
+        q &= _q
     search = search.query(q)
     search = sort(query, search)
     return search

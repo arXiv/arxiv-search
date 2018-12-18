@@ -147,6 +147,15 @@
                 {{ select_field(form.classification.statistics) }}
               </div>
             </div>
+            <div class="field">
+              <div class="control">
+                {% for subfield in form.classification.include_cross_list %}
+                <label class="radio">
+                  {{ subfield }} {{ subfield.label.text }}
+                </label>
+                {% endfor %}
+              </div>
+            </div>
           </fieldset>
           <fieldset class="fieldset {% if form.date.errors %}is-warning{% endif %}">
             <legend class="legend">Date</legend>

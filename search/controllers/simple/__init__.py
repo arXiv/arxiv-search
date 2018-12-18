@@ -247,8 +247,8 @@ def _update_with_archives(q: SimpleQuery, archives: List[str]) -> SimpleQuery:
     :class:`SimpleQuery`
     """
     logger.debug('Search within %s', archives)
-    q.primary_classification = ClassificationList([
-        Classification(archive={'id': 'archive'})    # type: ignore
+    q.classification = ClassificationList([
+        Classification(archive={'id': archive})    # type: ignore
         for archive in archives
     ])
     return q

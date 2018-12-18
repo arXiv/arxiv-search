@@ -399,8 +399,9 @@ class SearchSession(object):
             elif isinstance(query, SimpleQuery):
                 current_search = simple_search(current_search, query)
         except TypeError as e:
-            logger.error('Malformed query: %s', str(e))
-            raise QueryError('Malformed query') from e
+            raise e
+            # logger.error('Malformed query: %s', str(e))
+            # raise QueryError('Malformed query') from e
 
         if highlight:
             # Highlighting is performed by Elasticsearch; here we include the

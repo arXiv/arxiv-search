@@ -54,7 +54,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     classifications = _get_classifications(params)
     if classifications is not None:
-        q.primary_classification = classifications
+        q.classification = classifications
 
     include_fields = _get_include_fields(params)
     if include_fields:

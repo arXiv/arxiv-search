@@ -306,7 +306,7 @@ def _query_all_fields(term: str) -> Q:
                 match_remainder = _query_combined(remainder)
                 match_all_fields |= (match_remainder & match_date)
 
-                match_individual_sans_date = reduce(ior, [
+                match_sans_date = reduce(ior, [
                     _query_paper_id(remainder, operator='AND'),
                     author_query(remainder, operator='AND'),
                     _query_title(remainder, default_operator='and'),
@@ -322,7 +322,7 @@ def _query_all_fields(term: str) -> Q:
                     _query_primary(remainder, operator='and'),
                     _query_secondary(remainder, operator='and')
                 ])
-                match_individual_field |= (match_individual_sans_date & match_date)
+                match_individual_field |= (match_sans_date & match_date)
             else:
                 match_all_fields |= match_date
 
@@ -334,37 +334,24 @@ def _query_all_fields(term: str) -> Q:
              boost_mode='multiply')
 
 
-def limit_by_classification(classifications: ClassificationList) -> Q:
+def limit_by_classification(classifications: ClassificationList,
+                            field: str = 'primary_classification') -> Q:
     """Generate a :class:`Q` to limit a query by by classification."""
-    def _to_q(classification: Classification) -> Q:
-        _qs = []
-        if classification.group:
-            _qs.append(
-                Q("match", **{
-                    "primary_classification__group__id": {
-                        "query": classification.group['id']
-                    }
-                })
-            )
-        if classification.archive:
-            _qs.append(
-                Q("match", **{
-                    "primary_classification__archive__id": {
-                        "query": classification.archive['id']
-                    }
-                })
-            )
-        if classification.category:
-            _qs.append(
-                Q("match", **{
-                    "primary_classification__category__id": {
-                        "query": classification.category['id']
-                    }
-                })
-            )
-        return reduce(iand, _qs)
+    if len(classifications) == 0:
+        return Q()
 
-    return reduce(ior, [_to_q(clsn) for clsn in classifications])
+    def _to_q(clsn: Classification) -> Q:
+        return reduce(iand, [
+            Q('match', **{f'{field}__{level}__id': getattr(clsn, level)['id']})
+            for level in ['group', 'archive', 'category']
+            if getattr(clsn, level) is not None
+        ])
+
+    _q = reduce(ior, map(_to_q, classifications))
+    if field == 'secondary_classification':
+        _q = Q("nested", path="secondary_classification", query=_q)
+
+    return _q
 
 
 SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = dict([
