@@ -102,7 +102,6 @@ def _get_include_fields(params: MultiDict) -> List[str]:
     include_fields = params.getlist('include')
     allowed_fields = Document.fields()
     if include_fields:
-        print(include_fields)
         return [field for field in include_fields if field in allowed_fields]
     return []
 
