@@ -102,6 +102,9 @@ class ClassificationForm(Form):
          in taxonomy.ARCHIVES_ACTIVE.items()
          if description['in_group'] == 'grp_physics']
 
+    INCLUDE_CROSS_LIST = 'include'
+    EXCLUDE_CROSS_LIST = 'exclude'
+
     computer_science = BooleanField('Computer Science (cs)')
     economics = BooleanField('Economics (econ)')
     eess = BooleanField('Electrical Engineering and Systems Science (eess)')
@@ -111,6 +114,11 @@ class ClassificationForm(Form):
     q_biology = BooleanField('Quantitative Biology (q-bio)')
     q_finance = BooleanField('Quantitative Finance (q-fin)')
     statistics = BooleanField('Statistics (stat)')
+
+    include_cross_list = RadioField('Include cross-list', choices=[
+        (INCLUDE_CROSS_LIST, 'Include cross-listed papers'),
+        (EXCLUDE_CROSS_LIST, 'Exclude cross-listed papers')
+    ], default=INCLUDE_CROSS_LIST)
 
 
 def yearInBounds(form: Form, field: DateField) -> None:

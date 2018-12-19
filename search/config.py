@@ -224,8 +224,8 @@ FLASKS3_FORCE_MIMETYPE = os.environ.get('FLASKS3_FORCE_MIMETYPE', 1)
 FLASKS3_ACTIVE = os.environ.get('FLASKS3_ACTIVE', 0)
 
 # Settings for display of release information
-RELEASE_NOTES_URL = 'https://confluence.cornell.edu/x/8H5OFQ'
-RELEASE_NOTES_TEXT = 'Search v0.4 released 2018-07-18'
+RELEASE_NOTES_URL = 'https://confluence.cornell.edu/x/giazFQ'
+RELEASE_NOTES_TEXT = 'Search v0.5 released 2018-12-20'
 
 
 EXTERNAL_URL_SCHEME = os.environ.get('EXTERNAL_URL_SCHEME', 'https')
@@ -234,6 +234,7 @@ BASE_SERVER = os.environ.get('BASE_SERVER', 'arxiv.org')
 URLS = [
     ("pdf", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),
     ("abs", "/abs/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("abs_by_id", "/abs/<arxiv:paper_id>", BASE_SERVER),
     ("pdfonly", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),
     ("dvi", "/dvi/<arxiv:paper_id>v<string:version>", BASE_SERVER),
     ("html", "/html/<arxiv:paper_id>v<string:version>", BASE_SERVER),

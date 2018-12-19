@@ -63,17 +63,11 @@ def highlight(search: Search) -> Search:
     search = search.highlight('doi', type='plain')
     search = search.highlight('report_num', type='plain')
 
-    # Setting number_of_fragments to 0 tells ES to highlight the entire
-    # abstract.
+    # Setting number_of_fragments to 0 tells ES to highlight the entire field.
     search = search.highlight('abstract', number_of_fragments=0)
     search = search.highlight('abstract.tex', type='plain',
                               number_of_fragments=0)
     search = search.highlight('abstract.english', number_of_fragments=0)
-
-    search = search.highlight('primary_classification*', type='plain',
-                              number_of_fragments=0)
-    search = search.highlight('secondary_classification*', type='plain',
-                              number_of_fragments=0)
     return search
 
 
@@ -148,9 +142,6 @@ def preview(value: str, fragment_size: int = 400,
     return snippet
 
 
-# def _highlight(value: str, pattern: )
-
-
 def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
     """
     Add hit highlighting to a search result.
@@ -171,9 +162,14 @@ def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
     """
     # There may or may not be highlighting in the result set.
     highlighted_fields = getattr(raw.meta, 'highlight', None)
+
     # ``meta.matched_queries`` contains a list of query ``_name``s that
     # matched. This is nice for non-string fields.
     matched_fields = getattr(raw.meta, 'matched_queries', [])
+
+    # These are from hits within child documents, e.g.
+    # secondary_classification.
+    inner_hits = getattr(raw.meta, 'inner_hits', None)
 
     # The values here will (almost) always be list-like. So we need to stitch
     # them together. Note that dir(None) won't return anything, so this block
@@ -184,11 +180,6 @@ def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
         value = getattr(highlighted_fields, field)
         if hasattr(value, '__iter__'):
             value = '&hellip;'.join(value)
-
-        if 'primary_classification' in field:
-            field = 'primary_classification'
-        if 'secondary_classification' in field:
-            field = 'secondary_classification'
 
         # Non-TeX searches may hit inside of TeXisms. Highlighting those
         # fragments (i.e. inserting HTML) will break MathJax rendering.
@@ -215,6 +206,13 @@ def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
     for field in matched_fields:
         if field not in result['highlight']:
             result['match'][field] = True
+
+    # We're using inner_hits to see which category in particular responded to
+    # the query.
+    if hasattr(inner_hits, 'secondary_classification'):
+        result['match']['secondary_classification'] = [
+            ih.category.id for ih in inner_hits.secondary_classification
+        ]
 
     # We just want to know whether there was a hit on the announcement date.
     result['match']['announced_date_first'] = (

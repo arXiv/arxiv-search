@@ -6,6 +6,8 @@ from operator import attrgetter
 from pytz import timezone
 import re
 
+from arxiv import taxonomy
+
 from dataclasses import dataclass, field
 from dataclasses import asdict as _asdict
 
@@ -130,11 +132,56 @@ class Classification:
     archive: Optional[dict] = None
     category: Optional[dict] = None
 
+    @property
+    def group_display(self) -> str:
+        """Get a human-friendly display label for the group."""
+        if self.group is None:
+            return ""
+        label: str
+        if "name" in self.group:
+            label = self.group["name"]
+        else:
+            label = taxonomy.get_group_display(self.group["id"])
+        return label
+
+    @property
+    def archive_display(self) -> str:
+        """Get a human-friendly display label for the archive."""
+        if self.archive is None:
+            return ""
+        label: str
+        if "name" in self.archive:
+            label = self.archive["name"]
+        else:
+            label = taxonomy.get_archive_display(self.archive["id"])
+        return label
+
+    @property
+    def category_display(self) -> str:
+        """Get a human-friendly display label for the category."""
+        if self.category is None:
+            return ""
+        label: str
+        if "name" in self.category:
+            label = self.category["name"]
+        else:
+            label = taxonomy.get_category_display(self.category["id"])
+        return label
+
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        return ":".join(
-            [p['id'] for p in [self.group, self.archive, self.category] if p]
-        )
+        s = ""
+        if self.group:
+            s += self.group_display
+        if self.archive:
+            if s:
+                s += " :: "
+            s += self.archive_display
+        if self.category:
+            if s:
+                s += " :: "
+            s += self.category_display
+        return s
 
 
 class ClassificationList(list):
@@ -202,9 +249,14 @@ class SimpleQuery(Query):
 
     search_field: str = field(default_factory=str)
     value: str = field(default_factory=str)
-    primary_classification: ClassificationList = field(
+
+    classification: ClassificationList = field(
         default_factory=ClassificationList
     )
+    """Classification(s) by which to limit results."""
+
+    include_cross_list: bool = field(default=True)
+    """If True, secondaries are considered when limiting by classification."""
 
 
 @dataclass(init=True)

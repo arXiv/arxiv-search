@@ -178,6 +178,8 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
     q = _update_query_with_dates(q, form.date.data)
     q = _update_query_with_terms(q, form.terms.data)
     q = _update_query_with_classification(q, form.classification.data)
+    q.include_cross_list = form.classification.include_cross_list.data \
+        == form.classification.INCLUDE_CROSS_LIST
     if form.include_older_versions.data:
         q.include_older_versions = True
     order = form.order.data
@@ -189,7 +191,7 @@ def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
 
 def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
         -> AdvancedQuery:
-    q.primary_classification = ClassificationList()
+    q.classification = ClassificationList()
     archives = [
         ('computer_science', 'cs'), ('economics', 'econ'), ('eess', 'eess'),
         ('mathematics', 'math'), ('q_biology', 'q-bio'),
@@ -199,19 +201,19 @@ def _update_query_with_classification(q: AdvancedQuery, data: MultiDict) \
         if data.get(field):
             # Fix for these typing issues is coming soon!
             #  See: https://github.com/python/mypy/pull/4397
-            q.primary_classification.append(
-                Classification(archive=archive)  # type: ignore
+            q.classification.append(
+                Classification(archive={'id': archive})  # type: ignore
             )
     if data.get('physics') and 'physics_archives' in data:
         if 'all' in data['physics_archives']:
-            q.primary_classification.append(
-                Classification(group='grp_physics')  # type: ignore
+            q.classification.append(
+                Classification(group={'id': 'grp_physics'})  # type: ignore
             )
         else:
-            q.primary_classification.append(
+            q.classification.append(
                 Classification(     # type: ignore
-                    group='grp_physics',
-                    archive=data['physics_archives']
+                    group={'id': 'grp_physics'},
+                    archive={'id': data['physics_archives']}
                 )
             )
     return q

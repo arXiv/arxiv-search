@@ -54,7 +54,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     classifications = _get_classifications(params)
     if classifications is not None:
-        q.primary_classification = classifications
+        q.classification = classifications
 
     include_fields = _get_include_fields(params)
     if include_fields:
@@ -102,7 +102,6 @@ def _get_include_fields(params: MultiDict) -> List[str]:
     include_fields = params.getlist('include')
     allowed_fields = Document.fields()
     if include_fields:
-        print(include_fields)
         return [field for field in include_fields if field in allowed_fields]
     return []
 
@@ -151,9 +150,7 @@ def _get_classifications(params: MultiDict) -> Optional[ClassificationList]:
                 'field': 'primary_classification',
                 'reason': 'not a valid archive'
             })
-        classifications.append(
-            Classification(archive=value)   # type: ignore
-        )
+        classifications.append(Classification(archive={'id': value}))   # type: ignore
     if len(classifications) == 0:
         return None
     return classifications

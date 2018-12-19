@@ -16,7 +16,7 @@
 #
 # See also ELASTICSEARCH_* and METADATA_ENDPOINT parameters, below.
 
-FROM arxiv/base
+FROM arxiv/base:0.12.1rc2
 
 # Add Python consumer and configuration.
 ADD requirements/prod.txt /opt/arxiv/requirements.txt

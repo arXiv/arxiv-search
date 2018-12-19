@@ -89,8 +89,8 @@ def search(request_params: MultiDict,
         arxiv_id = None
 
     if arxiv_id:
-        return {}, status.HTTP_301_MOVED_PERMANENTLY,\
-            {'Location': f'https://arxiv.org/abs/{arxiv_id}'}
+        headers = {'Location': url_for('abs_by_id', paper_id=arxiv_id)}
+        return {}, status.HTTP_301_MOVED_PERMANENTLY, headers
 
     # Here we intervene on the user's query to look for holdouts from the
     # classic search system's author indexing syntax (surname_f). We
@@ -247,8 +247,9 @@ def _update_with_archives(q: SimpleQuery, archives: List[str]) -> SimpleQuery:
     :class:`SimpleQuery`
     """
     logger.debug('Search within %s', archives)
-    q.primary_classification = ClassificationList([
-        Classification(archive=archive) for archive in archives  # type: ignore
+    q.classification = ClassificationList([
+        Classification(archive={'id': archive})    # type: ignore
+        for archive in archives
     ])
     return q
 

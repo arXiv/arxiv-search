@@ -111,43 +111,33 @@ def _query_announcement_date(term: str) -> Optional[Q]:
 
 
 def _query_primary(term: str, operator: str = 'and') -> Q:
-    # In the 'or' case, we're basically just looking for hit highlighting
-    # after a match on the combined field. Since primary classification fields
-    # are keyword fields, they won't match the same way as the combined field
-    # (text). So we have to be a bit fuzzy here to get the highlight.
-    # TODO: in a future version, we should consider changes to the mappings
-    # to make this more straightforward.
-    if operator == 'or':
-        return reduce(ior, [(
-            Q("match", **{"primary_classification__category__id": {"query": part, "operator": operator}})
-            | Q("wildcard", **{"primary_classification.category.name": f"*{part}*"})
-            | Q("match", **{"primary_classification__archive__id": {"query": part, "operator": operator}})
-            | Q("wildcard", **{"primary_classification.archive.name": f"*{part}*"})
-        ) for part in term.split()])
-    return (
-        Q("match", **{"primary_classification__category__id": {"query": term, "operator": operator}})
-        | Q("match", **{"primary_classification__category__name": {"query": term, "operator": operator}})
-        | Q("match", **{"primary_classification__archive__id": {"query": term, "operator": operator}})
-        | Q("match", **{"primary_classification__archive__name": {"query": term, "operator": operator}})
-    )
+    # This now uses the "primary_classification.combined" field, which is
+    # isomorphic to the document-level "combined" field. So we get
+    # straightforward hit highlighting and a more consistent behavior.
+    return Q("match", **{
+        "primary_classification__combined": {
+            "query": term,
+            "operator": operator,
+            "_name": "primary_classification"
+        }
+    })
 
 
 def _query_secondary(term: str, operator: str = 'and') -> Q:
-    if operator == 'or':
-        q = reduce(ior, [(
-            Q("match", **{"secondary_classification__category__id": {"query": part, "operator": operator}})
-            | Q("wildcard", **{"secondary_classification.category.name": f"*{part}*"})
-            | Q("match", **{"secondary_classification__archive__id": {"query": part, "operator": operator}})
-            | Q("wildcard", **{"secondary_classification.archive.name": f"*{part}*"})
-        ) for part in term.split()])
-    else:
-        q = (
-            Q("match", **{"secondary_classification__category__id": {"query": term, "operator": operator}})
-            | Q("match", **{"secondary_classification__category__name": {"query": term, "operator": operator}})
-            | Q("match", **{"secondary_classification__archive__id": {"query": term, "operator": operator}})
-            | Q("match", **{"secondary_classification__archive__name": {"query": term, "operator": operator}})
-        )
-    return Q("nested", path="secondary_classification", query=q)
+    return Q(
+        "nested",
+        path="secondary_classification",
+        query=Q(
+            "match", **{
+                "secondary_classification.combined": {
+                    "query": term,
+                    "operator": operator
+                }
+            }
+        ),
+        _name="secondary_classification",
+        inner_hits={}   # This gets us the specific category that matched.
+    )
 
 
 def _query_paper_id(term: str, operator: str = 'and') -> Q:
@@ -169,7 +159,6 @@ def _query_combined(term: str) -> Q:
     # Only wildcards in literals should be escaped.
     wildcard_escaped, has_wildcard = wildcard_escape(term)
     query_term = (wildcard_escaped if has_wildcard else escape(term)).lower()
-
     # All terms must match in the combined field.
     return Q("query_string", fields=['combined'], default_operator='AND',
              allow_leading_wildcard=False, query=query_term)
@@ -239,7 +228,7 @@ def _query_all_fields(term: str) -> Q:
         _query_acm_class(term, operator='or'),
         _query_msc_class(term, operator='or'),
         _query_primary(term, operator='or'),
-        _query_secondary(term, operator='or')
+        _query_secondary(term, operator='or'),
     ]
 
     # If the whole query matches on a specific field, we should consider that
@@ -257,9 +246,9 @@ def _query_all_fields(term: str) -> Q:
         _query_report_num(term, operator='and'),
         _query_acm_class(term, operator='and'),
         _query_msc_class(term, operator='and'),
-        _query_primary(term, operator='and')
+        _query_primary(term, operator='and'),
+        _query_secondary(term, operator='and')
     ])
-
 
     # It is possible that the query includes a date-related term, which we
     # interpret as an announcement date of v1 of the paper. We currently
@@ -317,7 +306,7 @@ def _query_all_fields(term: str) -> Q:
                 match_remainder = _query_combined(remainder)
                 match_all_fields |= (match_remainder & match_date)
 
-                match_individual_sans_date = reduce(ior, [
+                match_sans_date = reduce(ior, [
                     _query_paper_id(remainder, operator='AND'),
                     author_query(remainder, operator='AND'),
                     _query_title(remainder, default_operator='and'),
@@ -330,16 +319,12 @@ def _query_all_fields(term: str) -> Q:
                     _query_report_num(remainder, operator='and'),
                     _query_acm_class(remainder, operator='and'),
                     _query_msc_class(remainder, operator='and'),
-                    _query_primary(remainder, operator='and')
+                    _query_primary(remainder, operator='and'),
+                    _query_secondary(remainder, operator='and')
                 ])
-                match_individual_field = Q('bool', should=[
-                        match_individual_field,
-                        match_individual_sans_date & match_date
-                    ], minimum_should_match=1)
+                match_individual_field |= (match_sans_date & match_date)
             else:
-                match_all_fields = Q('bool',
-                                     should=[match_all_fields, match_date],
-                                     minimum_should_match=1)
+                match_all_fields |= match_date
 
     query = (match_all_fields | match_individual_field)
     query &= Q("bool", should=queries)  # Partial matches across fields.
@@ -349,37 +334,24 @@ def _query_all_fields(term: str) -> Q:
              boost_mode='multiply')
 
 
-def limit_by_classification(classifications: ClassificationList) -> Q:
+def limit_by_classification(classifications: ClassificationList,
+                            field: str = 'primary_classification') -> Q:
     """Generate a :class:`Q` to limit a query by by classification."""
-    def _to_q(classification: Classification) -> Q:
-        _qs = []
-        if classification.group:
-            _qs.append(
-                Q("match", **{
-                    "primary_classification__group__id": {
-                        "query": classification.group
-                    }
-                })
-            )
-        if classification.archive:
-            _qs.append(
-                Q("match", **{
-                    "primary_classification__archive__id": {
-                        "query": classification.archive
-                    }
-                })
-            )
-        if classification.category:
-            _qs.append(
-                Q("match", **{
-                    "primary_classification__category__id": {
-                        "query": classification.category
-                    }
-                })
-            )
-        return reduce(iand, _qs)
+    if len(classifications) == 0:
+        return Q()
 
-    return reduce(ior, [_to_q(clsn) for clsn in classifications])
+    def _to_q(clsn: Classification) -> Q:
+        return reduce(iand, [
+            Q('match', **{f'{field}__{level}__id': getattr(clsn, level)['id']})
+            for level in ['group', 'archive', 'category']
+            if getattr(clsn, level) is not None
+        ])
+
+    _q = reduce(ior, map(_to_q, classifications))
+    if field == 'secondary_classification':
+        _q = Q("nested", path="secondary_classification", query=_q)
+
+    return _q
 
 
 SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = dict([

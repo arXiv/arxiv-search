@@ -50,7 +50,7 @@ class TestSearch(TestCase):
                 start_date=datetime.now() - timedelta(days=5),
                 end_date=datetime.now()
             ),
-            primary_classification=ClassificationList([
+            classification=ClassificationList([
                 Classification(
                     group={'id': 'physics'},
                     archive={'id': 'physics'},
