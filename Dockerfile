@@ -7,6 +7,9 @@ FROM arxiv/base:0.12.1rc2
 
 WORKDIR /opt/arxiv
 
+# Install MySQL.
+RUN yum install -y which mysql mysql-devel
+
 # Add Python application and configuration.
 ADD app.py /opt/arxiv/
 ADD Pipfile /opt/arxiv/
