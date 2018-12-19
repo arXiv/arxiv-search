@@ -134,21 +134,39 @@ class Classification:
 
     @property
     def group_display(self) -> str:
+        """Get a human-friendly display label for the group."""
+        if self.group is None:
+            return ""
+        label: str
         if "name" in self.group:
-            return self.group["name"]
-        return taxonomy.get_group_display(self.group["id"])
+            label = self.group["name"]
+        else:
+            label = taxonomy.get_group_display(self.group["id"])
+        return label
 
     @property
     def archive_display(self) -> str:
+        """Get a human-friendly display label for the archive."""
+        if self.archive is None:
+            return ""
+        label: str
         if "name" in self.archive:
-            return self.archive["name"]
-        return taxonomy.get_archive_display(self.archive["id"])
+            label = self.archive["name"]
+        else:
+            label = taxonomy.get_archive_display(self.archive["id"])
+        return label
 
     @property
     def category_display(self) -> str:
+        """Get a human-friendly display label for the category."""
+        if self.category is None:
+            return ""
+        label: str
         if "name" in self.category:
-            return self.category["name"]
-        return taxonomy.get_category_display(self.category["id"])
+            label = self.category["name"]
+        else:
+            label = taxonomy.get_category_display(self.category["id"])
+        return label
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""

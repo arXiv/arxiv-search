@@ -26,9 +26,10 @@ class APIQuery(Query):
     """
 
     date_range: Optional[DateRange] = None
-    primary_classification: ClassificationList = field(
+    classification: ClassificationList = field(
         default_factory=ClassificationList
     )
+    include_cross_list: bool = field(default=True)
     terms: FieldedSearchList = field(default_factory=FieldedSearchList)
     include_fields: List[str] = field(default_factory=get_default_extra_fields)
 
