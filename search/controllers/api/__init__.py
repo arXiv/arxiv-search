@@ -179,9 +179,10 @@ def _to_classification(value: str, query_terms: List) \
         raise ValueError('not a valid classification')
     cast_value = klass(value)
     clsns.append(Classification(**{field: {'id': value}}))   # type: ignore
-    if cast_value.unalias != value:
+    if cast_value.unalias() != cast_value:
         clsns.append(Classification(**{field: {'id': cast_value.unalias()}}))   # type: ignore
-    if cast_value.canonical != value:
+    if cast_value.canonical != cast_value \
+            and cast_value.canonical != cast_value.unalias():
         clsns.append(Classification(**{field: {'id': cast_value.canonical}}))   # type: ignore
     return tuple(clsns)
 
