@@ -166,12 +166,26 @@ paths:
           explode: true
           schema:
             type: string
-        - name: primary_category
+        - name: primary_classification
           in: query
           description: |
-            Slug for the primary category or categories to which results
-            should be limited. Valid categories are defined at
-            https://github.com/cul-it/arxiv-base/blob/master/arxiv/taxonomy/__init__.py#L306.
+            Limit query by primary classification. This field supports
+            filtering by group, archive, and category. Note that group names
+            are prefixed by ``grp_``, e.g. ``grp_physics``, ``grp_q-bio``. See
+            https://arxiv.github.io/arxiv-base/arxiv/arxiv.taxonomy.html for
+            more information.
+          examples:
+            groupMath:
+              summary: Include results from the math group.
+              value: grp_math
+            archivePhysics:
+              summary: Include results from the physics archive.
+              value: physics
+            categoryHE:
+              summary: |
+                Include results from the High Enegery Astrophysical Phenomena
+                category.
+              value: astro-ph.HE
           required: false
           style: form
           explode: true
@@ -179,6 +193,36 @@ paths:
             type: array
             items:
               type: string
+              
+        - name: secondary_classification
+          in: query
+          description: |
+            Limit query by secondary (cross-list) classification. This field
+            supports filtering by group, archive, and category. Note that group
+            names are prefixed by ``grp_``, e.g. ``grp_physics``,
+            ``grp_q-bio``. See
+            https://arxiv.github.io/arxiv-base/arxiv/arxiv.taxonomy.html for
+            more information.
+          examples:
+            groupMath:
+              summary: Include results cross-listed in the math group.
+              value: grp_math
+            archivePhysics:
+              summary: Include results cross-listed in the physics archive.
+              value: physics
+            categoryHE:
+              summary: |
+                Include results cross-listed in the High Enegery Astrophysical
+                Phenomena category.
+              value: astro-ph.HE
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+
         - name: include
           in: query
           description: |

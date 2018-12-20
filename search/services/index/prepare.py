@@ -123,6 +123,25 @@ def _query_primary(term: str, operator: str = 'and') -> Q:
     })
 
 
+def query_primary_exact(classification: Classification) -> Q:
+    return reduce(iand, [
+        Q("match", **{f"primary_classification__{field}__id":
+                      getattr(classification, field)['id']})
+        for field in ['group', 'archive', 'category']
+        if getattr(classification, field, None) is not None
+    ])
+
+
+def query_secondary_exact(classification: Classification) -> Q:
+    return Q("nested", path="secondary_classification",
+             query=reduce(iand, [
+                 Q("match", **{f"secondary_classification__{field}__id":
+                               getattr(classification, field)['id']})
+                 for field in ['group', 'archive', 'category']
+                 if getattr(classification, field, None) is not None
+             ]))
+
+
 def _query_secondary(term: str, operator: str = 'and') -> Q:
     return Q(
         "nested",

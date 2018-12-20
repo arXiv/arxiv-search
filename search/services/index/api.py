@@ -8,22 +8,22 @@ from operator import ior, iand
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
 
-from search.domain import AdvancedQuery, Classification
+from search.domain import Classification, APIQuery
 
-from .prepare import SEARCH_FIELDS, limit_by_classification
+from .prepare import SEARCH_FIELDS, query_primary_exact, query_secondary_exact
 from .util import sort
 
 
-def advanced_search(search: Search, query: AdvancedQuery) -> Search:
+def api_search(search: Search, query: APIQuery) -> Search:
     """
-    Prepare a :class:`.Search` from a :class:`.AdvancedQuery`.
+    Prepare a :class:`.Search` from a :class:`.APIQuery`.
 
     Parameters
     ----------
     search : :class:`.Search`
         An Elasticsearch search in preparation.
-    query : :class:`.AdvancedQuery`
-        A query originating from the advanced search UI.
+    query : :class:`.APIQuery`
+        An query originating from the API.
 
     Returns
     -------
@@ -36,10 +36,15 @@ def advanced_search(search: Search, query: AdvancedQuery) -> Search:
     # behavior of faceted search.
     if not query.include_older_versions:
         search = search.filter("term", is_current=True)
-    _q_clsn = limit_by_classification(query.classification)
-    if query.include_cross_list:
-        _q_clsn |= limit_by_classification(query.classification,
-                                           "secondary_classification")
+
+    _q_clsn = Q()
+    if query.primary_classification:
+        _q_clsn &= reduce(ior, map(query_primary_exact,
+                                   list(query.primary_classification)))
+    if query.secondary_classification:
+        for classification in query.secondary_classification:
+            _q_clsn &= reduce(ior, map(query_secondary_exact,
+                                       list(classification)))
     q = (
         _fielded_terms_to_q(query)
         & _date_range(query)
@@ -57,7 +62,7 @@ def advanced_search(search: Search, query: AdvancedQuery) -> Search:
     return search
 
 
-def _date_range(q: AdvancedQuery) -> Range:
+def _date_range(q: APIQuery) -> Range:
     """Generate a query part for a date range."""
     if not q.date_range:
         return Q()
@@ -104,7 +109,7 @@ def _get_operator(obj: Any) -> str:
     return obj.operator     # type: ignore
 
 
-def _group_terms(query: AdvancedQuery) -> tuple:
+def _group_terms(query: APIQuery) -> tuple:
     """Group fielded search terms into a set of nested tuples."""
     terms = query.terms[:]
     for operator in ['NOT', 'AND', 'OR']:
@@ -119,7 +124,7 @@ def _group_terms(query: AdvancedQuery) -> tuple:
     return terms[0]     # type: ignore
 
 
-def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
+def _fielded_terms_to_q(query: APIQuery) -> Match:
     if len(query.terms) == 1:
         return SEARCH_FIELDS[query.terms[0].field](query.terms[0].term)
     elif len(query.terms) > 1:

@@ -52,9 +52,16 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     if date_range is not None:
         q.date_range = date_range
 
-    classifications = _get_classifications(params)
-    if classifications is not None:
-        q.classification = classifications
+    primary_query = params.get('primary_classification')
+    if primary_query:
+        primary_classification = _get_classification(primary_query)
+        q.primary_classification = primary_classification
+
+    secondary_query = params.getlist('secondary_classification')
+    if secondary_query:
+        q.secondary_classification = list(
+            map(_get_classification, secondary_query)
+        )
 
     include_fields = _get_include_fields(params)
     if include_fields:
@@ -142,15 +149,33 @@ def _get_date_params(params: MultiDict) -> Optional[DateRange]:
     return None
 
 
-def _get_classifications(params: MultiDict) -> Optional[ClassificationList]:
-    classifications = ClassificationList()
-    for value in params.getlist('primary_classification'):
-        if value not in taxonomy.ARCHIVES:
-            raise BadRequest({
-                'field': 'primary_classification',
-                'reason': 'not a valid archive'
-            })
-        classifications.append(Classification(archive={'id': value}))   # type: ignore
-    if len(classifications) == 0:
-        return None
-    return classifications
+def _to_classification(value: List[str]) -> Tuple[Classification]:
+    clsns = []
+    if value in taxonomy.definitions.GROUPS:
+        klass = taxonomy.Group
+        field = 'group'
+    elif value in taxonomy.definitions.ARCHIVES:
+        klass = taxonomy.Archive
+        field = 'archive'
+    elif value in taxonomy.definitions.CATEGORIES:
+        klass = taxonomy.Category
+        field = 'category'
+    else:
+        raise ValueError('not a valid classification')
+    value = klass(value)
+    clsns.append(Classification(**{field: {'id': value}}))   # type: ignore
+    if value.unalias != value:
+        clsns.append(Classification(**{field: {'id': value.unalias()}}))   # type: ignore
+    if value.canonical != value:
+        clsns.append(Classification(**{field: {'id': value.canonical}}))   # type: ignore
+    return tuple(clsns)
+
+
+def _get_classification(value: str) -> Tuple[Classification]:
+    try:
+        return _to_classification(value)
+    except ValueError:
+        raise BadRequest({
+            'field': 'primary_classification',
+            'reason': 'not a valid classification term'
+        })
