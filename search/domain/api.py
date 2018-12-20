@@ -24,6 +24,7 @@ class APIQuery(Query):
 
     Similar to an advanced query.
     """
+    
     date_range: Optional[DateRange] = None
     primary_classification: Tuple[Classification, ...] = \
         field(default_factory=tuple)

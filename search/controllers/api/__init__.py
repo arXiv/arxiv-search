@@ -45,7 +45,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         Extra headers for the response.
     """
     q = APIQuery()
-    query_terms = []
+    query_terms: List[Dict[str, Any]] = []
     terms = _get_fielded_terms(params, query_terms)
     if terms is not None:
         q.terms = terms
@@ -163,8 +163,8 @@ def _get_date_params(params: MultiDict, query_terms: List) \
     return None
 
 
-def _to_classification(value: List[str], query_terms: List) \
-        -> Tuple[Classification]:
+def _to_classification(value: str, query_terms: List) \
+        -> Tuple[Classification, ...]:
     clsns = []
     if value in taxonomy.definitions.GROUPS:
         klass = taxonomy.Group
@@ -177,17 +177,17 @@ def _to_classification(value: List[str], query_terms: List) \
         field = 'category'
     else:
         raise ValueError('not a valid classification')
-    value = klass(value)
+    cast_value = klass(value)
     clsns.append(Classification(**{field: {'id': value}}))   # type: ignore
-    if value.unalias != value:
-        clsns.append(Classification(**{field: {'id': value.unalias()}}))   # type: ignore
-    if value.canonical != value:
-        clsns.append(Classification(**{field: {'id': value.canonical}}))   # type: ignore
+    if cast_value.unalias != value:
+        clsns.append(Classification(**{field: {'id': cast_value.unalias()}}))   # type: ignore
+    if cast_value.canonical != value:
+        clsns.append(Classification(**{field: {'id': cast_value.canonical}}))   # type: ignore
     return tuple(clsns)
 
 
 def _get_classification(value: str, field: str, query_terms: List) \
-        -> Tuple[Classification]:
+        -> Tuple[Classification, ...]:
     try:
         clsns = _to_classification(value, query_terms)
     except ValueError:
