@@ -1,0 +1,599 @@
+openapi: "3.0.0"
+info:
+  version: "0.1.2"
+  title: "arXiv Search API"
+  description: |
+    A query API for arXiv paper metadata.
+  termsOfService: "https://arxiv.org/help/general"
+  contact:
+    name: "arXiv API Team"
+    email: nextgen@arxiv.org
+  license:
+    name: MIT
+servers:
+  - url: https://api.arxiv.org/metadata/
+    description: Metadata API endpoint.
+paths:
+  /:
+    get:
+      operationId: queryPapers
+      description: |
+        Returns all published arXiv papers that respond to the specified
+        query parameters. By default, returns most recent papers first.
+
+        ## Example request
+
+        ```bash
+        curl \
+          -H "Authorization: Bearer 4mggHnvB3ZV1bV3GObE6wZFw8pul5nGyzfeABSdfDg" \
+          https://api.arxiv.org/metadata/?size=5&license=http://arxiv.org/licenses/nonexclusive-distrib/1.0/&include=license
+
+        ```
+
+        ## Example response
+
+        ```json
+        {
+          "metadata": {
+            "end": 5,
+            "query": [
+              {
+                "parameter": "license",
+                "value": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/"
+              },
+              {
+                "parameter": "include",
+                "value": "license"
+              }
+            ],
+            "size": 5,
+            "start": 0,
+            "total": 993119
+          },
+          "results": [
+            {
+              "canonical": "https://arxiv.org/abs/1812.01565v1",
+              "href": "http://127.0.0.1:5000/1812.01565v1",
+              "license": {
+                "href": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+                "label": "arXiv.org perpetual, non-exclusive license to distribute this article"
+              },
+              "paper_id": "1812.01565",
+              "paper_id_v": "1812.01565v1",
+              "title": "Impact of radiation backgrounds on the formation of massive black holes",
+              "version": 1
+            },
+            {
+              "canonical": "https://arxiv.org/abs/1812.03980v1",
+              "href": "http://127.0.0.1:5000/1812.03980v1",
+              "license": {
+                "href": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+                "label": "arXiv.org perpetual, non-exclusive license to distribute this article"
+              },
+              "paper_id": "1812.03980",
+              "paper_id_v": "1812.03980v1",
+              "title": "Building Ethically Bounded AI",
+              "version": 1
+            },
+            {
+              "canonical": "https://arxiv.org/abs/1812.03942v1",
+              "href": "http://127.0.0.1:5000/1812.03942v1",
+              "license": {
+                "href": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+                "label": "arXiv.org perpetual, non-exclusive license to distribute this article"
+              },
+              "paper_id": "1812.03942",
+              "paper_id_v": "1812.03942v1",
+              "title": "Accurate Evaluation of $\\mathcal{P}$,$\\mathcal{T}$-odd Faraday Effect in Atoms of Xe and Hg",
+              "version": 1
+            },
+            {
+              "canonical": "https://arxiv.org/abs/1812.03969v1",
+              "href": "http://127.0.0.1:5000/1812.03969v1",
+              "license": {
+                "href": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+                "label": "arXiv.org perpetual, non-exclusive license to distribute this article"
+              },
+              "paper_id": "1812.03969",
+              "paper_id_v": "1812.03969v1",
+              "title": "Modified gravity, gravitational waves and the large-scale structure of the Universe: A brief report",
+              "version": 1
+            },
+            {
+              "canonical": "https://arxiv.org/abs/1812.03956v1",
+              "href": "http://127.0.0.1:5000/1812.03956v1",
+              "license": {
+                "href": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+                "label": "arXiv.org perpetual, non-exclusive license to distribute this article"
+              },
+              "paper_id": "1812.03956",
+              "paper_id_v": "1812.03956v1",
+              "title": "X-ray reflectivity with a twist: quantitative time-resolved X-ray reflectivity using monochromatic synchrotron radiation",
+              "version": 1
+            }
+          ]
+        }
+
+        ```
+
+      parameters:
+        - name: all
+          in: query
+          description: |
+            Performs a query across all fields. Has the same behavior as the
+            simple search function on the main arXiv website. Supports quoted
+            literals, wildcards, etc.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+
+        - name: author
+          in: query
+          description: |
+            Search by author name. For the most precise name search, use
+            ``surname(s), forename(s)`` or ``surname(s), initial(s)``. Author
+            names enclosed in quotes will return only exact matches only.
+            Diacritic character variants are automatically searched. For
+            more information about the limitations of searching by author name,
+            see https://blogs.cornell.edu/arxiv/2018/05/04/release-search-v0-2-some-notes-on-names/.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: sinskaja, e n
+
+        - name: title
+          in: query
+          description: |
+            Text search in paper titles. Supports quoted literals and
+            wildcards.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: "theory of life"
+
+        - name: abstract
+          in: query
+          description: |
+            Text search in paper abstracts. Supports quoted literals and
+            wildcards.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: abstr?ct
+
+        - name: comments
+          in: query
+          description: |
+            Text search in paper comments. Supports quoted literals and
+            wildcards. See https://arxiv.org/help/prep#comments for a
+            description of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: "color figures"
+
+        - name: journal_ref
+          in: query
+          description: |
+            Text search in journal reference. Supports quoted literals and
+            wildcards. See https://arxiv.org/help/prep#journal for a
+            description of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: "j cool beans"
+
+        - name: report_num
+          in: query
+          description: |
+            Text search in report number. Supports quoted literals and
+            wildcards. See https://arxiv.org/help/prep#report for a description
+            of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: SU-4240-720
+
+        - name: acm_class
+          in: query
+          description: |
+            Keyword match on ACM classification code. Supports wildcards. See
+            https://arxiv.org/help/prep#acm for a description of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: F.2.2
+
+        - name: msc_class
+          in: query
+          description: |
+            Keyword match on MSC classification code. Supports wildcards. See
+            https://arxiv.org/help/prep#msc for a description of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: 14J60
+
+        - name: doi
+          in: query
+          description: |
+            Keyword match on DOI. Supports wildcards. See
+            https://arxiv.org/help/prep#doi for a description of this field.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: 10.1016/S0550-3213(01)00405-9
+
+        - name: paper_id
+          in: query
+          description: |
+            Keyword match on arXiv paper ID, with our without a version affix.
+            Supports wildcards. See https://arxiv.org/help/arxiv_identifier for
+            information about arXiv paper identifiers.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: 1601.00123
+
+        - name: orcid
+          in: query
+          description: |
+            Match on author ORCID ID. For information about ORCID IDs,
+            see https://arxiv.org/help/orcid. Note that ORCID IDs are only
+            available for the submitter and any author-owners who have claimed
+            the paper. See also
+            https://blogs.cornell.edu/arxiv/2018/05/04/release-search-v0-2-some-notes-on-names/.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: 0000-0002-0564-9939
+
+        - name: author_id
+          in: query
+          description: |
+            Match on arXiv author identifier. For more information about author
+            identifiers, see https://arxiv.org/help/author_identifiers. Note
+            that author identifiers are only available for the submitter and
+            any author-owners who have claimed the paper. See also
+            https://blogs.cornell.edu/arxiv/2018/05/04/release-search-v0-2-some-notes-on-names/.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: warner_s_1
+
+        - name: primary_classification
+          in: query
+          description: |
+            Limit query by primary classification. This field supports
+            filtering by group, archive, and category. Note that group names
+            are prefixed by ``grp_``, e.g. ``grp_physics``, ``grp_q-bio``. See
+            https://arxiv.github.io/arxiv-base/arxiv/arxiv.taxonomy.html for
+            more information.
+          examples:
+            groupMath:
+              summary: Limit results to the math group.
+              value: grp_math
+            archivePhysics:
+              summary: Limit results to the physics archive.
+              value: physics
+            categoryHE:
+              summary: |
+                Limit results to the High Enegery Astrophysical Phenomena
+                category.
+              value: astro-ph.HE
+          required: false
+          style: form
+          schema:
+            type: array
+            items:
+              type: string
+
+        - name: secondary_classification
+          in: query
+          description: |
+            Limit query by secondary (cross-list) classification. This field
+            supports filtering by group, archive, and category. Note that group
+            names are prefixed by ``grp_``, e.g. ``grp_physics``,
+            ``grp_q-bio``. See
+            https://arxiv.github.io/arxiv-base/arxiv/arxiv.taxonomy.html for
+            more information.
+          examples:
+            groupMath:
+              summary: Limit results to those cross-listed in the math group.
+              value: grp_math
+            archivePhysics:
+              summary: |
+                Limit results to those cross-listed in the physics archive.
+              value: physics
+            categoryHE:
+              summary: |
+                Limit results to those cross-listed in the High Enegery
+                Astrophysical Phenomena category.
+              value: astro-ph.HE
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+
+        - name: include
+          in: query
+          description: |
+            Fields to include in the result set, in addition to paper ID and
+            version. See ``DocumentMetadata.json`` specification for all
+            available fields.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+          example: title
+
+        - name: start_date
+          in: query
+          description: |
+            Limit results to papers submitted or announced (see ``date_type``)
+            on or after this date.
+          required: false
+          style: form
+          schema:
+            type: string
+            format: date
+          example: "1998-04-03"
+
+        - name: end_date
+          in: query
+          description: |
+            Limit results to papers submitted or announced (see ``date_type``)
+            on or before this date.
+          required: false
+          style: form
+          schema:
+            type: string
+            format: date
+          example: "1998-04-09"
+
+        - name: date_type
+          in: query
+          description: |
+            The date property used to apply ``start_date`` and ``end_date``
+            filters. Note that ``announced_date_first`` has only year and month
+            precision.
+          required: false
+          style: form
+          schema:
+            type: string
+            default: submitted_date
+            enum:
+              - submitted_date_first
+              - submitted_date
+              - announced_date_first
+          example: submitted_date_first
+
+      responses:
+        '200':
+          description: All arXiv papers that respond to specified query.
+          content:
+            application/json:
+              schema:
+                $ref: './resources/DocumentSet.json#'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /{id}:
+    get:
+      description: |
+        Get metadata about an arXiv paper by arXiv ID. See
+        https://arxiv.org/help/arxiv_identifier for information about arXiv
+        paper identifiers.
+
+        ## Example request
+
+        ```bash
+        curl \
+          -H "Authorization: Bearer 4mggHnvB3ZV1bV3GOaE8wZFw8pul5nGyzfeABSdfDg" \
+          https://api.arxiv.org/metadata/1811.00536v1
+        ```
+
+        ## Example response
+        ```json
+        {
+          "abs_categories": "cond-mat.str-el hep-th math-ph math.MP",
+          "abstract": "We give a systematic construction and classification of fermionic symmetry-protected topological states for generic fermionic symmetry group $G_f=\\mathbb Z_2^f\\rtimes G_b$, which is a central extension of bosonic symmetry group $G_b$ (may contain time reversal symmetry) by the fermion parity symmetry group $\\mathbb Z_2^f=\\{1,P_f\\}$. For each class in the classification (except those with 2D $p+ip$ chiral superconductor decorations), we construct a fixed-point wave function which admits exactly solvable commuting-projector Hamiltonian. The classification is based on the notion of equivalence class of fermionic symmetric local unitary transformations.",
+          "acm_class": [],
+          "announced_date_first": "2018-11",
+          "authors": [
+            {
+              "affiliation": [],
+              "author_id": null,
+              "first_name": "Qing-Rui",
+              "full_name": "Qing-Rui Wang",
+              "last_name": "Wang",
+              "orcid": null,
+              "suffix": ""
+            },
+            {
+              "affiliation": [],
+              "author_id": null,
+              "first_name": "Zheng-Cheng",
+              "full_name": "Zheng-Cheng Gu",
+              "last_name": "Gu",
+              "orcid": null,
+              "suffix": ""
+            }
+          ],
+          "authors_freeform": "Qing-Rui Wang and Zheng-Cheng Gu",
+          "canonical": "https://arxiv.org/abs/1811.00536v1",
+          "comments": "68 pages, 16 figures",
+          "doi": [],
+          "formats": [
+            {
+              "format": "pdf",
+              "href": "https://arxiv.org/pdf/1811.00536v1"
+            },
+            {
+              "format": "other",
+              "href": "https://arxiv.org/format/1811.00536v1"
+            }
+          ],
+          "href": "https://api.arxiv.org/metadata/1811.00536v1",
+          "is_current": true,
+          "is_withdrawn": false,
+          "journal_ref": "",
+          "latest": {
+            "canonical": "https://arxiv.org/abs/1811.00536v1",
+            "href": "https://api.arxiv.org/metadata/1811.00536v1",
+            "paper_id": "1811.00536v1",
+            "version": 1
+          },
+          "license": {
+            "href": "http://arxiv.org/licenses/nonexclusive-distrib/1.0/",
+            "label": "arXiv.org perpetual, non-exclusive license to distribute this article"
+          },
+          "msc_class": [],
+          "owners": [
+            {
+              "affiliation": [],
+              "author_id": null,
+              "first_name": "Qing-Rui",
+              "full_name": "Qing-Rui Wang",
+              "last_name": "Wang",
+              "orcid": null,
+              "suffix": ""
+            }
+          ],
+          "paper_id": "1811.00536",
+          "paper_id_v": "1811.00536v1",
+          "primary_classification": {
+            "archive": {
+              "id": "cond-mat",
+              "name": "Condensed Matter"
+            },
+            "category": {
+              "id": "cond-mat.str-el",
+              "name": "Strongly Correlated Electrons"
+            },
+            "group": {
+              "id": "grp_physics",
+              "name": "Physics"
+            }
+          },
+          "report_num": "",
+          "secondary_classification": [
+            {
+              "archive": {
+                "id": "hep-th",
+                "name": "High Energy Physics - Theory"
+              },
+              "category": {
+                "id": "hep-th",
+                "name": "High Energy Physics - Theory"
+              },
+              "group": {
+                "id": "grp_physics",
+                "name": "Physics"
+              }
+            },
+            {
+              "archive": {
+                "id": "math-ph",
+                "name": "Mathematical Physics"
+              },
+              "category": {
+                "id": "math-ph",
+                "name": "Mathematical Physics"
+              },
+              "group": {
+                "id": "grp_physics",
+                "name": "Physics"
+              }
+            }
+          ],
+          "source": {
+            "flags": "",
+            "format": "pdftex",
+            "size_bytes": 2478991
+          },
+          "submitted_date": "2018-11-01T13:57:22-04:00",
+          "submitted_date_first": "2018-11-01T13:57:22-04:00",
+          "submitter": {
+            "affiliation": [],
+            "author_id": null,
+            "first_name": "",
+            "full_name": "Qing-Rui Wang",
+            "last_name": "",
+            "orcid": null,
+            "suffix": ""
+          },
+          "title": "General group super-cohomology theory of fermionic symmetry-protected topological phases",
+          "version": 1
+        }
+        ```
+
+      operationId: getPaperByID
+      parameters:
+        - name: id
+          in: path
+          description: arXiv ID of paper to retrieve.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Metadata about the requested arXiv paper.
+          content:
+            application/json:
+              schema:
+                $ref: './resources/Document.json#Document'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

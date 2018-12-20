@@ -151,12 +151,12 @@ def external_url_builder() -> Dict[str, Callable]:
 @blueprint.context_processor
 def url_for_page_builder() -> Dict[str, Callable]:
     """Add a page URL builder function to the template context."""
-    def url_for_page(page: int, page_size: int) -> str:
+    def url_for_page(page: int, size: int) -> str:
         """Build an URL to for a search result page."""
         rule = request.url_rule
         parts = url_parse(url_for(rule.endpoint))
         args = request.args.copy()
-        args['start'] = (page - 1) * page_size
+        args['start'] = (page - 1) * size
         parts = parts.replace(query=url_encode(args))
         url: str = url_unparse(parts)
         return url

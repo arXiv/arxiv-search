@@ -1,13 +1,16 @@
 """Supports the advanced search feature."""
 
-from typing import Any
+from typing import Any, Union
+
+from functools import reduce, wraps
+from operator import ior, iand
 
 from elasticsearch_dsl import Search, Q, SF
 from elasticsearch_dsl.query import Range, Match, Bool
 
 from search.domain import AdvancedQuery, Classification
 
-from .prepare import SEARCH_FIELDS
+from .prepare import SEARCH_FIELDS, limit_by_classification
 from .util import sort
 
 
@@ -20,7 +23,7 @@ def advanced_search(search: Search, query: AdvancedQuery) -> Search:
     search : :class:`.Search`
         An Elasticsearch search in preparation.
     query : :class:`.AdvancedQuery`
-        An advanced query, originating from the advanced search controller.
+        A query originating from the advanced search UI.
 
     Returns
     -------
@@ -33,10 +36,14 @@ def advanced_search(search: Search, query: AdvancedQuery) -> Search:
     # behavior of faceted search.
     if not query.include_older_versions:
         search = search.filter("term", is_current=True)
+    _q_clsn = limit_by_classification(query.classification)
+    if query.include_cross_list:
+        _q_clsn |= limit_by_classification(query.classification,
+                                           "secondary_classification")
     q = (
         _fielded_terms_to_q(query)
         & _date_range(query)
-        & _classifications(query)
+        & _q_clsn
     )
     if query.order is None or query.order == 'relevance':
         # Boost the current version heavily when sorting by relevance.
@@ -48,30 +55,6 @@ def advanced_search(search: Search, query: AdvancedQuery) -> Search:
     search = sort(query, search)
     search = search.query(q)
     return search
-
-
-def _classification(field: str, classification: Classification) -> Match:
-    """Get a query part for a :class:`.Classification`."""
-    query = Q()
-    if classification.group:
-        field_name = '%s__group__id' % field
-        query &= Q('match', **{field_name: classification.group})
-    if classification.archive:
-        field_name = '%s__archive__id' % field
-        query &= Q('match', **{field_name: classification.archive})
-    return query
-
-
-def _classifications(q: AdvancedQuery) -> Match:
-    """Get a query part for classifications on an :class:`.AdvancedQuery`."""
-    if not q.primary_classification:
-        return Q()
-    query = _classification('primary_classification',
-                            q.primary_classification[0])
-    if len(q.primary_classification) > 1:
-        for classification in q.primary_classification[1:]:
-            query |= _classification('primary_classification', classification)
-    return query
 
 
 def _date_range(q: AdvancedQuery) -> Range:

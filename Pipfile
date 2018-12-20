@@ -1,13 +1,11 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
-arxiv-base = "==0.6.1"
+arxiv-auth = "==0.2.3"
+arxiv-base = "==0.12.1"
 boto = "==2.48.0"
 "boto3" = "==1.6.6"
 botocore = "==1.9.6"
@@ -18,8 +16,8 @@ coverage = "==4.4.2"
 dataclasses = "==0.4"
 docutils = "==0.14"
 elasticsearch = "==6.2.0"
-elasticsearch-dsl = "==6.1.0"
-flask = "==0.12.2"
+elasticsearch-dsl = "==6.3.1"
+flask = "==1.0.2"
 "flask-s3" = "==0.3.3"
 idna = "==2.6"
 ipaddress = "==1.0.19"
@@ -40,18 +38,20 @@ pyflakes = "==1.6.0"
 pylama = "==7.4.3"
 python-dateutil = "==2.6.1"
 pytz = "==2017.3"
-requests = "==2.18.4"
+requests = "==2.20.0"
 "s3transfer" = "==0.1.13"
 snowballstemmer = "==1.2.1"
 thrift = "==0.11.0"
 thrift-connector = "==0.23"
 typed-ast = "==1.1.0"
 "urllib3" = "==1.22"
-werkzeug = "==0.13"
+werkzeug = "==0.14.1"
 wtforms = "==2.1"
 bleach = "*"
-
+lxml = "*"
 
 [dev-packages]
-
 coveralls = "*"
+sphinx = "*"
+sphinxcontrib-websupport = "*"
+sphinx-autodoc-typehints = "*"

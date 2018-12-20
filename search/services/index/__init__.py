@@ -33,14 +33,15 @@ from elasticsearch_dsl import Search, Q
 from search.context import get_application_config, get_application_global
 from arxiv.base import logging
 from search.domain import Document, DocumentSet, Query, AdvancedQuery, \
-    SimpleQuery, asdict
+    SimpleQuery, asdict, APIQuery
 
 from .exceptions import QueryError, IndexConnectionError, DocumentNotFound, \
     IndexingError, OutsideAllowedRange, MappingError
 from .util import MAX_RESULTS
 from .advanced import advanced_search
 from .simple import simple_search
-from .highlighting import highlight
+from .api import api_search
+from . import highlighting
 from . import results
 
 logger = logging.getLogger(__name__)
@@ -75,6 +76,9 @@ def handle_es_exceptions() -> Generator:
         elif e.error == 'parsing_exception':
             logger.error('ES parsing_exception: %s', e.info)
             raise QueryError(e.info) from e
+        elif e.status_code == 404:
+            logger.error('Caught NotFoundError: %s', e)
+            raise DocumentNotFound('No such document')
         logger.error('Problem communicating with ES: %s' % e.error)
         raise IndexConnectionError(
             'Problem communicating with ES: %s' % e.error
@@ -270,7 +274,8 @@ class SearchSession(object):
         Parameters
         ----------
         document : :class:`.Document`
-            Must be a valid search document, per ``schema/Document.json``.
+            Must be a valid search document, per
+            ``schema/DocumentMetadata.json``.
 
         Raises
         ------
@@ -297,7 +302,8 @@ class SearchSession(object):
         Parameters
         ----------
         document : :class:`.Document`
-            Must be a valid search document, per ``schema/Document.json``.
+            Must be a valid search document, per
+            ``schema/DocumentMetadata.json``.
         docs_per_chunk: int
             Number of documents to send to ES in a single chunk
         Raises
@@ -355,10 +361,10 @@ class SearchSession(object):
         if not record:
             logger.error("No such document: %s", document_id)
             raise DocumentNotFound('No such document')
-        return Document(**record['_source'])    # type: ignore
+        return results.to_document(record['_source'], highlight=False)
         # See https://github.com/python/mypy/issues/3937
 
-    def search(self, query: Query) -> DocumentSet:
+    def search(self, query: Query, highlight: bool = True) -> DocumentSet:
         """
         Perform a search.
 
@@ -379,7 +385,7 @@ class SearchSession(object):
 
         """
         # Make sure that the user is not requesting a nonexistant page.
-        max_pages = int(MAX_RESULTS/query.page_size)
+        max_pages = int(MAX_RESULTS/query.size)
         if query.page > max_pages:
             _message = f'Requested page {query.page}, but max is {max_pages}'
             logger.error(_message)
@@ -393,20 +399,29 @@ class SearchSession(object):
                 current_search = advanced_search(current_search, query)
             elif isinstance(query, SimpleQuery):
                 current_search = simple_search(current_search, query)
+            elif isinstance(query, APIQuery):
+                current_search = api_search(current_search, query)
         except TypeError as e:
-            logger.error('Malformed query: %s', str(e))
-            raise QueryError('Malformed query') from e
+            raise e
+            # logger.error('Malformed query: %s', str(e))
+            # raise QueryError('Malformed query') from e
 
-        # Highlighting is performed by Elasticsearch; here we include the
-        # fields and configuration for highlighting.
-        current_search = highlight(current_search)
+        if highlight:
+            # Highlighting is performed by Elasticsearch; here we include the
+            # fields and configuration for highlighting.
+            current_search = highlighting.highlight(current_search)
+
+        if isinstance(query, APIQuery):
+            current_search = current_search.extra(
+                _source={'include': query.include_fields}
+            )
 
         with handle_es_exceptions():
             # Slicing the search adds pagination parameters to the request.
             resp = current_search[query.page_start:query.page_end].execute()
 
         # Perform post-processing on the search results.
-        return results.to_documentset(query, resp)
+        return results.to_documentset(query, resp, highlight=highlight)
 
     def exists(self, paper_id_v: str) -> bool:
         """Determine whether a paper exists in the index."""
@@ -456,9 +471,9 @@ def current_session() -> SearchSession:
 
 
 @wraps(SearchSession.search)
-def search(query: Query) -> DocumentSet:
+def search(query: Query, highlight: bool = True) -> DocumentSet:
     """Retrieve search results."""
-    return current_session().search(query)
+    return current_session().search(query, highlight=highlight)
 
 
 @wraps(SearchSession.add_document)

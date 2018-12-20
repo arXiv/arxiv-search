@@ -6,15 +6,17 @@ search.routes package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    search.routes.api
+
 Submodules
 ----------
 
-search.routes.ui module
------------------------
+.. toctree::
 
-.. automodule:: search.routes.ui
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   search.routes.ui
 

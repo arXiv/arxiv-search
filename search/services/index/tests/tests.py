@@ -25,7 +25,11 @@ class TestSearch(TestCase):
         """:class:`.index.search` supports :class:`AdvancedQuery`."""
         mock_results = mock.MagicMock()
         mock_results.__getitem__.return_value = {'total': 53}
-        mock_result = mock.MagicMock()
+        mock_result = mock.MagicMock(
+            authors=[{'full_name': 'N. Ame'}],
+            owners=[{'full_name': 'N. Ame'}],
+            submitter={'full_name': 'N. Ame'}
+        )
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
         mock_Search.execute.return_value = mock_results
@@ -41,16 +45,16 @@ class TestSearch(TestCase):
 
         query = AdvancedQuery(
             order='relevance',
-            page_size=10,
+            size=10,
             date_range=DateRange(
                 start_date=datetime.now() - timedelta(days=5),
                 end_date=datetime.now()
             ),
-            primary_classification=ClassificationList([
+            classification=ClassificationList([
                 Classification(
-                    group='physics',
-                    archive='physics',
-                    category='hep-th'
+                    group={'id': 'physics'},
+                    archive={'id': 'physics'},
+                    category={'id': 'hep-th'}
                 )
             ]),
             terms=FieldedSearchList([
@@ -80,7 +84,7 @@ class TestSearch(TestCase):
         self.assertEqual(document_set.metadata['total'], 53)
         self.assertEqual(document_set.metadata['current_page'], 1)
         self.assertEqual(document_set.metadata['total_pages'], 6)
-        self.assertEqual(document_set.metadata['page_size'], 10)
+        self.assertEqual(document_set.metadata['size'], 10)
         self.assertEqual(len(document_set.results), 1)
 
     @mock.patch('search.services.index.Search')
@@ -89,7 +93,11 @@ class TestSearch(TestCase):
         """:class:`.index.search` supports :class:`SimpleQuery`."""
         mock_results = mock.MagicMock()
         mock_results.__getitem__.return_value = {'total': 53}
-        mock_result = mock.MagicMock()
+        mock_result = mock.MagicMock(
+            authors=[{'full_name': 'N. Ame'}],
+            owners=[{'full_name': 'N. Ame'}],
+            submitter={'full_name': 'N. Ame'}
+        )
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
         mock_Search.execute.return_value = mock_results
@@ -105,7 +113,7 @@ class TestSearch(TestCase):
 
         query = SimpleQuery(
             order='relevance',
-            page_size=10,
+            size=10,
             search_field='title',
             value='foo title'
         )
@@ -115,7 +123,7 @@ class TestSearch(TestCase):
         self.assertEqual(document_set.metadata['total'], 53)
         self.assertEqual(document_set.metadata['current_page'], 1)
         self.assertEqual(document_set.metadata['total_pages'], 6)
-        self.assertEqual(document_set.metadata['page_size'], 10)
+        self.assertEqual(document_set.metadata['size'], 10)
         self.assertEqual(len(document_set.results), 1)
 
 

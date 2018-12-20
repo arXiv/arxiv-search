@@ -388,6 +388,10 @@
         "primary_classification": {
           "type": "object",
           "properties": {
+            "combined": {
+              "type": "text",
+              "analyzer": "simple"
+            },
             "group": {
               "type": "object",
               "properties": {
@@ -405,12 +409,12 @@
                 "id": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined"]
+                  "copy_to": ["combined", "primary_classification.combined"]
                 },
                 "name": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined"]
+                  "copy_to": ["combined", "primary_classification.combined"]
                 }
               }
             },
@@ -420,12 +424,12 @@
                 "id": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined"]
+                  "copy_to": ["combined", "primary_classification.combined"]
                 },
                 "name": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined"]
+                  "copy_to": ["combined", "primary_classification.combined"]
                 }
               }
             }
@@ -434,6 +438,10 @@
         "secondary_classification": {
           "type": "nested",
           "properties": {
+            "combined": {
+              "type": "text",
+              "analyzer": "simple"
+            },
             "group": {
               "type": "object",
               "properties": {
@@ -449,10 +457,14 @@
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "normalizer": "simple",
+                  "copy_to": ["combined", "secondary_classification.combined"]
                 },
                 "name": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "normalizer": "simple",
+                  "copy_to": ["combined", "secondary_classification.combined"]
                 }
               }
             },
@@ -460,10 +472,14 @@
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "normalizer": "simple",
+                  "copy_to": ["combined", "secondary_classification.combined"]
                 },
                 "name": {
-                  "type": "keyword"
+                  "type": "keyword",
+                  "normalizer": "simple",
+                  "copy_to": ["combined", "secondary_classification.combined"]
                 }
               }
             }

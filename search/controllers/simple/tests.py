@@ -94,6 +94,8 @@ class TestRetrieveDocument(TestCase):
 class TestSearchController(TestCase):
     """Tests for :func:`.simple.search`."""
 
+    @mock.patch('search.controllers.simple.url_for',
+                lambda *a, **k: f'https://arxiv.org/{k["paper_id"]}')
     @mock.patch('search.controllers.simple.index')
     def test_arxiv_id(self, mock_index):
         """Query parameter contains an arXiv ID."""

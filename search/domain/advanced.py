@@ -35,8 +35,31 @@ class AdvancedQuery(Query):
     An advanced query contains fielded search terms and boolean operators.
     """
 
+    SUPPORTED_FIELDS = [
+        ('title', 'Title'),
+        ('author', 'Author(s)'),
+        ('abstract', 'Abstract'),
+        ('comments', 'Comments'),
+        ('journal_ref', 'Journal reference'),
+        ('acm_class', 'ACM classification'),
+        ('msc_class', 'MSC classification'),
+        ('report_num', 'Report number'),
+        ('paper_id', 'arXiv identifier'),
+        ('cross_list_category', 'Cross-list category'),
+        ('doi', 'DOI'),
+        ('orcid', 'ORCID'),
+        ('author_id', 'arXiv author ID'),
+        ('all', 'All fields')
+    ]
+
     date_range: Optional[DateRange] = None
-    primary_classification: ClassificationList = field(
+
+    classification: ClassificationList = field(
         default_factory=ClassificationList
     )
+    """Classification(s) by which to limit results."""
+
+    include_cross_list: bool = field(default=True)
+    """If True, secondaries are considered when limiting by classification."""
+
     terms: FieldedSearchList = field(default_factory=FieldedSearchList)

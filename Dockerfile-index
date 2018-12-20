@@ -16,20 +16,9 @@
 #
 # See also ELASTICSEARCH_* and METADATA_ENDPOINT parameters, below.
 
-FROM arxiv/base
-
-# Add Python consumer and configuration.
-ADD requirements/prod.txt /opt/arxiv/requirements.txt
-ADD app.py /opt/arxiv/
-RUN pip install -U pip
-RUN pip install -r /opt/arxiv/requirements.txt
+FROM arxiv/search:0.5.1
 
 ENV PATH "/opt/arxiv:${PATH}"
-
-ADD schema /opt/arxiv/schema
-ADD mappings /opt/arxiv/mappings
-ADD search /opt/arxiv/search
-ADD tests /opt/arxiv/tests
 ADD bulk_index.py /opt/arxiv/
 
 WORKDIR /opt/arxiv/

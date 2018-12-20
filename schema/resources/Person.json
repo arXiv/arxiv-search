@@ -1,0 +1,48 @@
+{
+  "title": "Person",
+  "description": "Schema for person in metadata returned by the search API.",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "description": "The fullest representation of the person's name available in arXiv metadata.",
+      "type": "string"
+    },
+    "last_name": {
+      "description": "The family or surname part of the person's name, if available.",
+      "type": "string"
+    },
+    "first_name": {
+      "description": "The personal or forename part of the person's name, if available.",
+      "type": "string"
+    },
+    "suffix": {
+      "description": "The suffix part of the person's name, if available.",
+      "type": "string"
+    },
+    "affiliation": {
+      "description": "Institutional affiliations as entered at the time of submission, if available.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 0
+    },
+    "orcid": {
+      "description": "ORCID identifier, if available.",
+      "oneOf": [
+        {"type": "string"},
+        {"type": "null"}
+      ]
+    },
+    "author_id": {
+      "description": "arXiv author identifier, if available.",
+      "oneOf": [
+        {"type": "string"},
+        {"type": "null"}
+      ]
+    }
+  },
+  "required": [
+    "full_name"
+  ]
+}

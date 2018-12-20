@@ -6,6 +6,8 @@ arXiv Search System Documentation
    :caption: Contents:
 
    architecture.rst
+   search_ui.rst
+   search_api.rst
    api/modules.rst
 
 

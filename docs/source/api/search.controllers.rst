@@ -12,18 +12,14 @@ Subpackages
 .. toctree::
 
     search.controllers.advanced
-    search.controllers.authors
+    search.controllers.api
     search.controllers.simple
 
 Submodules
 ----------
 
-search.controllers.util module
-------------------------------
+.. toctree::
 
-.. automodule:: search.controllers.util
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   search.controllers.tests
+   search.controllers.util
 

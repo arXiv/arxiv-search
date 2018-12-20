@@ -117,7 +117,7 @@
 #         # When a user performs a search...
 #         query = SimpleQuery(
 #             order='',
-#             page_size=10,
+#             size=10,
 #             field='all',
 #             value='flux capacitor'
 #         )
@@ -138,7 +138,7 @@
 #         # A search for a TeX expression should match similar metadata strings.
 #         query = SimpleQuery(
 #             order='',
-#             page_size=10,
+#             size=10,
 #             field='all',
 #             value='λ'
 #         )
@@ -151,7 +151,7 @@
 #         """Scenario: simple search for TeX terms."""
 #         query = SimpleQuery(
 #             order='',
-#             page_size=10,
+#             size=10,
 #             field='all',
 #             value='$Z_1(4475)$'
 #         )
@@ -164,7 +164,7 @@
 #         """Scenario: simple search for TeX terms."""
 #         query = SimpleQuery(
 #             order='',
-#             page_size=10,
+#             size=10,
 #             field='all',
 #             value='$\Lambda$'
 #         )
@@ -174,7 +174,7 @@
 #
 #         query = SimpleQuery(
 #             order='',
-#             page_size=10,
+#             size=10,
 #             field='all',
 #             value='$\Lambda\Lambda$'
 #         )
@@ -187,7 +187,7 @@
 #         search_year = 2015
 #         query = AdvancedQuery(
 #             order='',
-#             page_size=10,
+#             size=10,
 #             date_range=DateRange(
 #                 start_date=datetime(year=2015, month=1, day=1, tzinfo=EASTERN),
 #                 end_date=datetime(year=2016, month=1, day=1, tzinfo=EASTERN)
@@ -207,7 +207,7 @@
 #         """Scenario: multiple terms search success."""
 #         query = AdvancedQuery(
 #             order='',
-#             page_size=10,
+#             size=10,
 #             terms=FieldedSearchList([
 #                 FieldedSearchTerm(operator='AND', field='author',
 #                                   term='schroder'),
@@ -226,7 +226,7 @@
 #         """Scenario: multiple terms search success."""
 #         query = AdvancedQuery(
 #             order='',
-#             page_size=10,
+#             size=10,
 #             include_older_versions=True,
 #             terms=FieldedSearchList([
 #                 FieldedSearchTerm(operator='AND', field='all',
@@ -246,7 +246,7 @@
 #         """Scenario: multiple terms with no results."""
 #         query = AdvancedQuery(
 #             order='',
-#             page_size=10,
+#             size=10,
 #             terms=FieldedSearchList([
 #                 FieldedSearchTerm(operator='AND', field='author',
 #                                   term='schroder'),

@@ -1,0 +1,192 @@
+{
+  "Document": {
+    "title": "Document",
+    "description": "Schema for arXiv document metadata returned by the search API.",
+    "type": "object",
+    "properties": {
+      "abs_categories": {
+        "description": "Categories as they would appear on the /abs page",
+        "type": "string"
+      },
+      "abstract": {
+        "type": "string"
+      },
+      "acm_class": {
+        "description": "Classifications from ACM Computing Classification System",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "uniqueItems": true
+      },
+      "owners": {
+        "items": {
+          "type": "object",
+          "$ref": "./Person.json"
+        }
+      },
+      "authors": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "$ref": "./Person.json"
+        },
+        "minItems": 1
+      },
+      "comments": {
+        "type": "string"
+      },
+      "submitted_date": {
+        "description": "Date this version of paper was submitted.",
+        "type": "string",
+        "format": "date-time"
+      },
+      "announced_date_first": {
+        "description": "Year and month (``%Y-%m``) the paper was originally announced.",
+        "type": "string"
+      },
+      "paper_id": {
+        "description": "arXiv paper identifier without version affix.",
+        "type": "string"
+      },
+      "paper_id_v": {
+        "description": "arXiv paper identifier with version affix.",
+        "type": "string"
+      },
+      "doi": {
+        "type": "string"
+      },
+      "formats": {
+        "description": "Derivative paper formats available to users",
+        "type": "array",
+        "minItems": 0,
+        "items": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "type": "string"
+            },
+            "href": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        }
+      },
+      "href": {
+        "type": "string",
+        "format": "uri"
+      },
+      "fulltext": {
+        "type": "string"
+      },
+      "is_current": {
+        "type": "boolean"
+      },
+      "is_withdrawn": {
+        "type": "boolean"
+      },
+      "journal_ref": {
+        "type": "string"
+      },
+      "license": {
+        "type": "object",
+        "properties": {
+          "href": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "msc_class": {
+        "description": "Classifications from American Mathematical Society Mathematical Subject Classification (MSC)",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "uniqueItems": true
+      },
+      "primary_classification": {
+        "$ref": "./Classification.json"
+      },
+      "secondary_classification": {
+        "type": "array",
+        "items": {"$ref": "./Classification.json"}
+      },
+      "report_num": {
+        "type": "string"
+      },
+      "source": {
+        "properties": {
+          "flags": {
+            "type": "string",
+            "nullable": true
+          },
+          "format": {
+            "type": "string",
+            "nullable": true
+          },
+          "size_bytes": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": ["size_bytes"]
+      },
+      "submitter": {
+        "description": "Submitter data. Name may not match those associated with user account, since user data is copied to submission data at the time of submission creation.",
+        "type": "object",
+        "$ref": "./Person.json"
+      },
+      "title": {
+        "type": "string"
+      },
+      "version": {
+        "description": "The version number for this paper.",
+        "minimum": 1,
+        "type": "integer"
+      },
+      "latest": {
+        "description": "arXiv paper identifier (with version affix) of latest version of this paper.",
+        "type": "object",
+        "properties": {
+          "version": {
+            "description": "Number of the latest version of this paper.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "href": {
+            "type": "string",
+            "format": "uri",
+            "description": "Location of the detailed metadata record available via the API"
+          },
+          "canonical": {
+            "type": "string",
+            "format": "uri",
+            "description": "Canonical arXiv URI."
+          },
+          "paper_id": {
+            "description": "Paper ID with version affix of latest version.",
+            "type": "string"
+          }
+        }
+      },
+      "canonical": {
+        "type": "string",
+        "format": "uri",
+        "description": "Canonical arXiv URI."
+      }
+    },
+    "required": [
+      "paper_id",
+      "paper_id_v",
+      "version",
+      "href",
+      "canonical"
+    ]
+  }
+}

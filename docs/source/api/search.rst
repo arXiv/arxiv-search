@@ -17,56 +17,16 @@ Subpackages
     search.process
     search.routes
     search.services
+    search.tests
 
 Submodules
 ----------
 
-search.config module
---------------------
+.. toctree::
 
-.. automodule:: search.config
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search.context module
----------------------
-
-.. automodule:: search.context
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search.converter module
------------------------
-
-.. automodule:: search.converter
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search.factory module
----------------------
-
-.. automodule:: search.factory
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search.logging module
----------------------
-
-.. automodule:: search.logging
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-search.util module
-------------------
-
-.. automodule:: search.util
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   search.config
+   search.context
+   search.converters
+   search.encode
+   search.factory
 

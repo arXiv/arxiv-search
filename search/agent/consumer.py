@@ -1,15 +1,14 @@
 """Provides a record processor for MetadataIsAvailable notifications."""
-from typing import Dict, List
 
 import json
 import os
 import time
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Dict
 from arxiv.base import logging
 from search.services import metadata, index
 from search.process import transform
 from search.domain import DocMeta, Document, asdict
-from .base import BaseConsumer
+from arxiv.base.agent import BaseConsumer
 
 logger = logging.getLogger(__name__)
 logger.propagate = False

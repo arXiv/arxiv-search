@@ -57,7 +57,7 @@ default enables URL generation without a request context but with an
 application context.
 """
 
-APPLICATION_ROOT = os.environ.get('APPLICATION_ROOT', None)
+APPLICATION_ROOT = os.environ.get('APPLICATION_ROOT', '/')
 """
 If the application does not occupy a whole domain or subdomain this can be set
 to the path where the application is configured to live. This is for session
@@ -224,9 +224,26 @@ FLASKS3_FORCE_MIMETYPE = os.environ.get('FLASKS3_FORCE_MIMETYPE', 1)
 FLASKS3_ACTIVE = os.environ.get('FLASKS3_ACTIVE', 0)
 
 # Settings for display of release information
-RELEASE_NOTES_URL = 'https://confluence.cornell.edu/x/8H5OFQ'
-RELEASE_NOTES_TEXT = 'Search v0.4 released 2018-07-18'
+RELEASE_NOTES_URL = 'https://confluence.cornell.edu/x/giazFQ'
+RELEASE_NOTES_TEXT = 'Search v0.5 released 2018-12-20'
 
+
+EXTERNAL_URL_SCHEME = os.environ.get('EXTERNAL_URL_SCHEME', 'https')
+BASE_SERVER = os.environ.get('BASE_SERVER', 'arxiv.org')
+
+URLS = [
+    ("pdf", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("abs", "/abs/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("abs_by_id", "/abs/<arxiv:paper_id>", BASE_SERVER),
+    ("pdfonly", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("dvi", "/dvi/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("html", "/html/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("ps", "/ps/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("source", "/e-print/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("other", "/format/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+]
+
+JWT_SECRET = os.environ.get('JWT_SECRET', 'foosecret')
 
 # TODO: one place to set the version, update release notes text, JIRA issue
 # collector, etc.

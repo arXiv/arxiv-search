@@ -13,7 +13,7 @@ from wtforms.fields import HiddenField
 from wtforms import widgets
 
 from arxiv import taxonomy
-from search.domain import DateRange
+from search.domain import DateRange, AdvancedQuery
 from search.controllers.util import does_not_start_with_wildcard, \
                                     strip_white_space, has_balanced_quotes
 
@@ -73,21 +73,7 @@ class FieldForm(Form):
     operator = SelectField("Operator", choices=[
         ('AND', 'AND'), ('OR', 'OR'), ('NOT', 'NOT')
     ], default='AND')
-    field = SelectField("Field", choices=[
-        ('title', 'Title'),
-        ('author', 'Author(s)'),
-        ('abstract', 'Abstract'),
-        ('comments', 'Comments'),
-        ('journal_ref', 'Journal reference'),
-        ('acm_class', 'ACM classification'),
-        ('msc_class', 'MSC classification'),
-        ('report_num', 'Report number'),
-        ('paper_id', 'arXiv identifier'),
-        ('doi', 'DOI'),
-        ('orcid', 'ORCID'),
-        ('author_id', 'arXiv author ID'),
-        ('all', 'All fields')
-    ])
+    field = SelectField("Field", choices=AdvancedQuery.SUPPORTED_FIELDS)
 
 
 class ClassificationForm(Form):
@@ -95,6 +81,8 @@ class ClassificationForm(Form):
 
     # pylint: disable=too-few-public-methods
 
+    # TODO: this should not be hard-coded!
+    #
     # Map arXiv archives to fields on this form. Ideally we would autogenerate
     # form fields based on the arXiv taxonomy, but this can't easily happen
     # until we replace the classic-style advanced interface with faceted
@@ -114,6 +102,9 @@ class ClassificationForm(Form):
          in taxonomy.ARCHIVES_ACTIVE.items()
          if description['in_group'] == 'grp_physics']
 
+    INCLUDE_CROSS_LIST = 'include'
+    EXCLUDE_CROSS_LIST = 'exclude'
+
     computer_science = BooleanField('Computer Science (cs)')
     economics = BooleanField('Economics (econ)')
     eess = BooleanField('Electrical Engineering and Systems Science (eess)')
@@ -123,6 +114,11 @@ class ClassificationForm(Form):
     q_biology = BooleanField('Quantitative Biology (q-bio)')
     q_finance = BooleanField('Quantitative Finance (q-fin)')
     statistics = BooleanField('Statistics (stat)')
+
+    include_cross_list = RadioField('Include cross-list', choices=[
+        (INCLUDE_CROSS_LIST, 'Include cross-listed papers'),
+        (EXCLUDE_CROSS_LIST, 'Exclude cross-listed papers')
+    ], default=INCLUDE_CROSS_LIST)
 
 
 def yearInBounds(form: Form, field: DateField) -> None:

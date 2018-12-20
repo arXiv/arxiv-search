@@ -3,12 +3,14 @@
 # Defines the runtime for the arXiv search service, which provides the main
 # UIs (and, eventually, APIs) for search.
 
-FROM arxiv/base:0.6.1
+FROM arxiv/base:0.12.1
 
 WORKDIR /opt/arxiv
 
+# Install MySQL.
+RUN yum install -y which mysql mysql-devel
+
 # Add Python application and configuration.
-ADD requirements/prod.txt /opt/arxiv/requirements.txt
 ADD app.py /opt/arxiv/
 ADD Pipfile /opt/arxiv/
 ADD Pipfile.lock /opt/arxiv/

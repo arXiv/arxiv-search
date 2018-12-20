@@ -1,5 +1,7 @@
 # Decision log
 
+## Initial design decisions - v0.1-0.4
+
 1. To get started quickly, we will start with an AWS Elasticsearch managed
    cluster running in the cloud. We may wish to run our own cluster in the
    future.
@@ -32,3 +34,12 @@
    results, and we are only seeking feature-parity with the classic system.
    When we address hit highlighting, we can show matching author names deep in
    author list to provide visual feedback to the user.
+
+## Subsequent decisions
+
+- 2018-12-18. Removing cross-list functionality in v0.1 was a regression. Users
+  expect to be able to search by cross-list category just like primary
+  category. We decided to include cross-list/secondary category in the
+  all-fields search, add a cross-list field to the advanced search interface,
+  and include cross-list classification in shortcut routes and the advanced
+  interface's classification filter (with option to exclude).
