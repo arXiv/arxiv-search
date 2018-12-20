@@ -18,6 +18,21 @@
         "total": {
           "description": "Total number of documents that respond to this query.",
           "type": "integer"
+        },
+        "query": {
+          "description": "Query parameters interpreted from the request.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "parameter": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     },
@@ -25,7 +40,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "$ref": "Document.json#Document"
+        "$ref": "Document.json"
       }
     }
   }

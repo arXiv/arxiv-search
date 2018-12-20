@@ -1,0 +1,9 @@
+{
+  "title": "Classification",
+  "type": "object",
+  "properties": {
+      "archive": {"$ref": "./ClassificationTerm.json"},
+      "group": {"$ref": "./ClassificationTerm.json"},
+      "category": {"$ref": "./ClassificationTerm.json"}
+  }
+}

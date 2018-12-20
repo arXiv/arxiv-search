@@ -40,6 +40,7 @@ from .exceptions import QueryError, IndexConnectionError, DocumentNotFound, \
 from .util import MAX_RESULTS
 from .advanced import advanced_search
 from .simple import simple_search
+from .api import api_search
 from . import highlighting
 from . import results
 
@@ -394,10 +395,12 @@ class SearchSession(object):
         logger.debug('got current search request %s', str(query))
         current_search = self._base_search()
         try:
-            if isinstance(query, AdvancedQuery) or isinstance(query, APIQuery):
+            if isinstance(query, AdvancedQuery):
                 current_search = advanced_search(current_search, query)
             elif isinstance(query, SimpleQuery):
                 current_search = simple_search(current_search, query)
+            elif isinstance(query, APIQuery):
+                current_search = api_search(current_search, query)
         except TypeError as e:
             raise e
             # logger.error('Malformed query: %s', str(e))

@@ -111,11 +111,11 @@
         "uniqueItems": true
       },
       "primary_classification": {
-        "$ref": "./Document.json#/definitions/classification"
+        "$ref": "./Classification.json"
       },
       "secondary_classification": {
         "type": "array",
-        "items": {"$ref": "./Document.json#/definitions/classification"}
+        "items": {"$ref": "./Classification.json"}
       },
       "report_num": {
         "type": "string"
@@ -188,51 +188,5 @@
       "href",
       "canonical"
     ]
-  },
-  "definitions": {
-    "category": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        }
-      },
-      "required": ["id", "name"]
-    },
-    "archive": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        }
-      },
-      "required": ["id", "name"]
-    },
-    "group": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        }
-      },
-      "required": ["id", "name"]
-    },
-    "classification": {
-      "type": "object",
-      "properties": {
-        "archive": {"$ref": "#/definitions/archive"},
-        "group": {"$ref": "#/definitions/group"},
-        "category": {"$ref": "#/definitions/category"}
-      }
-    }
   }
 }
