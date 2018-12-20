@@ -148,6 +148,7 @@ class JSONSerializer(BaseSerializer):
                 'end': document_set.metadata.get('end'),
                 'size': document_set.metadata.get('size'),
                 'total': document_set.metadata.get('total'),
+                'query': document_set.metadata.get('query')
             },
         })
         return serialized

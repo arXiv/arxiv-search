@@ -1,52 +1,6 @@
 {
     "title": "DocumentMetadata",
     "description": "Schema for arXiv document metadata provided by the docmeta endpoint.",
-    "definitions": {
-        "category": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            },
-            "required": ["id", "name"]
-        },
-        "archive": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            },
-            "required": ["id", "name"]
-        },
-        "group": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            },
-            "required": ["id", "name"]
-        },
-        "classification": {
-            "type": "object",
-            "properties": {
-                "archive": {"$ref": "#/definitions/archive"},
-                "group": {"$ref": "#/definitions/group"},
-                "category": {"$ref": "#/definitions/category"}
-            }
-        }
-    },
     "type": "object",
     "properties": {
         "abs_categories": {
@@ -216,11 +170,11 @@
             "type": "string"
         },
         "primary_classification": {
-            "$ref": "#/definitions/classification"
+            "$ref": "./Classification.json"
         },
         "secondary_classification": {
             "type": "array",
-            "items": {"$ref": "#/definitions/classification"}
+            "items": {"$ref": "./Classification.json"}
         },
         "proxy": {
             "type": "string"

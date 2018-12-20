@@ -45,30 +45,35 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         Extra headers for the response.
     """
     q = APIQuery()
-    terms = _get_fielded_terms(params)
+    query_terms = []
+    terms = _get_fielded_terms(params, query_terms)
     if terms is not None:
         q.terms = terms
-    date_range = _get_date_params(params)
+    date_range = _get_date_params(params, query_terms)
     if date_range is not None:
         q.date_range = date_range
 
-    primary_query = params.get('primary_classification')
-    if primary_query:
-        primary_classification = _get_classification(primary_query)
+    primary = params.get('primary_classification')
+    if primary:
+        primary_classification = _get_classification(primary,
+                                                     'primary_classification',
+                                                     query_terms)
         q.primary_classification = primary_classification
 
-    secondary_query = params.getlist('secondary_classification')
-    if secondary_query:
-        q.secondary_classification = list(
-            map(_get_classification, secondary_query)
-        )
+    secondaries = params.getlist('secondary_classification')
+    if secondaries:
+        q.secondary_classification = [
+            _get_classification(sec, 'secondary_classification', query_terms)
+            for sec in secondaries
+        ]
 
-    include_fields = _get_include_fields(params)
+    include_fields = _get_include_fields(params, query_terms)
     if include_fields:
         q.include_fields += include_fields
 
     q = paginate(q, params)     # type: ignore
     document_set = index.search(q, highlight=False)
+    document_set.metadata['query'] = query_terms
     logger.debug('Got document set with %i results', len(document_set.results))
     return {'results': document_set, 'query': q}, status.HTTP_200_OK, {}
 
@@ -105,19 +110,24 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     return {'results': document}, status.HTTP_200_OK, {}
 
 
-def _get_include_fields(params: MultiDict) -> List[str]:
+def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
     include_fields = params.getlist('include')
     allowed_fields = Document.fields()
     if include_fields:
-        return [field for field in include_fields if field in allowed_fields]
+        inc = [field for field in include_fields if field in allowed_fields]
+        for field in inc:
+            query_terms.append({'parameter': 'include', 'value': field})
+        return inc
     return []
 
 
-def _get_fielded_terms(params: MultiDict) -> Optional[FieldedSearchList]:
+def _get_fielded_terms(params: MultiDict, query_terms: List) \
+        -> Optional[FieldedSearchList]:
     terms = FieldedSearchList()
     for field, _ in Query.SUPPORTED_FIELDS:
         values = params.getlist(field)
         for value in values:
+            query_terms.append({'parameter': field, 'value': value})
             terms.append(FieldedSearchTerm(     # type: ignore
                 operator='AND',
                 field=field,
@@ -128,7 +138,8 @@ def _get_fielded_terms(params: MultiDict) -> Optional[FieldedSearchList]:
     return terms
 
 
-def _get_date_params(params: MultiDict) -> Optional[DateRange]:
+def _get_date_params(params: MultiDict, query_terms: List) \
+        -> Optional[DateRange]:
     date_params = {}
     for field in ['start_date', 'end_date']:
         value = params.getlist(field)
@@ -142,14 +153,18 @@ def _get_date_params(params: MultiDict) -> Optional[DateRange]:
         except ValueError:
             raise BadRequest({'field': field, 'reason': 'invalid datetime'})
         date_params[field] = dt
+        query_terms.append({'parameter': field, 'value': dt})
     if 'date_type' in params:
         date_params['date_type'] = params.get('date_type')
+        query_terms.append({'parameter': 'date_type',
+                            'value': date_params['date_type']})
     if date_params:
         return DateRange(**date_params)  # type: ignore
     return None
 
 
-def _to_classification(value: List[str]) -> Tuple[Classification]:
+def _to_classification(value: List[str], query_terms: List) \
+        -> Tuple[Classification]:
     clsns = []
     if value in taxonomy.definitions.GROUPS:
         klass = taxonomy.Group
@@ -171,11 +186,14 @@ def _to_classification(value: List[str]) -> Tuple[Classification]:
     return tuple(clsns)
 
 
-def _get_classification(value: str) -> Tuple[Classification]:
+def _get_classification(value: str, field: str, query_terms: List) \
+        -> Tuple[Classification]:
     try:
-        return _to_classification(value)
+        clsns = _to_classification(value, query_terms)
     except ValueError:
         raise BadRequest({
-            'field': 'primary_classification',
+            'field': field,
             'reason': 'not a valid classification term'
         })
+    query_terms.append({'parameter': field, 'value': value})
+    return clsns
