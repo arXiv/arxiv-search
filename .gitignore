@@ -62,7 +62,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+docs/source/_build/
 
 # PyBuilder
 target/
@@ -97,6 +97,10 @@ ENV/
 # mkdocs documentation
 /site
 
+# VS Code
+.vscode
+settings.json
+
 # mypy
 .mypy_cache/
 
@@ -105,3 +109,4 @@ temp/
 .DS_Store
 
 to_index/
+
