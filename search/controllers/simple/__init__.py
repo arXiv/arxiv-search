@@ -110,8 +110,7 @@ def search(request_params: MultiDict,
         # Temporary workaround to support classic help search
         if form.searchtype.data == 'help':
             return {}, status.HTTP_301_MOVED_PERMANENTLY,\
-                {'Location': 'https://arxiv.org/help/search?method=and'
-                 f'&format=builtin-short&sort=score&words={form.query.data}'}
+                {'Location': f'/help/search?q={form.query.data}'}
 
         # Support classic "expeirmental" search
         elif form.searchtype.data == 'full_text':
