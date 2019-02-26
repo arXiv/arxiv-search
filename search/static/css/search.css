@@ -29,6 +29,11 @@
 
 .pagination-list {
   margin: 0 !important; }
+  .pagination-list li {
+    list-style: none;
+    margin-bottom: 0; }
+  .pagination-list li + li {
+    margin: 0; }
 
 .breathe-vertical {
   margin-top: 4rem;
@@ -42,12 +47,6 @@
   .breathe-horizontal {
     margin-left: 10rem !important;
     margin-right: 10rem !important; } }
-
-.pagination-list li {
-  list-style: none; }
-
-.pagination-list li + li {
-  margin: 0; }
 
 .fieldset {
   border: 1px solid #DBDBDB;
