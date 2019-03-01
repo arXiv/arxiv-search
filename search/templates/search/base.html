@@ -47,7 +47,7 @@
       <button class="button is-small" id="feedback-button">Feedback?</button>
     </div>
   </div>
-    <content>
+    <div class="content">
       {% block within_content %}
         Specific results here
       {% endblock within_content %}
@@ -56,5 +56,5 @@
         <span class="help" style="display: inline-block;"><a href="{{ config.RELEASE_NOTES_URL }}">{{ config.RELEASE_NOTES_TEXT }}</a>&nbsp;&nbsp;</span>
         <button class="button is-small" id="feedback-button">Feedback?</button>
       </div>
-    </content>
+    </div>
 {% endblock content %}

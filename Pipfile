@@ -4,8 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-arxiv-auth = "==0.2.3"
-arxiv-base = "==0.12.1"
+arxiv-auth = "==0.2.7"
+arxiv-base = "==0.14.3"
 boto = "==2.48.0"
 "boto3" = "==1.6.6"
 botocore = "==1.9.6"
