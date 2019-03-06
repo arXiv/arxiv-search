@@ -196,7 +196,7 @@ class ClassificationList(list):
 class Query:
     """Represents a search query originating from the UI or API."""
 
-    MAXIMUM_size = 500
+    MAXIMUM_size = 2000
     """The maximum number of records that can be retrieved."""
 
     SUPPORTED_FIELDS = [
