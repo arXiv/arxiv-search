@@ -145,15 +145,15 @@ paths:
         '200':
           description: All arXiv papers that respond to specified query.
           content:
-            application/json:
+            application/atom+xml:
               schema:
-                $ref: './resources/DocumentSet.json#'
+                $ref: './resources/DocumentSet.xml#'
         default:
-          description: unexpected error
+          description: Error messages
           content:
-            application/json:
+           application/atom+xml:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Error.xml#'
 
 components:
   schemas:
