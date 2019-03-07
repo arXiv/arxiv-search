@@ -315,7 +315,9 @@ def _parse_search_query(query: List[str]) -> Dict[str, Any]:
     """expect_new handles quotation state."""
 
     for term in terms:
-        if expect_new:
+        if expect_new and term in ["AND", "OR", "ANDNOT"]:
+            # TODO: Process booleans
+        elif expect_new:
             field, term = term.split(':')
 
             # quotation handling
