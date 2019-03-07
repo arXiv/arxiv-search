@@ -148,7 +148,8 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
 
     elif id_list and raw_query:
         # Filter results based on id_list
-        results = [paper for paper in data['results'] if paper['id'] in id_list]
+        results = [paper for paper in data['results'].results 
+                       if paper.paper_id in id_list or paper.paper_id_v in id_list]
         data = { 
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
             'query' : APIQuery() # TODO: Specify query 
