@@ -107,8 +107,44 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         HTTP status code.
     dict
         Extra headers for the response.
+
+    Raises
+    ------
+    :class:`BadRequest`
+        Raised when the search_query and id_list are not specified.
     """
-    pass
+    raw_query = params.get('search_query')
+
+    # parse id_list
+    id_list = params.get('id_list', '')
+    id_list = id_list.split(',')
+
+    # error
+    if not id_list and not raw_query:
+        raise BadRequest("Either a search_query or id_list must be specified for the classic API.")
+
+    if raw_query:
+        # migrate search_query -> query
+        params['query'] = raw_query
+        del params['search_query']
+
+        data, _, _ = search(params)
+    
+    if id_list and not raw_query:
+        # Note lack of error handling to implicitly propogate any errors. 
+        # Classic API also errors if even one ID is malformed.
+        papers = [paper(paper_id) for paper_id in id_list]
+
+        data, _, _ = zip(*papers)
+        data = { 'results' : [paper['results'] for paper in data] }
+
+    elif id_list and raw_query:
+        # Filter results based on id_list
+        data = { 'results' : [paper for paper in data['results']
+                                if paper['id'] in id_list] }
+
+    return data, status.HTTP_200_OK, {}
+
    
 
 
