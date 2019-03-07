@@ -52,11 +52,11 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         parsed_operators, parsed_terms = _parse_search_query(params.get('query',''))
         params = params.copy()
         for field, term in parsed_terms.items():
-            params[field] = term
+            params.add(field, term)
     except ValueError:
         raise BadRequest(f"Improper syntax in query: {params.get('query')}")
 
-    # process fielded terms
+    # process fielded terms, using the operators above
     query_terms: List[Dict[str, Any]] = []
     terms = _get_fielded_terms(params, query_terms, parsed_operators)
     if terms is not None:
