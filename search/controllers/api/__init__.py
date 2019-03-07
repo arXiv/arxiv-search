@@ -145,7 +145,7 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         del params['search_query']
 
         # pass to normal search, which will handle parsing
-        data, _, _ = search(params)
+        data, _, _ = search(params) # type: ignore
     
     if id_list and not raw_query:
         # Process only id_lists.
@@ -153,8 +153,8 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         # Classic API also errors if even one ID is malformed.
         papers = [paper(paper_id) for paper_id in id_list]
 
-        data, _, _ = zip(*papers)
-        results = [paper['results'] for paper in data]
+        data, _, _ = zip(*papers) # type: ignore
+        results: List[Document] = [paper['results'] for paper in data] # type: ignore
         data = { 
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
             'query' : APIQuery() # TODO: Specify query
@@ -162,7 +162,7 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
 
     elif id_list and raw_query:
         # Filter results based on id_list
-        results = [paper for paper in data['results'].results
+        results: List[Document] = [paper for paper in data['results'].results # type: ignore
                        if paper.paper_id in id_list or paper.paper_id_v in id_list]
         data = { 
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
@@ -249,11 +249,11 @@ def _get_date_params(params: MultiDict, query_terms: List) \
                 dt = pytz.utc.localize(dt)
             dt = dt.replace(tzinfo=EASTERN)
         except ValueError:
-            raise BadRequest({'field': field, 'reason': 'invalid datetime'})
+            raise BadRequest(f'Invalid datetime in {field}')
         date_params[field] = dt
         query_terms.append({'parameter': field, 'value': dt})
     if 'date_type' in params:
-        date_params['date_type'] = params.get('date_type')
+        date_params['date_type'] = params.get('date_type') # type: ignore
         query_terms.append({'parameter': 'date_type',
                             'value': date_params['date_type']})
     if date_params:
@@ -270,7 +270,7 @@ def _to_classification(value: str, query_terms: List) \
     elif value in taxonomy.definitions.ARCHIVES:
         klass = taxonomy.Archive
         field = 'archive'
-    elif value in taxonomy.definitionss.CATEGORIES:
+    elif value in taxonomy.definitions.CATEGORIES:
         klass = taxonomy.Category
         field = 'category'
     else:
@@ -290,10 +290,7 @@ def _get_classification(value: str, field: str, query_terms: List) \
     try:
         clsns = _to_classification(value, query_terms)
     except ValueError:
-        raise BadRequest({
-            'field': field,
-            'reason': 'not a valid classification term'
-        })
+        raise BadRequest(f'Not a valid classification term: {field}={value}')
     query_terms.append({'parameter': field, 'value': value})
     return clsns
 
@@ -314,7 +311,7 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     Parses a query into a
     """
     new_query_params = {}
-    new_query_operators = defaultdict(default_factory=lambda: "AND")
+    new_query_operators: Dict[str, str] = defaultdict(default_factory=lambda: "AND")
     terms = query.split()
     
     expect_new = True
