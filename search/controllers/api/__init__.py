@@ -310,9 +310,28 @@ def _parse_search_query(query: List[str]) -> Dict[str, Any]:
     # TODO: Add support for booleans.
     new_query_params = {}
     terms = query.split()
+    
+    expect_new = True
+    """expect_new handles quotation state."""
+
     for term in terms:
-        field, query = term.split(':')
-        new_query_params[SEARCH_QUERY_FIELDS[field]] = query
+        if expect_new:
+            field, term = term.split(':')
+
+            # quotation handling
+            if term.startswith('"') and not term.endswith('"'):
+                expect_new = False
+            term = term.replace('"', '')
+
+            new_query_params[SEARCH_QUERY_FIELDS[field]] = term
+        else:
+            # quotation handling, expecting more terms
+            if term.endswith('"'):
+                expect_new = True
+                term = term.replace('"', '')
+
+            new_query_params[SEARCH_QUERY_FIELDS[field]] += " " + term
+        
     
     return new_query_params
 
