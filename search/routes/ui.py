@@ -76,7 +76,7 @@ def search(archives: Optional[List[str]] = None) -> Union[str, Response]:
     logger.debug(f"controller returned code: {code}")
     if code == status.HTTP_200_OK:
         return render_template("search/search.html", pagetitle="Search",
-                               archives=archives, **response)
+                               archives=archives, **response)  # type: ignore
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
           or code == status.HTTP_303_SEE_OTHER):
         return redirect(headers['Location'], code=code)
