@@ -16,7 +16,7 @@ from arxiv.base import logging
 from werkzeug.exceptions import InternalServerError
 from search.controllers import api
 
-from . import serialize, exceptions
+from . import serialize, exceptions, classic
 
 from arxiv.users.auth.decorators import scoped
 from arxiv.users.auth import scopes

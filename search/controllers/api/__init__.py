@@ -113,11 +113,15 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
     :class:`BadRequest`
         Raised when the search_query and id_list are not specified.
     """
+    params = params.copy()
     raw_query = params.get('search_query')
 
     # parse id_list
     id_list = params.get('id_list', '')
-    id_list = id_list.split(',')
+    if id_list:
+        id_list = id_list.split(',')
+    else:
+        id_list = []
 
     # error
     if not id_list and not raw_query:
@@ -136,12 +140,16 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         papers = [paper(paper_id) for paper_id in id_list]
 
         data, _, _ = zip(*papers)
-        data = { 'results' : [paper['results'] for paper in data] }
+        data = { 'results' : [paper['results'] for paper in data],
+                 'query' : '' # TODO: Specify query
+                }
 
     elif id_list and raw_query:
         # Filter results based on id_list
         data = { 'results' : [paper for paper in data['results']
-                                if paper['id'] in id_list] }
+                                if paper['id'] in id_list],
+                'query' : '' # TODO: Specify query 
+                }
 
     return data, status.HTTP_200_OK, {}
 
