@@ -77,6 +77,40 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     logger.debug('Got document set with %i results', len(document_set.results))
     return {'results': document_set, 'query': q}, status.HTTP_200_OK, {}
 
+def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
+    """
+    Handle a search request from the Clasic API. Maps old rquest 
+    parameters to new parameters:
+    - search_query -> query
+    - start -> start
+    - max_results -> size
+
+    Then the request is passed to :method:`search()` and returned.
+    
+    If ``id_list`` is specified in the parameters and ``search_query`` is 
+    NOT specified, then each request is passed to :method:`paper()` and 
+    results are aggregated.
+
+    If ``id_list`` is specified AND ``search_query`` is also specified,
+    then the results from :method:`search()` are filtered by ``id_list``.
+
+    Parameters
+    ----------
+    params : :class:`MultiDict`
+        GET query parameters from the request.
+
+    Returns
+    -------
+    dict
+        Response data (to serialize).
+    int
+        HTTP status code.
+    dict
+        Extra headers for the response.
+    """
+    pass
+   
+
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
