@@ -24,7 +24,7 @@ def create_ui_web_app() -> Flask:
     logging.getLogger('botocore').setLevel(logging.ERROR)
 
     app = Flask('search')
-    app.config.from_pyfile('config.py')
+    app.config.from_pyfile('config.py') # type: ignore
     app.url_map.converters['archive'] = ArchiveConverter
 
     index.init_app(app)
@@ -47,7 +47,7 @@ def create_api_web_app() -> Flask:
 
     app = Flask('search')
     app.json_encoder = ISO8601JSONEncoder
-    app.config.from_pyfile('config.py')
+    app.config.from_pyfile('config.py') # type: ignore
 
     index.init_app(app)
 
@@ -71,7 +71,7 @@ def create_classic_api_web_app() -> Flask:
 
     app = Flask('search')
     app.json_encoder = ISO8601JSONEncoder
-    app.config.from_pyfile('config.py')
+    app.config.from_pyfile('config.py') # type: ignore
 
     index.init_app(app)
 
