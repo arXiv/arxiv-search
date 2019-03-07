@@ -40,7 +40,7 @@ def get_parameters_from_cookie() -> None:
         return
 
     # We need the request args to be mutable.
-    request.args = MultiDict(request.args.items(multi=True))
+    request.args = MultiDict(request.args.items(multi=True)) # type: ignore
     data = json.loads(request.cookies[PARAMS_COOKIE_NAME])
     for param in PARAMS_TO_PERSIST:
         # Don't clobber the user's explicit request.
@@ -75,11 +75,11 @@ def search(archives: Optional[List[str]] = None) -> Union[str, Response]:
     response, code, headers = simple.search(request.args, archives)
     logger.debug(f"controller returned code: {code}")
     if code == status.HTTP_200_OK:
-        return render_template("search/search.html", pagetitle="Search",
-                               archives=archives, **response)  # type: ignore
+        return render_template("search/search.html", pagetitle="Search", # type: ignore
+                               archives=archives, **response)
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
           or code == status.HTTP_303_SEE_OTHER):
-        return redirect(headers['Location'], code=code)
+        return redirect(headers['Location'], code=code) # type: ignore
     raise InternalServerError('Unexpected error')
 
 
@@ -87,7 +87,7 @@ def search(archives: Optional[List[str]] = None) -> Union[str, Response]:
 def advanced_search() -> Union[str, Response]:
     """Advanced search interface."""
     response, code, headers = advanced.search(request.args)
-    return render_template(
+    return render_template( # type: ignore
         "search/advanced_search.html",
         pagetitle="Advanced Search",
         **response
@@ -103,7 +103,7 @@ def group_search(groups_or_archives: str) -> Union[str, Response]:
     interface. Anything else will result in a 404.
     """
     response, code, _ = advanced.group_search(request.args, groups_or_archives)
-    return render_template(
+    return render_template( # type: ignore
         "search/advanced_search.html",
         pagetitle="Advanced Search",
         **response
@@ -117,7 +117,7 @@ def service_status() -> Union[str, Response]:
 
     Exercises the search index connection with a real query.
     """
-    return health_check()
+    return health_check() # type: ignore
 
 
 def _browse_url(name: str, **parameters: Any) -> Optional[str]:
@@ -154,7 +154,7 @@ def url_for_page_builder() -> Dict[str, Callable]:
     def url_for_page(page: int, size: int) -> str:
         """Build an URL to for a search result page."""
         rule = request.url_rule
-        parts = url_parse(url_for(rule.endpoint))
+        parts = url_parse(url_for(rule.endpoint)) # type: ignore
         args = request.args.copy()
         args['start'] = (page - 1) * size
         parts = parts.replace(query=url_encode(args))
@@ -179,7 +179,7 @@ def current_url_sans_parameters_builder() -> Dict[str, Callable]:
     def current_url_sans_parameters(*params_to_remove: str) -> str:
         """Get the current URL with ``param`` removed from GET parameters."""
         rule = request.url_rule
-        parts = url_parse(url_for(rule.endpoint))
+        parts = url_parse(url_for(rule.endpoint)) # type: ignore
         args = request.args.copy()
         for param in params_to_remove:
             args.pop(param, None)
