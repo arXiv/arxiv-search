@@ -45,6 +45,17 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         Extra headers for the response.
     """
     q = APIQuery()
+
+    # parse advanced classic-style queries
+    try:
+        parsed_terms = _parse_search_query(params.get('query',''))
+        params = params.copy()
+        for field, term in parsed_terms.items():
+            params[field] = term
+    except ValueError:
+        raise BadRequest(f"Improper syntax in query: {params.get('query')}")
+
+    # process fielded terms
     query_terms: List[Dict[str, Any]] = []
     terms = _get_fielded_terms(params, query_terms)
     if terms is not None:
@@ -123,18 +134,20 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
     else:
         id_list = []
 
-    # error
+    # error if neither search_query nor id_list are specified.
     if not id_list and not raw_query:
         raise BadRequest("Either a search_query or id_list must be specified for the classic API.")
 
     if raw_query:
-        # migrate search_query -> query
+        # migrate search_query -> query variable
         params['query'] = raw_query
         del params['search_query']
 
+        # pass to normal search, which will handle parsing
         data, _, _ = search(params)
     
     if id_list and not raw_query:
+        # Process only id_lists.
         # Note lack of error handling to implicitly propogate any errors. 
         # Classic API also errors if even one ID is malformed.
         papers = [paper(paper_id) for paper_id in id_list]
@@ -148,7 +161,7 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
 
     elif id_list and raw_query:
         # Filter results based on id_list
-        results = [paper for paper in data['results'].results 
+        results = [paper for paper in data['results'].results
                        if paper.paper_id in id_list or paper.paper_id_v in id_list]
         data = { 
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
@@ -254,7 +267,7 @@ def _to_classification(value: str, query_terms: List) \
     elif value in taxonomy.definitions.ARCHIVES:
         klass = taxonomy.Archive
         field = 'archive'
-    elif value in taxonomy.definitions.CATEGORIES:
+    elif value in taxonomy.definitionss.CATEGORIES:
         klass = taxonomy.Category
         field = 'category'
     else:
@@ -267,7 +280,7 @@ def _to_classification(value: str, query_terms: List) \
             and cast_value.canonical != cast_value.unalias():
         clsns.append(Classification(**{field: {'id': cast_value.canonical}}))   # type: ignore
     return tuple(clsns)
-
+ 
 
 def _get_classification(value: str, field: str, query_terms: List) \
         -> Tuple[Classification, ...]:
@@ -280,3 +293,27 @@ def _get_classification(value: str, field: str, query_terms: List) \
         })
     query_terms.append({'parameter': field, 'value': value})
     return clsns
+
+SEARCH_QUERY_FIELDS = {
+    'ti' : 'title',
+    'au' : 'author',
+    'abs' : 'abstract',
+    'co' : 'comments',
+    'jr' : 'journal_ref',
+    'cat' : 'primary_classification',
+    'rn' : 'report_number',
+    'id' : 'paper_id',
+    'all' : 'all'
+}
+
+def _parse_search_query(query: List[str]) -> Dict[str, Any]:
+    # TODO: Add support for booleans.
+    new_query_params = {}
+    terms = query.split()
+    for term in terms:
+        field, query = term.split(':')
+        new_query_params[SEARCH_QUERY_FIELDS[field]] = query
+    
+    return new_query_params
+
+
