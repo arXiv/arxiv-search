@@ -48,7 +48,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     # parse advanced classic-style queries
     try:
-        parsed_terms = _parse_search_query(params.get('query',''))
+        parsed_operators, parsed_terms = _parse_search_query(params.get('query',''))
         params = params.copy()
         for field, term in parsed_terms.items():
             params[field] = term
@@ -306,17 +306,25 @@ SEARCH_QUERY_FIELDS = {
     'all' : 'all'
 }
 
-def _parse_search_query(query: List[str]) -> Dict[str, Any]:
-    # TODO: Add support for booleans.
+def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """
+    Parses a query into a
+    """
     new_query_params = {}
+    new_query_operators = {}
     terms = query.split()
     
     expect_new = True
     """expect_new handles quotation state."""
+    next_operator = "AND"
+    """new_bool handles the operator state """
 
     for term in terms:
-        if expect_new and term in ["AND", "OR", "ANDNOT"]:
-            # TODO: Process booleans
+        if expect_new and term in ["AND", "OR", "ANDNOT", "NOT"]:
+            if term == "ANDNOT": 
+                term = "NOT" # translate to new representation
+            next_operator = term
+            
         elif expect_new:
             field, term = term.split(':')
 
@@ -326,6 +334,7 @@ def _parse_search_query(query: List[str]) -> Dict[str, Any]:
             term = term.replace('"', '')
 
             new_query_params[SEARCH_QUERY_FIELDS[field]] = term
+            new_query_operators[SEARCH_QUERY_FIELDS[field]] = next_operator
         else:
             # quotation handling, expecting more terms
             if term.endswith('"'):
@@ -335,6 +344,6 @@ def _parse_search_query(query: List[str]) -> Dict[str, Any]:
             new_query_params[SEARCH_QUERY_FIELDS[field]] += " " + term
         
     
-    return new_query_params
+    return new_query_operators, new_query_params
 
 
