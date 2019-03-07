@@ -2,6 +2,7 @@
 
 from typing import Tuple, Dict, Any, Optional, List
 import re
+from collections import defaultdict
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 import dateutil.parser
@@ -57,7 +58,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     # process fielded terms
     query_terms: List[Dict[str, Any]] = []
-    terms = _get_fielded_terms(params, query_terms)
+    terms = _get_fielded_terms(params, query_terms, parsed_operators)
     if terms is not None:
         q.terms = terms
     date_range = _get_date_params(params, query_terms)
@@ -216,15 +217,17 @@ def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
     return []
 
 
-def _get_fielded_terms(params: MultiDict, query_terms: List) \
-        -> Optional[FieldedSearchList]:
+def _get_fielded_terms(params: MultiDict, query_terms: List,
+        operators: Optional[Dict[str, Any]] = None) -> Optional[FieldedSearchList]:
+    if operators is None:
+        operators = defaultdict(default_factory=lambda: "AND")
     terms = FieldedSearchList()
     for field, _ in Query.SUPPORTED_FIELDS:
         values = params.getlist(field)
         for value in values:
             query_terms.append({'parameter': field, 'value': value})
             terms.append(FieldedSearchTerm(     # type: ignore
-                operator='AND',
+                operator=operators[field],
                 field=field,
                 term=value
             ))
@@ -311,7 +314,7 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     Parses a query into a
     """
     new_query_params = {}
-    new_query_operators = {}
+    new_query_operators = defaultdict(default_factory=lambda: "AND")
     terms = query.split()
     
     expect_new = True
@@ -347,3 +350,18 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     return new_query_operators, new_query_params
 
 
+def _get_search_query(params: MultiDict, query_terms: List, 
+        operators: Dict[str, Any]) -> Optional[FieldedSearchList]:
+    terms = FieldedSearchList()
+    for field, _ in Query.SUPPORTED_FIELDS:
+        values = params.getlist(field)
+        for value in values:
+            query_terms.append({'parameter': field, 'value': value})
+            terms.append(FieldedSearchTerm(     # type: ignore
+                operator=operators[field],
+                field=field,
+                term=value
+            ))
+    if len(terms) == 0:
+        return None
+    return terms
