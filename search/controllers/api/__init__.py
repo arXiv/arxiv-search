@@ -90,16 +90,17 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
 def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
-    Handle a search request from the Clasic API. Maps old rquest 
-    parameters to new parameters:
+    Handle a search request from the Clasic API.
+
+    First, the method maps old request parameters to new parameters:
     - search_query -> query
     - start -> start
     - max_results -> size
 
     Then the request is passed to :method:`search()` and returned.
-    
-    If ``id_list`` is specified in the parameters and ``search_query`` is 
-    NOT specified, then each request is passed to :method:`paper()` and 
+
+    If ``id_list`` is specified in the parameters and ``search_query`` is
+    NOT specified, then each request is passed to :method:`paper()` and
     results are aggregated.
 
     If ``id_list`` is specified AND ``search_query`` is also specified,
@@ -228,7 +229,7 @@ def _get_fielded_terms(params: MultiDict, query_terms: List) \
                 field=field,
                 term=value
             ))
-    if len(terms) == 0:
+    if not terms:
         return None
     return terms
 
@@ -246,11 +247,11 @@ def _get_date_params(params: MultiDict, query_terms: List) \
                 dt = pytz.utc.localize(dt)
             dt = dt.replace(tzinfo=EASTERN)
         except ValueError:
-            raise BadRequest({'field': field, 'reason': 'invalid datetime'})
+            raise BadRequest(f'Invalid datetime in {field}')
         date_params[field] = dt
         query_terms.append({'parameter': field, 'value': dt})
     if 'date_type' in params:
-        date_params['date_type'] = params.get('date_type')
+        date_params['date_type'] = params.get('date_type') # type: ignore
         query_terms.append({'parameter': 'date_type',
                             'value': date_params['date_type']})
     if date_params:
@@ -287,10 +288,7 @@ def _get_classification(value: str, field: str, query_terms: List) \
     try:
         clsns = _to_classification(value, query_terms)
     except ValueError:
-        raise BadRequest({
-            'field': field,
-            'reason': 'not a valid classification term'
-        })
+        raise BadRequest(f'Not a valid classification term: {field}={value}')
     query_terms.append({'parameter': field, 'value': value})
     return clsns
 
@@ -317,6 +315,7 @@ def _parse_search_query(query: List[str]) -> Dict[str, Any]:
     for term in terms:
         if expect_new and term in ["AND", "OR", "ANDNOT"]:
             # TODO: Process booleans
+            pass
         elif expect_new:
             field, term = term.split(':')
 
