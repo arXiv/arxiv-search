@@ -80,16 +80,16 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
     Handle a search request from the Clasic API.
-    
+
     First, the method maps old request parameters to new parameters:
     - search_query -> query
     - start -> start
     - max_results -> size
 
     Then the request is passed to :method:`search()` and returned.
-    
-    If ``id_list`` is specified in the parameters and ``search_query`` is 
-    NOT specified, then each request is passed to :method:`paper()` and 
+
+    If ``id_list`` is specified in the parameters and ``search_query`` is
+    NOT specified, then each request is passed to :method:`paper()` and
     results are aggregated.
 
     If ``id_list`` is specified AND ``search_query`` is also specified,
@@ -110,7 +110,6 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         Extra headers for the response.
     """
     pass
-   
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -168,7 +167,7 @@ def _get_fielded_terms(params: MultiDict, query_terms: List) \
                 field=field,
                 term=value
             ))
-    if len(terms) == 0:
+    if not terms:
         return None
     return terms
 
