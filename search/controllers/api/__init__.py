@@ -186,11 +186,11 @@ def _get_date_params(params: MultiDict, query_terms: List) \
                 dt = pytz.utc.localize(dt)
             dt = dt.replace(tzinfo=EASTERN)
         except ValueError:
-            raise BadRequest({'field': field, 'reason': 'invalid datetime'})
+            raise BadRequest(f'Invalid datetime in {field}')
         date_params[field] = dt
         query_terms.append({'parameter': field, 'value': dt})
     if 'date_type' in params:
-        date_params['date_type'] = params.get('date_type')
+        date_params['date_type'] = params.get('date_type') # type: ignore
         query_terms.append({'parameter': 'date_type',
                             'value': date_params['date_type']})
     if date_params:
@@ -227,9 +227,6 @@ def _get_classification(value: str, field: str, query_terms: List) \
     try:
         clsns = _to_classification(value, query_terms)
     except ValueError:
-        raise BadRequest({
-            'field': field,
-            'reason': 'not a valid classification term'
-        })
+        raise BadRequest(f'Not a valid classification term: {field}={value}')
     query_terms.append({'parameter': field, 'value': value})
     return clsns

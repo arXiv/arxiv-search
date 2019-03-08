@@ -79,8 +79,8 @@ def search(request_params: MultiDict) -> Response:
     has_classic = False
     for key in request_params.keys():
         if key.startswith('terms-') and key.endswith('-term'):
-            value = request_params.get(key)
-            i = re.search('terms-([0-9])+-term', key).group(1)
+            value: str = request_params.get(key) # type: ignore
+            i = re.search('terms-([0-9])+-term', key).group(1) # type: ignore
             field = request_params.get(f'terms-{i}-field')
             # We are only looking for this syntax in the author search, or
             # in an all-fields search.
