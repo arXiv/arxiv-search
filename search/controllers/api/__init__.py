@@ -79,8 +79,9 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
 def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
-    Handle a search request from the Clasic API. Maps old rquest 
-    parameters to new parameters:
+    Handle a search request from the Clasic API.
+    
+    First, the method maps old request parameters to new parameters:
     - search_query -> query
     - start -> start
     - max_results -> size
