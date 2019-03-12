@@ -142,18 +142,12 @@ paths:
 
 
       responses:
-        '200':
-          description: All arXiv papers that respond to specified query.
-          content:
-            application/atom+xml:
-              schema:
-                $ref: './resources/DocumentSet.xml#'
         default:
-          description: Error messages
+          description: All queries return a valid Atom XML feed, even errors.
           content:
            application/atom+xml:
               schema:
-                $ref: '#/components/schemas/Error.xml#'
+                $ref: './resources/AtomXML.yaml#'
 
 components:
   schemas:
