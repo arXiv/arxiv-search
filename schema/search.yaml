@@ -399,6 +399,26 @@ paths:
               - submitted_date
               - announced_date_first
           example: submitted_date_first
+        
+        - name: start
+          in: query
+          description: |
+            Defines the index of the first returned result, using 0-based indexing.
+          required: false
+          schema:
+            type: integer
+          example: 0
+
+        - name: size
+          in: query
+          description: |
+            The number of results returned by the query. Used in conjunction with "start" for 
+            pagination. Size is limited to 30000, in slices of 2000.
+          required: false
+          schema:
+            type: integer
+          example: 10
+        
 
       responses:
         '200':
