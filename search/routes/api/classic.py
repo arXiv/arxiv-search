@@ -30,3 +30,10 @@ def query() -> Response:
     #     return serialize.as_atom(data), status, headers
     response_data = serialize.as_json(data['results'], query=data['query'])
     return response_data, status_code, headers
+
+@blueprint.route('<arxiv:paper_id>v<string:version>', methods=['GET'])
+@scoped(required=scopes.READ_PUBLIC)
+def paper(paper_id: str, version: str) -> Response:
+    """Document metadata endpoint."""
+    data, status_code, headers = api.paper(f'{paper_id}v{version}')
+    return serialize.as_json(data['results']), status_code, headers

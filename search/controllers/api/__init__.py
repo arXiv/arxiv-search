@@ -45,6 +45,17 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         Extra headers for the response.
     """
     q = APIQuery()
+
+    # parse advanced classic-style queries
+    try:
+        parsed_terms = _parse_search_query(params.get('query',''))
+        params = params.copy()
+        for field, term in parsed_terms.items():
+            params[field] = term
+    except ValueError:
+        raise BadRequest(f"Improper syntax in query: {params.get('query')}")
+
+    # process fielded terms
     query_terms: List[Dict[str, Any]] = []
     terms = _get_fielded_terms(params, query_terms)
     if terms is not None:
@@ -108,8 +119,59 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         HTTP status code.
     dict
         Extra headers for the response.
+
+    Raises
+    ------
+    :class:`BadRequest`
+        Raised when the search_query and id_list are not specified.
     """
-    pass
+    params = params.copy()
+    raw_query = params.get('search_query')
+
+    # parse id_list
+    id_list = params.get('id_list', '')
+    if id_list:
+        id_list = id_list.split(',')
+    else:
+        id_list = []
+
+    # error if neither search_query nor id_list are specified.
+    if not id_list and not raw_query:
+        raise BadRequest("Either a search_query or id_list must be specified for the classic API.")
+
+    if raw_query:
+        # migrate search_query -> query variable
+        params['query'] = raw_query
+        del params['search_query']
+
+        # pass to normal search, which will handle parsing
+        data, _, _ = search(params)
+    
+    if id_list and not raw_query:
+        # Process only id_lists.
+        # Note lack of error handling to implicitly propogate any errors. 
+        # Classic API also errors if even one ID is malformed.
+        papers = [paper(paper_id) for paper_id in id_list]
+
+        data, _, _ = zip(*papers)
+        results = [paper['results'] for paper in data]
+        data = { 
+            'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
+            'query' : APIQuery() # TODO: Specify query
+        }
+
+    elif id_list and raw_query:
+        # Filter results based on id_list
+        results = [paper for paper in data['results'].results
+                       if paper.paper_id in id_list or paper.paper_id_v in id_list]
+        data = { 
+            'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
+            'query' : APIQuery() # TODO: Specify query 
+        }
+
+    return data, status.HTTP_200_OK, {}
+
+   
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -206,7 +268,7 @@ def _to_classification(value: str, query_terms: List) \
     elif value in taxonomy.definitions.ARCHIVES:
         klass = taxonomy.Archive
         field = 'archive'
-    elif value in taxonomy.definitions.CATEGORIES:
+    elif value in taxonomy.definitionss.CATEGORIES:
         klass = taxonomy.Category
         field = 'category'
     else:
@@ -219,7 +281,7 @@ def _to_classification(value: str, query_terms: List) \
             and cast_value.canonical != cast_value.unalias():
         clsns.append(Classification(**{field: {'id': cast_value.canonical}}))   # type: ignore
     return tuple(clsns)
-
+ 
 
 def _get_classification(value: str, field: str, query_terms: List) \
         -> Tuple[Classification, ...]:
@@ -229,3 +291,49 @@ def _get_classification(value: str, field: str, query_terms: List) \
         raise BadRequest(f'Not a valid classification term: {field}={value}')
     query_terms.append({'parameter': field, 'value': value})
     return clsns
+
+SEARCH_QUERY_FIELDS = {
+    'ti' : 'title',
+    'au' : 'author',
+    'abs' : 'abstract',
+    'co' : 'comments',
+    'jr' : 'journal_ref',
+    'cat' : 'primary_classification',
+    'rn' : 'report_number',
+    'id' : 'paper_id',
+    'all' : 'all'
+}
+
+def _parse_search_query(query: List[str]) -> Dict[str, Any]:
+    # TODO: Add support for booleans.
+    new_query_params = {}
+    terms = query.split()
+    
+    expect_new = True
+    """expect_new handles quotation state."""
+
+    for term in terms:
+        if expect_new and term in ["AND", "OR", "ANDNOT"]:
+            # TODO: Process booleans
+            pass
+        elif expect_new:
+            field, term = term.split(':')
+
+            # quotation handling
+            if term.startswith('"') and not term.endswith('"'):
+                expect_new = False
+            term = term.replace('"', '')
+
+            new_query_params[SEARCH_QUERY_FIELDS[field]] = term
+        else:
+            # quotation handling, expecting more terms
+            if term.endswith('"'):
+                expect_new = True
+                term = term.replace('"', '')
+
+            new_query_params[SEARCH_QUERY_FIELDS[field]] += " " + term
+        
+    
+    return new_query_params
+
+
