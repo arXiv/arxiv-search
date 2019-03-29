@@ -1,22 +1,12 @@
-"""Provides routing blueprint from the search API."""
+"""Provides the classic search API."""
 
-import json
-from typing import Dict, Callable, Union, Any, Optional, List
-from functools import wraps
-from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
-
-from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, Response, \
     url_for
-from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
-from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
-from arxiv import status
 from arxiv.base import logging
-from werkzeug.exceptions import InternalServerError
 from search.controllers import api
 
-from . import serialize, exceptions, classic
+from . import serialize, exceptions
 
 from arxiv.users.auth.decorators import scoped
 from arxiv.users.auth import scopes
@@ -29,22 +19,21 @@ ATOM_XML = "application/atom+xml"
 JSON = "application/json"
 
 
-@blueprint.route('/', methods=['GET'])
+@blueprint.route('/query', methods=['GET'])
 @scoped(required=scopes.READ_PUBLIC)
-def search() -> Response:
+def query() -> Response:
     """Main query endpoint."""
     logger.debug('Got query: %s', request.args)
-    data, status_code, headers = api.search(request.args)
+    data, status_code, headers = api.classic_query(request.args)
     # requested = request.accept_mimetypes.best_match([JSON, ATOM_XML])
     # if requested == ATOM_XML:
     #     return serialize.as_atom(data), status, headers
     response_data = serialize.as_json(data['results'], query=data['query'])
-    return response_data, status_code, headers # type: ignore
-
+    return response_data, status_code, headers
 
 @blueprint.route('<arxiv:paper_id>v<string:version>', methods=['GET'])
 @scoped(required=scopes.READ_PUBLIC)
 def paper(paper_id: str, version: str) -> Response:
     """Document metadata endpoint."""
     data, status_code, headers = api.paper(f'{paper_id}v{version}')
-    return serialize.as_json(data['results']), status_code, headers # type: ignore
+    return serialize.as_json(data['results']), status_code, headers
