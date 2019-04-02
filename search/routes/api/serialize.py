@@ -4,6 +4,11 @@ from typing import Union, Optional
 from xml.etree import ElementTree as etree
 from flask import jsonify, url_for
 
+from datetime import datetime
+from feedgen.feed import FeedGenerator
+from pytz import utc
+from .atom_extensions import *
+
 from arxiv import status
 from search.domain import DocumentSet, Document, Classification, Person, \
     APIQuery
@@ -183,6 +188,77 @@ class AtomXMLSerializer(BaseSerializer):
         "opensearch": OPENSEARCH,
         "arxiv": ARXIV
     }
+
+    @classmethod
+    def transform_document(cls, fg: FeedGenerator, doc: Document,
+                           query: Optional[APIQuery] = None) -> None:
+        """Select a subset of :class:`Document` properties for public API."""
+        entry = fg.add_entry()
+        entry.id(url_for("api.paper", paper_id=doc.paper_id,
+                             version=doc.version, _external=True))
+        entry.title(doc.title)
+        entry.summary(doc.abstract)
+        entry.published(doc.submitted_date)
+        entry.updated(doc.updated_date)
+        entry.link({'href': url_for("api.paper", paper_id=doc.paper_id, version=doc.version, _external=True),
+                    "type": "text/html"})
+        #entry.link({'href': url_for("api.pdf", paper_id=doc.paper_id, version=doc.version, _external=True),
+        #            "type": "application/pdf", 'rel': 'related'})
+
+        if doc.comments:
+            entry.arxiv.comment(doc.comments)
+
+        if doc.journal_ref:
+            entry.arxiv.journal_ref(doc.journal_ref)
+
+        if doc.doi:
+            entry.arxiv.doi(doc.doi)
+        
+        entry.arxiv.primary_category(doc.primary_classification.archive['id'])
+        entry.category(
+            term=doc.primary_classification.archive['id'],
+            scheme='http://arxiv.org://arxiv.org/schemas/atom')
+        
+        for category in doc.secondary_classification:
+            entry.category(
+                term=category.archive['id'],
+                scheme='http://arxiv.org://arxiv.org/schemas/atom')
+        
+        for author in doc.authors:
+            author_list = {"name": author.full_name}
+            entry.author(author_list)
+
+
+    @classmethod
+    def serialize(cls, document_set: DocumentSet,
+                  query: Optional[APIQuery] = None) -> str:
+        """Generate Atom response for a :class:`DocumentSet`."""
+        fg = FeedGenerator()
+        fg.register_extension('opensearch', OpenSearchExtension)
+        fg.register_extension("arxiv", ArxivExtension, ArxivEntryExtension, rss=False)
+        fg.id("http://api.arxiv.org/") # TODO: review API ID generation
+        fg.title(f"arXiv Query: {query}")
+        fg.link({"href" : "https://api.arxiv.org/", "type": 'application/atom+xml'})
+        fg.updated(datetime.utcnow().replace(tzinfo=utc))
+
+        fg.opensearch.totalResults(document_set.metadata.get('total'))
+        fg.opensearch.itemsPerPage(document_set.metadata.get('size'))
+        fg.opensearch.startIndex(document_set.metadata.get('start'))
+
+        for doc in document_set.results:
+            cls.transform_document(fg, doc, query=query)
+
+        serialized: str = fg.atom_str(pretty=True)
+        return serialized
+
+    @classmethod
+    def serialize_document(cls, document: Document,
+                           query: Optional[APIQuery] = None) -> str:
+        """Generate JSON for a single :class:`Document`."""
+        serialized: str = jsonify(
+            cls.transform_document(document, query=query)
+        )
+        return serialized
 #     fields = {
 #         'title': '{%s}title' % ATOM,
 #         'id': '{%s}id' % ATOM,
@@ -203,3 +279,12 @@ class AtomXMLSerializer(BaseSerializer):
 #
 #     def __repr__(cls) -> str:
 #         return etree.tostring(cls._root, pretty_print=True)
+
+
+def as_atom(document_or_set: Union[DocumentSet, Document],
+            query: Optional[APIQuery] = None) -> str:
+    """Serialize a :class:`DocumentSet` as Atom."""
+    if type(document_or_set) is DocumentSet:
+        return AtomXMLSerializer.serialize(document_or_set, query=query)  # type: ignore
+    return AtomXMLSerializer.serialize_document(document_or_set, query=query)  # type: ignore
+
