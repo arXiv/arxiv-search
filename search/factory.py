@@ -7,12 +7,11 @@ from flask_s3 import FlaskS3
 
 from arxiv.base import Base
 from arxiv.base.middleware import wrap, request_logs
+from arxiv.users import auth
 from search.routes import ui, api
 from search.services import index
 from search.converters import ArchiveConverter
 from search.encode import ISO8601JSONEncoder
-
-from arxiv.users import auth
 
 s3 = FlaskS3()
 
@@ -59,7 +58,7 @@ def create_api_web_app() -> Flask:
                auth.middleware.AuthMiddleware])
 
     for error, handler in api.exceptions.get_handlers():
-            app.errorhandler(error)(handler)
+        app.errorhandler(error)(handler)
 
     return app
 
@@ -83,6 +82,6 @@ def create_classic_api_web_app() -> Flask:
                auth.middleware.AuthMiddleware])
 
     for error, handler in api.exceptions.get_handlers():
-            app.errorhandler(error)(handler)
+        app.errorhandler(error)(handler)
 
     return app
