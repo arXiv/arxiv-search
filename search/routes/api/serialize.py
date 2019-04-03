@@ -226,6 +226,7 @@ class AtomXMLSerializer(BaseSerializer):
         
         for author in doc.authors:
             author_list = {"name": author.full_name}
+            # TODO: add handling for arxiv:affiliation
             entry.author(author_list)
 
 

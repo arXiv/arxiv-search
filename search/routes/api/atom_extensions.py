@@ -190,6 +190,10 @@ class ArxivEntryExtension(BaseEntryExtension):
                 doi_element = etree.SubElement(entry, '{http://arxiv.org/schemas/atom}doi')
                 doi_element.text = doi
 
+        # TODO: add handling for arxiv:affiliation
+        # Initial thought is to have a private __arxiv_authors list, 
+        # then iterate to create atom:author tags.
+
         return entry
 
     @staticmethod
