@@ -1,6 +1,6 @@
 """Classes derived from the Feedgen extension classes."""
 
-from typing import Dict
+from typing import Any, Dict
 from feedgen.ext.base import BaseEntryExtension, BaseExtension
 from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
@@ -154,8 +154,8 @@ class ArxivEntryExtension(BaseEntryExtension):
         self.__arxiv_comment = None
         self.__arxiv_primary_category = None
         self.__arxiv_doi = None
-        self.__arxiv_affiliation = None
         self.__arxiv_journal_ref = None
+        self.__arxiv_authors = []
 
     def extend_atom(self: BaseEntryExtension, entry: FeedEntry) -> FeedEntry:
         """
@@ -189,10 +189,15 @@ class ArxivEntryExtension(BaseEntryExtension):
             for doi in self.__arxiv_doi:
                 doi_element = etree.SubElement(entry, '{http://arxiv.org/schemas/atom}doi')
                 doi_element.text = doi
-
-        # TODO: add handling for arxiv:affiliation
-        # Initial thought is to have a private __arxiv_authors list, 
-        # then iterate to create atom:author tags.
+        
+        if self.__arxiv_authors:
+            for author in self.__arxiv_authors:
+                author_element = etree.SubElement(entry, 'author')
+                name_element = etree.SubElement(author_element, 'name')
+                name_element.text = author['name']
+                for affiliation in author['affiliation']:
+                    affiliation_element = etree.SubElement(author_element, '{http://arxiv.org/schemas/atom}affiliation')
+                    affiliation_element.text = affiliation
 
         return entry
 
@@ -261,3 +266,14 @@ class ArxivEntryExtension(BaseEntryExtension):
 
         """
         self.__arxiv_doi = list
+    
+    def author(self: BaseEntryExtension, data: Dict[str, Any]) -> None:
+        """
+        Add an author to this entry.
+
+        Parameters
+        ----------
+        data
+            A dictionary consisting of the author name and affiliation data.
+        """
+        self.__arxiv_authors.append(data)
