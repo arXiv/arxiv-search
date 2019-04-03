@@ -180,15 +180,6 @@ def as_json(document_or_set: Union[DocumentSet, Document],
 class AtomXMLSerializer(BaseSerializer):
     """Atom XML serializer for paper metadata."""
 
-    ATOM = "http://www.w3.org/2005/Atom"
-    OPENSEARCH = "http://a9.com/-/spec/opensearch/1.1/"
-    ARXIV = "http://arxiv.org/schemas/atom"
-    NSMAP = {
-        None: ATOM,
-        "opensearch": OPENSEARCH,
-        "arxiv": ARXIV
-    }
-
     @classmethod
     def transform_document(cls, fg: FeedGenerator, doc: Document,
                            query: Optional[APIQuery] = None) -> None:
@@ -257,31 +248,9 @@ class AtomXMLSerializer(BaseSerializer):
     @classmethod
     def serialize_document(cls, document: Document,
                            query: Optional[APIQuery] = None) -> str:
-        """Generate JSON for a single :class:`Document`."""
-        serialized: str = jsonify(
-            cls.transform_document(document, query=query)
-        )
-        return serialized
-#     fields = {
-#         'title': '{%s}title' % ATOM,
-#         'id': '{%s}id' % ATOM,
-#         'submitted_date': '{%s}published' % ATOM,
-#         'modified_date': '{%s}updated' % ATOM,
-#         'abstract': '{%s}summary' % ATOM,
-#         ''
-#     }
-#
-#     def __init__(cls, *args, **kwargs) -> None:
-#         super(AtomXMLSerializer, cls).__init__(*args, **kwargs)
-#         cls._root = etree.Element('feed', nsmap=cls.NSMAP)
-#
-#     def transform(cls):
-#         for document in cls.iter_documents():
-#
-#
-#
-#     def __repr__(cls) -> str:
-#         return etree.tostring(cls._root, pretty_print=True)
+        """Generate Atom feed for a single :class:`Document`."""
+        
+        raise NotImplementedError("Single-document Atom feeds are not supported")
 
 
 def as_atom(document_or_set: Union[DocumentSet, Document],
