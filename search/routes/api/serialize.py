@@ -222,7 +222,6 @@ class AtomXMLSerializer(BaseSerializer):
             }
             entry.arxiv.author(author_data)
 
-
     @classmethod
     def serialize(cls, document_set: DocumentSet,
                   query: Optional[APIQuery] = None) -> str:

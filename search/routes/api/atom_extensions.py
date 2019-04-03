@@ -9,6 +9,7 @@ from lxml import etree
 
 class OpenSearchExtension(BaseExtension):
     """Extension of the Feedgen base class to put OpenSearch metadata."""
+
     def __init__(self: BaseExtension) -> None:
         """Initialize extension parameters."""
 
@@ -22,7 +23,7 @@ class OpenSearchExtension(BaseExtension):
 
         Parameters
         ----------
-        atom_feed
+        atom_feed : :class:`.FeedGenerator`
             The FeedGenerator to use for Atom results.
 
         Returns
