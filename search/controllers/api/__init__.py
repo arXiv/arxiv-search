@@ -83,7 +83,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         q.include_fields += include_fields
 
     q = paginate(q, params)     # type: ignore
-    document_set = index.search(q, highlight=False)
+    document_set = index.SearchSession.search(q, highlight=False)
     document_set.metadata['query'] = query_terms
     logger.debug('Got document set with %i results', len(document_set.results))
     return {'results': document_set, 'query': q}, status.HTTP_200_OK, {}
@@ -146,16 +146,16 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
 
         # pass to normal search, which will handle parsing
         data, _, _ = search(params)
-    
+
     if id_list and not raw_query:
         # Process only id_lists.
-        # Note lack of error handling to implicitly propogate any errors. 
+        # Note lack of error handling to implicitly propogate any errors.
         # Classic API also errors if even one ID is malformed.
         papers = [paper(paper_id) for paper_id in id_list]
 
         data, _, _ = zip(*papers)
         results = [paper['results'] for paper in data]
-        data = { 
+        data = {
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
             'query' : APIQuery() # TODO: Specify query
         }
@@ -164,14 +164,14 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         # Filter results based on id_list
         results = [paper for paper in data['results'].results
                        if paper.paper_id in id_list or paper.paper_id_v in id_list]
-        data = { 
+        data = {
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
-            'query' : APIQuery() # TODO: Specify query 
+            'query' : APIQuery() # TODO: Specify query
         }
 
     return data, status.HTTP_200_OK, {}
 
-   
+
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -199,7 +199,7 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     """
     try:
-        document = index.get_document(paper_id)
+        document = index.SearchSession.get_document(paper_id)
     except index.DocumentNotFound as e:
         logger.error('Document not found')
         raise NotFound('No such document') from e
@@ -251,7 +251,7 @@ def _get_date_params(params: MultiDict, query_terms: List) \
         date_params[field] = dt
         query_terms.append({'parameter': field, 'value': dt})
     if 'date_type' in params:
-        date_params['date_type'] = params.get('date_type') # type: ignore
+        date_params['date_type'] = params.get('date_type')   # type: ignore
         query_terms.append({'parameter': 'date_type',
                             'value': date_params['date_type']})
     if date_params:
@@ -268,7 +268,7 @@ def _to_classification(value: str, query_terms: List) \
     elif value in taxonomy.definitions.ARCHIVES:
         klass = taxonomy.Archive
         field = 'archive'
-    elif value in taxonomy.definitionss.CATEGORIES:
+    elif value in taxonomy.definitions.CATEGORIES:
         klass = taxonomy.Category
         field = 'category'
     else:
@@ -281,7 +281,7 @@ def _to_classification(value: str, query_terms: List) \
             and cast_value.canonical != cast_value.unalias():
         clsns.append(Classification(**{field: {'id': cast_value.canonical}}))   # type: ignore
     return tuple(clsns)
- 
+
 
 def _get_classification(value: str, field: str, query_terms: List) \
         -> Tuple[Classification, ...]:
@@ -308,7 +308,7 @@ def _parse_search_query(query: List[str]) -> Dict[str, Any]:
     # TODO: Add support for booleans.
     new_query_params = {}
     terms = query.split()
-    
+
     expect_new = True
     """expect_new handles quotation state."""
 
@@ -332,8 +332,6 @@ def _parse_search_query(query: List[str]) -> Dict[str, Any]:
                 term = term.replace('"', '')
 
             new_query_params[SEARCH_QUERY_FIELDS[field]] += " " + term
-        
-    
+
+
     return new_query_params
-
-

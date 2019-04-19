@@ -4,6 +4,7 @@ import logging
 
 from flask import Flask
 from flask_s3 import FlaskS3
+from werkzeug.contrib.profiler import ProfilerMiddleware
 
 from arxiv.base import Base
 from arxiv.base.middleware import wrap, request_logs
@@ -26,7 +27,7 @@ def create_ui_web_app() -> Flask:
     app.config.from_pyfile('config.py') # type: ignore
     app.url_map.converters['archive'] = ArchiveConverter
 
-    index.init_app(app)
+    index.SearchSession.init_app(app)
 
     Base(app)
     app.register_blueprint(ui.blueprint)
@@ -34,6 +35,9 @@ def create_ui_web_app() -> Flask:
     s3.init_app(app)
 
     wrap(app, [request_logs.ClassicLogsMiddleware])
+    # app.config['PROFILE'] = True
+    # app.config['DEBUG'] = True
+    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[30])
 
     return app
 
@@ -48,7 +52,7 @@ def create_api_web_app() -> Flask:
     app.json_encoder = ISO8601JSONEncoder
     app.config.from_pyfile('config.py') # type: ignore
 
-    index.init_app(app)
+    index.SearchSession.init_app(app)
 
     Base(app)
     auth.Auth(app)
@@ -57,10 +61,12 @@ def create_api_web_app() -> Flask:
     wrap(app, [request_logs.ClassicLogsMiddleware,
                auth.middleware.AuthMiddleware])
 
+
     for error, handler in api.exceptions.get_handlers():
         app.errorhandler(error)(handler)
 
     return app
+
 
 def create_classic_api_web_app() -> Flask:
     """Initialize an instance of the search frontend UI web application."""
@@ -72,7 +78,7 @@ def create_classic_api_web_app() -> Flask:
     app.json_encoder = ISO8601JSONEncoder
     app.config.from_pyfile('config.py')
 
-    index.init_app(app)
+    index.SearchSession.init_app(app)
 
     Base(app)
     auth.Auth(app)

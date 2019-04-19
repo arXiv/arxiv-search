@@ -12,7 +12,7 @@ app.app_context().push()
 @app.cli.command()
 def create_index():
     """Initialize the search index."""
-    index.current_session().create_index()
+    index.SearchSession().create_index()
 
 
 if __name__ == '__main__':

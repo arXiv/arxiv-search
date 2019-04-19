@@ -58,9 +58,9 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
 
         # We want to prevent ES-specific data types from escaping the module
         # API.
-        if isinstance(value, AttrList):
+        if type(value) is AttrList:
             value = value._l_
-        elif isinstance(value, AttrDict):
+        elif type(value) is AttrDict:
             value = value.to_dict()
 
         if key == 'primary_classification':
@@ -103,7 +103,8 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
                      raw.paper_id)  # type: ignore
         result = add_highlighting(result, raw)
 
-    return Document(**result)   # type: ignore
+    return result
+    # return Document(**result)   # type: ignore
     # See https://github.com/python/mypy/issues/3937
 
 
@@ -131,8 +132,8 @@ def to_documentset(query: Query, response: Response, highlight: bool = True) \
     N_pages = int(floor(N_pages_raw)) + \
         int(N_pages_raw % query.size > 0)
     logger.debug('got %i results', response['hits']['total'])
-
-    return DocumentSet(**{  # type: ignore
+    # return DocumentSet(**
+    return {  # type: ignore
         'metadata': {
             'start': query.page_start,
             'end': min(query.page_start + query.size,
@@ -144,5 +145,5 @@ def to_documentset(query: Query, response: Response, highlight: bool = True) \
             'max_pages': max_pages
         },
         'results': [to_document(raw, highlight=highlight) for raw in response]
-    })
+    }#)
     # See https://github.com/python/mypy/issues/3937

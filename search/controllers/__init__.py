@@ -28,7 +28,7 @@ def health_check() -> Tuple[str, int, Dict[str, Any]]:
 
     """
     try:
-        documentset = index.search(
+        documentset = index.SearchSession.search(
             SimpleQuery(   # type: ignore
                 search_field='all',
                 value='theory'

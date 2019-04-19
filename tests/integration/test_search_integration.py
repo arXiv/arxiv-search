@@ -71,8 +71,8 @@
 #         time.sleep(12)
 #         with cls.app.app_context():
 #             while True:
-#                 if index.cluster_available():
-#                     index.create_index()
+#                 if index.SearchSession.cluster_available():
+#                     index.SearchSession.create_index()
 #                     time.sleep(2)
 #                     break
 #                 time.sleep(5)
@@ -122,7 +122,7 @@
 #             value='flux capacitor'
 #         )
 #         with self.app.app_context():
-#             document_set = index.search(query)
+#             document_set = index.SearchSession.search(query)
 #         # All entries contain a metadata field that contains either "flux"
 #         # or "capacitor".
 #         self.assertEqual(len(document_set.results), 3)
@@ -143,7 +143,7 @@
 #             value='λ'
 #         )
 #         with self.app.app_context():
-#             document_set = index.search(query)
+#             document_set = index.SearchSession.search(query)
 #         self.assertEqual(len(document_set.results), 1)
 #         self.assertEqual(document_set.results[0].id, "1403.6219")
 #
@@ -156,7 +156,7 @@
 #             value='$Z_1(4475)$'
 #         )
 #         with self.app.app_context():
-#             document_set = index.search(query)
+#             document_set = index.SearchSession.search(query)
 #         self.assertEqual(len(document_set.results), 1)
 #         self.assertEqual(document_set.results[0].id, "1404.3450")
 #
@@ -169,7 +169,7 @@
 #             value='$\Lambda$'
 #         )
 #         with self.app.app_context():
-#             document_set = index.search(query)
+#             document_set = index.SearchSession.search(query)
 #         self.assertEqual(len(document_set.results), 1)
 #
 #         query = SimpleQuery(
@@ -179,7 +179,7 @@
 #             value='$\Lambda\Lambda$'
 #         )
 #         with self.app.app_context():
-#             document_set = index.search(query)
+#             document_set = index.SearchSession.search(query)
 #         self.assertEqual(len(document_set.results), 2)
 #
 #     def test_advanced_date_range_search(self):
@@ -194,7 +194,7 @@
 #             )
 #         )
 #         with self.app.app_context():
-#             document_set = index.search(query)
+#             document_set = index.SearchSession.search(query)
 #         self.assertEqual(len(document_set.results), 3,
 #                          "Should be three results from 2015.")
 #         _ids = [r.paper_id_v for r in document_set.results]
@@ -216,7 +216,7 @@
 #             ])
 #         )
 #         with self.app.app_context():
-#             document_set = index.search(query)
+#             document_set = index.SearchSession.search(query)
 #         _ids = [r.paper_id for r in document_set.results]
 #         self.assertEqual(len(document_set.results), 3)
 #         self.assertIn("1607.05107", _ids, "Schröder should match.")
@@ -236,7 +236,7 @@
 #             ])
 #         )
 #         with self.app.app_context():
-#             document_set = index.search(query)
+#             document_set = index.SearchSession.search(query)
 #         _ids = [r.id for r in document_set.results]
 #         self.assertEqual(len(document_set.results), 2)
 #         self.assertIn("0711.0418", _ids, "'disk' should match in title, "
@@ -254,5 +254,5 @@
 #             ])
 #         )
 #         with self.app.app_context():
-#             document_set = index.search(query)
+#             document_set = index.SearchSession.search(query)
 #         self.assertEqual(len(document_set.results), 0)

@@ -20,15 +20,9 @@ from search.services.index import IndexConnectionError, QueryError, \
 class TestRetrieveDocument(TestCase):
     """Tests for :func:`.simple.retrieve_document`."""
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_encounters_queryerror(self, mock_index):
         """There is a bug in the index or query."""
-        # We need to explicit assign the exception to the mock, otherwise the
-        #  exception raised in the side-effect will just be a mock object (not
-        #  inheriting from BaseException).
-        mock_index.QueryError = QueryError
-        mock_index.IndexConnectionError = IndexConnectionError
-
         def _raiseQueryError(*args, **kwargs):
             raise QueryError('What now')
 
@@ -43,18 +37,9 @@ class TestRetrieveDocument(TestCase):
         self.assertEqual(mock_index.get_document.call_count, 1,
                          "A search should be attempted")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_index_raises_connection_exception(self, mock_index):
         """Index service raises a IndexConnectionError."""
-        # We need to explicit assign the exception to the mock, otherwise the
-        #  exception raised in the side-effect will just be a mock object (not
-        #  inheriting from BaseException).
-        mock_index.IndexConnectionError = IndexConnectionError
-        mock_index.QueryError = QueryError
-
-        # def _raiseIndexConnectionError(*args, **kwargs):
-        #     raise IndexConnectionError('What now')
-
         mock_index.get_document.side_effect = IndexConnectionError
 
         with self.assertRaises(InternalServerError):
@@ -66,16 +51,9 @@ class TestRetrieveDocument(TestCase):
 
         # self.assertEqual(code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_document_not_found(self, mock_index):
         """The document is not found."""
-        # We need to explicit assign the exception to the mock, otherwise the
-        #  exception raised in the side-effect will just be a mock object (not
-        #  inheriting from BaseException).
-        mock_index.QueryError = QueryError
-        mock_index.IndexConnectionError = IndexConnectionError
-        mock_index.DocumentNotFound = DocumentNotFound
-
         def _raiseDocumentNotFound(*args, **kwargs):
             raise DocumentNotFound('What now')
 
@@ -96,7 +74,7 @@ class TestSearchController(TestCase):
 
     @mock.patch('search.controllers.simple.url_for',
                 lambda *a, **k: f'https://arxiv.org/{k["paper_id"]}')
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_arxiv_id(self, mock_index):
         """Query parameter contains an arXiv ID."""
         request_data = MultiDict({'query': '1702.00123'})
@@ -108,7 +86,7 @@ class TestSearchController(TestCase):
         self.assertEqual(mock_index.search.call_count, 0,
                          "No search should be attempted")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_no_form_data(self, mock_index):
         """No form data has been submitted."""
         request_data = MultiDict()
@@ -120,7 +98,7 @@ class TestSearchController(TestCase):
         self.assertEqual(mock_index.search.call_count, 0,
                          "No search should be attempted")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_single_field_term(self, mock_index):
         """Form data are present."""
         mock_index.search.return_value = DocumentSet(metadata={}, results=[])
@@ -136,7 +114,7 @@ class TestSearchController(TestCase):
                               "An SimpleQuery is passed to the search index")
         self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_invalid_data(self, mock_index):
         """Form data are invalid."""
         request_data = MultiDict({
@@ -150,14 +128,9 @@ class TestSearchController(TestCase):
         self.assertEqual(mock_index.search.call_count, 0,
                          "No search should be attempted")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_index_raises_connection_exception(self, mock_index):
         """Index service raises a IndexConnectionError."""
-        # We need to explicit assign the exception to the mock, otherwise the
-        #  exception raised in the side-effect will just be a mock object (not
-        #  inheriting from BaseException).
-        mock_index.IndexConnectionError = IndexConnectionError
-
         def _raiseIndexConnectionError(*args, **kwargs):
             raise IndexConnectionError('What now')
 
@@ -176,15 +149,9 @@ class TestSearchController(TestCase):
         self.assertIsInstance(call_args[0], SimpleQuery,
                               "An SimpleQuery is passed to the search index")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_index_raises_query_error(self, mock_index):
         """Index service raises a QueryError."""
-        # We need to explicit assign the exception to the mock, otherwise the
-        #  exception raised in the side-effect will just be a mock object (not
-        #  inheriting from BaseException).
-        mock_index.QueryError = QueryError
-        mock_index.IndexConnectionError = IndexConnectionError
-
         def _raiseQueryError(*args, **kwargs):
             raise QueryError('What now')
 
@@ -360,7 +327,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
     about the syntax change.
     """
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_all_fields_search_contains_classic_syntax(self, mock_index):
         """User has entered a `surname_f` query in an all-fields search."""
         request_data = MultiDict({
@@ -379,7 +346,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                         " in the response context, so that a message may be"
                         " rendered in the template.")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_author_search_contains_classic_syntax(self, mock_index):
         """User has entered a `surname_f` query in an author search."""
         request_data = MultiDict({
@@ -398,7 +365,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                         " in the response context, so that a message may be"
                         " rendered in the template.")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_all_fields_search_multiple_classic_syntax(self, mock_index):
         """User has entered a classic query with multiple authors."""
         request_data = MultiDict({
@@ -417,7 +384,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                         " in the response context, so that a message may be"
                         " rendered in the template.")
 
-    @mock.patch('search.controllers.simple.index')
+    @mock.patch('search.controllers.simple.SearchSession')
     def test_title_search_contains_classic_syntax(self, mock_index):
         """User has entered a `surname_f` query in a title search."""
         request_data = MultiDict({

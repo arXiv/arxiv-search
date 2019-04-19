@@ -16,7 +16,7 @@ from flask import url_for
 from arxiv import status, identifier, taxonomy
 
 from arxiv.base import logging
-from search.services import index, fulltext, metadata
+from search.services import index, fulltext, metadata, SearchSession
 from search.domain import Query, SimpleQuery, asdict, Classification, \
     ClassificationList
 from search.controllers.util import paginate, catch_underscore_syntax
@@ -133,7 +133,7 @@ def search(request_params: MultiDict,
             # Execute the search. We'll use the results directly in
             #  template rendering, so they get added directly to the
             #  response content.
-            response_data.update(asdict(index.search(q)))
+            response_data.update(asdict(SearchSession.search(q)))
         except index.IndexConnectionError as e:
             # There was a (hopefully transient) connection problem. Either
             #  this will clear up relatively quickly (next request), or
@@ -206,7 +206,7 @@ def retrieve_document(document_id: str) -> Response:
 
     """
     try:
-        result = index.get_document(document_id)
+        result = SearchSession.get_document(document_id)
     except index.IndexConnectionError as e:
         # There was a (hopefully transient) connection problem. Either
         #  this will clear up relatively quickly (next request), or

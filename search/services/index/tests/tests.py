@@ -78,7 +78,7 @@ class TestSearch(TestCase):
                                   term='Bloggs_J'),
             ])
         )
-        document_set = index.search(query)
+        document_set = index.SearchSession.search(query)
         self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set.metadata['start'], 0)
         self.assertEqual(document_set.metadata['total'], 53)
@@ -117,7 +117,7 @@ class TestSearch(TestCase):
             search_field='title',
             value='foo title'
         )
-        document_set = index.search(query)
+        document_set = index.SearchSession.search(query)
         self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set.metadata['start'], 0)
         self.assertEqual(document_set.metadata['total'], 53)

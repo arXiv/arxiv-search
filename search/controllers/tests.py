@@ -12,7 +12,7 @@ from .util import catch_underscore_syntax
 class TestHealthCheck(TestCase):
     """Tests for :func:`.health_check`."""
 
-    @mock.patch('search.controllers.index')
+    @mock.patch('search.controllers.index.SearchSession')
     def test_index_is_down(self, mock_index):
         """Test returns 'DOWN' + status 500 when index raises an exception."""
         mock_index.search.side_effect = RuntimeError
@@ -21,7 +21,7 @@ class TestHealthCheck(TestCase):
         self.assertEqual(status_code, status.HTTP_500_INTERNAL_SERVER_ERROR,
                          "Should return 500 status code.")
 
-    @mock.patch('search.controllers.index')
+    @mock.patch('search.controllers.index.SearchSession')
     def test_index_returns_no_result(self, mock_index):
         """Test returns 'DOWN' + status 500 when index returns no results."""
         mock_index.search.return_value = DocumentSet({}, [])
@@ -30,7 +30,7 @@ class TestHealthCheck(TestCase):
         self.assertEqual(status_code, status.HTTP_500_INTERNAL_SERVER_ERROR,
                          "Should return 500 status code.")
 
-    @mock.patch('search.controllers.index')
+    @mock.patch('search.controllers.index.SearchSession')
     def test_index_returns_result(self, mock_index):
         """Test returns 'OK' + status 200 when index returns results."""
         mock_index.search.return_value = DocumentSet({}, [Document()])

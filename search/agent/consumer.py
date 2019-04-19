@@ -191,11 +191,11 @@ class MetadataRecordProcessor(BaseConsumer):
 
         """
         try:
-            index.add_document(document)
+            index.SearchSession.add_document(document)
         except index.IndexConnectionError as e:
             # Let's try once more before giving up entirely.
             try:
-                index.add_document(document)
+                index.SearchSession.add_document(document)
             except index.IndexConnectionError as e:   # Nope, not happening.
                 raise IndexingFailed('Could not index document') from e
         except Exception as e:
@@ -219,11 +219,11 @@ class MetadataRecordProcessor(BaseConsumer):
 
         """
         try:
-            index.bulk_add_documents(documents)
+            index.SearchSession.bulk_add_documents(documents)
         except index.IndexConnectionError as e:
             # Let's try once more before giving up entirely.
             try:
-                index.bulk_add_documents(documents)
+                index.SearchSession.bulk_add_documents(documents)
             except index.IndexConnectionError as e:   # Nope, not happening.
                 logger.error(f'Could not bulk index documents: {e}')
                 raise IndexingFailed('Could not bulk index documents') from e
