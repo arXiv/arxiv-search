@@ -85,3 +85,4 @@ def create_classic_api_web_app() -> Flask:
         app.errorhandler(error)(handler)
 
     return app
+
