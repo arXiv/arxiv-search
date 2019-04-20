@@ -132,8 +132,8 @@ def search(request_params: MultiDict,
         try:
             # Execute the search. We'll use the results directly in
             #  template rendering, so they get added directly to the
-            #  response content.
-            response_data.update(asdict(SearchSession.search(q)))
+            #  response content.asdict
+            response_data.update(SearchSession.search(q))
         except index.IndexConnectionError as e:
             # There was a (hopefully transient) connection problem. Either
             #  this will clear up relatively quickly (next request), or

@@ -37,7 +37,7 @@ def create_ui_web_app() -> Flask:
     wrap(app, [request_logs.ClassicLogsMiddleware])
     # app.config['PROFILE'] = True
     # app.config['DEBUG'] = True
-    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[30])
+    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[100], sort_by=('cumtime', ))
 
     return app
 

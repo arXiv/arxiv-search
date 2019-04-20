@@ -3,7 +3,8 @@
 import json
 from typing import Dict, Callable, Union, Any, Optional, List
 from functools import wraps
-from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
+from functools import lru_cache as memoize
+from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse, urlencode
 
 from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, Response, \
@@ -154,11 +155,11 @@ def url_for_page_builder() -> Dict[str, Callable]:
     def url_for_page(page: int, size: int) -> str:
         """Build an URL to for a search result page."""
         rule = request.url_rule
-        parts = url_parse(url_for(rule.endpoint)) # type: ignore
+        parts = urlparse(url_for(rule.endpoint))   # type: ignore
         args = request.args.copy()
         args['start'] = (page - 1) * size
-        parts = parts.replace(query=url_encode(args))
-        url: str = url_unparse(parts)
+        parts = parts._replace(query=urlencode(list(args.items(multi=True))))
+        url: str = urlunparse(parts)
         return url
     return dict(url_for_page=url_for_page)
 
@@ -192,22 +193,37 @@ def current_url_sans_parameters_builder() -> Dict[str, Callable]:
 @blueprint.context_processor
 def url_for_author_search_builder() -> Dict[str, Callable]:
     """Inject a function to build author name query URLs."""
+    search_url = urlparse(url_for('ui.search'))
+
+    archives_urls = {}
+
+    def get_archives_url(archives):
+        key = ",".join(archives)
+        if key not in archives_urls:
+            archives_urls[key] = urlparse(url_for('ui.search',
+                                                  archives=archives))
+        return archives_urls[key]
+
     def url_for_author_search(forename: str, surname: str) -> str:
         # If we are in an archive-specific context, we want to preserve that
         # when generating URLs for author queries in search results.
         archives = request.view_args.get('archives')
         if archives:
-            target = url_for('ui.search', archives=archives)
+            parts = get_archives_url(archives)
         else:
-            target = url_for('ui.search')
-        parts = url_parse(target)
-        forename_part = ' '.join([part[0] for part in forename.split()])
-        name = f'{surname}, {forename_part}' if forename_part else surname
-        parts = parts.replace(query=url_encode({
+            parts = search_url
+
+        if forename:
+            fparts = [part[0] for part in forename.split()]
+            forename_part = ' '.join(fparts)
+            name = f'{surname}, {forename_part}'
+        else:
+            name = surname
+        parts = parts._replace(query=urlencode({
             'searchtype': 'author',
             'query': name
         }))
-        url: str = url_unparse(parts)
+        url: str = urlunparse(parts)
         return url
     return dict(url_for_author_search=url_for_author_search)
 

@@ -19,8 +19,7 @@ from arxiv.base import logging
 from search.services import index, fulltext, metadata
 from search.controllers.util import paginate
 from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
-    DateRange, ClassificationList, Classification, asdict, DocumentSet, \
-    Document
+    DateRange, ClassificationList, Classification, Document
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
@@ -156,7 +155,7 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         data, _, _ = zip(*papers)
         results = [paper['results'] for paper in data]
         data = {
-            'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
+            'results' : dict(results=results, metadata=dict()), # TODO: Aggregate search metadata
             'query' : APIQuery() # TODO: Specify query
         }
 
@@ -165,7 +164,7 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         results = [paper for paper in data['results'].results
                        if paper.paper_id in id_list or paper.paper_id_v in id_list]
         data = {
-            'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
+            'results' : dict(results=results, metadata=dict()), # TODO: Aggregate search metadata
             'query' : APIQuery() # TODO: Specify query
         }
 

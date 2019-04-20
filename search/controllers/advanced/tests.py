@@ -88,7 +88,7 @@ class TestSearchController(TestCase):
     @mock.patch('search.controllers.advanced.SearchSession')
     def test_single_field_term(self, mock_index):
         """Form data and ``advanced`` param are present."""
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         request_data = MultiDict({
             'advanced': True,
@@ -595,7 +595,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(data['query'].terms[0].term, "franklin, r",
@@ -616,7 +616,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(data['query'].terms[0].term, "franklin, r",
@@ -637,7 +637,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(data['query'].terms[0].term,
@@ -659,7 +659,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(data['query'].terms[0].term, "franklin_r",

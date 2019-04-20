@@ -36,6 +36,6 @@ def health_check() -> Tuple[str, int, Dict[str, Any]]:
         )
     except Exception as e:
         return 'DOWN', status.HTTP_500_INTERNAL_SERVER_ERROR, {}
-    if documentset.results:
+    if documentset['results']:
         return 'OK', status.HTTP_200_OK, {}
     return 'DOWN', status.HTTP_500_INTERNAL_SERVER_ERROR, {}

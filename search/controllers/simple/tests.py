@@ -101,7 +101,7 @@ class TestSearchController(TestCase):
     @mock.patch('search.controllers.simple.SearchSession')
     def test_single_field_term(self, mock_index):
         """Form data are present."""
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
         request_data = MultiDict({
             'searchtype': 'title',
             'query': 'foo title'
@@ -336,7 +336,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = simple.search(request_data)
         self.assertEqual(data['query'].value, "franklin, r",
@@ -355,7 +355,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = simple.search(request_data)
         self.assertEqual(data['query'].value, "franklin, r",
@@ -374,7 +374,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = simple.search(request_data)
         self.assertEqual(data['query'].value, "j franklin, r; hawking, s",
@@ -393,7 +393,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = simple.search(request_data)
         self.assertEqual(data['query'].value, "franklin_r",

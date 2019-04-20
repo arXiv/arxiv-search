@@ -95,9 +95,6 @@ def handle_es_exceptions() -> Generator:
 class SearchSession(metaclass=MetaIntegration):
     """Encapsulates session with Elasticsearch host."""
 
-    __es__: Mapping[int, Elasticsearch] = {}
-    """Lookup for :class:`.Elasticsearch` connections."""
-
     def __init__(self, host: str, index: str, port: int = 9200,
                  scheme: str = 'http', user: Optional[str] = None,
                  password: Optional[str] = None, mapping: Optional[str] = None,
@@ -169,14 +166,13 @@ class SearchSession(metaclass=MetaIntegration):
         the same connection across the whole app. See
         `https://elasticsearch-py.readthedocs.io/en/master/#thread-safety`_.
 
-        We maintain a lookup of connections on the class, using the id() of the
-        app as key.
+        We use the `extensions` lookup on the Flask app to store the
+        connection.
         """
         if current_app:
-            app_id = id(current_app)
-            if app_id not in self.__class__.__es__:
-                self.__class__.__es__[app_id] = self.new_connection()
-            return self.__class__.__es__[app_id]
+            if 'elasticsearch' not in current_app.extensions:
+                current_app.extensions['elasticsearch'] = self.new_connection()
+            return current_app.extensions['elasticsearch']
         return self.new_connection()
 
     def cluster_available(self) -> bool:
