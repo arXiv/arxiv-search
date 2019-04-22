@@ -70,7 +70,7 @@ def handle_es_exceptions() -> Generator:
             raise MappingError('Invalid mapping: %s' % str(e.info)) from e
         elif e.error == 'index_not_found_exception':
             logger.error('ES index_not_found_exception: %s', e.info)
-            SearchSession.create_index()
+            SearchSession.current_session().create_index()
         elif e.error == 'parsing_exception':
             logger.error('ES parsing_exception: %s', e.info)
             raise QueryError(e.info) from e
@@ -307,7 +307,7 @@ class SearchSession(metaclass=MetaIntegration):
             self.create_index()
 
         with handle_es_exceptions():
-            ident = document.id if document.id else document.paper_id
+            ident = document['id'] if document['id'] else document['paper_id']
             logger.debug(f'{ident}: index document')
             self.es.index(index=self.index, doc_type=self.doc_type,
                           id=ident, body=document)
@@ -341,7 +341,7 @@ class SearchSession(metaclass=MetaIntegration):
             actions = ({
                 '_index': self.index,
                 '_type': self.doc_type,
-                '_id': document.id,
+                '_id': document['id'],
                 '_source': asdict(document)
             } for document in documents)
 
@@ -349,16 +349,13 @@ class SearchSession(metaclass=MetaIntegration):
                          chunk_size=docs_per_chunk)
             logger.debug('added %i documents to index', len(documents))
 
-    def get_document(self, document_id: int) -> Document:
+    def get_document(self, document_id: str) -> Document:
         """
         Retrieve a document from the index by ID.
-
-        Uses ``metadata_id`` as the primary identifier for the document.
 
         Parameters
         ----------
         doument_id : int
-            Value of ``metadata_id`` in the original document.
 
         Returns
         -------
@@ -491,7 +488,7 @@ class SearchSession(metaclass=MetaIntegration):
 def ok() -> bool:
     """Health check."""
     try:
-        SearchSession.cluster_available()
+        SearchSession.current_session().cluster_available()
     except Exception:    # TODO: be more specific.
         return False
     return True

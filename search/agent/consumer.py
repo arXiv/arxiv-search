@@ -10,6 +10,8 @@ from search.process import transform
 from search.domain import DocMeta, Document, asdict
 from arxiv.base.agent import BaseConsumer
 
+from retry.api import retry_call
+
 logger = logging.getLogger(__name__)
 logger.propagate = False
 
@@ -59,24 +61,19 @@ class MetadataRecordProcessor(BaseConsumer):
             is unlikely for subsequent papers.
 
         """
-        logger.debug(f'{arxiv_id}: get metadata')
+        logger.debug('%s: get metadata', arxiv_id)
 
         try:
-            logger.debug(f'{arxiv_id}: requesting metadata')
-            docmeta: DocMeta = metadata.retrieve(arxiv_id)
+            docmeta: DocMeta = retry_call(metadata.retrieve, (arxiv_id,),
+                                          exceptions=metadata.ConnectionFailed,
+                                          tries=2)
         except metadata.ConnectionFailed as e:
-            # The metadata service will retry bad responses, but not connection
-            # errors. Sometimes it just takes another try, so why not.
-            logger.warning(f'{arxiv_id}: first attempt failed, retrying')
-            try:
-                docmeta = metadata.retrieve(arxiv_id)
-            except metadata.ConnectionFailed as e:
-                # Things really are looking bad. There is no need to keep
-                # trying with subsequent records, so let's abort entirely.
-                logger.error(f'{arxiv_id}: second attempt failed, giving up')
-                raise IndexingFailed(
-                    'Indexing failed; metadata endpoint could not be reached.'
-                ) from e
+            # Things really are looking bad. There is no need to keep
+            # trying with subsequent records, so let's abort entirely.
+            logger.error('%s: second attempt failed, giving up', arxiv_id)
+            raise IndexingFailed(
+                'Indexing failed; metadata endpoint could not be reached.'
+            ) from e
         except metadata.RequestFailed as e:
             logger.error(f'{arxiv_id}: request failed')
             raise DocumentFailed('Request to metadata service failed') from e
@@ -113,35 +110,27 @@ class MetadataRecordProcessor(BaseConsumer):
             is unlikely for subsequent papers.
 
         """
-        logger.debug(f'{arxiv_ids}: get bulk metadata')
+        logger.debug('%s: get bulk metadata', arxiv_ids)
         meta: List[DocMeta]
         try:
-            logger.debug(f'{arxiv_ids}: requesting bulk metadata')
-            meta = metadata.bulk_retrieve(arxiv_ids)
-            return meta
+            meta = retry_call(metadata.bulk_retrieve, (arxiv_ids,),
+                              exceptions=metadata.ConnectionFailed,
+                              tries=2)
         except metadata.ConnectionFailed as e:
-            # The metadata service will retry bad responses, but not connection
-            # errors. Sometimes it just takes another try, so why not.
-            logger.warning(f'{arxiv_ids}: first attempt failed, retrying')
-            try:
-                meta = metadata.bulk_retrieve(arxiv_ids)
-                return meta
-            except metadata.ConnectionFailed as e:
-                # Things really are looking bad. There is no need to keep
-                # trying with subsequent records, so let's abort entirely.
-                logger.error(f'{arxiv_ids}: second attempt failed, giving up')
-                raise IndexingFailed(
-                    'Indexing failed; metadata endpoint could not be reached.'
-                ) from e
+            # Things really are looking bad. There is no need to keep
+            # trying with subsequent records, so let's abort entirely.
+            logger.error('%s: second attempt failed, giving up', arxiv_ids)
+            raise IndexingFailed('Metadata endpoint not available') from e
         except metadata.RequestFailed as e:
-            logger.error(f'{arxiv_ids}: request failed')
+            logger.error('%s: request failed', arxiv_ids)
             raise DocumentFailed('Request to metadata service failed') from e
         except metadata.BadResponse as e:
-            logger.error(f'{arxiv_ids}: bad response from metadata service')
+            logger.error('%s: bad response from metadata service', arxiv_ids)
             raise DocumentFailed('Bad response from metadata service') from e
         except Exception as e:
-            logger.error(f'{arxiv_ids}: unhandled error, metadata svc: {e}')
+            logger.error('%s: unhandled error, metadata svc: %s', arxiv_ids, e)
             raise IndexingFailed('Unhandled exception') from e
+        return meta
 
     @staticmethod
     def _transform_to_document(docmeta: DocMeta) -> Document:
@@ -191,13 +180,10 @@ class MetadataRecordProcessor(BaseConsumer):
 
         """
         try:
-            index.SearchSession.add_document(document)
+            retry_call(index.SearchSession.add_document, (document,),
+                       exceptions=index.IndexConnectionError, tries=2)
         except index.IndexConnectionError as e:
-            # Let's try once more before giving up entirely.
-            try:
-                index.SearchSession.add_document(document)
-            except index.IndexConnectionError as e:   # Nope, not happening.
-                raise IndexingFailed('Could not index document') from e
+            raise IndexingFailed('Could not index document') from e
         except Exception as e:
             logger.error(f'Unhandled exception from index service: {e}')
             raise IndexingFailed('Unhandled exception') from e
@@ -219,14 +205,10 @@ class MetadataRecordProcessor(BaseConsumer):
 
         """
         try:
-            index.SearchSession.bulk_add_documents(documents)
+            retry_call(index.SearchSession.bulk_add_documents, (documents,),
+                       exceptions=index.IndexConnectionError, tries=2)
         except index.IndexConnectionError as e:
-            # Let's try once more before giving up entirely.
-            try:
-                index.SearchSession.bulk_add_documents(documents)
-            except index.IndexConnectionError as e:   # Nope, not happening.
-                logger.error(f'Could not bulk index documents: {e}')
-                raise IndexingFailed('Could not bulk index documents') from e
+            raise IndexingFailed('Could not bulk index documents') from e
         except Exception as e:
             logger.error(f'Unhandled exception from index service: {e}')
             raise IndexingFailed('Unhandled exception') from e
@@ -265,7 +247,7 @@ class MetadataRecordProcessor(BaseConsumer):
         try:
             documents = []
             for docmeta in self._get_bulk_metadata(arxiv_ids):
-                logger.debug(f'{docmeta.paper_id}: transform to Document')
+                logger.debug('%s: transform to Document', docmeta.paper_id)
                 document = MetadataRecordProcessor._transform_to_document(
                     docmeta
                 )
@@ -313,8 +295,8 @@ class MetadataRecordProcessor(BaseConsumer):
             arxiv_id: str = deserialized.get('document_id')
             self.index_paper(arxiv_id)
         except DocumentFailed as e:
-            logger.debug(f'{arxiv_id}: failed to index document')
+            logger.debug('%s: failed to index document: %s', arxiv_id, e)
             self._error_count += 1
         except IndexingFailed as e:
-            logger.error(f'Indexing failed: {e}')
+            logger.error('Indexing failed: %s', e)
             raise

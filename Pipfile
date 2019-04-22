@@ -48,6 +48,8 @@ werkzeug = "==0.14.1"
 wtforms = "==2.1"
 bleach = "*"
 lxml = "*"
+mypy-extensions = "*"
+retry = "*"
 
 [dev-packages]
 coveralls = "*"

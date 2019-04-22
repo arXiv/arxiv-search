@@ -5,6 +5,7 @@ from datetime import datetime, date
 from operator import attrgetter
 from pytz import timezone
 import re
+from mypy_extensions import TypedDict
 
 from arxiv import taxonomy
 
@@ -17,30 +18,6 @@ EASTERN = timezone('US/Eastern')
 def asdict(obj: Any) -> dict:
     """Coerce a dataclass object to a dict."""
     return {key: value for key, value in _asdict(obj).items()}
-
-
-@dataclass
-class Person:
-    """Represents an author, owner, or other person in metadata."""
-
-    full_name: str
-    last_name: str = field(default_factory=str)
-    first_name: str = field(default_factory=str)
-    suffix: str = field(default_factory=str)
-
-    affiliation: List[str] = field(default_factory=list)
-    """Institutional affiliations."""
-
-    orcid: Optional[str] = field(default=None)
-    """ORCID identifier."""
-
-    author_id: Optional[str] = field(default=None)
-    """Legacy arXiv author identifier."""
-
-    @classmethod
-    def fields(cls) -> List[str]:
-        """Get the names of fields on this class."""
-        return cls.__dataclass_fields__.keys()  # type: ignore
 
 
 @dataclass
@@ -124,64 +101,21 @@ class DateRange:
         return _str
 
 
-@dataclass
-class Classification:
-    """Represents an arXiv classification for a paper."""
+# These have been refactored as TypedDicts for performance reasons. See
+# DECISIONS.md (2019-04-22) for details.
+class ClassificationPart(TypedDict):
+    """Represents a node (group, archive, category) in a classification."""
 
-    group: Optional[dict] = None
-    archive: Optional[dict] = None
-    category: Optional[dict] = None
+    id: str
+    name: str
 
-    @property
-    def group_display(self) -> str:
-        """Get a human-friendly display label for the group."""
-        if self.group is None:
-            return ""
-        label: str
-        if "name" in self.group:
-            label = self.group["name"]
-        else:
-            label = taxonomy.get_group_display(self.group["id"])
-        return label
 
-    @property
-    def archive_display(self) -> str:
-        """Get a human-friendly display label for the archive."""
-        if self.archive is None:
-            return ""
-        label: str
-        if "name" in self.archive:
-            label = self.archive["name"]
-        else:
-            label = taxonomy.get_archive_display(self.archive["id"])
-        return label
+class Classification(TypedDict):
+    """Classification assigned to an e-print."""
 
-    @property
-    def category_display(self) -> str:
-        """Get a human-friendly display label for the category."""
-        if self.category is None:
-            return ""
-        label: str
-        if "name" in self.category:
-            label = self.category["name"]
-        else:
-            label = taxonomy.get_category_display(self.category["id"])
-        return label
-
-    def __str__(self) -> str:
-        """Build a string representation, for use in rendering."""
-        s = ""
-        if self.group:
-            s += self.group_display
-        if self.archive:
-            if s:
-                s += " :: "
-            s += self.archive_display
-        if self.category:
-            if s:
-                s += " :: "
-            s += self.category_display
-        return s
+    group: Optional[ClassificationPart]
+    archive: Optional[ClassificationPart]
+    category: Optional[ClassificationPart]
 
 
 class ClassificationList(list):
@@ -234,14 +168,6 @@ class Query:
         """Get the approximate page number."""
         return 1 + int(round(self.page_start/self.size))
 
-    def __str__(self) -> str:
-        """Build a string representation, for use in rendering."""
-        return '; '.join([
-            '%s: %s' % (attr, attrgetter(attr)(self))
-            for attr in type(self).__dataclass_fields__.keys()   # type: ignore
-            if attrgetter(attr)(self)
-        ])  # pylint: disable=E1101
-
 
 @dataclass
 class SimpleQuery(Query):
@@ -257,87 +183,3 @@ class SimpleQuery(Query):
 
     include_cross_list: bool = field(default=True)
     """If True, secondaries are considered when limiting by classification."""
-
-
-@dataclass(init=True)
-class Document:
-    """A search document, representing an arXiv paper."""
-
-    submitted_date: Optional[datetime] = None
-    announced_date_first: Optional[date] = None
-    submitted_date_first: Optional[datetime] = None
-    submitted_date_latest: Optional[datetime] = None
-    submitted_date_all: List[str] = field(default_factory=list)
-    id: str = field(default_factory=str)
-    abstract: str = field(default_factory=str)
-    abstract_tex: str = field(default_factory=str)
-    authors: List[Person] = field(default_factory=list)
-    authors_freeform: str = field(default_factory=str)
-    owners: List[Person] = field(default_factory=list)
-    modified_date: str = field(default_factory=str)
-    updated_date: str = field(default_factory=str)
-    is_current: bool = True
-    is_withdrawn: bool = False
-    license: Dict[str, str] = field(default_factory=dict)
-    paper_id: str = field(default_factory=str)
-    paper_id_v: str = field(default_factory=str)
-    title: str = field(default_factory=str)
-    title_tex: str = field(default_factory=str)
-    source: Dict[str, Any] = field(default_factory=dict)
-    version: int = 1
-    latest: str = field(default_factory=str)
-    latest_version: int = 0
-    submitter: Optional[Person] = field(default=None)
-    report_num: str = field(default_factory=str)
-    proxy: bool = False
-    msc_class: List[str] = field(default_factory=list)
-    acm_class: List[str] = field(default_factory=list)
-    metadata_id: int = -1
-    journal_ref: str = field(default_factory=str)
-    doi: str = field(default_factory=str)
-    comments: str = field(default_factory=str)
-    abs_categories: str = field(default_factory=str)
-    formats: List[str] = field(default_factory=list)
-    primary_classification: Classification = field(
-        default_factory=Classification
-    )
-    secondary_classification: ClassificationList = field(
-        default_factory=ClassificationList
-    )
-
-    score: float = 1.0
-
-    highlight: dict = field(default_factory=dict)
-    """Contains highlighted versions of field values."""
-
-    preview: dict = field(default_factory=dict)
-    """Contains truncations of field values for preview/snippet display."""
-
-    match: dict = field(default_factory=dict)
-    """Contains fields that matched but lack highlighting."""
-
-    truncated: dict = field(default_factory=dict)
-    """Contains fields for which the preview is truncated."""
-
-    def __post_init__(self) -> None:
-        """Set latest_version, if not already set."""
-        if not self.latest_version and self.latest:
-            m = re.match(r'^(.+?)(?:v(?P<version>[\d]+))?$', self.latest)
-            if m and m.group('version'):
-                self.latest_version = int(m.group('version'))
-            else:
-                self.latest_version = 1
-
-    @classmethod
-    def fields(cls) -> List[str]:
-        """Get the names of fields on this class."""
-        return cls.__dataclass_fields__.keys()  # type: ignore
-
-
-@dataclass
-class DocumentSet:
-    """A set of search results retrieved from the search index."""
-
-    metadata: Dict[str, Any]
-    results: List[Document]
-    # __schema__ = 'schema/DocumentSet.json'

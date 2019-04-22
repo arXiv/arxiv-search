@@ -27,7 +27,8 @@ class TestSearch(TestCase):
         mock_results.__getitem__.return_value = {'total': 53}
         rdata = dict(authors=[{'full_name': 'N. Ame'}],
                      owners=[{'full_name': 'N. Ame'}],
-                     submitter={'full_name': 'N. Ame'})
+                     submitter={'full_name': 'N. Ame'},
+                     paper_id='1234.56789')
         mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
@@ -94,7 +95,8 @@ class TestSearch(TestCase):
         mock_results.__getitem__.return_value = {'total': 53}
         rdata = dict(authors=[{'full_name': 'N. Ame'}],
                      owners=[{'full_name': 'N. Ame'}],
-                     submitter={'full_name': 'N. Ame'})
+                     submitter={'full_name': 'N. Ame'},
+                     paper_id='1234.56789')
         mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]

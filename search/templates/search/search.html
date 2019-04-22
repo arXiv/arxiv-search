@@ -15,7 +15,7 @@
     {% if archives %}
       Searching in archive{% if archives|length > 1 %}s{% endif %} <strong>{{ archives|join(", ") }}</strong>. <a href="{{ url_for('ui.search') }}?{{ current_url_params() }}">Search in all archives.</a>
     {% endif %}
-    
+
     {% if has_classic_format %}
       {{ search_macros.show_classic_author_search() }}
     {% endif %}
@@ -76,7 +76,7 @@
 
   {% if results %}
       {{ search_macros.size_and_order(form, url_for('ui.search')) }}
-      {{ search_macros.search_results(form, results, metadata, external_url, url_for_page, url_for_author_search, is_current, query.hide_abstracts) }}
+      {{ search_macros.search_results(form, results, metadata, url_for_page, url_for_author_search, is_current, query.hide_abstracts) }}
   {% endif %}
 
 {% endblock %}

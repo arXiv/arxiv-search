@@ -133,7 +133,7 @@ def search(request_params: MultiDict,
             # Execute the search. We'll use the results directly in
             #  template rendering, so they get added directly to the
             #  response content.asdict
-            response_data.update(SearchSession.search(q))
+            response_data.update(SearchSession.search(q))  # type: ignore
         except index.IndexConnectionError as e:
             # There was a (hopefully transient) connection problem. Either
             #  this will clear up relatively quickly (next request), or
@@ -206,7 +206,7 @@ def retrieve_document(document_id: str) -> Response:
 
     """
     try:
-        result = SearchSession.get_document(document_id)
+        result = SearchSession.get_document(document_id)  # type: ignore
     except index.IndexConnectionError as e:
         # There was a (hopefully transient) connection problem. Either
         #  this will clear up relatively quickly (next request), or

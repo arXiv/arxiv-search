@@ -17,6 +17,7 @@ import bleach
 from flask import escape
 from arxiv.base import logging
 
+from search.domain import Document
 from .util import TEXISM
 
 logger = logging.getLogger(__name__)
@@ -142,7 +143,7 @@ def preview(value: str, fragment_size: int = 400,
     return snippet
 
 
-def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
+def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
     """
     Add hit highlighting to a search result.
 
@@ -150,8 +151,8 @@ def add_highlighting(result: dict, raw: Union[Response, Hit]) -> dict:
     ----------
     result : dict
         Contains processed search result data destined for the caller.
-    raw : :class:`.Response`
-        A response from Elasticsearch.
+    raw : :class:`.Response` or :class:`.Hit`
+        A response object from Elasticsearch.
 
     Returns
     -------

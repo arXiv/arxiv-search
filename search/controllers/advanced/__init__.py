@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
 EASTERN = timezone('US/Eastern')
+TERM_FIELD_PTN = re.compile(r'terms-([0-9])+-term')
 
 
 def search(request_params: MultiDict) -> Response:
@@ -77,19 +78,23 @@ def search(request_params: MultiDict) -> Response:
     # rewrite with a comma, and show a warning to the user about the
     # change.
     has_classic = False
-    for key in request_params.keys():
-        if key.startswith('terms-') and key.endswith('-term'):
-            value: str = request_params.get(key) # type: ignore
-            i = re.search('terms-([0-9])+-term', key).group(1) # type: ignore
-            field = request_params.get(f'terms-{i}-field')
-            # We are only looking for this syntax in the author search, or
-            # in an all-fields search.
-            if field not in ['all', 'author']:
-                continue
+    for key, value in request_params.items():
+        if value is None:
+            continue
+        match = TERM_FIELD_PTN.search(key)
+        if match is None:
+            continue
+        value = str(value)
+        i = match.group(1)
+        field = request_params.get(f'terms-{i}-field')
+        # We are only looking for this syntax in the author search, or
+        # in an all-fields search.
+        if field not in ['all', 'author']:
+            continue
 
-            value, _has_classic = catch_underscore_syntax(value)
-            has_classic = _has_classic if not has_classic else has_classic
-            request_params.setlist(key, [value])
+        value, _has_classic = catch_underscore_syntax(value)
+        has_classic = _has_classic if not has_classic else has_classic
+        request_params.setlist(key, [value])
 
     response_data['has_classic_format'] = has_classic
     form = forms.AdvancedSearchForm(request_params)
@@ -110,7 +115,7 @@ def search(request_params: MultiDict) -> Response:
                 # Execute the search. We'll use the results directly in
                 #  template rendering, so they get added directly to the
                 #  response content. asdict(
-                response_data.update(SearchSession.search(q))
+                response_data.update(SearchSession.search(q))  # type: ignore
             except index.IndexConnectionError as e:
                 # There was a (hopefully transient) connection problem. Either
                 #  this will clear up relatively quickly (next request), or

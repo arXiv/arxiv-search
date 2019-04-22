@@ -130,8 +130,8 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
 ]
 
 
-def to_search_document(metadata: DocMeta, fulltext: Optional[Fulltext] = None)\
-        -> Document:
+def to_search_document(metadata: DocMeta,
+                       fulltext: Optional[Fulltext] = None) -> Document:
     """
     Transform metadata (and fulltext) into a valid search document.
 

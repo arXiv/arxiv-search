@@ -351,7 +351,7 @@
 
     <div class="columns">
       <div class="column is-two-thirds-tablet">
-        <p style="margin-bottom: .5em">Query: <a href="{{ current_url_sans_parameters('advanced') }}">{{ query }}</a></p>
+        <p style="margin-bottom: .5em">Query: <a href="{{ current_url_sans_parameters('advanced') }}">{{ query|display_query }}</a></p>
         <div class="buttons">
           <a class="button is-link" href="{{ current_url_sans_parameters('advanced') }}">Refine query</a><a class="button" href="{{ url_for('ui.advanced_search') }}">New search</a>
         </div>
@@ -369,7 +369,7 @@
 
     {% if results %}
         {{ search_macros.size_and_order(form, url_for('ui.advanced_search')) }}
-        {{ search_macros.search_results(form, results, metadata, external_url, url_for_page, url_for_author_search, is_current, query.hide_abstracts) }}
+        {{ search_macros.search_results(form, results, metadata, url_for_page, url_for_author_search, is_current, query.hide_abstracts) }}
     {% endif %}
   {% endif %}
 {% endblock %}

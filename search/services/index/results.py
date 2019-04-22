@@ -21,24 +21,10 @@ logger = logging.getLogger(__name__)
 logger.propagate = False
 
 
-def _to_author(author_data: dict) -> Person:
-    """Prevent e-mail, other extraneous data, from escaping."""
-    data = {}
-    for key, value in author_data.items():
-        if key == 'email':
-            continue
-        elif key == 'name':
-            key = 'full_name'
-        if key not in Person.fields():
-            continue
-        data[key] = value
-    return Person(**data)   # type: ignore
-
-
 def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
     """Transform an ES search result back into a :class:`.Document`."""
     # typing: ignore
-    result: Dict[str, Any] = {}
+    result: Document = {}
 
     result['match'] = {}  # Hit on field, but no highlighting.
     result['truncated'] = {}    # Preview is truncated.
@@ -48,13 +34,13 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
     # Parse dates to date/datetime objects.
     if 'announced_date_first' in result:
         result['announced_date_first'] = \
-            datetime.strptime(result['announced_date_first'], '%Y-%m').date()
+            datetime.strptime(raw['announced_date_first'], '%Y-%m').date()
     for key in ['', '_first', '_latest']:
         key = f'submitted_date{key}'
         if key not in result:
             continue
         try:
-            result[key] = datetime.strptime(result[key], '%Y-%m-%dT%H:%M:%S%z')
+            result[key] = datetime.strptime(raw[key], '%Y-%m-%dT%H:%M:%S%z')
         except (ValueError, TypeError):
             logger.warning(f'Could not parse {key} as datetime')
             pass
@@ -70,7 +56,7 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
 
     if highlight:   # type(result.get('abstract')) is str and
         result['highlight'] = {}
-        logger.debug('%s: add highlighting to result', raw.paper_id)
+        logger.debug('%s: add highlighting to result', result['paper_id'])
 
         if 'preview' not in result:
             result['preview'] = {}

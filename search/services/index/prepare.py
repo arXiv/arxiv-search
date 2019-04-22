@@ -361,12 +361,29 @@ def limit_by_classification(classifications: ClassificationList,
     if len(classifications) == 0:
         return Q()
 
-    def _to_q(clsn: Classification) -> Q:
-        return reduce(iand, [
-            Q('match', **{f'{field}__{level}__id': getattr(clsn, level)['id']})
-            for level in ['group', 'archive', 'category']
-            if getattr(clsn, level) is not None
-        ])
+    def _to_q(classification: Classification) -> Q:
+        _parts = []
+        if 'group' in classification and classification['group'] is not None:
+            _parts.append(
+                Q('match', **{
+                    f'{field}__group__id': classification['group']['id']
+                })
+            )
+        if 'archive' in classification \
+                and classification['archive'] is not None:
+            _parts.append(
+                Q('match', **{
+                    f'{field}__archive__id': classification['archive']['id']
+                })
+            )
+        if 'category' in classification \
+                and classification['category'] is not None:
+            _parts.append(
+                Q('match', **{
+                    f'{field}__category__id': classification['category']['id']
+                })
+            )
+        return reduce(iand, _parts)
 
     _q = reduce(ior, map(_to_q, classifications))
     if field == 'secondary_classification':
