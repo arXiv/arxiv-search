@@ -22,10 +22,10 @@ def reindex(old_index: str, new_index: str):
     does not already exist.
     """
     click.echo(f"Reindex papers in `{old_index}` to `{new_index}`")
-    if not index.index_exists(old_index):
+    if not index.SearchSession.index_exists(old_index):
         click.echo(f"Source index `{old_index}` does not exist.")
 
-    r = index.reindex(old_index, new_index)
+    r = index.SearchSession.reindex(old_index, new_index)
     if not r:
         raise click.ClickException("Failed to get or create new index")
 
@@ -33,7 +33,7 @@ def reindex(old_index: str, new_index: str):
     task_id = r['task']
     with click.progressbar(length=100, label='percent complete') as progress:
         while True:
-            status = index.get_task_status(task_id)
+            status = index.SearchSession.get_task_status(task_id)
             total = float(status['task']['status']['total'])
             if status['completed'] or total == 0:
                 progress.update(100)

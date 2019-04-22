@@ -9,6 +9,7 @@ WORKDIR /opt/arxiv
 
 # Install MySQL.
 RUN yum install -y which mysql mysql-devel
+RUN pip install uwsgi
 
 # Add Python application and configuration.
 ADD app.py /opt/arxiv/
@@ -22,8 +23,8 @@ ENV PATH "/opt/arxiv:${PATH}"
 ADD schema /opt/arxiv/schema
 ADD mappings /opt/arxiv/mappings
 ADD search /opt/arxiv/search
-ADD wsgi.py /opt/arxiv/
-RUN pip install uwsgi
+ADD wsgi.py uwsgi.ini /opt/arxiv/
+
 
 ADD bin/start_search.sh /opt/arxiv/
 RUN chmod +x /opt/arxiv/start_search.sh
@@ -37,22 +38,9 @@ ENV FLASK_APP /opt/arxiv/app.py
 ENV ELASTICSEARCH_SERVICE_HOST 127.0.0.1
 ENV ELASTICSEARCH_SERVICE_PORT 9200
 ENV ELASTICSEARCH_PORT_9200_PROTO http
-ENV ELASTICSEARCH_INDEX arxiv
-ENV ELASTICSEARCH_USER elastic
 ENV ELASTICSEARCH_PASSWORD changeme
 ENV METADATA_ENDPOINT https://arxiv.org/docmeta_bulk/
 
 EXPOSE 8000
-
-#CMD /bin/bash
-ENTRYPOINT ["/opt/arxiv/start_search.sh"]
-CMD ["--http-socket", ":8000", \
-     "-M", \
-     "-t 3000", \
-     "--manage-script-name", \
-     "--processes", "8", \
-     "--threads", "1", \
-     "--async", "100", \
-     "--ugreen", \
-     "--mount", "/search=wsgi.py", \
-     "--logformat", "%(addr) %(addr) - %(user_id)|%(session_id) [%(rtime)] [%(uagent)] \"%(method) %(uri) %(proto)\" %(status) %(size) %(micros) %(ttfb)"]
+ENTRYPOINT ["pipenv", "run"]
+CMD ["uwsgi", "--ini", "/opt/arxiv/uwsgi.ini"]

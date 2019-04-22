@@ -130,8 +130,8 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
 ]
 
 
-def to_search_document(metadata: DocMeta, fulltext: Optional[Fulltext] = None)\
-        -> Document:
+def to_search_document(metadata: DocMeta,
+                       fulltext: Optional[Fulltext] = None) -> Document:
     """
     Transform metadata (and fulltext) into a valid search document.
 
@@ -149,7 +149,7 @@ def to_search_document(metadata: DocMeta, fulltext: Optional[Fulltext] = None)\
     ValueError
 
     """
-    data = {}
+    data: Document = {}
     for key, source, is_required in _transformations:
         if isinstance(source, str):
             value = getattr(metadata, source, None)
@@ -158,7 +158,7 @@ def to_search_document(metadata: DocMeta, fulltext: Optional[Fulltext] = None)\
         if value is None and not is_required:
             continue
         data[key] = value
-    if fulltext:
-        data['fulltext'] = fulltext.content
-    return Document(**data)     # type: ignore
+    # if fulltext:
+    #     data['fulltext'] = fulltext.content
+    return data
     # See https://github.com/python/mypy/issues/3937

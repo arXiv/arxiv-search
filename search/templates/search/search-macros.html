@@ -119,7 +119,7 @@
 {%- endmacro %}
 
 
-{% macro search_results(form, results, metadata, external_url, url_for_page, url_for_author_search, is_current, hide_abstracts) %}
+{% macro search_results(form, results, metadata, url_for_page, url_for_author_search, is_current, hide_abstracts) %}
 
 {% if metadata.total_pages > 1 %}
   {{ pagination(metadata, url_for_page) }}
@@ -133,14 +133,14 @@
     <div class="is-marginless">
       <p class="list-title is-inline-block">
         {%- set display_paper_id = result.paper_id if is_current(result) else result.paper_id_v -%}
-        <a href="{{ external_url('browse', 'abstract', paper_id=display_paper_id) }}">arXiv:{{ display_paper_id }}</a>
-        <span>&nbsp;{{ paper_format_links(result, external_url, display_paper_id) }}&nbsp;</span>
+        <a href="{{ url_for('abs_by_id', paper_id=display_paper_id) }}">arXiv:{{ display_paper_id }}</a>
+        <span>&nbsp;{{ paper_format_links(result, display_paper_id) }}&nbsp;</span>
       </p>
       <div class="tags is-inline-block">
-        <span class="tag is-small {% if result.match.primary_classification %}search-hit{% else %}is-link{% endif %} tooltip is-tooltip-top" data-tooltip="{{ result.primary_classification.category.name }}">{{ result.primary_classification.category.id }}</span>
+        <span class="tag is-small {% if result.match.primary_classification %}search-hit{% else %}is-link{% endif %} tooltip is-tooltip-top" data-tooltip="{{ result.primary_classification|category_name }}">{{ result.primary_classification.category.id }}</span>
         {% if result.secondary_classification %}
           {% for secondary in result.secondary_classification %}
-            <span class="tag is-small {% if secondary.category.id in result.match.secondary_classification %}search-hit{% else %}is-grey{% endif %} tooltip is-tooltip-top" data-tooltip="{{secondary.category.name}}">{{ secondary.category.id }}</span>
+            <span class="tag is-small {% if secondary.category.id in result.match.secondary_classification %}search-hit{% else %}is-grey{% endif %} tooltip is-tooltip-top" data-tooltip="{{secondary|category_name}}">{{ secondary.category.id }}</span>
           {% endfor %}
         {% endif -%}
       </div>
@@ -186,7 +186,7 @@
 
     <p class="is-size-7"><span class="has-text-black-bis has-text-weight-semibold">Submitted</span> {{ result.submitted_date.strftime('%-d %B, %Y') }}; {% if result.version > 1 %}<span class="has-text-black-bis has-text-weight-semibold">v1</span> submitted {{ result.submitted_date_first.strftime('%-d %B, %Y') }};{% endif %}
       <span class="{% if result.match.announced_date_first %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">originally announced</span> {{ result.announced_date_first.strftime('%B %Y') }}.
-      {% if not is_current(result) %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ external_url('browse', 'abstract', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}
+      {% if not is_current(result) %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ url_for('abstract_by_id', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}
     </p>
     {% if result.comments %}
     <p class="comments is-size-7">
@@ -230,10 +230,10 @@
 
 {%- endmacro -%}
 
-{%- macro paper_format_links(result, external_url, display_paper_id) -%}
+{%- macro paper_format_links(result, display_paper_id) -%}
   {%- for format in result.formats -%}
     {%- if format in ('pdf', 'pdfonly', 'ps', 'other') -%}
-      {% if loop.first %}[{% endif %}<a href="{{ external_url('browse', format, paper_id=display_paper_id) }}">{{ format|replace("pdfonly", "pdf") }}</a>{% if not loop.last %}, {% else %}]{% endif %}
+      {% if loop.first %}[{% endif %}<a href="{{ url_for(format + '_by_id', paper_id=display_paper_id) }}">{{ format|replace("pdfonly", "pdf") }}</a>{% if not loop.last %}, {% else %}]{% endif %}
     {%- endif -%}
   {%- endfor -%}
 {%- endmacro -%}

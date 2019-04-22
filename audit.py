@@ -35,7 +35,7 @@ def exists(chunk: List[str]) -> List[Tuple[str, bool]]:
         status = []
         for ident in chunk:
             time.sleep(0.05)    # TODO: make this configurable?
-            status.append((ident, index.exists(ident)))
+            status.append((ident, index.SearchSession.exists(ident)))
         return status
 
 

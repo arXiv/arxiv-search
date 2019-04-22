@@ -25,11 +25,11 @@ class TestSearch(TestCase):
         """:class:`.index.search` supports :class:`AdvancedQuery`."""
         mock_results = mock.MagicMock()
         mock_results.__getitem__.return_value = {'total': 53}
-        mock_result = mock.MagicMock(
-            authors=[{'full_name': 'N. Ame'}],
-            owners=[{'full_name': 'N. Ame'}],
-            submitter={'full_name': 'N. Ame'}
-        )
+        rdata = dict(authors=[{'full_name': 'N. Ame'}],
+                     owners=[{'full_name': 'N. Ame'}],
+                     submitter={'full_name': 'N. Ame'},
+                     paper_id='1234.56789')
+        mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
         mock_Search.execute.return_value = mock_results
@@ -78,14 +78,14 @@ class TestSearch(TestCase):
                                   term='Bloggs_J'),
             ])
         )
-        document_set = index.search(query)
-        self.assertIsInstance(document_set, DocumentSet)
-        self.assertEqual(document_set.metadata['start'], 0)
-        self.assertEqual(document_set.metadata['total'], 53)
-        self.assertEqual(document_set.metadata['current_page'], 1)
-        self.assertEqual(document_set.metadata['total_pages'], 6)
-        self.assertEqual(document_set.metadata['size'], 10)
-        self.assertEqual(len(document_set.results), 1)
+        document_set = index.SearchSession.search(query)
+        # self.assertIsInstance(document_set, DocumentSet)
+        self.assertEqual(document_set['metadata']['start'], 0)
+        self.assertEqual(document_set['metadata']['total'], 53)
+        self.assertEqual(document_set['metadata']['current_page'], 1)
+        self.assertEqual(document_set['metadata']['total_pages'], 6)
+        self.assertEqual(document_set['metadata']['size'], 10)
+        self.assertEqual(len(document_set['results']), 1)
 
     @mock.patch('search.services.index.Search')
     @mock.patch('search.services.index.Elasticsearch')
@@ -93,11 +93,11 @@ class TestSearch(TestCase):
         """:class:`.index.search` supports :class:`SimpleQuery`."""
         mock_results = mock.MagicMock()
         mock_results.__getitem__.return_value = {'total': 53}
-        mock_result = mock.MagicMock(
-            authors=[{'full_name': 'N. Ame'}],
-            owners=[{'full_name': 'N. Ame'}],
-            submitter={'full_name': 'N. Ame'}
-        )
+        rdata = dict(authors=[{'full_name': 'N. Ame'}],
+                     owners=[{'full_name': 'N. Ame'}],
+                     submitter={'full_name': 'N. Ame'},
+                     paper_id='1234.56789')
+        mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
         mock_Search.execute.return_value = mock_results
@@ -117,14 +117,14 @@ class TestSearch(TestCase):
             search_field='title',
             value='foo title'
         )
-        document_set = index.search(query)
-        self.assertIsInstance(document_set, DocumentSet)
-        self.assertEqual(document_set.metadata['start'], 0)
-        self.assertEqual(document_set.metadata['total'], 53)
-        self.assertEqual(document_set.metadata['current_page'], 1)
-        self.assertEqual(document_set.metadata['total_pages'], 6)
-        self.assertEqual(document_set.metadata['size'], 10)
-        self.assertEqual(len(document_set.results), 1)
+        document_set = index.SearchSession.search(query)
+        # self.assertIsInstance(document_set, DocumentSet)
+        self.assertEqual(document_set['metadata']['start'], 0)
+        self.assertEqual(document_set['metadata']['total'], 53)
+        self.assertEqual(document_set['metadata']['current_page'], 1)
+        self.assertEqual(document_set['metadata']['total_pages'], 6)
+        self.assertEqual(document_set['metadata']['size'], 10)
+        self.assertEqual(len(document_set['results']), 1)
 
 
 class TestWildcardSearch(TestCase):

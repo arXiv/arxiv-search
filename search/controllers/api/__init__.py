@@ -19,8 +19,7 @@ from arxiv.base import logging
 from search.services import index, fulltext, metadata
 from search.controllers.util import paginate
 from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
-    DateRange, ClassificationList, Classification, asdict, DocumentSet, \
-    Document
+    DateRange, ClassificationList, Classification, Document
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
@@ -48,7 +47,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     # parse advanced classic-style queries
     try:
-        parsed_terms = _parse_search_query(params.get('query',''))
+        parsed_terms = _parse_search_query(params.get('query', ''))
         params = params.copy()
         for field, term in parsed_terms.items():
             params[field] = term
@@ -83,12 +82,15 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         q.include_fields += include_fields
 
     q = paginate(q, params)     # type: ignore
-    document_set = index.search(q, highlight=False)
-    document_set.metadata['query'] = query_terms
-    logger.debug('Got document set with %i results', len(document_set.results))
+    document_set = index.SearchSession.search(q, highlight=False)  # type: ignore
+    document_set['metadata']['query'] = query_terms
+    logger.debug('Got document set with %i results',
+                 len(document_set['results']))
     return {'results': document_set, 'query': q}, status.HTTP_200_OK, {}
 
-def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
+
+def classic_query(params: MultiDict) \
+        -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
     Handle a search request from the Clasic API.
 
@@ -137,7 +139,8 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
 
     # error if neither search_query nor id_list are specified.
     if not id_list and not raw_query:
-        raise BadRequest("Either a search_query or id_list must be specified for the classic API.")
+        raise BadRequest("Either a search_query or id_list must be specified"
+                         " for the classic API.")
 
     if raw_query:
         # migrate search_query -> query variable
@@ -146,32 +149,30 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
 
         # pass to normal search, which will handle parsing
         data, _, _ = search(params)
-    
+
     if id_list and not raw_query:
         # Process only id_lists.
-        # Note lack of error handling to implicitly propogate any errors. 
+        # Note lack of error handling to implicitly propogate any errors.
         # Classic API also errors if even one ID is malformed.
         papers = [paper(paper_id) for paper_id in id_list]
 
         data, _, _ = zip(*papers)
-        results = [paper['results'] for paper in data]
-        data = { 
-            'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
+        results = [paper['results'] for paper in data]   # type: ignore
+        data = {
+            'results' : dict(results=results, metadata=dict()), # TODO: Aggregate search metadata
             'query' : APIQuery() # TODO: Specify query
         }
 
     elif id_list and raw_query:
         # Filter results based on id_list
-        results = [paper for paper in data['results'].results
+        results = [paper for paper in data['results']['results']
                        if paper.paper_id in id_list or paper.paper_id_v in id_list]
-        data = { 
-            'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
-            'query' : APIQuery() # TODO: Specify query 
+        data = {
+            'results' : dict(results=results, metadata=dict()), # TODO: Aggregate search metadata
+            'query' : APIQuery() # TODO: Specify query
         }
 
     return data, status.HTTP_200_OK, {}
-
-   
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -199,7 +200,7 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     """
     try:
-        document = index.get_document(paper_id)
+        document = index.SearchSession.get_document(paper_id)    # type: ignore
     except index.DocumentNotFound as e:
         logger.error('Document not found')
         raise NotFound('No such document') from e
@@ -207,13 +208,11 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
 
 def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
-    include_fields = params.getlist('include')
-    allowed_fields = Document.fields()
+    include_fields: List[str] = params.getlist('include')
     if include_fields:
-        inc = [field for field in include_fields if field in allowed_fields]
-        for field in inc:
+        for field in include_fields:
             query_terms.append({'parameter': 'include', 'value': field})
-        return inc
+        return include_fields
     return []
 
 
@@ -251,7 +250,7 @@ def _get_date_params(params: MultiDict, query_terms: List) \
         date_params[field] = dt
         query_terms.append({'parameter': field, 'value': dt})
     if 'date_type' in params:
-        date_params['date_type'] = params.get('date_type') # type: ignore
+        date_params['date_type'] = params.get('date_type')   # type: ignore
         query_terms.append({'parameter': 'date_type',
                             'value': date_params['date_type']})
     if date_params:
@@ -268,7 +267,7 @@ def _to_classification(value: str, query_terms: List) \
     elif value in taxonomy.definitions.ARCHIVES:
         klass = taxonomy.Archive
         field = 'archive'
-    elif value in taxonomy.definitionss.CATEGORIES:
+    elif value in taxonomy.definitions.CATEGORIES:
         klass = taxonomy.Category
         field = 'category'
     else:
@@ -281,7 +280,7 @@ def _to_classification(value: str, query_terms: List) \
             and cast_value.canonical != cast_value.unalias():
         clsns.append(Classification(**{field: {'id': cast_value.canonical}}))   # type: ignore
     return tuple(clsns)
- 
+
 
 def _get_classification(value: str, field: str, query_terms: List) \
         -> Tuple[Classification, ...]:
@@ -304,11 +303,12 @@ SEARCH_QUERY_FIELDS = {
     'all' : 'all'
 }
 
-def _parse_search_query(query: List[str]) -> Dict[str, Any]:
+
+def _parse_search_query(query: str) -> Dict[str, Any]:
     # TODO: Add support for booleans.
     new_query_params = {}
     terms = query.split()
-    
+
     expect_new = True
     """expect_new handles quotation state."""
 
@@ -332,8 +332,6 @@ def _parse_search_query(query: List[str]) -> Dict[str, Any]:
                 term = term.replace('"', '')
 
             new_query_params[SEARCH_QUERY_FIELDS[field]] += " " + term
-        
-    
+
+
     return new_query_params
-
-

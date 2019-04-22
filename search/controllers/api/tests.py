@@ -18,7 +18,7 @@ from search.services.index import IndexConnectionError, QueryError
 class TestAPISearch(TestCase):
     """Tests for :func:`.api.search`."""
 
-    @mock.patch(f'{api.__name__}.index')
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_no_params(self, mock_index):
         """Request with no parameters."""
         params = MultiDict({})
@@ -33,7 +33,7 @@ class TestAPISearch(TestCase):
                          set(expected_fields),
                          "Default set of fields is included")
 
-    @mock.patch(f'{api.__name__}.index')
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_include_fields(self, mock_index):
         """Request with specific fields included."""
         extra_fields = ['title', 'abstract', 'authors']
@@ -48,7 +48,7 @@ class TestAPISearch(TestCase):
                          set(expected_fields),
                          "Requested fields are included")
 
-    @mock.patch(f'{api.__name__}.index')
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_group_primary_classification(self, mock_index):
         """Request with a group as primary classification."""
         group = 'grp_physics'
@@ -61,7 +61,7 @@ class TestAPISearch(TestCase):
         self.assertEqual(query.primary_classification[0],
                          Classification(group={'id': group}))
 
-    @mock.patch(f'{api.__name__}.index')
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_archive_primary_classification(self, mock_index):
         """Request with an archive as primary classification."""
         archive = 'physics'
@@ -74,7 +74,7 @@ class TestAPISearch(TestCase):
         self.assertEqual(query.primary_classification[0],
                          Classification(archive={'id': archive}))
 
-    @mock.patch(f'{api.__name__}.index')
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_archive_subsumed_classification(self, mock_index):
         """Request with a subsumed archive as primary classification."""
         archive = 'chao-dyn'
@@ -90,7 +90,7 @@ class TestAPISearch(TestCase):
                          Classification(archive={'id': 'nlin.CD'}),
                          "The canonical archive is used instead")
 
-    @mock.patch(f'{api.__name__}.index')
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_category_primary_classification(self, mock_index):
         """Request with a category as primary classification."""
         category = 'cs.DL'
@@ -103,14 +103,14 @@ class TestAPISearch(TestCase):
         self.assertEqual(query.primary_classification[0],
                          Classification(category={'id': category}))
 
-    @mock.patch(f'{api.__name__}.index')
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_bad_classification(self, mock_index):
         """Request with nonsense as primary classification."""
         params = MultiDict({'primary_classification': 'nonsense'})
         with self.assertRaises(BadRequest):
             api.search(params)
 
-    @mock.patch(f'{api.__name__}.index')
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_with_start_date(self, mock_index):
         """Request with dates specified."""
         params = MultiDict({'start_date': '1999-01-02'})
@@ -126,7 +126,7 @@ class TestAPISearch(TestCase):
                          DateRange.SUBMITTED_CURRENT,
                          "Submitted date of current version is the default")
 
-    @mock.patch(f'{api.__name__}.index')
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_with_end_dates_and_type(self, mock_index):
         """Request with end date and date type specified."""
         params = MultiDict({'end_date': '1999-01-02',
