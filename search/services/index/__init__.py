@@ -342,7 +342,7 @@ class SearchSession(metaclass=MetaIntegration):
                 '_index': self.index,
                 '_type': self.doc_type,
                 '_id': document['id'],
-                '_source': asdict(document)
+                '_source': document
             } for document in documents)
 
             helpers.bulk(client=self.es, actions=actions,
