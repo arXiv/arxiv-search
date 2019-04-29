@@ -19,7 +19,7 @@ class TestIndexPaper(TestCase):
                      self.checkpointer)
 
     @mock.patch('boto3.client')
-    @mock.patch('search.agent.consumer.index')
+    @mock.patch('search.agent.consumer.index.SearchSession')
     @mock.patch('search.agent.consumer.transform')
     @mock.patch('search.agent.consumer.metadata')
     def test_paper_has_one_version(self, mock_meta, mock_tx, mock_idx,
@@ -45,7 +45,7 @@ class TestIndexPaper(TestCase):
         mock_idx.bulk_add_documents.assert_called_once_with([mock_doc])
 
     @mock.patch('boto3.client')
-    @mock.patch('search.agent.consumer.index')
+    @mock.patch('search.agent.consumer.index.SearchSession')
     @mock.patch('search.agent.consumer.transform')
     @mock.patch('search.agent.consumer.metadata')
     def test_paper_has_three_versions(self, mock_meta, mock_tx, mock_idx,
@@ -112,7 +112,7 @@ class TestAddToIndex(TestCase):
                      self.checkpointer)
 
     @mock.patch('boto3.client')
-    @mock.patch('search.agent.consumer.index')
+    @mock.patch('search.agent.consumer.index.SearchSession')
     def test_add_document_succeeds(self, mock_index, mock_client_factory):
         """The search document is added successfully."""
         mock_client = mock.MagicMock()
@@ -127,7 +127,7 @@ class TestAddToIndex(TestCase):
         mock_index.add_document.assert_called_once()
 
     @mock.patch('boto3.client')
-    @mock.patch('search.agent.consumer.index')
+    @mock.patch('search.agent.consumer.index.SearchSession')
     def test_index_raises_index_connection_error(self, mock_index,
                                                  mock_client_factory):
         """The index raises :class:`.index.IndexConnectionError`."""
@@ -137,14 +137,12 @@ class TestAddToIndex(TestCase):
         mock_client_factory.return_value = mock_client
         processor = consumer.MetadataRecordProcessor(*self.args)
 
-        mock_index.IndexConnectionError = index.IndexConnectionError
-
         mock_index.add_document.side_effect = index.IndexConnectionError
         with self.assertRaises(consumer.IndexingFailed):
             processor._add_to_index(Document())
 
     @mock.patch('boto3.client')
-    @mock.patch('search.agent.consumer.index')
+    @mock.patch('search.agent.consumer.index.SearchSession')
     def test_index_raises_unhandled_error(self, mock_index,
                                           mock_client_factory):
         """The index raises an unhandled exception."""
@@ -153,8 +151,6 @@ class TestAddToIndex(TestCase):
         mock_client.get_waiter.return_value = mock_waiter
         mock_client_factory.return_value = mock_client
         processor = consumer.MetadataRecordProcessor(*self.args)
-
-        mock_index.IndexConnectionError = index.IndexConnectionError
 
         mock_index.add_document.side_effect = RuntimeError
         with self.assertRaises(consumer.IndexingFailed):
@@ -171,7 +167,7 @@ class TestBulkAddToIndex(TestCase):
                      self.checkpointer)
 
     @mock.patch('boto3.client')
-    @mock.patch('search.agent.consumer.index')
+    @mock.patch('search.agent.consumer.index.SearchSession')
     def test_bulk_add_documents_succeeds(self, mock_index,
                                          mock_client_factory):
         """The search document is added successfully."""
@@ -187,7 +183,7 @@ class TestBulkAddToIndex(TestCase):
         mock_index.bulk_add_documents.assert_called_once()
 
     @mock.patch('boto3.client')
-    @mock.patch('search.agent.consumer.index')
+    @mock.patch('search.agent.consumer.index.SearchSession')
     def test_index_raises_index_connection_error(self, mock_index,
                                                  mock_client_factory):
         """The index raises :class:`.index.IndexConnectionError`."""
@@ -197,14 +193,12 @@ class TestBulkAddToIndex(TestCase):
         mock_client_factory.return_value = mock_client
         processor = consumer.MetadataRecordProcessor(*self.args)
 
-        mock_index.IndexConnectionError = index.IndexConnectionError
-
         mock_index.bulk_add_documents.side_effect = index.IndexConnectionError
         with self.assertRaises(consumer.IndexingFailed):
             processor._bulk_add_to_index([Document()])
 
     @mock.patch('boto3.client')
-    @mock.patch('search.agent.consumer.index')
+    @mock.patch('search.agent.consumer.index.SearchSession')
     def test_index_raises_unhandled_error(self, mock_index,
                                           mock_client_factory):
         """The index raises an unhandled exception."""
@@ -213,8 +207,6 @@ class TestBulkAddToIndex(TestCase):
         mock_client.get_waiter.return_value = mock_waiter
         mock_client_factory.return_value = mock_client
         processor = consumer.MetadataRecordProcessor(*self.args)
-
-        mock_index.IndexConnectionError = index.IndexConnectionError
 
         mock_index.bulk_add_documents.side_effect = RuntimeError
         with self.assertRaises(consumer.IndexingFailed):
@@ -276,15 +268,14 @@ class TestGetMetadata(TestCase):
     def test_metadata_service_raises_connection_error(self, mock_metadata,
                                                       mock_client_factory):
         """The metadata service raises :class:`.metadata.ConnectionFailed`."""
+        mock_metadata.RequestFailed = metadata.RequestFailed
+        mock_metadata.ConnectionFailed = metadata.ConnectionFailed
+
         mock_client = mock.MagicMock()
         mock_waiter = mock.MagicMock()
         mock_client.get_waiter.return_value = mock_waiter
         mock_client_factory.return_value = mock_client
         processor = consumer.MetadataRecordProcessor(*self.args)
-
-        mock_metadata.ConnectionFailed = metadata.ConnectionFailed
-        mock_metadata.RequestFailed = metadata.RequestFailed
-        mock_metadata.BadResponse = metadata.BadResponse
 
         mock_metadata.retrieve.side_effect = metadata.ConnectionFailed
         with self.assertRaises(consumer.IndexingFailed):
@@ -295,15 +286,15 @@ class TestGetMetadata(TestCase):
     def test_metadata_service_raises_request_error(self, mock_metadata,
                                                    mock_client_factory):
         """The metadata service raises :class:`.metadata.RequestFailed`."""
+        mock_metadata.RequestFailed = metadata.RequestFailed
+        mock_metadata.ConnectionFailed = metadata.ConnectionFailed
+
         mock_client = mock.MagicMock()
         mock_waiter = mock.MagicMock()
         mock_client.get_waiter.return_value = mock_waiter
         mock_client_factory.return_value = mock_client
-        processor = consumer.MetadataRecordProcessor(*self.args)
 
-        mock_metadata.ConnectionFailed = metadata.ConnectionFailed
-        mock_metadata.RequestFailed = metadata.RequestFailed
-        mock_metadata.BadResponse = metadata.BadResponse
+        processor = consumer.MetadataRecordProcessor(*self.args)
 
         mock_metadata.retrieve.side_effect = metadata.RequestFailed
         with self.assertRaises(consumer.DocumentFailed):
@@ -314,15 +305,15 @@ class TestGetMetadata(TestCase):
     def test_metadata_service_raises_bad_response(self, mock_metadata,
                                                   mock_client_factory):
         """The metadata service raises :class:`.metadata.BadResponse`."""
+        mock_metadata.RequestFailed = metadata.RequestFailed
+        mock_metadata.ConnectionFailed = metadata.ConnectionFailed
+        mock_metadata.BadResponse = metadata.BadResponse
+
         mock_client = mock.MagicMock()
         mock_waiter = mock.MagicMock()
         mock_client.get_waiter.return_value = mock_waiter
         mock_client_factory.return_value = mock_client
         processor = consumer.MetadataRecordProcessor(*self.args)
-
-        mock_metadata.ConnectionFailed = metadata.ConnectionFailed
-        mock_metadata.RequestFailed = metadata.RequestFailed
-        mock_metadata.BadResponse = metadata.BadResponse
 
         mock_metadata.retrieve.side_effect = metadata.BadResponse
         with self.assertRaises(consumer.DocumentFailed):

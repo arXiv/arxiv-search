@@ -46,16 +46,16 @@ class TestAPISearchRequests(TestCase):
     @mock.patch(f'{factory.__name__}.api.api')
     def test_with_valid_token(self, mock_controller):
         """Client auth token has required public read scope."""
-        document = domain.Document(
+        document = dict(
             submitted_date=datetime.now(),
             submitted_date_first=datetime.now(),
             announced_date_first=datetime.now(),
             id='1234.5678',
             abstract='very abstract',
             authors=[
-                domain.Person(full_name='F. Bar', orcid='1234-5678-9012-3456')
+                dict(full_name='F. Bar', orcid='1234-5678-9012-3456')
             ],
-            submitter=domain.Person(full_name='S. Ubmitter', author_id='su_1'),
+            submitter=dict(full_name='S. Ubmitter', author_id='su_1'),
             modified_date=datetime.now(),
             updated_date=datetime.now(),
             is_current=True,
@@ -83,20 +83,20 @@ class TestAPISearchRequests(TestCase):
             comments='very science',
             abs_categories='astro-ph.CO foo.BR',
             formats=['pdf', 'other'],
-            primary_classification=domain.Classification(
+            primary_classification=dict(
                 group={'id': 'foo', 'name': 'Foo Group'},
                 archive={'id': 'foo', 'name': 'Foo Archive'},
                 category={'id': 'foo.BR', 'name': 'Foo Category'},
             ),
             secondary_classification=[
-                domain.Classification(
+                dict(
                     group={'id': 'foo', 'name': 'Foo Group'},
                     archive={'id': 'foo', 'name': 'Foo Archive'},
                     category={'id': 'foo.BZ', 'name': 'Baz Category'},
                 )
             ]
         )
-        docs = domain.DocumentSet(
+        docs = dict(
             results=[document],
             metadata={'start': 0, 'end': 1, 'size': 50, 'total': 1}
         )
@@ -121,16 +121,16 @@ class TestAPISearchRequests(TestCase):
     @mock.patch(f'{factory.__name__}.api.api')
     def test_with_valid_token_limit_fields(self, mock_controller):
         """Client auth token has required public read scope."""
-        document = domain.Document(
+        document = dict(
             submitted_date=datetime.now(),
             submitted_date_first=datetime.now(),
             announced_date_first=datetime.now(),
             id='1234.5678',
             abstract='very abstract',
             authors=[
-                domain.Person(full_name='F. Bar', orcid='1234-5678-9012-3456')
+                dict(full_name='F. Bar', orcid='1234-5678-9012-3456')
             ],
-            submitter=domain.Person(full_name='S. Ubmitter', author_id='su_1'),
+            submitter=dict(full_name='S. Ubmitter', author_id='su_1'),
             modified_date=datetime.now(),
             updated_date=datetime.now(),
             is_current=True,
@@ -158,20 +158,20 @@ class TestAPISearchRequests(TestCase):
             comments='very science',
             abs_categories='astro-ph.CO foo.BR',
             formats=['pdf', 'other'],
-            primary_classification=domain.Classification(
+            primary_classification=dict(
                 group={'id': 'foo', 'name': 'Foo Group'},
                 archive={'id': 'foo', 'name': 'Foo Archive'},
                 category={'id': 'foo.BR', 'name': 'Foo Category'},
             ),
             secondary_classification=[
-                domain.Classification(
+                dict(
                     group={'id': 'foo', 'name': 'Foo Group'},
                     archive={'id': 'foo', 'name': 'Foo Archive'},
                     category={'id': 'foo.BZ', 'name': 'Baz Category'},
                 )
             ]
         )
-        docs = domain.DocumentSet(
+        docs = dict(
             results=[document],
             metadata={'start': 0, 'end': 1, 'size': 50, 'total': 1}
         )
@@ -192,8 +192,8 @@ class TestAPISearchRequests(TestCase):
         self.assertIsNone(jsonschema.validate(data, self.schema, resolver=res),
                           'Response content is valid per schema')
 
-        for field in domain.api.get_required_fields():
-            self.assertEqual(
-                set(data['results'][0].keys()),
-                set(query.include_fields)
-            )
+        # for field in domain.api.get_required_fields():
+        self.assertEqual(
+            set(data['results'][0].keys()),
+            set(query.include_fields)
+        )

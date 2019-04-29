@@ -117,6 +117,21 @@ paths:
         ```
 
       parameters:
+        - name: query
+          in: query
+          description: |
+            A string that represents a search query. Fields are specified by "field:value" and 
+            delimited with "AND", "OR", and "ANDNOT" boolean operators. Valid field names are:
+            ti (title), au (author), abs(abstract), co (comment), jr (journal reference), cat
+            (subject category), rn (report number), id (id - use id_list instead), all (all 
+            fields). Corresponds to functionality in the former export.arxiv.org endpoint.
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: au:del_maestro+AND+ti:checkerboard
+
         - name: all
           in: query
           description: |

@@ -19,8 +19,7 @@ from arxiv.base import logging
 from search.services import index, fulltext, metadata
 from search.controllers.util import paginate
 from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
-    DateRange, ClassificationList, Classification, asdict, DocumentSet, \
-    Document
+    DateRange, ClassificationList, Classification, Document
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
@@ -45,6 +44,17 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         Extra headers for the response.
     """
     q = APIQuery()
+
+    # parse advanced classic-style queries
+    try:
+        parsed_terms = _parse_search_query(params.get('query', ''))
+        params = params.copy()
+        for field, term in parsed_terms.items():
+            params[field] = term
+    except ValueError:
+        raise BadRequest(f"Improper syntax in query: {params.get('query')}")
+
+    # process fielded terms
     query_terms: List[Dict[str, Any]] = []
     terms = _get_fielded_terms(params, query_terms)
     if terms is not None:
@@ -72,10 +82,97 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         q.include_fields += include_fields
 
     q = paginate(q, params)     # type: ignore
-    document_set = index.search(q, highlight=False)
-    document_set.metadata['query'] = query_terms
-    logger.debug('Got document set with %i results', len(document_set.results))
+    document_set = index.SearchSession.search(q, highlight=False)  # type: ignore
+    document_set['metadata']['query'] = query_terms
+    logger.debug('Got document set with %i results',
+                 len(document_set['results']))
     return {'results': document_set, 'query': q}, status.HTTP_200_OK, {}
+
+
+def classic_query(params: MultiDict) \
+        -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
+    """
+    Handle a search request from the Clasic API.
+
+    First, the method maps old request parameters to new parameters:
+    - search_query -> query
+    - start -> start
+    - max_results -> size
+
+    Then the request is passed to :method:`search()` and returned.
+
+    If ``id_list`` is specified in the parameters and ``search_query`` is
+    NOT specified, then each request is passed to :method:`paper()` and
+    results are aggregated.
+
+    If ``id_list`` is specified AND ``search_query`` is also specified,
+    then the results from :method:`search()` are filtered by ``id_list``.
+
+    Parameters
+    ----------
+    params : :class:`MultiDict`
+        GET query parameters from the request.
+
+    Returns
+    -------
+    dict
+        Response data (to serialize).
+    int
+        HTTP status code.
+    dict
+        Extra headers for the response.
+
+    Raises
+    ------
+    :class:`BadRequest`
+        Raised when the search_query and id_list are not specified.
+    """
+    params = params.copy()
+    raw_query = params.get('search_query')
+
+    # parse id_list
+    id_list = params.get('id_list', '')
+    if id_list:
+        id_list = id_list.split(',')
+    else:
+        id_list = []
+
+    # error if neither search_query nor id_list are specified.
+    if not id_list and not raw_query:
+        raise BadRequest("Either a search_query or id_list must be specified"
+                         " for the classic API.")
+
+    if raw_query:
+        # migrate search_query -> query variable
+        params['query'] = raw_query
+        del params['search_query']
+
+        # pass to normal search, which will handle parsing
+        data, _, _ = search(params)
+
+    if id_list and not raw_query:
+        # Process only id_lists.
+        # Note lack of error handling to implicitly propogate any errors.
+        # Classic API also errors if even one ID is malformed.
+        papers = [paper(paper_id) for paper_id in id_list]
+
+        data, _, _ = zip(*papers)
+        results = [paper['results'] for paper in data]   # type: ignore
+        data = {
+            'results' : dict(results=results, metadata=dict()), # TODO: Aggregate search metadata
+            'query' : APIQuery() # TODO: Specify query
+        }
+
+    elif id_list and raw_query:
+        # Filter results based on id_list
+        results = [paper for paper in data['results']['results']
+                       if paper.paper_id in id_list or paper.paper_id_v in id_list]
+        data = {
+            'results' : dict(results=results, metadata=dict()), # TODO: Aggregate search metadata
+            'query' : APIQuery() # TODO: Specify query
+        }
+
+    return data, status.HTTP_200_OK, {}
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -103,7 +200,7 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     """
     try:
-        document = index.get_document(paper_id)
+        document = index.SearchSession.get_document(paper_id)    # type: ignore
     except index.DocumentNotFound as e:
         logger.error('Document not found')
         raise NotFound('No such document') from e
@@ -111,13 +208,11 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
 
 def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
-    include_fields = params.getlist('include')
-    allowed_fields = Document.fields()
+    include_fields: List[str] = params.getlist('include')
     if include_fields:
-        inc = [field for field in include_fields if field in allowed_fields]
-        for field in inc:
+        for field in include_fields:
             query_terms.append({'parameter': 'include', 'value': field})
-        return inc
+        return include_fields
     return []
 
 
@@ -133,7 +228,7 @@ def _get_fielded_terms(params: MultiDict, query_terms: List) \
                 field=field,
                 term=value
             ))
-    if len(terms) == 0:
+    if not terms:
         return None
     return terms
 
@@ -155,7 +250,7 @@ def _get_date_params(params: MultiDict, query_terms: List) \
         date_params[field] = dt
         query_terms.append({'parameter': field, 'value': dt})
     if 'date_type' in params:
-        date_params['date_type'] = params.get('date_type') # type: ignore
+        date_params['date_type'] = params.get('date_type')   # type: ignore
         query_terms.append({'parameter': 'date_type',
                             'value': date_params['date_type']})
     if date_params:
@@ -195,3 +290,48 @@ def _get_classification(value: str, field: str, query_terms: List) \
         raise BadRequest(f'Not a valid classification term: {field}={value}')
     query_terms.append({'parameter': field, 'value': value})
     return clsns
+
+SEARCH_QUERY_FIELDS = {
+    'ti' : 'title',
+    'au' : 'author',
+    'abs' : 'abstract',
+    'co' : 'comments',
+    'jr' : 'journal_ref',
+    'cat' : 'primary_classification',
+    'rn' : 'report_number',
+    'id' : 'paper_id',
+    'all' : 'all'
+}
+
+
+def _parse_search_query(query: str) -> Dict[str, Any]:
+    # TODO: Add support for booleans.
+    new_query_params = {}
+    terms = query.split()
+
+    expect_new = True
+    """expect_new handles quotation state."""
+
+    for term in terms:
+        if expect_new and term in ["AND", "OR", "ANDNOT"]:
+            # TODO: Process booleans
+            pass
+        elif expect_new:
+            field, term = term.split(':')
+
+            # quotation handling
+            if term.startswith('"') and not term.endswith('"'):
+                expect_new = False
+            term = term.replace('"', '')
+
+            new_query_params[SEARCH_QUERY_FIELDS[field]] = term
+        else:
+            # quotation handling, expecting more terms
+            if term.endswith('"'):
+                expect_new = True
+                term = term.replace('"', '')
+
+            new_query_params[SEARCH_QUERY_FIELDS[field]] += " " + term
+
+
+    return new_query_params
