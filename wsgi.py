@@ -4,7 +4,7 @@ from search.factory import create_ui_web_app
 import os
 
 
-__flask_app__ = create_ui_web_app()
+__flask_app__ = None
 
 
 def application(environ, start_response):
@@ -18,5 +18,8 @@ def application(environ, start_response):
         if key == 'SERVER_NAME':
             continue
         os.environ[key] = str(value)
-        __flask_app__.config[key] = str(value)
+    global __flask_app__
+    if __flask_app__ is None:
+        __flask_app__ = create_ui_web_app()
+
     return __flask_app__(environ, start_response)
