@@ -4,6 +4,11 @@ from typing import Union, Optional
 from xml.etree import ElementTree as etree
 from flask import jsonify, url_for
 
+from datetime import datetime
+from feedgen.feed import FeedGenerator
+from pytz import utc
+from .atom_extensions import *
+
 from arxiv import status
 from search.domain import DocumentSet, Document, Classification, Person, \
     APIQuery
@@ -175,31 +180,82 @@ def as_json(document_or_set: Union[DocumentSet, Document],
 class AtomXMLSerializer(BaseSerializer):
     """Atom XML serializer for paper metadata."""
 
-    ATOM = "http://www.w3.org/2005/Atom"
-    OPENSEARCH = "http://a9.com/-/spec/opensearch/1.1/"
-    ARXIV = "http://arxiv.org/schemas/atom"
-    NSMAP = {
-        None: ATOM,
-        "opensearch": OPENSEARCH,
-        "arxiv": ARXIV
-    }
-#     fields = {
-#         'title': '{%s}title' % ATOM,
-#         'id': '{%s}id' % ATOM,
-#         'submitted_date': '{%s}published' % ATOM,
-#         'modified_date': '{%s}updated' % ATOM,
-#         'abstract': '{%s}summary' % ATOM,
-#         ''
-#     }
-#
-#     def __init__(cls, *args, **kwargs) -> None:
-#         super(AtomXMLSerializer, cls).__init__(*args, **kwargs)
-#         cls._root = etree.Element('feed', nsmap=cls.NSMAP)
-#
-#     def transform(cls):
-#         for document in cls.iter_documents():
-#
-#
-#
-#     def __repr__(cls) -> str:
-#         return etree.tostring(cls._root, pretty_print=True)
+    @classmethod
+    def transform_document(cls, fg: FeedGenerator, doc: Document,
+                           query: Optional[APIQuery] = None) -> None:
+        """Select a subset of :class:`Document` properties for public API."""
+        entry = fg.add_entry()
+        entry.id(url_for("api.paper", paper_id=doc.paper_id,
+                             version=doc.version, _external=True))
+        entry.title(doc.title)
+        entry.summary(doc.abstract)
+        entry.published(doc.submitted_date)
+        entry.updated(doc.updated_date)
+        entry.link({'href': url_for("api.paper", paper_id=doc.paper_id, version=doc.version, _external=True),
+                    "type": "text/html"})
+        #entry.link({'href': url_for("api.pdf", paper_id=doc.paper_id, version=doc.version, _external=True),
+        #            "type": "application/pdf", 'rel': 'related'})
+
+        if doc.comments:
+            entry.arxiv.comment(doc.comments)
+
+        if doc.journal_ref:
+            entry.arxiv.journal_ref(doc.journal_ref)
+
+        if doc.doi:
+            entry.arxiv.doi(doc.doi)
+        
+        entry.arxiv.primary_category(doc.primary_classification.archive['id'])
+        entry.category(
+            term=doc.primary_classification.archive['id'],
+            scheme='http://arxiv.org://arxiv.org/schemas/atom')
+        
+        for category in doc.secondary_classification:
+            entry.category(
+                term=category.archive['id'],
+                scheme='http://arxiv.org://arxiv.org/schemas/atom')
+        
+        for author in doc.authors:
+            author_data = {
+                "name": author.full_name,
+                'affiliation' : author.affiliation
+            }
+            entry.arxiv.author(author_data)
+
+    @classmethod
+    def serialize(cls, document_set: DocumentSet,
+                  query: Optional[APIQuery] = None) -> str:
+        """Generate Atom response for a :class:`DocumentSet`."""
+        fg = FeedGenerator()
+        fg.register_extension('opensearch', OpenSearchExtension)
+        fg.register_extension("arxiv", ArxivExtension, ArxivEntryExtension, rss=False)
+        fg.id("http://api.arxiv.org/") # TODO: review API ID generation
+        fg.title(f"arXiv Query: {query}")
+        fg.link({"href" : "https://api.arxiv.org/", "type": 'application/atom+xml'})
+        fg.updated(datetime.utcnow().replace(tzinfo=utc))
+
+        fg.opensearch.totalResults(document_set.metadata.get('total'))
+        fg.opensearch.itemsPerPage(document_set.metadata.get('size'))
+        fg.opensearch.startIndex(document_set.metadata.get('start'))
+
+        for doc in document_set.results:
+            cls.transform_document(fg, doc, query=query)
+
+        serialized: str = fg.atom_str(pretty=True)
+        return serialized
+
+    @classmethod
+    def serialize_document(cls, document: Document,
+                           query: Optional[APIQuery] = None) -> str:
+        """Generate Atom feed for a single :class:`Document`."""
+        
+        raise NotImplementedError("Single-document Atom feeds are not supported")
+
+
+def as_atom(document_or_set: Union[DocumentSet, Document],
+            query: Optional[APIQuery] = None) -> str:
+    """Serialize a :class:`DocumentSet` as Atom."""
+    if type(document_or_set) is DocumentSet:
+        return AtomXMLSerializer.serialize(document_or_set, query=query)  # type: ignore
+    return AtomXMLSerializer.serialize_document(document_or_set, query=query)  # type: ignore
+

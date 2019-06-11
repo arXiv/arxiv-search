@@ -1,0 +1,230 @@
+components:
+  schemas:
+    feed:
+      type: object
+      properties:
+        title:
+          description: |
+            The title for the feed.
+          type: string
+          example: "ArXiv Query:  search_query=all:electron&amp;id_list=&amp;start=0&amp;max_results=1"
+        id:
+          description: |
+            A unique id for this query, and is useful if you are writing a 
+            program such as a feed reader that wants to keep track of all the
+            feeds requested in the past. This id can then be used as a key in
+            a database. The id is guaranteed to be unique for each query.
+          type: string
+          example: "http://arxiv.org/api/cHxbiOdZaP56ODnBPIenZhzg5f8"
+        link:
+          description: |
+            A URL that can be used to retrieve this feed again.
+          type: object
+          properties:
+            href:
+              type: string
+              xml:
+                attribute: true
+              example: "http://arxiv.org/api/query?search_query=all:electron&amp;id_list=&amp;start=0&amp;max_results=1"
+            rel:
+              type: string
+              xml:
+                attribute: true
+              example: "self"
+            type:
+              type: string
+              xml:
+                attribute: true
+              example: "application/atom+xml"
+        updated:
+          description: |
+            The last time the contents of the feed were last updated. Because
+            the arXiv submission process works on a 24 hour submission cycle, 
+            new articles are only available to the API on the midnight after 
+            the articles were processed. The updated property thus reflects
+            the midnight of the day that you are calling the API. This is very
+            important - search results do not change until new articles are 
+            added. Therefore there is no need to call the API more than once
+            in a day for the same query. Please cache your results. This
+            primarily applies to production systems, and of course you are
+            free to play around with the API while you are developing your
+            program!
+          type: string
+          format: date-time
+          example: "2017-10-08T00:00:00-04:00"
+        totalResults:
+          description: |
+            Lists how many results are in the result set for the query
+          type: integer
+          example: 1000
+          xml:
+            prefix: 'opensearch'
+            namespace: 'http://a9.com/-/spec/opensearch/1.1/'
+        startIndex:
+          description: |
+            Lists the 0-based index from which results start. Corresponds to
+            start property in API.
+          type: integer
+          example: 0
+          xml:
+            prefix: 'opensearch'
+            namespace: 'http://a9.com/-/spec/opensearch/1.1/'
+        itemsPerPage:
+          description: |
+            Lists the number of items per results set. Corresponds to the
+            max_results property in API.
+          type: integer
+          example: 10
+          xml:
+            prefix: 'opensearch'
+            namespace: 'http://a9.com/-/spec/opensearch/1.1/'
+      xml:
+        namespace: 'http://www.w3.org/2005/Atom'
+    entry:
+      properties:
+        title:
+          description: |
+            Contains the title of the article returned.
+          type: string
+          example: "Multi-Electron Production at High Transverse Momenta in ep Collisions at HERA"
+        id:
+          description: |
+            Contains a url that resolves to the abstract page for that article.
+          type: string
+          example: http://arxiv.org/abs/hep-ex/0307015
+        published:
+          description: |
+            Contains the date in which the first version of this article was
+            submitted and processed.
+          type: string
+          format: date-time
+          example: "2007-02-27T16:02:02-05:00"
+        updated:
+          description: |
+            Contains the date on which the retrieved article was submitted and
+            processed. If the version is version 1, then <published> == 
+            <updated>, otherwise they are different. In the running example,
+            the article retrieved was version 2, so <updated> and <published>
+            are different.
+          type: string
+          format: date-time
+          example: "2007-06-25T17:09:59-04:00"
+        summary:
+          description: |
+            The abstract for the article.
+          type: string
+          example: |
+            Multi-electron production is studied at high electron transverse momentum
+            in positron- and electron-proton collisions using the H1 detector at HERA.
+            The data correspond to an integrated luminosity of 115 pb-1. Di-electron
+            and tri-electron event yields are measured. Cross sections are derived in
+            a restricted phase space region dominated by photon-photon collisions. In
+            general good agreement is found with the Standard Model predictions.
+            However, for electron pair invariant masses above 100 GeV, three
+            di-electron events and three tri-electron events are observed, compared to
+            Standard Model expectations of 0.30 \pm 0.04 and 0.23 \pm 0.04,
+            respectively.
+        author:
+          type: string
+          properties:
+            name:
+              description: |
+                The name of the author.
+              type: string
+            affiliation:
+              description: |
+                The affiliation of the author.
+              type: string
+              xml:
+                prefix: "arxiv"
+                namespace: 'http://arxiv.org/schemas/atom'
+        category:
+          type: string
+          properties:
+            term:
+              description: |
+                The term used to classify in the specified schema.
+              type: string
+              example: cs.AI
+              xml:
+                attribute: true
+            scheme:
+              description: |
+                The categorization scheme.
+              type: string
+              example: http://arxiv.org/schemas/atom
+              xml:
+                attribute: true
+        link:
+          description: |
+            For each entry, there are up to three <link> elements, 
+            distinguished by their rel and title attributes.
+            The table below summarizes what these links refer to.
+
+            rel - title - refers to
+            alternate - - abstract page
+            related - pdf - pdf
+            related - doi - resolved doi
+          type: object
+          properties:
+            href:
+              type: string
+              xml:
+                attribute: true
+              example: "http://arxiv.org/api/query?search_query=all:electron&amp;id_list=&amp;start=0&amp;max_results=1"
+            rel:
+              type: string
+              xml:
+                attribute: true
+              example: "alternate"
+            type:
+              type: string
+              xml:
+                attribute: true
+              example: "application/atom+xml"
+        primary_category:
+          description: |
+            The primary classification is a replica of the category except for the name.
+          type: string
+          properties:
+            term:
+              description: |
+                The term used to classify in the specified schema.
+              type: string
+              example: cs.AI
+              xml:
+                attribute: true
+            scheme:
+              description: |
+                The categorization scheme.
+              type: string
+              example: http://arxiv.org/schemas/atom
+              xml:
+                attribute: true
+          xml:
+            prefix: "arxiv"
+            namespace: 'http://arxiv.org/schemas/atom'
+        comment:
+          description: |
+            The typical author comments found on most arXiv articles.
+          type: string
+          example: "23 pages, 8 figures and 4 tables"
+          xml:
+            prefix: "arxiv"
+            namespace: 'http://arxiv.org/schemas/atom'
+        journal_ref:
+          description: |
+            The journal reference, if provided.
+          type: string
+          example: "Eur.Phys.J. C31 (2003) 17-2"
+          xml:
+            prefix: "arxiv"
+            namespace: 'http://arxiv.org/schemas/atom'
+        doi:
+          description: |
+            The DOI, if provided.
+          type: string
+          example: "10.1529/biophysj.104.047340"
+          xml:
+            prefix: "arxiv"
+            namespace: 'http://arxiv.org/schemas/atom'

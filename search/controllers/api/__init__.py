@@ -2,6 +2,7 @@
 
 from typing import Tuple, Dict, Any, Optional, List
 import re
+from collections import defaultdict
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 import dateutil.parser
@@ -48,16 +49,16 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     # parse advanced classic-style queries
     try:
-        parsed_terms = _parse_search_query(params.get('query',''))
+        parsed_operators, parsed_terms = _parse_search_query(params.get('query',''))
         params = params.copy()
         for field, term in parsed_terms.items():
-            params[field] = term
+            params.add(field, term)
     except ValueError:
         raise BadRequest(f"Improper syntax in query: {params.get('query')}")
 
-    # process fielded terms
+    # process fielded terms, using the operators above
     query_terms: List[Dict[str, Any]] = []
-    terms = _get_fielded_terms(params, query_terms)
+    terms = _get_fielded_terms(params, query_terms, parsed_operators)
     if terms is not None:
         q.terms = terms
     date_range = _get_date_params(params, query_terms)
@@ -144,8 +145,17 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         params['query'] = raw_query
         del params['search_query']
 
+        params.add('include', 'abstract')
+        params.add('include', 'submitted_date')
+        params.add('include', 'updated_date')
+        params.add('include', 'comments')
+        params.add('include', 'journal_ref')
+        params.add('include', 'doi')
+        params.add('include', 'primary_classification')
+        params.add('include', 'secondary_classification')
+        params.add('include', 'authors')
         # pass to normal search, which will handle parsing
-        data, _, _ = search(params)
+        data, _, _ = search(params) # type: ignore
     
     if id_list and not raw_query:
         # Process only id_lists.
@@ -153,8 +163,8 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         # Classic API also errors if even one ID is malformed.
         papers = [paper(paper_id) for paper_id in id_list]
 
-        data, _, _ = zip(*papers)
-        results = [paper['results'] for paper in data]
+        data, _, _ = zip(*papers) # type: ignore
+        results: List[Document] = [paper['results'] for paper in data] # type: ignore
         data = { 
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
             'query' : APIQuery() # TODO: Specify query
@@ -162,7 +172,7 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
 
     elif id_list and raw_query:
         # Filter results based on id_list
-        results = [paper for paper in data['results'].results
+        results: List[Document] = [paper for paper in data['results'].results # type: ignore
                        if paper.paper_id in id_list or paper.paper_id_v in id_list]
         data = { 
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
@@ -217,15 +227,17 @@ def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
     return []
 
 
-def _get_fielded_terms(params: MultiDict, query_terms: List) \
-        -> Optional[FieldedSearchList]:
+def _get_fielded_terms(params: MultiDict, query_terms: List,
+        operators: Optional[Dict[str, Any]] = None) -> Optional[FieldedSearchList]:
+    if operators is None:
+        operators = defaultdict(default_factory=lambda: "AND")
     terms = FieldedSearchList()
     for field, _ in Query.SUPPORTED_FIELDS:
         values = params.getlist(field)
         for value in values:
             query_terms.append({'parameter': field, 'value': value})
             terms.append(FieldedSearchTerm(     # type: ignore
-                operator='AND',
+                operator=operators[field],
                 field=field,
                 term=value
             ))
@@ -268,7 +280,7 @@ def _to_classification(value: str, query_terms: List) \
     elif value in taxonomy.definitions.ARCHIVES:
         klass = taxonomy.Archive
         field = 'archive'
-    elif value in taxonomy.definitionss.CATEGORIES:
+    elif value in taxonomy.definitions.CATEGORIES:
         klass = taxonomy.Category
         field = 'category'
     else:
@@ -304,18 +316,24 @@ SEARCH_QUERY_FIELDS = {
     'all' : 'all'
 }
 
-def _parse_search_query(query: List[str]) -> Dict[str, Any]:
-    # TODO: Add support for booleans.
+def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """
+    Parses a query into a
+    """
     new_query_params = {}
+    new_query_operators: Dict[str, str] = defaultdict(default_factory=lambda: "AND")
     terms = query.split()
     
     expect_new = True
     """expect_new handles quotation state."""
+    next_operator = "AND"
+    """new_bool handles the operator state """
 
     for term in terms:
-        if expect_new and term in ["AND", "OR", "ANDNOT"]:
-            # TODO: Process booleans
-            pass
+        if expect_new and term in ["AND", "OR", "ANDNOT", "NOT"]:
+            if term == "ANDNOT": 
+                term = "NOT" # translate to new representation
+            next_operator = term
         elif expect_new:
             field, term = term.split(':')
 
@@ -325,6 +343,7 @@ def _parse_search_query(query: List[str]) -> Dict[str, Any]:
             term = term.replace('"', '')
 
             new_query_params[SEARCH_QUERY_FIELDS[field]] = term
+            new_query_operators[SEARCH_QUERY_FIELDS[field]] = next_operator
         else:
             # quotation handling, expecting more terms
             if term.endswith('"'):
@@ -334,6 +353,21 @@ def _parse_search_query(query: List[str]) -> Dict[str, Any]:
             new_query_params[SEARCH_QUERY_FIELDS[field]] += " " + term
         
     
-    return new_query_params
+    return new_query_operators, new_query_params
 
 
+def _get_search_query(params: MultiDict, query_terms: List, 
+        operators: Dict[str, Any]) -> Optional[FieldedSearchList]:
+    terms = FieldedSearchList()
+    for field, _ in Query.SUPPORTED_FIELDS:
+        values = params.getlist(field)
+        for value in values:
+            query_terms.append({'parameter': field, 'value': value})
+            terms.append(FieldedSearchTerm(     # type: ignore
+                operator=operators[field],
+                field=field,
+                term=value
+            ))
+    if len(terms) == 0:
+        return None
+    return terms

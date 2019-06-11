@@ -1,0 +1,163 @@
+openapi: "3.0.0"
+info:
+  version: "0.1.2"
+  title: "arXiv Metadata API (Atom+XML)"
+  description: |
+    A query API for arXiv paper metadata.
+  termsOfService: "https://arxiv.org/help/general"
+  contact:
+    name: "arXiv API Team"
+    email: nextgen@arxiv.org
+  license:
+    name: MIT
+servers:
+  - url: https://export.arxiv.org/api/
+    description: Metadata API endpoint.
+paths:
+  /:
+    get:
+      operationId: query
+      description: |
+        Returns all published arXiv papers that respond to the specified
+        query parameters. By default, returns most recent papers first.
+
+        ## Example request
+
+        ```bash
+        curl http://export.arxiv.org/api/query?search_query=all:electron&id_list=&start=0&max_results=1
+        ```
+
+        ## Example response
+
+        ```xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <feed xmlns="http://www.w3.org/2005/Atom"
+              xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/"
+              xmlns:arxiv="http://arxiv.org/schemas/atom">
+          <link xmlns="http://www.w3.org/2005/Atom"
+          href="http://export.arxiv.org/api/query?search_query=all:electron&amp;id_list=&amp;start=0&amp;max_results=1"
+          rel="self" type="application/atom+xml"/>
+          <title xmlns="http://www.w3.org/2005/Atom">ArXiv Query:
+        search_query=all:electron&amp;id_list=&amp;start=0&amp;max_results=1</title>
+          <id xmlns="http://www.w3.org/2005/Atom">http://arxiv.org/api/cHxbiOdZaP56ODnBPIenZhzg5f8</id>
+          <updated xmlns="http://www.w3.org/2005/Atom">2007-10-08T00:00:00-04:00</updated>
+          <opensearch:totalResults xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">1000</opensearch:totalResults>
+          <opensearch:startIndex xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">0</opensearch:startIndex>
+          <opensearch:itemsPerPage xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/">1</opensearch:itemsPerPage>
+          <entry xmlns="http://www.w3.org/2005/Atom" xmlns:arxiv="http://arxiv.org/schemas/atom">
+            <id xmlns="http://www.w3.org/2005/Atom">http://arxiv.org/abs/hep-ex/0307015</id>
+            <published xmlns="http://www.w3.org/2005/Atom">2003-07-07T13:46:39-04:00</published>
+            <updated xmlns="http://www.w3.org/2005/Atom">2003-07-07T13:46:39-04:00</updated>
+            <title xmlns="http://www.w3.org/2005/Atom">Multi-Electron Production at High Transverse
+        Momenta in ep Collisions at HERA</title>
+            <summary xmlns="http://www.w3.org/2005/Atom">
+          Multi-electron production is studied at high electron transverse momentum in
+        positron- and electron-proton collisions using the H1 detector at HERA. The
+        data correspond to an integrated luminosity of 115 pb-1. Di-electron and
+        tri-electron event yields are measured. Cross sections are derived in a
+        restricted phase space region dominated by photon-photon collisions. In general
+        good agreement is found with the Standard Model predictions. However, for
+        electron pair invariant masses above 100 GeV, three di-electron events and
+        three tri-electron events are observed, compared to Standard Model expectations
+        of 0.30 \pm 0.04 and 0.23 \pm 0.04, respectively.
+        </summary>
+            <author xmlns="http://www.w3.org/2005/Atom">
+              <name xmlns="http://www.w3.org/2005/Atom">H1 Collaboration</name>
+            </author>
+            <arxiv:comment xmlns:arxiv="http://arxiv.org/schemas/atom">23 pages, 8 figures and 4 tables</arxiv:comment>
+            <arxiv:journal_ref xmlns:arxiv="http://arxiv.org/schemas/atom">Eur.Phys.J. C31 (2003) 17-29</arxiv:journal_ref>
+            <link xmlns="http://www.w3.org/2005/Atom"
+            href="http://arxiv.org/abs/hep-ex/0307015v1" rel="alternate" type="text/html"/>
+            <link xmlns="http://www.w3.org/2005/Atom" title="pdf"
+            href="http://arxiv.org/pdf/hep-ex/0307015v1" rel="related" type="application/pdf"/>
+            <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom"
+            term="hep-ex" scheme="http://arxiv.org/schemas/atom"/>
+            <category term="hep-ex" scheme="http://arxiv.org/schemas/atom"/>
+          </entry>
+        </feed>
+        ```
+
+      parameters:
+        - name: search_query
+          in: query
+          description: |
+            A string that represents a search query. Fields are specified by "field:value" and 
+            delimited with "AND", "OR", and "ANDNOT" boolean operators. Valid field names are:
+            ti (title), au (author), abs(abstract), co (comment), jr (journal reference), cat
+            (subject category), rn (report number), id (id - use id_list instead), all (all 
+            fields).
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+          example: au:del_maestro+AND+ti:checkerboard
+
+        - name: id_list
+          in: query
+          description: |
+            A comma-delimited list of arXiv id's.
+          required: false
+          schema:
+            type: string
+          example: "1234.12345,5678.56789"
+        
+        - name: start
+          in: query
+          description: |
+            Defines the index of the first returned result, using 0-based indexing.
+          required: false
+          schema:
+            type: integer
+          example: 0
+
+        - name: max_results
+          in: query
+          description: |
+            The number of results returned by the query. Used in conjunction with "start" for 
+            pagination. Max_results is limited to 30000, in slices of 2000.
+          required: false
+          schema:
+            type: integer
+          example: 10
+        
+        - name: sortBy
+          in: query
+          description: |
+            Method to sort results.
+          required: false
+          schema:
+            type: string
+            enum: [relevance, lastUpdatedDate, submittedDate]
+
+          
+        - name: sortOrder
+          in: query
+          description: |
+            Order for the sort method
+          required: false
+          schema:
+            type: string
+            enum: [ascending, descending]
+
+
+      responses:
+        default:
+          description: All queries return a valid Atom XML feed, even errors.
+          content:
+           application/atom+xml:
+              schema:
+                $ref: './resources/AtomXML.yaml#'
+
+components:
+  schemas:
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
