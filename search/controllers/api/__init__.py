@@ -145,6 +145,15 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         params['query'] = raw_query
         del params['search_query']
 
+        params.add('include', 'abstract')
+        params.add('include', 'submitted_date')
+        params.add('include', 'updated_date')
+        params.add('include', 'comments')
+        params.add('include', 'journal_ref')
+        params.add('include', 'doi')
+        params.add('include', 'primary_classification')
+        params.add('include', 'secondary_classification')
+        params.add('include', 'authors')
         # pass to normal search, which will handle parsing
         data, _, _ = search(params) # type: ignore
     

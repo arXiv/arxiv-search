@@ -49,6 +49,8 @@ def _transformAuthor(author: dict) -> Optional[Dict]:
     author['initials'] = " ".join([pt[0] for pt in author['first_name'].split() if pt])
     name_parts = author['first_name'].split() + author['last_name'].split()
     author['full_name_initialized'] = ' '.join([part[0] for part in name_parts[:-1]] + [name_parts[-1]])
+    # TODO: add handling for arxiv:affiliation
+    
     return author
 
 
