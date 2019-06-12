@@ -1,6 +1,6 @@
 """Controller for search API requests."""
 
-from typing import Tuple, Dict, Any, Optional, List
+from typing import Tuple, Dict, Any, Optional, List, Union
 import re
 from collections import defaultdict
 from datetime import date, datetime
@@ -22,7 +22,7 @@ from search.controllers.util import paginate
 from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
     DateRange, ClassificationList, Classification, asdict, DocumentSet, \
     Document
-from ...domain.api import Phrase, Expression, Term, Operator, Field
+from ...domain.api import Phrase, Expression, Term, Operator, Field, Triple
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
@@ -332,24 +332,58 @@ def parse_classic_query(raw_query: str) -> Phrase:
         Value of ``search_query`` param, URL-decoded.
 
     """
+    return _parse_phrase(raw_query)[0]
 
-    query = []
-    context = query
+
+def _parse_phrase(raw_query) -> Tuple[Phrase, int]:
+    characters = ''
+    query_parts: List[Phrase] = []
+    skip_to: Optional[int] = None
     for i, character in enumerate(raw_query):
-        query_part += character
+        if skip_to is not None:
+            if i == skip_to:
+                skip_to = None
+            else:
+                continue
         if character == '(':
-            query_part = ''
-            context.append([])
-            context = context[-1]
+            if characters:    # Parse any characters prior to the inner phrase.
+                query_parts.append(_parse_characters(characters))
+                characters = ''
+            result, to_skip = _parse_phrase(raw_query[i + 1:])
+            skip_to = i + to_skip + 1
+            query_parts.append(result)
         elif character == ')':
-            # parse expression
-            context.append(_parse_expression(query_part))
+            if characters:   # Parse any characters within the inner phrase.
+                result = _parse_characters(characters)
+                query_parts.append(result)
+            return _unwrap(query_parts), i + 1
+        else:
+            characters += character
+    if characters:
+        query_parts.append(_parse_characters(characters))
+    return _unwrap(query_parts), i + 1
 
 
-    # ( something  )
-    # ( something ( else ))
-    # ( something (else (other etc)))
+def _parse_characters(characters: str) -> Union[Triple, Operator, Expression]:
+    tokens = characters.strip().split()
+    if len(tokens) == 3:
+        return _parse_triple(tuple(tokens))
+    elif len(tokens) == 1 and ':' not in characters:
+        return _parse_operator(characters)
+    return _parse_expression(' '.join(tokens))
 
+
+def _parse_triple(tokens: Tuple[str, str, str]) -> Triple:
+    return (_parse_expression(tokens[0]),
+            _parse_operator(tokens[1]),
+            _parse_expression(tokens[2]))
+
+
+def _parse_operator(characters: str) -> Operator:
+    try:
+        return Operator(characters.strip())
+    except ValueError as e:
+        raise BadRequest(f'Cannot parse fragment: {raw_query}') from e
 
 
 def _parse_expression(raw_query: str) -> Expression:
@@ -359,22 +393,27 @@ def _parse_expression(raw_query: str) -> Expression:
         unary_name, field_part = None, raw_query
 
     # Should we support more than just ANDNOT?
-    if unary_name is not None:
-        try:
-            unary = Operator(unary_name)
-        except ValueError as e:
-            raise BadRequest(f'Invalid operator: {unary_name}') from e
-    else:
-        unary = None
+    unary = _parse_operator(unary_name) if unary_name is not None else None
+    field, value = _parse_field_query(field_part)
 
+    if unary is not None:
+        return (unary, (field, value))
+    return (field, value)
+
+
+def _parse_field_query(field_part: str) -> Tuple[Field, str]:
     field_name, value = field_part.split(':', 1)
     try:
         field = Field(field_name)
     except ValueError as e:
         raise BadRequest(f'Invalid field: {field_name}') from e
-    if unary is not None:
-        return (unary, (field, value))
-    return (field, value)
+    return field, value
+
+
+def _unwrap(collection: List) -> Tuple:
+    if len(collection) == 1:
+        collection = collection[0]
+    return tuple(collection)
 
 
 def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
