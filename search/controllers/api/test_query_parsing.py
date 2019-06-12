@@ -32,7 +32,6 @@ class TestParsingClassicQueryStrings(TestCase):
         phrase = ((Field.Author, 'del_maestro'),
                   Operator.OR,
                   (Operator.ANDNOT, (Field.Title, 'checkerboard')))
-        print(parse_classic_query(querystring))
         self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_conjunct_with_nested_disjunct(self):
@@ -46,11 +45,12 @@ class TestParsingClassicQueryStrings(TestCase):
                    (Field.Title, 'Pyrochlore')))
         self.assertEqual(parse_classic_query(querystring), phrase)
 
-    def test_conjunct_with_nested_disjunct(self):
+    def test_conjunct_with_extra_nested_disjunct(self):
         """Conjunct query with nested disjunct query."""
-        querystring \
-            = "((au:del_maestro OR au:bob) ANDNOT (ti:checkerboard OR ti:Pyrochlore))"
-        phrase = (((Field.Author, 'del_maestro'), Operator.OR, (Field.Author, 'bob')),
+        querystring = "((au:del_maestro OR au:bob)" \
+                      " ANDNOT (ti:checkerboard OR ti:Pyrochlore))"
+        phrase = (((Field.Author, 'del_maestro'),
+                  Operator.OR, (Field.Author, 'bob')),
                   Operator.ANDNOT,
                   ((Field.Title, 'checkerboard'),
                    Operator.OR,
