@@ -347,7 +347,11 @@ def _parse_phrase(raw_query) -> Tuple[Phrase, int]:
                 continue
         if character == '(':
             if characters:    # Parse any characters prior to the inner phrase.
-                query_parts.append(_parse_characters(characters))
+                preceding = _parse_characters(characters)
+                if hasattr(preceding, '__iter__'):
+                    query_parts.extend(preceding)
+                else:
+                    query_parts.append(preceding)
                 characters = ''
             result, to_skip = _parse_phrase(raw_query[i + 1:])
             skip_to = i + to_skip + 1
@@ -366,11 +370,19 @@ def _parse_phrase(raw_query) -> Tuple[Phrase, int]:
 
 def _parse_characters(characters: str) -> Union[Triple, Operator, Expression]:
     tokens = characters.strip().split()
-    if len(tokens) == 3:
-        return _parse_triple(tuple(tokens))
-    elif len(tokens) == 1 and ':' not in characters:
-        return _parse_operator(characters)
-    return _parse_expression(' '.join(tokens))
+    elems = []
+    for token in tokens:
+        if ':' in token:
+            elems.append(_parse_field_query(token))
+        else:
+            elems.append(_parse_operator(token))
+    return _unwrap(elems)
+
+    # if len(tokens) == 3:
+    #     return _parse_triple(tuple(tokens))
+    # elif len(tokens) == 1 and ':' not in characters:
+    #     return _parse_operator(characters)
+    # return _parse_expression(' '.join(tokens))
 
 
 def _parse_triple(tokens: Tuple[str, str, str]) -> Triple:
@@ -383,7 +395,7 @@ def _parse_operator(characters: str) -> Operator:
     try:
         return Operator(characters.strip())
     except ValueError as e:
-        raise BadRequest(f'Cannot parse fragment: {raw_query}') from e
+        raise BadRequest(f'Cannot parse fragment: {characters}') from e
 
 
 def _parse_expression(raw_query: str) -> Expression:
@@ -413,7 +425,10 @@ def _parse_field_query(field_part: str) -> Tuple[Field, str]:
 def _unwrap(collection: List) -> Tuple:
     if len(collection) == 1:
         collection = collection[0]
-    return tuple(collection)
+    try:
+        return tuple(collection)
+    except TypeError:
+        return collection
 
 
 def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
