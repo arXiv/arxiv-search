@@ -29,7 +29,7 @@ class TestKinesisIntegration(TestCase):
         """Spin up ES and index documents."""
         os.environ['ELASTICSEARCH_SERVICE_HOST'] = 'localhost'
         os.environ['ELASTICSEARCH_SERVICE_PORT'] = "9201"
-        os.environ['ELASTICSEARCH_PORT_9201_PROTO'] = "http"
+        os.environ['ELASTICSEARCH_SERVICE_PORT_9201_PROTO'] = "http"
         os.environ['ELASTICSEARCH_VERIFY'] = 'false'
 
         os.environ['KINESIS_STREAM'] = 'MetadataIsAvailable'

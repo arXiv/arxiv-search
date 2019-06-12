@@ -5,6 +5,7 @@ Docstrings are from the `Flask configuration documentation
 <http://flask.pocoo.org/docs/0.12/config/>`_.
 """
 import os
+from typing import Mapping, Any
 
 APP_VERSION = '0.5.5'
 """The application version """
@@ -164,11 +165,13 @@ Log level for search service.
 See `<https://docs.python.org/3/library/logging.html#logging-levels>`_ .
 """
 
-ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_SERVICE_HOST', 'localhost')
-ELASTICSEARCH_PORT = os.environ.get('ELASTICSEARCH_SERVICE_PORT', '9200')
-ELASTICSEARCH_SCHEME = os.environ.get(
-    'ELASTICSEARCH_PORT_%s_PROTO' % ELASTICSEARCH_PORT, 'http'
-)
+ELASTICSEARCH_SERVICE_HOST = os.environ.get('ELASTICSEARCH_SERVICE_HOST',
+                                            'localhost')
+ELASTICSEARCH_SERVICE_PORT = os.environ.get('ELASTICSEARCH_SERVICE_PORT',
+                                            '9200')
+_proto_key = 'ELASTICSEARCH_SERVICE_PORT_%s_PROTO' % ELASTICSEARCH_SERVICE_PORT
+locals()[_proto_key] = os.environ.get(_proto_key, 'http')
+
 ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'arxiv')
 ELASTICSEARCH_USER = os.environ.get('ELASTICSEARCH_USER', None)
 ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD', None)

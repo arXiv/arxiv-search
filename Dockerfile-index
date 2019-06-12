@@ -11,7 +11,7 @@
 #    $ cp arxiv_id_dump.txt /tmp/to_index
 #    $ docker run -it --network=arxivsearch_es_stack \
 #    >   -v /tmp/to_index:/to_index \
-#    >   -e ELASTICSEARCH_HOST=elasticsearch \
+#    >   -e ELASTICSEARCH_SERVICE_HOST=elasticsearch \
 #    >   arxiv/search-index /to_index/arxiv_id_dump.txt
 #
 # See also ELASTICSEARCH_* and METADATA_ENDPOINT parameters, below.
@@ -31,7 +31,7 @@ ENV FLASK_APP /opt/arxiv/app.py
 
 ENV ELASTICSEARCH_SERVICE_HOST 127.0.0.1
 ENV ELASTICSEARCH_SERVICE_PORT 9200
-ENV ELASTICSEARCH_PORT_9200_PROTO http
+ENV ELASTICSEARCH_SERVICE_PORT_9200_PROTO http
 ENV ELASTICSEARCH_USER elastic
 ENV ELASTICSEARCH_PASSWORD changeme
 ENV METADATA_ENDPOINT https://arxiv.org/docmeta_bulk/

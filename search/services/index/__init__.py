@@ -12,6 +12,7 @@ for indexing (e.g. by the
 """
 
 import json
+import warnings
 import urllib3
 from contextlib import contextmanager
 from typing import Any, Optional, Tuple, Union, List, Generator, Mapping
@@ -131,6 +132,10 @@ class SearchSession(metaclass=MetaIntegration):
         self.conn_params = {'host': host, 'port': port, 'use_ssl': use_ssl,
                             'http_auth': http_auth, 'verify_certs': verify}
         self.conn_extra = extra
+        if not use_ssl:
+            warnings.warn(f'TLS is disabled, using port {port}')
+        if host == 'localhost':
+            warnings.warn(f'Using ES at {host}:{port}; not OK for production')
 
     def new_connection(self) -> Elasticsearch:
         """Create a new :class:`.Elasticsearch` connection."""
@@ -449,8 +454,8 @@ class SearchSession(metaclass=MetaIntegration):
     def init_app(cls, app: object = None) -> None:
         """Set default configuration parameters for an application instance."""
         config = get_application_config(app)
-        config.setdefault('ELASTICSEARCH_HOST', 'localhost')
-        config.setdefault('ELASTICSEARCH_PORT', '9200')
+        config.setdefault('ELASTICSEARCH_SERVICE_HOST', 'localhost')
+        config.setdefault('ELASTICSEARCH_SERVICE_PORT', '9200')
         config.setdefault('ELASTICSEARCH_INDEX', 'arxiv')
         config.setdefault('ELASTICSEARCH_USER', None)
         config.setdefault('ELASTICSEARCH_PASSWORD', None)
@@ -462,9 +467,10 @@ class SearchSession(metaclass=MetaIntegration):
     def get_session(cls, app: object = None) -> 'SearchSession':
         """Get a new session with the search index."""
         config = get_application_config(app)
-        host = config.get('ELASTICSEARCH_HOST', 'localhost')
-        port = config.get('ELASTICSEARCH_PORT', '9200')
-        scheme = config.get('ELASTICSEARCH_SCHEME', 'http')
+        host = config.get('ELASTICSEARCH_SERVICE_HOST', 'localhost')
+        port = config.get('ELASTICSEARCH_SERVICE_PORT', '9200')
+        scheme = config.get('ELASTICSEARCH_SERVICE_PORT_%s_PROTO' % port,
+                            'http')
         index = config.get('ELASTICSEARCH_INDEX', 'arxiv')
         verify = config.get('ELASTICSEARCH_VERIFY', 'true') == 'true'
         user = config.get('ELASTICSEARCH_USER', None)
