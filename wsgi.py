@@ -1,10 +1,13 @@
 """Web Server Gateway Interface entry-point."""
 
-from search.factory import create_ui_web_app
 import os
+from arxiv.base import logging
 
+from search.factory import create_ui_web_app
 
-__flask_app__ = None
+logger = logging.getLogger(__name__)
+
+__flask_app__ = create_ui_web_app()
 
 
 def application(environ, start_response):
@@ -17,9 +20,8 @@ def application(environ, start_response):
         # in config.py or via an os.environ var loaded by config.py.
         if key == 'SERVER_NAME':
             continue
+        logger.debug('Setting %s = %s from environ', key, value)
         os.environ[key] = str(value)
-    global __flask_app__
-    if __flask_app__ is None:
-        __flask_app__ = create_ui_web_app()
+        __flask_app__.config[key] = value
 
     return __flask_app__(environ, start_response)
