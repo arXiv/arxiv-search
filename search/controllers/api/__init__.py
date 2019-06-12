@@ -22,6 +22,7 @@ from search.controllers.util import paginate
 from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
     DateRange, ClassificationList, Classification, asdict, DocumentSet, \
     Document
+from ...domain.api import Phrase, Expression, Term, Operator, Field
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
@@ -156,16 +157,16 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         params.add('include', 'authors')
         # pass to normal search, which will handle parsing
         data, _, _ = search(params) # type: ignore
-    
+
     if id_list and not raw_query:
         # Process only id_lists.
-        # Note lack of error handling to implicitly propogate any errors. 
+        # Note lack of error handling to implicitly propogate any errors.
         # Classic API also errors if even one ID is malformed.
         papers = [paper(paper_id) for paper_id in id_list]
 
         data, _, _ = zip(*papers) # type: ignore
         results: List[Document] = [paper['results'] for paper in data] # type: ignore
-        data = { 
+        data = {
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
             'query' : APIQuery() # TODO: Specify query
         }
@@ -174,14 +175,14 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         # Filter results based on id_list
         results: List[Document] = [paper for paper in data['results'].results # type: ignore
                        if paper.paper_id in id_list or paper.paper_id_v in id_list]
-        data = { 
+        data = {
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
-            'query' : APIQuery() # TODO: Specify query 
+            'query' : APIQuery() # TODO: Specify query
         }
 
     return data, status.HTTP_200_OK, {}
 
-   
+
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -293,7 +294,7 @@ def _to_classification(value: str, query_terms: List) \
             and cast_value.canonical != cast_value.unalias():
         clsns.append(Classification(**{field: {'id': cast_value.canonical}}))   # type: ignore
     return tuple(clsns)
- 
+
 
 def _get_classification(value: str, field: str, query_terms: List) \
         -> Tuple[Classification, ...]:
@@ -316,6 +317,66 @@ SEARCH_QUERY_FIELDS = {
     'all' : 'all'
 }
 
+
+import re
+
+BALANCED_PARENS = re.compile(r'\(([^\)]+)\)')
+
+
+def parse_classic_query(raw_query: str) -> Phrase:
+    """
+
+    Parameters
+    ----------
+    raw_query : str
+        Value of ``search_query`` param, URL-decoded.
+
+    """
+
+    query = []
+    context = query
+    for i, character in enumerate(raw_query):
+        query_part += character
+        if character == '(':
+            query_part = ''
+            context.append([])
+            context = context[-1]
+        elif character == ')':
+            # parse expression
+            context.append(_parse_expression(query_part))
+
+
+    # ( something  )
+    # ( something ( else ))
+    # ( something (else (other etc)))
+
+
+
+def _parse_expression(raw_query: str) -> Expression:
+    try:
+        unary_name, field_part = raw_query.split(' ', 1)
+    except ValueError:      # No unary operator.
+        unary_name, field_part = None, raw_query
+
+    # Should we support more than just ANDNOT?
+    if unary_name is not None:
+        try:
+            unary = Operator(unary_name)
+        except ValueError as e:
+            raise BadRequest(f'Invalid operator: {unary_name}') from e
+    else:
+        unary = None
+
+    field_name, value = field_part.split(':', 1)
+    try:
+        field = Field(field_name)
+    except ValueError as e:
+        raise BadRequest(f'Invalid field: {field_name}') from e
+    if unary is not None:
+        return (unary, (field, value))
+    return (field, value)
+
+
 def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """
     Parses a query into a
@@ -323,7 +384,7 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     new_query_params = {}
     new_query_operators: Dict[str, str] = defaultdict(default_factory=lambda: "AND")
     terms = query.split()
-    
+
     expect_new = True
     """expect_new handles quotation state."""
     next_operator = "AND"
@@ -331,7 +392,7 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
 
     for term in terms:
         if expect_new and term in ["AND", "OR", "ANDNOT", "NOT"]:
-            if term == "ANDNOT": 
+            if term == "ANDNOT":
                 term = "NOT" # translate to new representation
             next_operator = term
         elif expect_new:
@@ -351,12 +412,12 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
                 term = term.replace('"', '')
 
             new_query_params[SEARCH_QUERY_FIELDS[field]] += " " + term
-        
-    
+
+
     return new_query_operators, new_query_params
 
 
-def _get_search_query(params: MultiDict, query_terms: List, 
+def _get_search_query(params: MultiDict, query_terms: List,
         operators: Dict[str, Any]) -> Optional[FieldedSearchList]:
     terms = FieldedSearchList()
     for field, _ in Query.SUPPORTED_FIELDS:
