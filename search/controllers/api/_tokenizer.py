@@ -32,7 +32,22 @@ def tokenize(query: str) -> Any:
     if query[token_start:]:
         tokens.append(query[token_start:])
 
-    return tokens
+    classed_tokens = []
+    for token in tokens:
+        if isinstance(token, str):
+            if ':' in token:
+                token = _parse_field_query(token)
+                classed_tokens.append(token)
+            else:
+                token = _parse_operator(token)
+                classed_tokens.append(token)
+        else:
+            classed_tokens.append(token)
+
+    if len(classed_tokens) == 1:
+        return classed_tokens[0]
+    else:
+        return tuple(classed_tokens)
 
 def _parse_operator(characters: str) -> Operator:
     try:
