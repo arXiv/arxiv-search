@@ -23,6 +23,7 @@ from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
     DateRange, ClassificationList, Classification, asdict, DocumentSet, \
     Document
 from ...domain.api import Phrase, Expression, Term, Operator, Field, Triple
+from .classic_parser import parse_classic_query # TODO: fix path to _tokenizer
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
@@ -143,8 +144,7 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
 
     if raw_query:
         # migrate search_query -> query variable
-        params['query'] = raw_query
-        del params['search_query']
+        query = _tokenizer.tokenize(raw_query)
 
         params.add('include', 'abstract')
         params.add('include', 'submitted_date')
@@ -168,7 +168,7 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
         results: List[Document] = [paper['results'] for paper in data] # type: ignore
         data = {
             'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
-            'query' : APIQuery() # TODO: Specify query
+            'query' : raw_query
         }
 
     elif id_list and raw_query:
@@ -316,119 +316,6 @@ SEARCH_QUERY_FIELDS = {
     'id' : 'paper_id',
     'all' : 'all'
 }
-
-
-import re
-
-BALANCED_PARENS = re.compile(r'\(([^\)]+)\)')
-
-
-def parse_classic_query(raw_query: str) -> Phrase:
-    """
-
-    Parameters
-    ----------
-    raw_query : str
-        Value of ``search_query`` param, URL-decoded.
-
-    """
-    return _parse_phrase(raw_query)[0]
-
-
-def _parse_phrase(raw_query) -> Tuple[Phrase, int]:
-    characters = ''
-    query_parts: List[Phrase] = []
-    skip_to: Optional[int] = None
-    for i, character in enumerate(raw_query):
-        if skip_to is not None:
-            if i == skip_to:
-                skip_to = None
-            else:
-                continue
-        if character == '(':
-            if characters:    # Parse any characters prior to the inner phrase.
-                preceding = _parse_characters(characters)
-                if hasattr(preceding, '__iter__'):
-                    query_parts.extend(preceding)
-                else:
-                    query_parts.append(preceding)
-                characters = ''
-            result, to_skip = _parse_phrase(raw_query[i + 1:])
-            skip_to = i + to_skip + 1
-            query_parts.append(result)
-        elif character == ')':
-            if characters:   # Parse any characters within the inner phrase.
-                result = _parse_characters(characters)
-                query_parts.append(result)
-            return _unwrap(query_parts), i + 1
-        else:
-            characters += character
-    if characters:
-        query_parts.append(_parse_characters(characters))
-    return _unwrap(query_parts), i + 1
-
-
-def _parse_characters(characters: str) -> Union[Triple, Operator, Expression]:
-    tokens = characters.strip().split()
-    elems = []
-    for token in tokens:
-        if ':' in token:
-            elems.append(_parse_field_query(token))
-        else:
-            elems.append(_parse_operator(token))
-    return _unwrap(elems)
-
-    # if len(tokens) == 3:
-    #     return _parse_triple(tuple(tokens))
-    # elif len(tokens) == 1 and ':' not in characters:
-    #     return _parse_operator(characters)
-    # return _parse_expression(' '.join(tokens))
-
-
-def _parse_triple(tokens: Tuple[str, str, str]) -> Triple:
-    return (_parse_expression(tokens[0]),
-            _parse_operator(tokens[1]),
-            _parse_expression(tokens[2]))
-
-
-def _parse_operator(characters: str) -> Operator:
-    try:
-        return Operator(characters.strip())
-    except ValueError as e:
-        raise BadRequest(f'Cannot parse fragment: {characters}') from e
-
-
-def _parse_expression(raw_query: str) -> Expression:
-    try:
-        unary_name, field_part = raw_query.split(' ', 1)
-    except ValueError:      # No unary operator.
-        unary_name, field_part = None, raw_query
-
-    # Should we support more than just ANDNOT?
-    unary = _parse_operator(unary_name) if unary_name is not None else None
-    field, value = _parse_field_query(field_part)
-
-    if unary is not None:
-        return (unary, (field, value))
-    return (field, value)
-
-
-def _parse_field_query(field_part: str) -> Tuple[Field, str]:
-    field_name, value = field_part.split(':', 1)
-    try:
-        field = Field(field_name)
-    except ValueError as e:
-        raise BadRequest(f'Invalid field: {field_name}') from e
-    return field, value
-
-
-def _unwrap(collection: List) -> Tuple:
-    if len(collection) == 1:
-        collection = collection[0]
-    try:
-        return tuple(collection)
-    except TypeError:
-        return collection
 
 
 def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:

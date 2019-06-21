@@ -3,7 +3,7 @@ from typing import Any, Tuple
 from ...domain.api import Phrase, Expression, Term, Operator, Field, Triple
 from werkzeug.exceptions import BadRequest
 
-def tokenize(query: str) -> Any:
+def parse_classic_query(query: str) -> Phrase:
     # Parser
     tokens = []
     token_start = 0
@@ -16,9 +16,9 @@ def tokenize(query: str) -> Any:
             start = paren_group.pop()
             if not paren_group and start == 0 and i + 1 == len(query):
                 # Parent spans whole group, strip the parens, things get weird with parsing...
-                return tokenize(query[1:i])
+                return parse_classic_query(query[1:i])
             elif not paren_group:
-                tokens.append(tokenize(query[start+1:i])) # pass the paren-stripped phrase
+                tokens.append(parse_classic_query(query[start+1:i])) # pass the paren-stripped phrase
                 token_start = i+1
         elif c == ' ':
             if not paren_group and token_start != i:

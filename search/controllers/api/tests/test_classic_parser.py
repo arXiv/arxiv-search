@@ -1,6 +1,6 @@
-from ..api import _tokenizer as _tokenizer
+from ...api.classic_parser import parse_classic_query
 
-from ...domain.api import Phrase, Expression, Term, ClassicAPIQuery, Field, \
+from ....domain.api import Phrase, Expression, Term, ClassicAPIQuery, Field, \
     Operator
 
 from unittest import TestCase
@@ -8,31 +8,31 @@ from unittest import TestCase
 class TestParsing(TestCase):
     '''
     def test_simple(self):
-        self.assertEqual(_tokenizer.tokenize("YES"), ["YES"])
+        self.assertEqual(parse_classic_query("YES"), ["YES"])
     
     def test_two(self):
-        self.assertEqual(_tokenizer.tokenize("YES NO"), ["YES", "NO"])
+        self.assertEqual(parse_classic_query("YES NO"), ["YES", "NO"])
 
     def test_three(self):
-        self.assertEqual(_tokenizer.tokenize("YES OR NO"), ["YES", "OR", "NO"])
+        self.assertEqual(parse_classic_query("YES OR NO"), ["YES", "OR", "NO"])
 
     def test_paren_stripping(self):
-        self.assertEqual(_tokenizer.tokenize("(YES OR NO)"), ["YES", "OR", "NO"])
+        self.assertEqual(parse_classic_query("(YES OR NO)"), ["YES", "OR", "NO"])
     
     def test_parens(self):
-        self.assertEqual(_tokenizer.tokenize("(YES OR NO) AND MAYBE"), [["YES", "OR", "NO"], "AND", "MAYBE"])
+        self.assertEqual(parse_classic_query("(YES OR NO) AND MAYBE"), [["YES", "OR", "NO"], "AND", "MAYBE"])
     '''
     def test_simple_query_without_nesting(self):
         """Simple query without grouping/nesting."""
         querystring = "au:copernicus"
         phrase: Phrase = (Field.Author, 'copernicus')
-        self.assertEqual(_tokenizer.tokenize(querystring), phrase)
+        self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_simple_query_with_unary_and_without_nesting(self):
         """Simple query with a unary operator without grouping/nesting."""
         querystring = "ANDNOT au:copernicus"
         phrase: Phrase = (Operator.ANDNOT, (Field.Author, 'copernicus'))
-        self.assertEqual(_tokenizer.tokenize(querystring), phrase)
+        self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_simple_conjunct_query(self):
         """Simple conjunct query."""
@@ -40,7 +40,7 @@ class TestParsing(TestCase):
         phrase: Phrase = ((Field.Author, 'del_maestro'),
                           Operator.AND,
                           (Field.Title, 'checkerboard'))
-        self.assertEqual(_tokenizer.tokenize(querystring), phrase)
+        self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_simple_conjunct_query_with_unary(self):
         """Disjunct query with an unary not."""
@@ -48,7 +48,7 @@ class TestParsing(TestCase):
         phrase = ((Field.Author, 'del_maestro'),
                   Operator.OR,
                   (Operator.ANDNOT, (Field.Title, 'checkerboard')))
-        self.assertEqual(_tokenizer.tokenize(querystring), phrase)
+        self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_conjunct_with_nested_disjunct(self):
         """Conjunct query with nested disjunct query."""
@@ -59,7 +59,7 @@ class TestParsing(TestCase):
                   ((Field.Title, 'checkerboard'),
                    Operator.OR,
                    (Field.Title, 'Pyrochlore')))
-        self.assertEqual(_tokenizer.tokenize(querystring), phrase)
+        self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_conjunct_with_extra_nested_disjunct(self):
         """Conjunct query with nested disjunct query."""
@@ -71,7 +71,7 @@ class TestParsing(TestCase):
                   ((Field.Title, 'checkerboard'),
                    Operator.OR,
                    (Field.Title, 'Pyrochlore')))
-        self.assertEqual(_tokenizer.tokenize(querystring), phrase)
+        self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_conjunct_with_nested_disjunct_first(self):
         """Conjunct query with nested disjunct query."""
@@ -82,7 +82,7 @@ class TestParsing(TestCase):
                     (Field.Title, 'Pyrochlore')),
                    Operator.ANDNOT,
                    (Field.Author, 'del_maestro'))
-        self.assertEqual(_tokenizer.tokenize(querystring), phrase)
+        self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_conjunct_with_nested_phrases(self):
         """Conjunct query with nested disjunct query."""
@@ -91,4 +91,4 @@ class TestParsing(TestCase):
         phrase = (((Field.Title, 'checkerboard'), Operator.OR, (Field.Title, 'Pyrochlore')),
                    Operator.AND,
                    ((Field.Author, 'del_maestro'), Operator.OR, (Field.Author, 'hawking')))
-        self.assertEqual(_tokenizer.tokenize(querystring), phrase)
+        self.assertEqual(parse_classic_query(querystring), phrase)
