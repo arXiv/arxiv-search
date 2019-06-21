@@ -33,7 +33,7 @@ from elasticsearch_dsl import Search, Q
 from search.context import get_application_config, get_application_global
 from arxiv.base import logging
 from search.domain import Document, DocumentSet, Query, AdvancedQuery, \
-    SimpleQuery, asdict, APIQuery
+    SimpleQuery, asdict, APIQuery, ClassicAPIQuery
 
 from .exceptions import QueryError, IndexConnectionError, DocumentNotFound, \
     IndexingError, OutsideAllowedRange, MappingError
@@ -41,6 +41,7 @@ from .util import MAX_RESULTS
 from .advanced import advanced_search
 from .simple import simple_search
 from .api import api_search
+from .classic import classic_search
 from . import highlighting
 from . import results
 
@@ -401,6 +402,8 @@ class SearchSession(object):
                 current_search = simple_search(current_search, query)
             elif isinstance(query, APIQuery):
                 current_search = api_search(current_search, query)
+            elif isinstance(query, ClassicAPIQuery):
+                current_search = classic_search(current_search, query)
         except TypeError as e:
             raise e
             # logger.error('Malformed query: %s', str(e))

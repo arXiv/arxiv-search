@@ -21,7 +21,7 @@ from search.services import index, fulltext, metadata
 from search.controllers.util import paginate
 from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
     DateRange, ClassificationList, Classification, asdict, DocumentSet, \
-    Document
+    Document, ClassicAPIQuery
 from ...domain.api import Phrase, Expression, Term, Operator, Field, Triple
 from .classic_parser import parse_classic_query # TODO: fix path to _tokenizer
 
@@ -144,19 +144,12 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
 
     if raw_query:
         # migrate search_query -> query variable
-        query = _tokenizer.tokenize(raw_query)
-
-        params.add('include', 'abstract')
-        params.add('include', 'submitted_date')
-        params.add('include', 'updated_date')
-        params.add('include', 'comments')
-        params.add('include', 'journal_ref')
-        params.add('include', 'doi')
-        params.add('include', 'primary_classification')
-        params.add('include', 'secondary_classification')
-        params.add('include', 'authors')
-        # pass to normal search, which will handle parsing
-        data, _, _ = search(params) # type: ignore
+        phrase = parse_classic_query(raw_query)
+        # TODO: add support for order, size, page_start
+        query = ClassicAPIQuery(phrase=phrase)
+        
+        # pass to search indexer, which will handle parsing
+        data, _, _ = search(query) # type: ignore
 
     if id_list and not raw_query:
         # Process only id_lists.
