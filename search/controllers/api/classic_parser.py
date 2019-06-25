@@ -10,6 +10,7 @@ def parse_classic_query(query: str) -> Phrase:
     paren_group = []
 
     for i, c in enumerate(query):
+        # TODO: add support for quotes
         if c == '(':
             paren_group.append(i)
         elif c == ')':
