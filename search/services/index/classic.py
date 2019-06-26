@@ -10,7 +10,13 @@ from elasticsearch_dsl.query import QueryString
 from ...domain import ClassicAPIQuery, Phrase, Term, Expression, Field, Operator
 
 def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
+    """
+    Performs a classic API search query.
+    """
     dsl_query = _query_to_dsl(query.phrase)
+
+    return search.query(dsl_query) 
+
 
 def _query_to_dsl(phrase: Phrase) -> Q:
     """
