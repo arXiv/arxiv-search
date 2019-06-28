@@ -1,5 +1,4 @@
 """API-specific domain classes."""
-
 from enum import Enum
 from typing import NamedTuple, Optional, Tuple, Union
 
@@ -28,7 +27,7 @@ class Field(Enum):
     SubjectCategory = 'cat'
     ReportNumber = 'rn'
     Identifier = 'id'
-    All = 'alll'
+    All = 'all'
 
 
 Term = Tuple[Field, str]     # The 1th position is the value of the field.
@@ -86,6 +85,15 @@ class ClassicAPIQuery:
     size: int = field(default=50)
     page_start: int = field(default=0)
 
+    @property
+    def page_end(self) -> int:
+        """Get the index/offset of the end of the page."""
+        return self.page_start + self.size
+
+    @property
+    def page(self) -> int:
+        """Get the approximate page number."""
+        return 1 + int(round(self.page_start/self.size))
 
 def get_default_extra_fields() -> List[str]:
     """These are the default extra fields."""

@@ -15,7 +15,7 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
     """
     dsl_query = _query_to_dsl(query.phrase)
 
-    return search.query(dsl_query) 
+    return search.query(dsl_query)
 
 
 def _query_to_dsl(phrase: Phrase) -> Q:
@@ -74,7 +74,8 @@ def _term_to_query_string(term: Term) -> str:
         Field.JournalReference : 'journal_ref',
         Field.ReportNumber : 'report_num',
         Field.SubjectCategory : 'abs_categories', # TODO: unsure of where classifications are unified
-        Field.Title : 'title'
+        Field.Title : 'title',
+        Field.All : '*'
     }
 
     return f'{FIELD_DSL_MAPPING[field]}:{val}'

@@ -132,41 +132,42 @@ class AtomXMLSerializer(BaseSerializer):
                            query: Optional[APIQuery] = None) -> None:
         """Select a subset of :class:`Document` properties for public API."""
         entry = fg.add_entry()
-        entry.id(url_for("api.paper", paper_id=doc.paper_id,
-                             version=doc.version, _external=True))
-        entry.title(doc.title)
-        entry.summary(doc.abstract)
-        entry.published(doc.submitted_date)
-        entry.updated(doc.updated_date)
-        entry.link({'href': url_for("api.paper", paper_id=doc.paper_id, version=doc.version, _external=True),
+        entry.id(url_for("api.paper", paper_id=doc['paper_id'],
+                             version=doc['version'], _external=True))
+        entry.title(doc['title'])
+        entry.summary(doc['abstract'])
+        entry.published(doc['submitted_date'])
+        entry.updated(doc['updated_date'])
+        entry.link({'href': url_for("api.paper", paper_id=doc['paper_id'], version=doc['version'], _external=True),
                     "type": "text/html"})
-        #entry.link({'href': url_for("api.pdf", paper_id=doc.paper_id, version=doc.version, _external=True),
+        #entry.link({'href': url_for("api.pdf", paper_id=doc['paper_id, version=doc['version, _external=True),
         #            "type": "application/pdf", 'rel': 'related'})
 
-        if doc.comments:
-            entry.arxiv.comment(doc.comments)
+        if doc['comments']:
+            entry.arxiv.comment(doc['comments'])
 
-        if doc.journal_ref:
-            entry.arxiv.journal_ref(doc.journal_ref)
+        if doc['journal_ref']:
+            entry.arxiv.journal_ref(doc['journal_ref'])
 
-        if doc.doi:
-            entry.arxiv.doi(doc.doi)
-        
-        entry.arxiv.primary_category(doc.primary_classification.archive['id'])
+        if doc['doi']:
+            entry.arxiv.doi(doc['doi'])
+        """
+        entry.arxiv.primary_category(doc['primary_classification'].archive['id'])
         entry.category(
-            term=doc.primary_classification.archive['id'],
+            term=doc['primary_classification'].archive['id'],
             scheme='http://arxiv.org://arxiv.org/schemas/atom')
         
-        for category in doc.secondary_classification:
+        for category in doc['secondary_classification']:
             entry.category(
                 term=category.archive['id'],
                 scheme='http://arxiv.org://arxiv.org/schemas/atom')
-        
-        for author in doc.authors:
+        """
+        for author in doc['authors']:
             author_data = {
-                "name": author.full_name,
-                'affiliation' : author.affiliation
+                "name": author['full_name']
             }
+            if author.get('affiliation'):
+                author_data['affiliation'] = author['affiliation']
             entry.arxiv.author(author_data)
 
     @classmethod
@@ -181,11 +182,11 @@ class AtomXMLSerializer(BaseSerializer):
         fg.link({"href" : "https://api.arxiv.org/", "type": 'application/atom+xml'})
         fg.updated(datetime.utcnow().replace(tzinfo=utc))
 
-        fg.opensearch.totalResults(document_set.metadata.get('total'))
-        fg.opensearch.itemsPerPage(document_set.metadata.get('size'))
-        fg.opensearch.startIndex(document_set.metadata.get('start'))
+        fg.opensearch.totalResults(document_set['metadata'].get('total'))
+        fg.opensearch.itemsPerPage(document_set['metadata'].get('size'))
+        fg.opensearch.startIndex(document_set['metadata'].get('start'))
 
-        for doc in document_set.results:
+        for doc in document_set['results']:
             cls.transform_document(fg, doc, query=query)
 
         serialized: str = fg.atom_str(pretty=True)
@@ -202,7 +203,8 @@ class AtomXMLSerializer(BaseSerializer):
 def as_atom(document_or_set: Union[DocumentSet, Document],
             query: Optional[APIQuery] = None) -> str:
     """Serialize a :class:`DocumentSet` as Atom."""
-    if type(document_or_set) is DocumentSet:
-        return AtomXMLSerializer.serialize(document_or_set, query=query)  # type: ignore
-    return AtomXMLSerializer.serialize_document(document_or_set, query=query)  # type: ignore
+    if 'paper_id' in document_or_set:
+        return AtomXMLSerializer.serialize_document(document_or_set, query=query)  # type: ignore
+    return AtomXMLSerializer.serialize(document_or_set, query=query)  # type: ignore
+    
 

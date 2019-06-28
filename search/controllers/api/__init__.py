@@ -153,7 +153,10 @@ def classic_query(params: MultiDict) \
         query = ClassicAPIQuery(phrase=phrase)
         
         # pass to search indexer, which will handle parsing
-        data, _, _ = search(query) # type: ignore
+        document_set = index.SearchSession.search(query)
+        data = {'results': document_set, 'query': query}
+        logger.debug('Got document set with %i results',
+                        len(document_set['results']))
 
     if id_list and not raw_query:
         # Process only id_lists.
@@ -178,6 +181,7 @@ def classic_query(params: MultiDict) \
         }
 
     return data, status.HTTP_200_OK, {}
+
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:

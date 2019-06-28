@@ -196,7 +196,7 @@ class ArxivEntryExtension(BaseEntryExtension):
                 author_element = etree.SubElement(entry, 'author')
                 name_element = etree.SubElement(author_element, 'name')
                 name_element.text = author['name']
-                for affiliation in author['affiliation']:
+                for affiliation in author.get('affiliation',[]):
                     affiliation_element = etree.SubElement(author_element, '{http://arxiv.org/schemas/atom}affiliation')
                     affiliation_element.text = affiliation
 
