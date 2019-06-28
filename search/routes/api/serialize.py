@@ -1,8 +1,9 @@
 """Serializers for API responses."""
 
 from typing import Union, Optional
+from datetime import datetime
 from xml.etree import ElementTree as etree
-from flask import jsonify, url_for
+from flask import jsonify, url_for, Response
 
 from datetime import datetime
 from feedgen.feed import FeedGenerator
@@ -22,158 +23,104 @@ class JSONSerializer(BaseSerializer):
     """Serializes a :class:`DocumentSet` as JSON."""
 
     @classmethod
-    def _transform_person(cls, person: Person) -> dict:
-        return {
-            'first_name': person.first_name,
-            'last_name': person.last_name,
-            'suffix': person.suffix,
-            'affiliation': person.affiliation,
-            'orcid': person.orcid,
-            'author_id': person.author_id,
-            'full_name': person.full_name,
-        }
-
-    @classmethod
     def _transform_classification(cls, clsn: Classification) -> Optional[dict]:
-        if clsn.category is None:
+        category = clsn.get('category')
+        if category is None:
             return None
-        return {
-            'group': clsn.group,
-            'archive': clsn.archive,
-            'category': clsn.category
-        }
+        return {'group': clsn.get('group'),
+                'archive': clsn.get('archive'),
+                'category': category}
 
     @classmethod
     def _transform_format(cls, fmt: str, paper_id: str, version: int) -> dict:
-        return {
-            "format": fmt,
-            "href": url_for(fmt, paper_id=paper_id, version=version)
-        }
+        return {"format": fmt,
+                "href": url_for(fmt, paper_id=paper_id, version=version)}
 
     @classmethod
     def _transform_latest(cls, document: Document) -> Optional[dict]:
-        if not document.latest:
+        latest = document.get('latest')
+        if latest is None:
             return None
         return {
-            "paper_id": document.latest,
-            "href": url_for("api.paper", paper_id=document.paper_id,
-                            version=document.latest_version,
+            "paper_id": latest,
+            "href": url_for("api.paper", paper_id=document['paper_id'],
+                            version=document.get('latest_version'),
                             _external=True),
-            "canonical": url_for("abs", paper_id=document.paper_id,
-                                 version=document.latest_version),
-            "version": document.latest_version
+            "canonical": url_for("abs", paper_id=document['paper_id'],
+                                 version=document.get('latest_version')),
+            "version": document.get('latest_version')
         }
 
     @classmethod
-    def _transform_license(cls, license: dict) -> dict:
-        return {
-            'label': license['label'],
-            'href': license['uri']
-        }
+    def _transform_license(cls, license: dict) -> Optional[dict]:
+        uri = license.get('uri')
+        if uri is None:
+            return None
+        return {'label': license.get('label', ''), 'href': uri}
 
     @classmethod
     def transform_document(cls, doc: Document,
                            query: Optional[APIQuery] = None) -> dict:
         """Select a subset of :class:`Document` properties for public API."""
-        fields = [
-            ('abs_categories', doc.abs_categories),
-            ('abstract', doc.abstract),
-            ('acm_class', doc.acm_class),
-            ('owners', [
-                cls._transform_person(owner) for owner in doc.owners
-                if owner is not None
-            ]),
-            ('authors', [
-                cls._transform_person(author) for author in doc.authors
-                if author is not None
-            ]),
-            ('comments', doc.comments),
-            ('authors_freeform', doc.authors_freeform),
-            ('submitted_date', doc.submitted_date),
-            ('submitted_date_first', doc.submitted_date_first),
-            ('announced_date_first', (
-                doc.announced_date_first.strftime('%Y-%m')
-                if doc.announced_date_first is not None
-                else None
-            )),
-            ('paper_id', doc.paper_id),
-            ('paper_id_v', doc.paper_id_v),
-            ('doi', doc.doi),
-            ('formats', [
-                cls._transform_format(fmt, doc.paper_id, doc.version)
-                for fmt in doc.formats
-            ]),
-            ('is_current', doc.is_current),
-            ('is_withdrawn', doc.is_withdrawn),
-            ('journal_ref', doc.journal_ref),
-            ('license',
-             cls._transform_license(doc.license) if doc.license else None),
-            ('msc_class', doc.msc_class),
-            ('primary_classification',
-             cls._transform_classification(doc.primary_classification)
-             if doc.primary_classification else None),
-            ('secondary_classification', [
-                cls._transform_classification(clsn)
-                for clsn in doc.secondary_classification
-            ]),
-            ('report_num', doc.report_num),
-            ('source', doc.source),  # TODO, link?
-            ('submitter', (
-                cls._transform_person(doc.submitter)
-                if doc.submitter is not None else None
-            )),
-            ('title', doc.title),
-            ('version', doc.version),
-            ('latest', cls._transform_latest(doc)),
-            ('href', url_for("api.paper", paper_id=doc.paper_id,
-                             version=doc.version, _external=True)),
-            ('canonical', url_for("abs", paper_id=doc.paper_id,
-                                  version=doc.version))
-        ]
-
         # Only return fields that have been explicitly requested.
-        if query is not None:
-            _data = {field: value for field, value in fields
-                     if field in query.include_fields}
-        else:
-            _data = {field: value for field, value in fields}
-        return _data
+        data = {key: value for key, value in doc.items()
+                if query is None or key in query.include_fields}
+        paper_id = doc['paper_id']
+        version = doc['version']
+        if 'submitted_date_first' in data:
+            data['submitted_date_first'] = \
+                doc['submitted_date_first'].isoformat()
+        if 'announced_date_first' in data:
+            data['announced_date_first'] = \
+                doc['announced_date_first'].isoformat()
+        if 'formats' in data:
+            data['formats'] = [cls._transform_format(fmt, paper_id, version)
+                               for fmt in doc['formats']]
+        if 'license' in data:
+            data['license'] = cls._transform_license(doc['license'])
+        if 'latest' in data:
+            data['latest'] = cls._transform_latest(doc)
+
+        data['href'] = url_for("api.paper", paper_id=paper_id,
+                               version=version, _external=True)
+        data['canonical'] = url_for("abs", paper_id=paper_id,
+                                    version=version)
+        return data
 
     @classmethod
     def serialize(cls, document_set: DocumentSet,
-                  query: Optional[APIQuery] = None) -> str:
+                  query: Optional[APIQuery] = None) -> Response:
         """Generate JSON for a :class:`DocumentSet`."""
-        serialized: str = jsonify({
-            'results': [
-                cls.transform_document(doc, query=query)
-                for doc in document_set.results
-            ],
+        serialized: Response = jsonify({
+            'results': [cls.transform_document(doc, query=query)
+                        for doc in document_set['results']],
             'metadata': {
-                'start': document_set.metadata.get('start'),
-                'end': document_set.metadata.get('end'),
-                'size': document_set.metadata.get('size'),
-                'total': document_set.metadata.get('total'),
-                'query': document_set.metadata.get('query', [])
+                'start': document_set['metadata'].get('start', ''),
+                'end': document_set['metadata'].get('end', ''),
+                'size': document_set['metadata'].get('size', ''),
+                'total': document_set['metadata'].get('total', ''),
+                'query': document_set['metadata'].get('query', [])
             },
         })
         return serialized
 
     @classmethod
     def serialize_document(cls, document: Document,
-                           query: Optional[APIQuery] = None) -> str:
+                           query: Optional[APIQuery] = None) -> Response:
         """Generate JSON for a single :class:`Document`."""
-        serialized: str = jsonify(
+        serialized: Response = jsonify(
             cls.transform_document(document, query=query)
         )
         return serialized
 
 
 def as_json(document_or_set: Union[DocumentSet, Document],
-            query: Optional[APIQuery] = None) -> str:
+            query: Optional[APIQuery] = None) -> Response:
     """Serialize a :class:`DocumentSet` as JSON."""
-    if type(document_or_set) is DocumentSet:
-        return JSONSerializer.serialize(document_or_set, query=query)  # type: ignore
-    return JSONSerializer.serialize_document(document_or_set, query=query)  # type: ignore
+    if 'paper_id' in document_or_set:
+        return JSONSerializer.serialize_document(document_or_set, query=query)  # type: ignore
+    return JSONSerializer.serialize(document_or_set, query=query)  # type: ignore
+
 
 
 # TODO: implement me!

@@ -3,18 +3,21 @@
 import json
 from typing import Dict, Callable, Union, Any, Optional, List
 from functools import wraps
-from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
+from functools import lru_cache as memoize
+
 
 from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, Response, \
     url_for
-from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
+from werkzeug.urls import Href
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
 from arxiv import status
 from arxiv.base import logging
 from werkzeug.exceptions import InternalServerError
 from search.controllers import simple, advanced, health_check
+
+from . import context_processors
 
 logger = logging.getLogger(__name__)
 
@@ -120,123 +123,6 @@ def service_status() -> Union[str, Response]:
     return health_check() # type: ignore
 
 
-def _browse_url(name: str, **parameters: Any) -> Optional[str]:
-    """Generate a URL for a browse route."""
-    paper_id = parameters.get('paper_id')
-    if paper_id is None:
-        return None
-    if name == 'abstract':
-        route = 'abs'
-    elif name.startswith('pdf'):
-        route = 'pdf'
-    elif name == 'other':
-        route = 'format'
-    elif name == 'ps':
-        route = 'ps'
-    return urljoin('https://arxiv.org', '/%s/%s' % (route, paper_id))
-
-
-@blueprint.context_processor
-def external_url_builder() -> Dict[str, Callable]:
-    """Add an external URL builder function to the template context."""
-    def external_url(service: str, name: str, **parameters: Any) \
-            -> Optional[str]:
-        """Build an URL to external endpoint."""
-        if service == 'browse':
-            return _browse_url(name, **parameters)
-        return None
-    return dict(external_url=external_url)
-
-
-@blueprint.context_processor
-def url_for_page_builder() -> Dict[str, Callable]:
-    """Add a page URL builder function to the template context."""
-    def url_for_page(page: int, size: int) -> str:
-        """Build an URL to for a search result page."""
-        rule = request.url_rule
-        parts = url_parse(url_for(rule.endpoint)) # type: ignore
-        args = request.args.copy()
-        args['start'] = (page - 1) * size
-        parts = parts.replace(query=url_encode(args))
-        url: str = url_unparse(parts)
-        return url
-    return dict(url_for_page=url_for_page)
-
-
-@blueprint.context_processor
-def current_url_params_builder() -> Dict[str, Callable]:
-    """Add a function that gets the GET params from the current URL."""
-    def current_url_params() -> str:
-        """Get the GET params from the current URL."""
-        params: str = url_encode(request.args)
-        return params
-    return dict(current_url_params=current_url_params)
-
-
-@blueprint.context_processor
-def current_url_sans_parameters_builder() -> Dict[str, Callable]:
-    """Add a function to strip GET parameters from the current URL."""
-    def current_url_sans_parameters(*params_to_remove: str) -> str:
-        """Get the current URL with ``param`` removed from GET parameters."""
-        rule = request.url_rule
-        parts = url_parse(url_for(rule.endpoint)) # type: ignore
-        args = request.args.copy()
-        for param in params_to_remove:
-            args.pop(param, None)
-        parts = parts.replace(query=url_encode(args))
-        url: str = url_unparse(parts)
-        return url
-    return dict(current_url_sans_parameters=current_url_sans_parameters)
-
-
-@blueprint.context_processor
-def url_for_author_search_builder() -> Dict[str, Callable]:
-    """Inject a function to build author name query URLs."""
-    def url_for_author_search(forename: str, surname: str) -> str:
-        # If we are in an archive-specific context, we want to preserve that
-        # when generating URLs for author queries in search results.
-        archives = request.view_args.get('archives')
-        if archives:
-            target = url_for('ui.search', archives=archives)
-        else:
-            target = url_for('ui.search')
-        parts = url_parse(target)
-        forename_part = ' '.join([part[0] for part in forename.split()])
-        name = f'{surname}, {forename_part}' if forename_part else surname
-        parts = parts.replace(query=url_encode({
-            'searchtype': 'author',
-            'query': name
-        }))
-        url: str = url_unparse(parts)
-        return url
-    return dict(url_for_author_search=url_for_author_search)
-
-
-@blueprint.context_processor
-def url_with_params_builder() -> Dict[str, Callable]:
-    """Inject a URL builder that handles GET parameters."""
-    def url_with_params(name: str, values: dict, params: dict) -> str:
-        """Build a URL for ``name`` with path ``values`` and GET ``params``."""
-        parts = url_parse(url_for(name, **values))
-        parts = parts.replace(query=url_encode(params))
-        url: str = url_unparse(parts)
-        return url
-    return dict(url_with_params=url_with_params)
-
-
-@blueprint.context_processor
-def is_current_builder() -> Dict[str, Callable]:
-    """Inject a function to evaluate whether or not a result is current."""
-    def is_current(result: dict) -> bool:
-        """Determine whether the result is the current version."""
-        if result['submitted_date_all'] is None:
-            return bool(result['is_current'])
-        try:
-            return bool(
-                result['is_current']
-                and result['version'] == len(result['submitted_date_all'])
-            )
-        except Exception as e:
-            return True
-        return False
-    return dict(is_current=is_current)
+# Register context processors.
+for context_processor in context_processors.context_processors:
+    blueprint.context_processor(context_processor)

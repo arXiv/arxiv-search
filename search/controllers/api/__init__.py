@@ -86,12 +86,15 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         q.include_fields += include_fields
 
     q = paginate(q, params)     # type: ignore
-    document_set = index.search(q, highlight=False)
-    document_set.metadata['query'] = query_terms
-    logger.debug('Got document set with %i results', len(document_set.results))
+    document_set = index.SearchSession.search(q, highlight=False)  # type: ignore
+    document_set['metadata']['query'] = query_terms
+    logger.debug('Got document set with %i results',
+                 len(document_set['results']))
     return {'results': document_set, 'query': q}, status.HTTP_200_OK, {}
 
-def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
+
+def classic_query(params: MultiDict) \
+        -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
     Handle a search request from the Clasic API.
 
@@ -140,7 +143,8 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
 
     # error if neither search_query nor id_list are specified.
     if not id_list and not raw_query:
-        raise BadRequest("Either a search_query or id_list must be specified for the classic API.")
+        raise BadRequest("Either a search_query or id_list must be specified"
+                         " for the classic API.")
 
     if raw_query:
         # migrate search_query -> query variable
@@ -176,8 +180,6 @@ def classic_query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any
     return data, status.HTTP_200_OK, {}
 
 
-
-
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
     Handle a request for paper metadata from the API.
@@ -203,7 +205,7 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     """
     try:
-        document = index.get_document(paper_id)
+        document = index.SearchSession.get_document(paper_id)    # type: ignore
     except index.DocumentNotFound as e:
         logger.error('Document not found')
         raise NotFound('No such document') from e
@@ -211,13 +213,11 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
 
 def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
-    include_fields = params.getlist('include')
-    allowed_fields = Document.fields()
+    include_fields: List[str] = params.getlist('include')
     if include_fields:
-        inc = [field for field in include_fields if field in allowed_fields]
-        for field in inc:
+        for field in include_fields:
             query_terms.append({'parameter': 'include', 'value': field})
-        return inc
+        return include_fields
     return []
 
 
@@ -257,7 +257,7 @@ def _get_date_params(params: MultiDict, query_terms: List) \
         date_params[field] = dt
         query_terms.append({'parameter': field, 'value': dt})
     if 'date_type' in params:
-        date_params['date_type'] = params.get('date_type') # type: ignore
+        date_params['date_type'] = params.get('date_type')   # type: ignore
         query_terms.append({'parameter': 'date_type',
                             'value': date_params['date_type']})
     if date_params:

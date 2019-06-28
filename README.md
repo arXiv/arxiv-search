@@ -46,8 +46,8 @@ is only accessible from the CUL network.
 
 ```bash
 pipenv install
-FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run python create_index.py
-FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run python bulk_index.py
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python create_index.py
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python bulk_index.py
 ```
 
 ``bulk_index.py`` without parameters populate the index with the
@@ -58,7 +58,7 @@ parameter.
 To check for missing records, use ``audit.py``:
 
 ```bash
-ELASTICSEARCH_HOST=127.0.0.1 ELASTICSEARCH_INDEX=arxiv pipenv run python audit.py -l list_of_papers.txt -o missing.txt
+ELASTICSEARCH_SERVICE_HOST=127.0.0.1 ELASTICSEARCH_INDEX=arxiv pipenv run python audit.py -l list_of_papers.txt -o missing.txt
 ```
 
 ### Reindexing
@@ -70,7 +70,7 @@ processed. If the destination index does not already exist, it will be created
 using the current configured mapping.
 
 ```bash
-FLASK_APP=app.py ELASTICSEARCH_HOST=127.0.0.1 pipenv run python reindex.py OLD_INDEX NEW_INDEX
+FLASK_APP=app.py ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python reindex.py OLD_INDEX NEW_INDEX
 ```
 
 
@@ -79,7 +79,7 @@ FLASK_APP=app.py ELASTICSEARCH_HOST=127.0.0.1 pipenv run python reindex.py OLD_I
 You can spin up the search app directly.
 
 ```bash
-FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run flask run
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
 ```
 This will monitor any of the Python bits for changes and restart the server.
 Unfortunately static files and templates are not monitored, so you'll have to
@@ -91,7 +91,7 @@ You can run the API in dev mode by changing `FLASK_APP` to point to ``api.py``,
 i.e.:
 
 ```bash
-FLASK_APP=api.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run flask run
+FLASK_APP=api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
 ```
 
 

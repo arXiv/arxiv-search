@@ -73,7 +73,7 @@ class TestMultiFormatDateField(TestCase):
 class TestSearchController(TestCase):
     """Tests for :func:`.advanced.search`."""
 
-    @mock.patch('search.controllers.advanced.index')
+    @mock.patch('search.controllers.advanced.SearchSession')
     def test_no_form_data(self, mock_index):
         """No form data has been submitted."""
         request_data = MultiDict()
@@ -85,10 +85,10 @@ class TestSearchController(TestCase):
         self.assertEqual(mock_index.search.call_count, 0,
                          "No search should be attempted")
 
-    @mock.patch('search.controllers.advanced.index')
+    @mock.patch('search.controllers.advanced.SearchSession')
     def test_single_field_term(self, mock_index):
         """Form data and ``advanced`` param are present."""
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         request_data = MultiDict({
             'advanced': True,
@@ -104,7 +104,7 @@ class TestSearchController(TestCase):
                               "An AdvancedQuery is passed to the search index")
         self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
 
-    @mock.patch('search.controllers.advanced.index')
+    @mock.patch('search.controllers.advanced.SearchSession')
     def test_invalid_data(self, mock_index):
         """Form data are invalid."""
         request_data = MultiDict({
@@ -121,14 +121,9 @@ class TestSearchController(TestCase):
         self.assertEqual(mock_index.search.call_count, 0,
                          "No search should be attempted")
 
-    @mock.patch('search.controllers.advanced.index')
+    @mock.patch('search.controllers.advanced.SearchSession')
     def test_index_raises_connection_exception(self, mock_index):
         """Index service raises a IndexConnectionError."""
-        # We need to explicit assign the exception to the mock, otherwise the
-        #  exception raised in the side-effect will just be a mock object (not
-        #  inheriting from BaseException).
-        mock_index.IndexConnectionError = IndexConnectionError
-
         def _raiseIndexConnectionError(*args, **kwargs):
             raise IndexConnectionError('What now')
 
@@ -149,15 +144,9 @@ class TestSearchController(TestCase):
         self.assertIsInstance(call_args[0], AdvancedQuery,
                               "An AdvancedQuery is passed to the search index")
 
-    @mock.patch('search.controllers.advanced.index')
+    @mock.patch('search.controllers.advanced.SearchSession')
     def test_index_raises_query_error(self, mock_index):
         """Index service raises a QueryError."""
-        # We need to explicit assign the exception to the mock, otherwise the
-        #  exception raised in the side-effect will just be a mock object (not
-        #  inheriting from BaseException).
-        mock_index.QueryError = QueryError
-        mock_index.IndexConnectionError = IndexConnectionError
-
         def _raiseQueryError(*args, **kwargs):
             raise QueryError('What now')
 
@@ -391,45 +380,29 @@ class TestUpdatequeryWithClassification(TestCase):
         """Selected classifications are added to the query."""
         class_data = {'computer_science': True}
         q = advanced._update_query_with_classification(Query(), class_data)
-        self.assertIsInstance(q, Query)
-        self.assertIsInstance(q.classification, list)
-        self.assertEqual(len(q.classification), 1)
-        self.assertIsInstance(q.classification[0], Classification)
-        self.assertEqual(q.classification[0].archive['id'], 'cs')
+        self.assertEqual(q.classification, [{'archive': {'id': 'cs'}}])
 
     def test_multiple_classifications_are_selected(self):
         """Selected classifications are added to the query."""
         class_data = {'computer_science': True, 'eess': True}
         q = advanced._update_query_with_classification(Query(), class_data)
-        self.assertIsInstance(q, Query)
-        self.assertIsInstance(q.classification, list)
-        self.assertEqual(len(q.classification), 2)
-        self.assertIsInstance(q.classification[0], Classification)
-        self.assertIsInstance(q.classification[1], Classification)
+        self.assertEqual(q.classification,
+                         [{'archive': {'id': 'cs'}},
+                          {'archive': {'id': 'eess'}}])
 
     def test_physics_is_selected_all_archives(self):
         """The physics group is added to the query."""
         class_data = {'physics': True, 'physics_archives': 'all'}
         q = advanced._update_query_with_classification(Query(), class_data)
-        self.assertIsInstance(q, Query)
-        self.assertIsInstance(q.classification, list)
-        self.assertEqual(len(q.classification), 1)
-        self.assertIsInstance(q.classification[0], Classification)
-        self.assertIsNone(q.classification[0].archive)
-        self.assertEqual(q.classification[0].group['id'],
-                         'grp_physics')
+        self.assertEqual(q.classification, [{'group': {'id': 'grp_physics'}}])
 
     def test_physics_is_selected_specific_archive(self):
         """The physic group and specified archive are added to the query."""
         class_data = {'physics': True, 'physics_archives': 'hep-ex'}
         q = advanced._update_query_with_classification(Query(), class_data)
-        self.assertIsInstance(q, Query)
-        self.assertIsInstance(q.classification, list)
-        self.assertEqual(len(q.classification), 1)
-        self.assertIsInstance(q.classification[0], Classification)
-        self.assertEqual(q.classification[0].archive['id'], 'hep-ex')
-        self.assertEqual(q.classification[0].group['id'],
-                         'grp_physics')
+        self.assertEqual(q.classification,
+                         [{'archive': {'id': 'hep-ex'},
+                           'group': {'id': 'grp_physics'}}])
 
     def test_physics_is_selected_specific_archive_plus_other_groups(self):
         """The physics group and specified archive are added to the query."""
@@ -442,8 +415,11 @@ class TestUpdatequeryWithClassification(TestCase):
         self.assertIsInstance(q, Query)
         self.assertIsInstance(q.classification, list)
         self.assertEqual(len(q.classification), 2)
-        self.assertIsInstance(q.classification[0], Classification)
-        self.assertIsInstance(q.classification[1], Classification)
+
+        self.assertEqual(q.classification,
+                         [{'archive': {'id': 'math'}},
+                          {'group': {'id': 'grp_physics'},
+                           'archive': {'id': 'hep-ex'}}])
 
 
 class TestUpdateQueryWithFieldedTerms(TestCase):
@@ -595,7 +571,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
     about the syntax change.
     """
 
-    @mock.patch('search.controllers.advanced.index')
+    @mock.patch('search.controllers.advanced.SearchSession')
     def test_all_fields_search_contains_classic_syntax(self, mock_index):
         """User has entered a `surname_f` query in an all-fields term."""
         request_data = MultiDict({
@@ -606,7 +582,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(data['query'].terms[0].term, "franklin, r",
@@ -616,7 +592,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                         " in the response context, so that a message may be"
                         " rendered in the template.")
 
-    @mock.patch('search.controllers.advanced.index')
+    @mock.patch('search.controllers.advanced.SearchSession')
     def test_author_search_contains_classic_syntax(self, mock_index):
         """User has entered a `surname_f` query in an author search."""
         request_data = MultiDict({
@@ -627,7 +603,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(data['query'].terms[0].term, "franklin, r",
@@ -637,7 +613,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                         " in the response context, so that a message may be"
                         " rendered in the template.")
 
-    @mock.patch('search.controllers.advanced.index')
+    @mock.patch('search.controllers.advanced.SearchSession')
     def test_all_fields_search_multiple_classic_syntax(self, mock_index):
         """User has entered a classic query with multiple authors."""
         request_data = MultiDict({
@@ -648,7 +624,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(data['query'].terms[0].term,
@@ -659,7 +635,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                         " in the response context, so that a message may be"
                         " rendered in the template.")
 
-    @mock.patch('search.controllers.advanced.index')
+    @mock.patch('search.controllers.advanced.SearchSession')
     def test_title_search_contains_classic_syntax(self, mock_index):
         """User has entered a `surname_f` query in a title search."""
         request_data = MultiDict({
@@ -670,7 +646,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
             'size': 50,
             'order': ''
         })
-        mock_index.search.return_value = DocumentSet(metadata={}, results=[])
+        mock_index.search.return_value = dict(metadata={}, results=[])
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(data['query'].terms[0].term, "franklin_r",

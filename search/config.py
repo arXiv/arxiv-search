@@ -5,6 +5,10 @@ Docstrings are from the `Flask configuration documentation
 <http://flask.pocoo.org/docs/0.12/config/>`_.
 """
 import os
+from typing import Mapping, Any
+
+APP_VERSION = '0.5.5'
+"""The application version """
 
 ON = 'yes'
 OFF = 'no'
@@ -161,11 +165,13 @@ Log level for search service.
 See `<https://docs.python.org/3/library/logging.html#logging-levels>`_ .
 """
 
-ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_SERVICE_HOST', 'localhost')
-ELASTICSEARCH_PORT = os.environ.get('ELASTICSEARCH_SERVICE_PORT', '9200')
-ELASTICSEARCH_SCHEME = os.environ.get(
-    'ELASTICSEARCH_PORT_%s_PROTO' % ELASTICSEARCH_PORT, 'http'
-)
+ELASTICSEARCH_SERVICE_HOST = os.environ.get('ELASTICSEARCH_SERVICE_HOST',
+                                            'localhost')
+ELASTICSEARCH_SERVICE_PORT = os.environ.get('ELASTICSEARCH_SERVICE_PORT',
+                                            '9200')
+_proto_key = 'ELASTICSEARCH_SERVICE_PORT_%s_PROTO' % ELASTICSEARCH_SERVICE_PORT
+locals()[_proto_key] = os.environ.get(_proto_key, 'http')
+
 ELASTICSEARCH_INDEX = os.environ.get('ELASTICSEARCH_INDEX', 'arxiv')
 ELASTICSEARCH_USER = os.environ.get('ELASTICSEARCH_USER', None)
 ELASTICSEARCH_PASSWORD = os.environ.get('ELASTICSEARCH_PASSWORD', None)
@@ -233,14 +239,21 @@ BASE_SERVER = os.environ.get('BASE_SERVER', 'arxiv.org')
 
 URLS = [
     ("pdf", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("pdf_by_id", "/pdf/<arxiv:paper_id>", BASE_SERVER),
     ("abs", "/abs/<arxiv:paper_id>v<string:version>", BASE_SERVER),
     ("abs_by_id", "/abs/<arxiv:paper_id>", BASE_SERVER),
     ("pdfonly", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("pdfonly_by_id", "/pdf/<arxiv:paper_id>", BASE_SERVER),
     ("dvi", "/dvi/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("dvi_by_id", "/dvi/<arxiv:paper_id>", BASE_SERVER),
     ("html", "/html/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("html_by_id", "/html/<arxiv:paper_id>", BASE_SERVER),
     ("ps", "/ps/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("ps_by_id", "/ps/<arxiv:paper_id>", BASE_SERVER),
     ("source", "/e-print/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("source_by_id", "/e-print/<arxiv:paper_id>", BASE_SERVER),
     ("other", "/format/<arxiv:paper_id>v<string:version>", BASE_SERVER),
+    ("other_by_id", "/format/<arxiv:paper_id>", BASE_SERVER),
 ]
 
 JWT_SECRET = os.environ.get('JWT_SECRET', 'foosecret')

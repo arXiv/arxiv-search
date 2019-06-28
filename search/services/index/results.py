@@ -21,90 +21,54 @@ logger = logging.getLogger(__name__)
 logger.propagate = False
 
 
-def _to_author(author_data: dict) -> Person:
-    """Prevent e-mail, other extraneous data, from escaping."""
-    data = {}
-    for key, value in author_data.items():
-        if key == 'email':
-            continue
-        elif key == 'name':
-            key = 'full_name'
-        if key not in Person.fields():
-            continue
-        data[key] = value
-    return Person(**data)   # type: ignore
-
-
 def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
     """Transform an ES search result back into a :class:`.Document`."""
     # typing: ignore
-    result: Dict[str, Any] = {}
+    result: Document = {}
 
     result['match'] = {}  # Hit on field, but no highlighting.
     result['truncated'] = {}    # Preview is truncated.
 
-    for key in Document.fields():
-        if type(raw) is Hit:
-            if not hasattr(raw, key):
-                continue
-            value = getattr(raw, key)
+    result.update(raw.__dict__['_d_'])
 
-        elif type(raw) is dict:
-            if key not in raw:
-                continue
-            value = raw.get(key)
-        else:
+    # Parse dates to date/datetime objects.
+    if 'announced_date_first' in result:
+        result['announced_date_first'] = \
+            datetime.strptime(raw['announced_date_first'], '%Y-%m').date()
+    for key in ['', '_first', '_latest']:
+        key = f'submitted_date{key}'
+        if key not in result:
             continue
+        try:
+            result[key] = datetime.strptime(raw[key], '%Y-%m-%dT%H:%M:%S%z')
+        except (ValueError, TypeError):
+            logger.warning(f'Could not parse {key} as datetime')
+            pass
 
-        # We want to prevent ES-specific data types from escaping the module
-        # API.
-        if isinstance(value, AttrList):
-            value = value._l_
-        elif isinstance(value, AttrDict):
-            value = value.to_dict()
+    for key in ['acm_class', 'msc_class']:
+        if key in result and result[key]:
+            result[key] = '; '.join(result[key])
 
-        if key == 'primary_classification':
-            value = Classification(**value)  # type: ignore
-        elif key == 'secondary_classification':
-            value = [Classification(**v) for v in value]  # type: ignore
-        elif key in ['authors', 'owners']:
-            value = [_to_author(au) for au in value]
-        elif key == 'submitter':
-            value = _to_author(value)
-
-        elif key == 'announced_date_first' and \
-                value and isinstance(value, str):
-            value = datetime.strptime(value, '%Y-%m').date()
-        elif key in ['submitted_date', 'submitted_date_first',
-                     'submitted_date_latest']:
-            try:
-                value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S%z')
-            except (ValueError, TypeError):
-                logger.warning(f'Could not parse {key}: {value} as datetime')
-                pass
-        elif key in ['acm_class', 'msc_class'] and value:
-            value = '; '.join(value)
-
-        result[key] = value
-
-    if type(raw) is Response:
+    try:
         result['score'] = raw.meta.score    # type: ignore
+    except AttributeError:
+        pass
 
-    if type(result.get('abstract')) is str and highlight:
+    if highlight:   # type(result.get('abstract')) is str and
+        result['highlight'] = {}
+        logger.debug('%s: add highlighting to result', result['paper_id'])
+
         if 'preview' not in result:
             result['preview'] = {}
-        result['preview']['abstract'] = preview(result['abstract'])
-        if result['preview']['abstract'].endswith('&hellip;'):
-            result['truncated']['abstract'] = True
 
-    if highlight and type(raw) in [Response, Hit]:
-        result['highlight'] = {}
-        logger.debug('%s: add highlighting to result',
-                     raw.paper_id)  # type: ignore
+        if 'abstract' in result:
+            result['preview']['abstract'] = preview(result['abstract'])
+            if result['preview']['abstract'].endswith('&hellip;'):
+                result['truncated']['abstract'] = True
+
         result = add_highlighting(result, raw)
 
-    return Document(**result)   # type: ignore
-    # See https://github.com/python/mypy/issues/3937
+    return result
 
 
 def to_documentset(query: Query, response: Response, highlight: bool = True) \
@@ -131,8 +95,7 @@ def to_documentset(query: Query, response: Response, highlight: bool = True) \
     N_pages = int(floor(N_pages_raw)) + \
         int(N_pages_raw % query.size > 0)
     logger.debug('got %i results', response['hits']['total'])
-
-    return DocumentSet(**{  # type: ignore
+    return {
         'metadata': {
             'start': query.page_start,
             'end': min(query.page_start + query.size,
@@ -144,5 +107,4 @@ def to_documentset(query: Query, response: Response, highlight: bool = True) \
             'max_pages': max_pages
         },
         'results': [to_document(raw, highlight=highlight) for raw in response]
-    })
-    # See https://github.com/python/mypy/issues/3937
+    }

@@ -9,19 +9,17 @@ available for future use, e.g. as part of a search API.
 In addition, :func:`.add_document` and :func:`.bulk_add_documents` are provided
 for indexing (e.g. by the
 :mod:`search.agent.consumer.MetadataRecordProcessor`).
-
-:class:`.SearchSession` encapsulates configuration parameters and a connection
-to the Elasticsearch cluster for thread-safety. The functions mentioned above
-load the appropriate instance of :class:`.SearchSession` depending on the
-context of the request.
 """
 
 import json
+import warnings
 import urllib3
 from contextlib import contextmanager
-from typing import Any, Optional, Tuple, Union, List, Generator
+from typing import Any, Optional, Tuple, Union, List, Generator, Mapping
 from functools import reduce, wraps
 from operator import ior
+
+from flask import current_app
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError, NotFoundError, \
                           helpers
@@ -30,8 +28,9 @@ from elasticsearch.helpers import BulkIndexError
 
 from elasticsearch_dsl import Search, Q
 
-from search.context import get_application_config, get_application_global
 from arxiv.base import logging
+from arxiv.integration.meta import MetaIntegration
+from search.context import get_application_config, get_application_global
 from search.domain import Document, DocumentSet, Query, AdvancedQuery, \
     SimpleQuery, asdict, APIQuery, ClassicAPIQuery
 
@@ -73,7 +72,7 @@ def handle_es_exceptions() -> Generator:
             raise MappingError('Invalid mapping: %s' % str(e.info)) from e
         elif e.error == 'index_not_found_exception':
             logger.error('ES index_not_found_exception: %s', e.info)
-            create_index()
+            SearchSession.current_session().create_index()
         elif e.error == 'parsing_exception':
             logger.error('ES parsing_exception: %s', e.info)
             raise QueryError(e.info) from e
@@ -95,13 +94,13 @@ def handle_es_exceptions() -> Generator:
         raise
 
 
-class SearchSession(object):
+class SearchSession(metaclass=MetaIntegration):
     """Encapsulates session with Elasticsearch host."""
 
-    def __init__(self, host: str, index: str, port: int=9200,
-                 scheme: str='http', user: Optional[str]=None,
-                 password: Optional[str]=None, mapping: Optional[str]=None,
-                 verify: bool=True, **extra: Any) -> None:
+    def __init__(self, host: str, index: str, port: int = 9200,
+                 scheme: str = 'http', user: Optional[str] = None,
+                 password: Optional[str] = None, mapping: Optional[str] = None,
+                 verify: bool = True, **extra: Any) -> None:
         """
         Initialize the connection to Elasticsearch.
 
@@ -131,23 +130,28 @@ class SearchSession(object):
         use_ssl = True if scheme == 'https' else False
         http_auth = '%s:%s' % (user, password) if user else None
 
-        logger.debug(
-            f'init ES session for index {index} at {scheme}://{host}:{port}'
-            f' with verify={verify}, ssl={use_ssl}, and user={user}'
-        )
+        self.conn_params = {'host': host, 'port': port, 'use_ssl': use_ssl,
+                            'http_auth': http_auth, 'verify_certs': verify}
+        self.conn_extra = extra
+        if not use_ssl:
+            warnings.warn(f'TLS is disabled, using port {port}')
+        if host == 'localhost':
+            warnings.warn(f'Using ES at {host}:{port}; not OK for production')
 
+    def new_connection(self) -> Elasticsearch:
+        """Create a new :class:`.Elasticsearch` connection."""
+        logger.debug('init ES session with %s', self.conn_params)
         try:
-            self.es = Elasticsearch([{'host': host, 'port': port,
-                                      'use_ssl': use_ssl,
-                                      'http_auth': http_auth,
-                                      'verify_certs': verify}],
-                                    connection_class=Urllib3HttpConnection,
-                                    **extra)
+            es = Elasticsearch(
+                [self.conn_params],
+                connection_class=Urllib3HttpConnection,
+                **self.conn_extra)
         except ElasticsearchException as e:
             logger.error('ElasticsearchException: %s', e)
             raise IndexConnectionError(
                 'Could not initialize ES session: %s' % e
             ) from e
+        return es
 
     def _base_search(self) -> Search:
         return Search(using=self.es, index=self.index)
@@ -159,6 +163,24 @@ class SearchSession(object):
             mappings: dict = json.load(f)
         return mappings
 
+    @property
+    def es(self) -> Elasticsearch:
+        """
+        Get or create the current :class:`.Elasticsearch` connection.
+
+        The :class:`.Elasticsearch` connection is threadsafe, so we can reuse
+        the same connection across the whole app. See
+        `https://elasticsearch-py.readthedocs.io/en/master/#thread-safety`_.
+
+        We use the `extensions` lookup on the Flask app to store the
+        connection.
+        """
+        if current_app:
+            if 'elasticsearch' not in current_app.extensions:
+                current_app.extensions['elasticsearch'] = self.new_connection()
+            return current_app.extensions['elasticsearch']
+        return self.new_connection()
+
     def cluster_available(self) -> bool:
         """
         Determine whether or not the ES cluster is available.
@@ -166,6 +188,7 @@ class SearchSession(object):
         Returns
         -------
         bool
+
         """
         try:
             self.es.cluster.health(wait_for_status='yellow', request_timeout=1)
@@ -290,7 +313,7 @@ class SearchSession(object):
             self.create_index()
 
         with handle_es_exceptions():
-            ident = document.id if document.id else document.paper_id
+            ident = document['id'] if document['id'] else document['paper_id']
             logger.debug(f'{ident}: index document')
             self.es.index(index=self.index, doc_type=self.doc_type,
                           id=ident, body=document)
@@ -324,24 +347,21 @@ class SearchSession(object):
             actions = ({
                 '_index': self.index,
                 '_type': self.doc_type,
-                '_id': document.id,
-                '_source': asdict(document)
+                '_id': document['id'],
+                '_source': document
             } for document in documents)
 
             helpers.bulk(client=self.es, actions=actions,
                          chunk_size=docs_per_chunk)
             logger.debug('added %i documents to index', len(documents))
 
-    def get_document(self, document_id: int) -> Document:
+    def get_document(self, document_id: str) -> Document:
         """
         Retrieve a document from the index by ID.
-
-        Uses ``metadata_id`` as the primary identifier for the document.
 
         Parameters
         ----------
         doument_id : int
-            Value of ``metadata_id`` in the original document.
 
         Returns
         -------
@@ -429,115 +449,55 @@ class SearchSession(object):
     def exists(self, paper_id_v: str) -> bool:
         """Determine whether a paper exists in the index."""
         with handle_es_exceptions():
-            ex: bool = self.es.exists(self.index, self.doc_type, paper_id_v)
-            return ex
+            ex: bool = self.es.exists(self.index, self.doc_type,
+                                      paper_id_v)
+        return ex
 
+    @classmethod
+    def init_app(cls, app: object = None) -> None:
+        """Set default configuration parameters for an application instance."""
+        config = get_application_config(app)
+        config.setdefault('ELASTICSEARCH_SERVICE_HOST', 'localhost')
+        config.setdefault('ELASTICSEARCH_SERVICE_PORT', '9200')
+        config.setdefault('ELASTICSEARCH_INDEX', 'arxiv')
+        config.setdefault('ELASTICSEARCH_USER', None)
+        config.setdefault('ELASTICSEARCH_PASSWORD', None)
+        config.setdefault('ELASTICSEARCH_MAPPING',
+                          'mappings/DocumentMapping.json')
+        config.setdefault('ELASTICSEARCH_VERIFY', 'true')
 
-def init_app(app: object = None) -> None:
-    """Set default configuration parameters for an application instance."""
-    config = get_application_config(app)
-    config.setdefault('ELASTICSEARCH_HOST', 'localhost')
-    config.setdefault('ELASTICSEARCH_PORT', '9200')
-    config.setdefault('ELASTICSEARCH_INDEX', 'arxiv')
-    config.setdefault('ELASTICSEARCH_USER', None)
-    config.setdefault('ELASTICSEARCH_PASSWORD', None)
-    config.setdefault('ELASTICSEARCH_MAPPING', 'mappings/DocumentMapping.json')
-    config.setdefault('ELASTICSEARCH_VERIFY', 'true')
+    @classmethod
+    def get_session(cls, app: object = None) -> 'SearchSession':
+        """Get a new session with the search index."""
+        config = get_application_config(app)
+        host = config.get('ELASTICSEARCH_SERVICE_HOST', 'localhost')
+        port = config.get('ELASTICSEARCH_SERVICE_PORT', '9200')
+        scheme = config.get('ELASTICSEARCH_SERVICE_PORT_%s_PROTO' % port,
+                            'http')
+        index = config.get('ELASTICSEARCH_INDEX', 'arxiv')
+        verify = config.get('ELASTICSEARCH_VERIFY', 'true') == 'true'
+        user = config.get('ELASTICSEARCH_USER', None)
+        password = config.get('ELASTICSEARCH_PASSWORD', None)
+        mapping = config.get('ELASTICSEARCH_MAPPING',
+                             'mappings/DocumentMapping.json')
+        return cls(host, index, port, scheme, user, password, mapping,
+                   verify=verify)
 
-
-# TODO: consider making this private.
-def get_session(app: object = None) -> SearchSession:
-    """Get a new session with the search index."""
-    config = get_application_config(app)
-    host = config.get('ELASTICSEARCH_HOST', 'localhost')
-    port = config.get('ELASTICSEARCH_PORT', '9200')
-    scheme = config.get('ELASTICSEARCH_SCHEME', 'http')
-    index = config.get('ELASTICSEARCH_INDEX', 'arxiv')
-    verify = config.get('ELASTICSEARCH_VERIFY', 'true') == 'true'
-    user = config.get('ELASTICSEARCH_USER', None)
-    password = config.get('ELASTICSEARCH_PASSWORD', None)
-    mapping = config.get('ELASTICSEARCH_MAPPING',
-                         'mappings/DocumentMapping.json')
-    return SearchSession(host, index, port, scheme, user, password, mapping,
-                         verify=verify)
-
-
-# TODO: consider making this private.
-def current_session() -> SearchSession:
-    """Get/create :class:`.SearchSession` for this context."""
-    g = get_application_global()
-    if not g:
-        return get_session()
-    if 'search' not in g:
-        g.search = get_session()    # type: ignore
-    return g.search     # type: ignore
-
-
-@wraps(SearchSession.search)
-def search(query: Query, highlight: bool = True) -> DocumentSet:
-    """Retrieve search results."""
-    return current_session().search(query, highlight=highlight)
-
-
-@wraps(SearchSession.add_document)
-def add_document(document: Document) -> None:
-    """Add Document."""
-    return current_session().add_document(document)
-
-
-@wraps(SearchSession.bulk_add_documents)
-def bulk_add_documents(documents: List[Document]) -> None:
-    """Add Documents."""
-    return current_session().bulk_add_documents(documents)
-
-
-@wraps(SearchSession.get_document)
-def get_document(document_id: int) -> Document:
-    """Retrieve arxiv document by id."""
-    return current_session().get_document(document_id)
-
-
-@wraps(SearchSession.cluster_available)
-def cluster_available() -> bool:
-    """Check whether the cluster is available."""
-    return current_session().cluster_available()
-
-
-@wraps(SearchSession.create_index)
-def create_index() -> None:
-    """Create the search index."""
-    current_session().create_index()
-
-
-@wraps(SearchSession.exists)
-def exists(paper_id_v: str) -> bool:
-    """Check whether a paper is present in the index."""
-    return current_session().exists(paper_id_v)
-
-
-@wraps(SearchSession.index_exists)
-def index_exists(index_name: str) -> bool:
-    """Check whether an index exists."""
-    return current_session().index_exists(index_name)
-
-
-@wraps(SearchSession.reindex)
-def reindex(old_index: str, new_index: str,
-            wait_for_completion: bool = False) -> dict:
-    """Create a new index and reindex with the current mappings."""
-    return current_session().reindex(old_index, new_index, wait_for_completion)
-
-
-@wraps(SearchSession.get_task_status)
-def get_task_status(task: str) -> dict:
-    """Get the status of a running task in ES (e.g. reindex)."""
-    return current_session().get_task_status(task)
+    @classmethod
+    def current_session(cls) -> 'SearchSession':
+        """Get/create :class:`.SearchSession` for this context."""
+        g = get_application_global()
+        if not g:
+            return cls.get_session()
+        if 'search' not in g:
+            g.search = cls.get_session()    # type: ignore
+        return g.search     # type: ignore
 
 
 def ok() -> bool:
     """Health check."""
     try:
-        current_session()
+        SearchSession.current_session().cluster_available()
     except Exception:    # TODO: be more specific.
         return False
     return True

@@ -26,16 +26,14 @@ class TestSerializeJSONDocument(TestCase):
     @mock.patch(f'{serialize.__name__}.jsonify', mock_jsonify)
     def test_to_json(self):
         """Just your run-of-the-mill arXiv document generates valid JSON."""
-        document = domain.Document(
+        document = dict(
             submitted_date=datetime.now(),
             submitted_date_first=datetime.now(),
             announced_date_first=datetime.now(),
             id='1234.5678',
             abstract='very abstract',
-            authors=[
-                domain.Person(full_name='F. Bar', orcid='1234-5678-9012-3456')
-            ],
-            submitter=domain.Person(full_name='S. Ubmitter', author_id='su_1'),
+            authors=[dict(full_name='F. Bar', orcid='1234-5678-9012-3456')],
+            submitter=dict(full_name='S. Ubmitter', author_id='su_1'),
             modified_date=datetime.now(),
             updated_date=datetime.now(),
             is_current=True,
@@ -63,13 +61,13 @@ class TestSerializeJSONDocument(TestCase):
             comments='very science',
             abs_categories='astro-ph.CO foo.BR',
             formats=['pdf', 'other'],
-            primary_classification=domain.Classification(
+            primary_classification=dict(
                 group={'id': 'foo', 'name': 'Foo Group'},
                 archive={'id': 'foo', 'name': 'Foo Archive'},
                 category={'id': 'foo.BR', 'name': 'Foo Category'},
             ),
             secondary_classification=[
-                domain.Classification(
+                dict(
                     group={'id': 'foo', 'name': 'Foo Group'},
                     archive={'id': 'foo', 'name': 'Foo Archive'},
                     category={'id': 'foo.BZ', 'name': 'Baz Category'},
@@ -99,16 +97,16 @@ class TestSerializeJSONDocumentSet(TestCase):
     @mock.patch(f'{serialize.__name__}.jsonify', mock_jsonify)
     def test_to_json(self):
         """Just your run-of-the-mill arXiv document generates valid JSON."""
-        document = domain.Document(
+        document = dict(
             submitted_date=datetime.now(),
             submitted_date_first=datetime.now(),
             announced_date_first=datetime.now(),
             id='1234.5678',
             abstract='very abstract',
             authors=[
-                domain.Person(full_name='F. Bar', orcid='1234-5678-9012-3456')
+                dict(full_name='F. Bar', orcid='1234-5678-9012-3456')
             ],
-            submitter=domain.Person(full_name='S. Ubmitter', author_id='su_1'),
+            submitter=dict(full_name='S. Ubmitter', author_id='su_1'),
             modified_date=datetime.now(),
             updated_date=datetime.now(),
             is_current=True,
@@ -136,13 +134,13 @@ class TestSerializeJSONDocumentSet(TestCase):
             comments='very science',
             abs_categories='astro-ph.CO foo.BR',
             formats=['pdf', 'other'],
-            primary_classification=domain.Classification(
+            primary_classification=dict(
                 group={'id': 'foo', 'name': 'Foo Group'},
                 archive={'id': 'foo', 'name': 'Foo Archive'},
                 category={'id': 'foo.BR', 'name': 'Foo Category'},
             ),
             secondary_classification=[
-                domain.Classification(
+                dict(
                     group={'id': 'foo', 'name': 'Foo Group'},
                     archive={'id': 'foo', 'name': 'Foo Archive'},
                     category={'id': 'foo.BZ', 'name': 'Baz Category'},
@@ -150,7 +148,7 @@ class TestSerializeJSONDocumentSet(TestCase):
             ]
         )
         meta = {'start': 0, 'size': 50, 'end': 50, 'total': 500202}
-        document_set = domain.DocumentSet(results=[document], metadata=meta)
+        document_set = dict(results=[document], metadata=meta)
         srlzd = serialize.as_json(document_set)
         res = jsonschema.RefResolver(
             'file://%s/' % os.path.abspath(os.path.dirname(self.SCHEMA_PATH)),
