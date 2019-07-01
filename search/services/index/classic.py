@@ -68,7 +68,7 @@ def _term_to_query_string(term: Term) -> str:
     field, val = term
 
     FIELD_DSL_MAPPING = {
-        Field.Author : 'authors',
+        Field.Author : 'authors.full_name.exact',
         Field.Comment : 'comments',
         Field.Identifier : 'paper_id', # TODO: edge case of versioned data
         Field.JournalReference : 'journal_ref',
