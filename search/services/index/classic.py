@@ -4,82 +4,89 @@ Module for translating classic API `Phrase` objects to the
 Elasticsearch DSL and retrieving results.
 """
 
+from typing import Dict, Callable
+
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import QueryString
 
 from ...domain import ClassicAPIQuery, Phrase, Term, Expression, Field, Operator
+from .prepare import SEARCH_FIELDS
 
 def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
     """
-    Performs a classic API search query.
+    Prepare a :class:`.Search` from a :class:`.ClassicAPIQuery`.
+
+    Parameters
+    ----------
+    search : :class:`.Search`
+        An Elasticsearch search in preparation.
+    query : :class:`.ClassicAPIQuery`
+        An query originating from the Classic API.
+
+    Returns
+    -------
+    :class:`.Search`
+        The passed ES search object, updated with specific query parameters
+        that implement the advanced query.
+
     """
-    dsl_query = _query_to_dsl(query.phrase)
+    dsl_query = _phrase_to_query(query.phrase)
 
     return search.query(dsl_query)
 
 
-def _query_to_dsl(phrase: Phrase) -> Q:
+def _phrase_to_query(phrase: Phrase) -> Q:
     """
-    Parses a ClassicAPIQuery into the Elasticsearch DSL.
+    Parses a Phrase of a Classic API request into an ES Q object.
     """
-    query_string = _phrase_to_query_string(phrase)
-    return Q(QueryString(query=query_string))
-
-
-def _phrase_to_query_string(phrase: Phrase) -> str:
-    """
-    Parses a ClassicAPIQuery into a query string using the 
-    `syntax of the Elasticsearch DSL`_
-
-    _syntax of the Elasticsearch DSL: https://www.elastic.co/guide/en/elasticsearch/reference/6.3/query-dsl-query-string-query.html
-    """
-
-    qs_parts = []
-
+    # base case - simple term query automatically handled by delegation.
     if isinstance(phrase[0], Field) and len(phrase) == 2:
-        return _term_to_query_string(phrase)
+        return _term_to_query(phrase) # type: ignore
+
+    # parse Phrase object an build Q
+    q = Q()
+    current_operator: Operator = Operator.AND
 
     for token in phrase:
         if isinstance(token, Operator):
-            qs_parts.append(_operator_to_query_string(token))
+            current_operator = token
         elif isinstance(token, tuple):
+            phrase_q: Q = Q()
             if isinstance(token[0], Operator) or len(token) == 3:
-                qs_parts.append('('+_phrase_to_query_string(token)+')')
+                phrase_q = _phrase_to_query(token) # type: ignore
             elif len(token) == 2:
-                qs_parts.append(_term_to_query_string(token))
+                phrase_q = _term_to_query(token) # type: ignore
             else:
                 raise ValueError(f"invalid phrase component: {token}")
 
-    return ' '.join(qs_parts)
+            if current_operator is Operator.AND:
+                q &= phrase_q
+            elif current_operator is Operator.OR:
+                q |= phrase_q
+            elif current_operator is Operator.ANDNOT:
+                q &= ~phrase_q
 
-def _operator_to_query_string(op: Operator) -> str:
-    OPERATOR_DSL_MAPPING = {
-        Operator.AND : 'AND',
-        Operator.OR : 'OR',
-        Operator.ANDNOT : 'NOT'
-    }
+    return q
 
-    return OPERATOR_DSL_MAPPING[op]
 
-def _term_to_query_string(term: Term) -> str:
+def _term_to_query(term: Term) -> Q:
     """
-    Parses a term into a query
+    Parses a fielded term using transfromations from the current API.
+
+    See also: :module:`.api`
     """
     field, val = term
-
-    FIELD_DSL_MAPPING = {
-        Field.Author : 'authors.full_name.exact',
-        Field.Comment : 'comments',
-        Field.Identifier : 'paper_id', # TODO: edge case of versioned data
-        Field.JournalReference : 'journal_ref',
-        Field.ReportNumber : 'report_num',
-        Field.SubjectCategory : 'abs_categories', # TODO: unsure of where classifications are unified
-        Field.Title : 'title',
-        Field.All : '*'
+   
+    FIELD_TERM_MAPPING: Dict[Field, Callable[[str], Q]] = {
+        Field.Author : SEARCH_FIELDS['author'],
+        Field.Comment : SEARCH_FIELDS['comments'],
+        Field.Identifier : SEARCH_FIELDS['paper_id'], # TODO: edge case of versioned data
+        Field.JournalReference : SEARCH_FIELDS['journal_ref'],
+        Field.ReportNumber : SEARCH_FIELDS['report_num'],
+        Field.SubjectCategory : SEARCH_FIELDS['cross_list_category'], # TODO: unsure of where classifications are unified
+        Field.Title : SEARCH_FIELDS['title'],
+        Field.All : SEARCH_FIELDS['all']
     }
 
-    return f'{FIELD_DSL_MAPPING[field]}:{val}'
-
-
-
+    return FIELD_TERM_MAPPING[field](val)
 
