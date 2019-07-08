@@ -5,6 +5,7 @@ from ....domain.api import Phrase, Expression, Term, ClassicAPIQuery, Field, \
 
 from unittest import TestCase
 
+
 class TestParsing(TestCase):
     '''
     def test_simple(self):
