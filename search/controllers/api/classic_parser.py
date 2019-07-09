@@ -3,6 +3,7 @@ from typing import Any, Tuple
 from ...domain.api import Phrase, Expression, Term, Operator, Field, Triple
 from werkzeug.exceptions import BadRequest
 
+
 def parse_classic_query(query: str) -> Phrase:
     # Parser
     tokens = []

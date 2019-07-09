@@ -1,4 +1,4 @@
-"""Classes derived from the Feedgen extension classes."""
+"""Feedgen extensions to implement serialization of the arXiv legacy API atom feed."""
 
 from typing import Any, Dict
 from feedgen.ext.base import BaseEntryExtension, BaseExtension
@@ -182,7 +182,7 @@ class ArxivEntryExtension(BaseEntryExtension):
             primary_category_element.attrib['term'] = self.__arxiv_primary_category
 
         if self.__arxiv_journal_ref:
-            journal_ref_element =\
+            journal_ref_element = \
                 etree.SubElement(entry, '{http://arxiv.org/schemas/atom}journal_ref')
             journal_ref_element.text = self.__arxiv_journal_ref
 
@@ -196,8 +196,10 @@ class ArxivEntryExtension(BaseEntryExtension):
                 author_element = etree.SubElement(entry, 'author')
                 name_element = etree.SubElement(author_element, 'name')
                 name_element.text = author['name']
-                for affiliation in author.get('affiliation',[]):
-                    affiliation_element = etree.SubElement(author_element, '{http://arxiv.org/schemas/atom}affiliation')
+                for affiliation in author.get('affiliation', []):
+                    affiliation_element = \
+                        etree.SubElement(author_element, 
+                                         '{%s}affiliation' % ARXIV_NS)
                     affiliation_element.text = affiliation
 
         return entry

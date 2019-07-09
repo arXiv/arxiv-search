@@ -12,6 +12,7 @@ from elasticsearch_dsl.query import QueryString
 from ...domain import ClassicAPIQuery, Phrase, Term, Expression, Field, Operator
 from .prepare import SEARCH_FIELDS
 
+
 def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
     """
     Prepare a :class:`.Search` from a :class:`.ClassicAPIQuery`.

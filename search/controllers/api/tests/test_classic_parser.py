@@ -5,6 +5,7 @@ from ....domain.api import Phrase, Expression, Term, ClassicAPIQuery, Field, \
 
 from unittest import TestCase
 
+
 class TestParsing(TestCase):
     def test_simple_query_without_nesting(self):
         """Simple query without grouping/nesting."""
