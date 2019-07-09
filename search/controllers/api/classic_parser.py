@@ -9,9 +9,9 @@ def parse_classic_query(query: str) -> Phrase:
     tokens = []
     token_start = 0
     paren_group = []
+    in_quote = False
 
     for i, c in enumerate(query):
-        # TODO: add support for quotes
         if c == '(':
             paren_group.append(i)
         elif c == ')':
@@ -22,8 +22,12 @@ def parse_classic_query(query: str) -> Phrase:
             elif not paren_group:
                 tokens.append(parse_classic_query(query[start+1:i])) # pass the paren-stripped phrase
                 token_start = i+1
+        elif c == '"':
+            in_quote = not in_quote # flip quotation bit
         elif c == ' ':
-            if not paren_group and token_start != i:
+            if in_quote:
+                continue # keep moving if parsing a quote
+            elif not paren_group and token_start != i:
                 tokens.append(query[token_start:i])
                 token_start = i + 1
             elif token_start == i:
@@ -60,8 +64,15 @@ def _parse_operator(characters: str) -> Operator:
 
 def _parse_field_query(field_part: str) -> Tuple[Field, str]:
     field_name, value = field_part.split(':', 1)
+    
+    # cast field to Field enum
     try:
         field = Field(field_name)
     except ValueError as e:
         raise BadRequest(f'Invalid field: {field_name}') from e
+
+    # process quotes, if present
+    if value.startswith('"') and value.endswith('"'):
+        value = value[1:-1]
+    
     return field, value

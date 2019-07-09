@@ -13,6 +13,12 @@ class TestParsing(TestCase):
         phrase: Phrase = (Field.Author, 'copernicus')
         self.assertEqual(parse_classic_query(querystring), phrase)
 
+    def test_simple_query_with_quotes(self):
+        """Simple query with quotations."""
+        querystring = 'ti:"dark matter"'
+        phrase: Phrase = (Field.Title, 'dark matter')
+        self.assertEqual(parse_classic_query(querystring), phrase)
+
     def test_simple_query_with_unary_and_without_nesting(self):
         """Simple query with a unary operator without grouping/nesting."""
         querystring = "ANDNOT au:copernicus"
@@ -25,6 +31,14 @@ class TestParsing(TestCase):
         phrase: Phrase = ((Field.Author, 'del_maestro'),
                           Operator.AND,
                           (Field.Title, 'checkerboard'))
+        self.assertEqual(parse_classic_query(querystring), phrase)
+
+    def test_simple_conjunct_query_with_quotes(self):
+        """Simple conjunct query with quoted field."""
+        querystring = 'au:del_maestro AND ti:"dark matter"'
+        phrase: Phrase = ((Field.Author, 'del_maestro'),
+                          Operator.AND,
+                          (Field.Title, 'dark matter'))
         self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_simple_conjunct_query_with_unary(self):
