@@ -6,22 +6,6 @@ from ....domain.api import Phrase, Expression, Term, ClassicAPIQuery, Field, \
 from unittest import TestCase
 
 class TestParsing(TestCase):
-    '''
-    def test_simple(self):
-        self.assertEqual(parse_classic_query("YES"), ["YES"])
-    
-    def test_two(self):
-        self.assertEqual(parse_classic_query("YES NO"), ["YES", "NO"])
-
-    def test_three(self):
-        self.assertEqual(parse_classic_query("YES OR NO"), ["YES", "OR", "NO"])
-
-    def test_paren_stripping(self):
-        self.assertEqual(parse_classic_query("(YES OR NO)"), ["YES", "OR", "NO"])
-    
-    def test_parens(self):
-        self.assertEqual(parse_classic_query("(YES OR NO) AND MAYBE"), [["YES", "OR", "NO"], "AND", "MAYBE"])
-    '''
     def test_simple_query_without_nesting(self):
         """Simple query without grouping/nesting."""
         querystring = "au:copernicus"
