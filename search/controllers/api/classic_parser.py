@@ -1,3 +1,31 @@
+"""
+Utility module for Classic API Query parsing.
+
+We use a recursive descent parser, implemented via :func:`parse_classic_query`.
+
+It iterates through each character:
+1.  If a paren group is opened, we append to a list of start positions for 
+    open paren groups.
+2.  If a paren is closed, we pop out the most recent open paren from the stack
+    of start positions and recursively parse the paren group, adding it to our
+    list of tokens.
+3.  If a quote is opened, flip a quotation flag.
+4.  If a space is encountered, append the token to the list of tokens and reset
+    the token start position.
+
+Tokens are themselves parsed using two helpers: :func:`_parse_operator` and
+:func:`_parse_field_query`.
+
+The final, parsed query is a :class:`domain.api.Phrase`, which is a nested
+set of Tuples::
+
+    >>> parse_classic_query("au:del_maestro AND ti:checkerboard")
+    ((Field.Author, 'del_maestro'), Operator.AND, (Field.Title, 'checkerboard'))
+
+See :module:`tests.test_classic_parser` for more examples.
+"""
+
+
 from typing import Any, Tuple
 
 from ...domain.api import Phrase, Expression, Term, Operator, Field, Triple
@@ -17,7 +45,7 @@ def parse_classic_query(query: str) -> Phrase:
         elif c == ')':
             start = paren_group.pop()
             if not paren_group and start == 0 and i + 1 == len(query):
-                # Parent spans whole group, strip the parens, things get weird with parsing...
+                # Parent spans whole group, strip the parens and just return the de-parened phrase
                 return parse_classic_query(query[1:i])
             elif not paren_group:
                 tokens.append(parse_classic_query(query[start+1:i])) # pass the paren-stripped phrase
