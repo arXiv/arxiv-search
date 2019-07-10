@@ -6,6 +6,8 @@ from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
 from lxml import etree
 
+ARXIV_NS = 'http://arxiv.org/schemas/atom'
+OPENSEARCH_NS = 'http://a9.com/-/spec/opensearch/1.1/'
 
 class OpenSearchExtension(BaseExtension):
     """Extension of the Feedgen base class to put OpenSearch metadata."""
@@ -33,15 +35,15 @@ class OpenSearchExtension(BaseExtension):
 
         """
         if self.__opensearch_itemsPerPage is not None:
-            elt = etree.SubElement(atom_feed, '{http://a9.com/-/spec/opensearch/1.1/}itemsPerPage')
+            elt = etree.SubElement(atom_feed, f'{{{OPENSEARCH_NS}}}itemsPerPage')
             elt.text= self.__opensearch_itemsPerPage
         
         if self.__opensearch_totalResults is not None:
-            elt = etree.SubElement(atom_feed, '{http://a9.com/-/spec/opensearch/1.1/}totalResults')
+            elt = etree.SubElement(atom_feed, f'{{{OPENSEARCH_NS}}}totalResults')
             elt.text= self.__opensearch_totalResults
 
         if self.__opensearch_startIndex is not None:
-            elt = etree.SubElement(atom_feed, '{http://a9.com/-/spec/opensearch/1.1/}startIndex')
+            elt = etree.SubElement(atom_feed, f'{{{OPENSEARCH_NS}}}startIndex')
             elt.text = self.__opensearch_startIndex
 
         return atom_feed
@@ -75,7 +77,7 @@ class OpenSearchExtension(BaseExtension):
             The definition string for the "arxiv" namespace.
 
         """
-        return {'opensearch': 'http://a9.com/-/spec/opensearch/1.1/'}
+        return {'opensearch': OPENSEARCH_NS}
 
     def totalResults(self: BaseExtension, text: str):
         """ Set the totalResults parameter. """
@@ -144,7 +146,7 @@ class ArxivExtension(BaseExtension):
             The definition string for the "arxiv" namespace.
 
         """
-        return {'arxiv': 'http://arxiv.org/schemas/atom'}
+        return {'arxiv': ARXIV_NS}
 
 
 class ArxivEntryExtension(BaseEntryExtension):
@@ -174,21 +176,21 @@ class ArxivEntryExtension(BaseEntryExtension):
 
         """
         if self.__arxiv_comment:
-            comment_element = etree.SubElement(entry, '{http://arxiv.org/schemas/atom}comment')
+            comment_element = etree.SubElement(entry, f'{{{ARXIV_NS}}}comment')
             comment_element.text = self.__arxiv_comment
 
         if self.__arxiv_primary_category:
-            primary_category_element = etree.SubElement(entry, '{http://arxiv.org/schemas/atom}primary_category')
+            primary_category_element = etree.SubElement(entry, f'{{{ARXIV_NS}}}primary_category')
             primary_category_element.attrib['term'] = self.__arxiv_primary_category
 
         if self.__arxiv_journal_ref:
             journal_ref_element = \
-                etree.SubElement(entry, '{http://arxiv.org/schemas/atom}journal_ref')
+                etree.SubElement(entry, f'{{{ARXIV_NS}}}journal_ref')
             journal_ref_element.text = self.__arxiv_journal_ref
 
         if self.__arxiv_doi:
             for doi in self.__arxiv_doi:
-                doi_element = etree.SubElement(entry, '{http://arxiv.org/schemas/atom}doi')
+                doi_element = etree.SubElement(entry, f'{{{ARXIV_NS}}}doi')
                 doi_element.text = doi
         
         if self.__arxiv_authors:
