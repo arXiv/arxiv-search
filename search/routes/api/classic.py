@@ -29,7 +29,10 @@ def query() -> Response:
     # if requested == ATOM_XML:
     #     return serialize.as_atom(data), status, headers
     response_data = serialize.as_atom(data['results'], query=data['query'])
-    return response_data, status_code, headers # type: ignore
+    response_data = serialize.as_atom(data['results'], query=data['query'])
+    headers.update({'Content-type': 'application/atom+xml; charset=utf-8'})
+    response: Response = make_response(response_data, status_code, headers)
+    return response
 
 
 @blueprint.route('<arxiv:paper_id>v<string:version>', methods=['GET'])
