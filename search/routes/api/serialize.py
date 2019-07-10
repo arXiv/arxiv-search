@@ -9,7 +9,7 @@ from datetime import datetime
 from feedgen.feed import FeedGenerator
 from pytz import utc
 from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
-    OpenSearchExtension
+    OpenSearchExtension, ARXIV_NS
 
 from arxiv import status
 from search.domain import DocumentSet, Document, Classification, Person, \
@@ -161,12 +161,12 @@ class AtomXMLSerializer(BaseSerializer):
         entry.arxiv.primary_category(doc['primary_classification'].archive['id'])
         entry.category(
             term=doc['primary_classification'].archive['id'],
-            scheme='http://arxiv.org://arxiv.org/schemas/atom')
+            scheme=ARXIV_NS)
         
         for category in doc['secondary_classification']:
             entry.category(
                 term=category.archive['id'],
-                scheme='http://arxiv.org://arxiv.org/schemas/atom')
+                scheme=ARXIV_NS)
         """
         for author in doc['authors']:
             author_data = {
