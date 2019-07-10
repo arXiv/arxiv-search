@@ -188,11 +188,6 @@ class ArxivEntryExtension(BaseEntryExtension):
                 etree.SubElement(entry, f'{{{ARXIV_NS}}}journal_ref')
             journal_ref_element.text = self.__arxiv_journal_ref
 
-        if self.__arxiv_doi:
-            for doi in self.__arxiv_doi:
-                doi_element = etree.SubElement(entry, f'{{{ARXIV_NS}}}doi')
-                doi_element.text = doi
-        
         if self.__arxiv_authors:
             for author in self.__arxiv_authors:
                 author_element = etree.SubElement(entry, 'author')
@@ -203,6 +198,15 @@ class ArxivEntryExtension(BaseEntryExtension):
                         etree.SubElement(author_element, 
                                          '{%s}affiliation' % ARXIV_NS)
                     affiliation_element.text = affiliation
+
+        if self.__arxiv_doi:
+            for doi in self.__arxiv_doi:
+                doi_element = etree.SubElement(entry, f'{{{ARXIV_NS}}}doi')
+                doi_element.text = doi
+
+                doi_link_element = etree.SubElement(entry, 'link')
+                doi_link_element.set('rel', 'related')
+                doi_link_element.set('href', f'https://doi.org/{doi}')
 
         return entry
 

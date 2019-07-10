@@ -140,8 +140,12 @@ class AtomXMLSerializer(BaseSerializer):
         entry.updated(doc['updated_date'])
         entry.link({'href': url_for("api.paper", paper_id=doc['paper_id'], version=doc['version'], _external=True),
                     "type": "text/html"})
-        #entry.link({'href': url_for("api.pdf", paper_id=doc['paper_id, version=doc['version, _external=True),
-        #            "type": "application/pdf", 'rel': 'related'})
+        
+        # TODO: Implement api.pdf method
+        """
+        entry.link({'href': url_for("api.pdf", paper_id=doc['paper_id'], version=doc['version'], _external=True),
+                    "type": "application/pdf", 'rel': 'related'})
+        """
 
         if doc['comments']:
             entry.arxiv.comment(doc['comments'])
@@ -151,6 +155,8 @@ class AtomXMLSerializer(BaseSerializer):
 
         if doc['doi']:
             entry.arxiv.doi(doc['doi'])
+
+        # TODO: fix classifications, suspect an arxiv-base dependency will get us the info we need.
         """
         entry.arxiv.primary_category(doc['primary_classification'].archive['id'])
         entry.category(
@@ -199,7 +205,7 @@ class AtomXMLSerializer(BaseSerializer):
 
         # wrap the single document in a DocumentSet wrapper.
         document_set = DocumentSet(results=[document], metadata=dict()) # TODO: Revise metadata
-        
+
         return cls.serialize(document_set, query=query)
 
 
