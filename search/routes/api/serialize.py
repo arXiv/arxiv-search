@@ -124,7 +124,6 @@ def as_json(document_or_set: Union[DocumentSet, Document],
 
 
 
-# TODO: implement me!
 class AtomXMLSerializer(BaseSerializer):
     """Atom XML serializer for paper metadata."""
 
