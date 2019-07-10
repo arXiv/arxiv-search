@@ -33,17 +33,34 @@ from werkzeug.exceptions import BadRequest
 
 
 def parse_classic_query(query: str) -> Phrase:
-    # Parser
+    """
+    Parse Classic API-style query string into app-native Phrase.
+
+    Iterates through each character in the string, applying a recursive-descent
+    parser and appropriately handling parens and quotes. See module docstring.
+
+    Parameters
+    ----------
+    query : str
+        A Classic API query string.
+
+    Returns
+    -------
+    :class:`Phrase`
+        A tuple representing the query.
+    """
+    # Intializing state variables
     tokens = []
     token_start = 0
     paren_group = []
     in_quote = False
 
+    # Iterate through characters
     for i, c in enumerate(query):
-        if c == '(':
-            paren_group.append(i)
+        if c == '(': 
+            paren_group.append(i) # add open paren start position to stack
         elif c == ')':
-            start = paren_group.pop()
+            start = paren_group.pop() # get innermost open paren
             if not paren_group and start == 0 and i + 1 == len(query):
                 # Parent spans whole group, strip the parens and just return the de-parened phrase
                 return parse_classic_query(query[1:i])
@@ -56,16 +73,18 @@ def parse_classic_query(query: str) -> Phrase:
             if in_quote:
                 continue # keep moving if parsing a quote
             elif not paren_group and token_start != i:
-                tokens.append(query[token_start:i])
+                tokens.append(query[token_start:i]) # append the token
                 token_start = i + 1
             elif token_start == i:
-                token_start = i + 1
+                token_start = i + 1 # multiple spaces, move the token_start back
         else:
             continue
-
+    
+    # handle final-position token
     if query[token_start:]:
         tokens.append(query[token_start:])
 
+    # cast tokens to class-based representations
     classed_tokens = []
     for token in tokens:
         if isinstance(token, str):
@@ -78,6 +97,7 @@ def parse_classic_query(query: str) -> Phrase:
         else:
             classed_tokens.append(token)
 
+    # return single-token query, otherwise wrap in a tuple
     if len(classed_tokens) == 1:
         return classed_tokens[0]
     else:
