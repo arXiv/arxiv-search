@@ -8,7 +8,8 @@ from flask import jsonify, url_for, Response
 from datetime import datetime
 from feedgen.feed import FeedGenerator
 from pytz import utc
-from .atom_extensions import *
+from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
+    OpenSearchExtension
 
 from arxiv import status
 from search.domain import DocumentSet, Document, Classification, Person, \
