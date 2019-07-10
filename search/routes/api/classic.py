@@ -1,7 +1,7 @@
 """Provides the classic search API."""
 
-from flask import Blueprint, render_template, redirect, request, Response, \
-    url_for
+from flask import Blueprint, make_response, render_template, redirect, \
+    request, Response, url_for
 
 from arxiv.base import logging
 from search.controllers import api
@@ -29,8 +29,7 @@ def query() -> Response:
     # if requested == ATOM_XML:
     #     return serialize.as_atom(data), status, headers
     response_data = serialize.as_atom(data['results'], query=data['query'])
-    response_data = serialize.as_atom(data['results'], query=data['query'])
-    headers.update({'Content-type': 'application/atom+xml; charset=utf-8'})
+    headers.update({'Content-type': f'{ATOM_XML}; charset=utf-8'})
     response: Response = make_response(response_data, status_code, headers)
     return response
 
@@ -42,5 +41,7 @@ def paper(paper_id: str, version: str) -> Response:
 
     # TODO: Investigate if this method should be removed
     data, status_code, headers = api.paper(f'{paper_id}v{version}')
-    response_data = serialize.as_json(data['results'])
-    return response_data, status_code, headers # type: ignore
+    response_data = serialize.as_atom(data['results'])
+    headers.update({'Content-type': f'{ATOM_XML}; charset=utf-8'})
+    response: Response = make_response(response_data, status_code, headers)
+    return response

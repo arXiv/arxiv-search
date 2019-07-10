@@ -6,8 +6,8 @@ from functools import wraps
 from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
 
 from flask.json import jsonify
-from flask import Blueprint, render_template, redirect, request, Response, \
-    url_for
+from flask import Blueprint, make_response, render_template, redirect, \
+    request, Response, url_for
 from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
@@ -39,7 +39,10 @@ def search() -> Response:
     # if requested == ATOM_XML:
     #     return serialize.as_atom(data), status, headers
     response_data = serialize.as_json(data['results'], query=data['query'])
-    return response_data, status_code, headers # type: ignore
+    
+    headers.update({'Content-type': f'{JSON}; charset=utf-8'})
+    response: Response = make_response(response_data, status_code, headers)
+    return response
 
 
 @blueprint.route('<arxiv:paper_id>v<string:version>', methods=['GET'])
@@ -47,4 +50,7 @@ def search() -> Response:
 def paper(paper_id: str, version: str) -> Response:
     """Document metadata endpoint."""
     data, status_code, headers = api.paper(f'{paper_id}v{version}')
-    return serialize.as_json(data['results']), status_code, headers # type: ignore
+    response_data = serialize.as_json(data['results'])
+    headers.update({'Content-type': f'{JSON}; charset=utf-8'})
+    response: Response = make_response(response_data, status_code, headers)
+    return response
