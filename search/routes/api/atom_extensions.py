@@ -15,6 +15,7 @@ class OpenSearchExtension(BaseExtension):
     def __init__(self: BaseExtension) -> None:
         """Initialize extension parameters."""
 
+        # __ syntax follows convention of :module:`feedgen.ext`
         self.__opensearch_totalResults = None
         self.__opensearch_startIndex = None
         self.__opensearch_itemsPerPage = None
