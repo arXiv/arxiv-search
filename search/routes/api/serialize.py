@@ -156,18 +156,16 @@ class AtomXMLSerializer(BaseSerializer):
         if doc['doi']:
             entry.arxiv.doi(doc['doi'])
 
-        # TODO: fix classifications, suspect an arxiv-base dependency will get us the info we need.
-        """
-        entry.arxiv.primary_category(doc['primary_classification'].archive['id'])
+        entry.arxiv.primary_category(doc['primary_classification']['archive']['id'])
         entry.category(
-            term=doc['primary_classification'].archive['id'],
+            term=doc['primary_classification']['archive']['id'],
             scheme=ARXIV_NS)
         
         for category in doc['secondary_classification']:
             entry.category(
-                term=category.archive['id'],
+                term=category['archive']['id'],
                 scheme=ARXIV_NS)
-        """
+
         for author in doc['authors']:
             author_data = {
                 "name": author['full_name']
