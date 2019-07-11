@@ -28,24 +28,24 @@ class TestParsing(TestCase):
         """Simple conjunct query."""
         querystring = "au:del_maestro AND ti:checkerboard"
         phrase: Phrase = ((Field.Author, 'del_maestro'),
-                          Operator.AND,
-                          (Field.Title, 'checkerboard'))
+                          (Operator.AND,
+                           (Field.Title, 'checkerboard')))
         self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_simple_conjunct_query_with_quotes(self):
         """Simple conjunct query with quoted field."""
         querystring = 'au:del_maestro AND ti:"dark matter"'
         phrase: Phrase = ((Field.Author, 'del_maestro'),
-                          Operator.AND,
-                          (Field.Title, 'dark matter'))
+                          (Operator.AND,
+                           (Field.Title, 'dark matter')))
         self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_simple_conjunct_query_with_unary(self):
         """Disjunct query with an unary not."""
         querystring = "au:del_maestro OR (ANDNOT ti:checkerboard)"
         phrase = ((Field.Author, 'del_maestro'),
-                  Operator.OR,
-                  (Operator.ANDNOT, (Field.Title, 'checkerboard')))
+                  (Operator.OR,
+                   (Operator.ANDNOT, (Field.Title, 'checkerboard'))))
         self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_conjunct_with_nested_disjunct(self):
@@ -53,10 +53,10 @@ class TestParsing(TestCase):
         querystring \
             = "au:del_maestro ANDNOT (ti:checkerboard OR ti:Pyrochlore)"
         phrase = ((Field.Author, 'del_maestro'),
-                  Operator.ANDNOT,
-                  ((Field.Title, 'checkerboard'),
-                   Operator.OR,
-                   (Field.Title, 'Pyrochlore')))
+                  (Operator.ANDNOT,
+                   ((Field.Title, 'checkerboard'),
+                    (Operator.OR,
+                     (Field.Title, 'Pyrochlore')))))
         self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_conjunct_with_extra_nested_disjunct(self):
@@ -64,11 +64,11 @@ class TestParsing(TestCase):
         querystring = "((au:del_maestro OR au:bob)" \
                       " ANDNOT (ti:checkerboard OR ti:Pyrochlore))"
         phrase = (((Field.Author, 'del_maestro'),
-                  Operator.OR, (Field.Author, 'bob')),
-                  Operator.ANDNOT,
-                  ((Field.Title, 'checkerboard'),
-                   Operator.OR,
-                   (Field.Title, 'Pyrochlore')))
+                  (Operator.OR, (Field.Author, 'bob'))),
+                  (Operator.ANDNOT,
+                   ((Field.Title, 'checkerboard'),
+                    (Operator.OR,
+                     (Field.Title, 'Pyrochlore')))))
         self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_conjunct_with_nested_disjunct_first(self):
@@ -76,17 +76,19 @@ class TestParsing(TestCase):
         querystring \
             = "(ti:checkerboard OR ti:Pyrochlore) ANDNOT au:del_maestro"
         phrase = (((Field.Title, 'checkerboard'),
-                    Operator.OR,
-                    (Field.Title, 'Pyrochlore')),
-                   Operator.ANDNOT,
-                   (Field.Author, 'del_maestro'))
+                    (Operator.OR,
+                     (Field.Title, 'Pyrochlore'))),
+                   (Operator.ANDNOT,
+                    (Field.Author, 'del_maestro')))
         self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_conjunct_with_nested_phrases(self):
         """Conjunct query with nested disjunct query."""
         querystring \
             = "(ti:checkerboard OR ti:Pyrochlore) AND (au:del_maestro OR au:hawking)"
-        phrase = (((Field.Title, 'checkerboard'), Operator.OR, (Field.Title, 'Pyrochlore')),
-                   Operator.AND,
-                   ((Field.Author, 'del_maestro'), Operator.OR, (Field.Author, 'hawking')))
+        phrase = (((Field.Title, 'checkerboard'), 
+                    (Operator.OR, (Field.Title, 'Pyrochlore'))),
+                  (Operator.AND,
+                   ((Field.Author, 'del_maestro'), 
+                    (Operator.OR, (Field.Author, 'hawking')))))
         self.assertEqual(parse_classic_query(querystring), phrase)
