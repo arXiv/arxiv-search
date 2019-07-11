@@ -1,7 +1,6 @@
 from ...api.classic_parser import parse_classic_query
 
-from ....domain.api import Phrase, Expression, Term, ClassicAPIQuery, Field, \
-    Operator
+from ....domain.api import Phrase, Term, ClassicAPIQuery, Field, Operator
 
 from unittest import TestCase
 

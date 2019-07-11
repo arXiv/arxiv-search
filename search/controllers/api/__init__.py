@@ -23,7 +23,7 @@ from search.controllers.util import paginate
 from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
     DateRange, ClassificationList, Classification, asdict, DocumentSet, \
     Document, ClassicAPIQuery
-from ...domain.api import Phrase, Expression, Term, Operator, Field, Triple
+from ...domain.api import Phrase, Term, Operator, Field
 from .classic_parser import parse_classic_query # TODO: fix path to _tokenizer
 
 logger = logging.getLogger(__name__)

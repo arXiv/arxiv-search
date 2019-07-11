@@ -9,7 +9,7 @@ from typing import Dict, Callable
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import QueryString
 
-from ...domain import ClassicAPIQuery, Phrase, Term, Expression, Field, Operator
+from ...domain import ClassicAPIQuery, Phrase, Term, Field, Operator
 from .prepare import SEARCH_FIELDS
 
 
