@@ -115,7 +115,7 @@ def parse_classic_query(query: str) -> Phrase:
     if len(phrases) == 1:
         return phrases[0]
     else:
-        return tuple(*phrases)
+        return tuple(phrases)
 
 def _parse_operator(characters: str) -> Operator:
     try:
