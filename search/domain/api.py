@@ -42,17 +42,7 @@ Examples
 
 """
 
-
-Expression = Union[Term, Tuple[Operator, Term]]
-"""A query term (field, value pair) with support for unary operators."""
-
-
-Triple = Tuple[Union[Expression, 'Phrase'],
-               Operator,
-               Union[Expression, 'Phrase']]
-
-
-Phrase = Union[Expression, Triple, List[Expression]]
+Phrase = Union[Term, Tuple[Operator, 'Phrase'], Tuple['Phrase']]
 """
 
 Examples
