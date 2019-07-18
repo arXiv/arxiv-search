@@ -111,7 +111,7 @@ def parse_classic_query(query: str) -> Phrase:
                 token = (current_op, token)
             phrases.append(token)
 
-    # return single-token query, otherwise wrap in a tuple
+    # Return single-token query, otherwise cast to a tuple.
     if len(phrases) == 1:
         return phrases[0]
     else:

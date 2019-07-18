@@ -53,7 +53,12 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
     q = APIQuery()
 
-    # parse advanced classic-style queries
+    # parse NG queries utilizing the Classic API syntax.
+    # This implementation parses the `query` parameter as if it were
+    # using the Classic endpoint's `search_query` parameter. It is meant
+    # as a migration pathway so that the URL and query structure aren't
+    # both changed at the same time by end users.
+    # TODO: Complete this implementation.
     try:
         parsed_operators, parsed_terms = _parse_search_query(params.get('query',''))
         params = params.copy()

@@ -60,3 +60,6 @@ sphinx-autodoc-typehints = "*"
 pylint = "*"
 pytest = "*"
 nose = "*"
+
+[requires]
+python_version = "3.6"

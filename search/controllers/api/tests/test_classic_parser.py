@@ -2,6 +2,7 @@ from ...api.classic_parser import parse_classic_query
 
 from ....domain.api import Phrase, Term, ClassicAPIQuery, Field, Operator
 
+from werkzeug.exceptions import BadRequest
 from unittest import TestCase
 
 
@@ -92,3 +93,23 @@ class TestParsing(TestCase):
                    ((Field.Author, 'del_maestro'), 
                     (Operator.OR, (Field.Author, 'hawking')))))
         self.assertEqual(parse_classic_query(querystring), phrase)
+
+    def test_error_double_conjunct(self):
+        querystring = "ti:a or and ti:b"
+        with self.assertRaises(BadRequest):
+            parse_classic_query(querystring)
+
+    def test_error_double_operand(self):
+        querystring = "ti:a and ti:b ti:c"
+        with self.assertRaises(BadRequest):
+            parse_classic_query(querystring)
+
+    def test_error_trailing_operator(self):
+        querystring = "ti:a and ti:b and"
+        with self.assertRaises(BadRequest):
+            parse_classic_query(querystring)
+    
+    def test_error_leading_operand(self):
+        querystring = "or ti:a and ti:b"
+        with self.assertRaises(BadRequest):
+            parse_classic_query(querystring)
