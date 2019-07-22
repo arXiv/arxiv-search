@@ -30,7 +30,7 @@ from typing import Any, List, Optional, Tuple, Union
 
 from werkzeug.exceptions import BadRequest
 
-from ...domain.api import Phrase, Operator, Field
+from ...domain.api import Phrase, Operator, Field, Term
 
 
 def parse_classic_query(query: str) -> Phrase:
@@ -45,12 +45,18 @@ def parse_classic_query(query: str) -> Phrase:
     query : str
         A Classic API query string.
 
-    Returns
+    Returns_group_tokens(_cast_tokens(tokens))
     -------
     :class:`Phrase`
         A tuple representing the query.
     """
 
+    return _group_tokens(_cast_tokens(_tokenize_query_string(query)))
+
+
+def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
+    """
+    """
     # Intializing state variables
     tokens: List[Union[str, Phrase]] = []
     token_start = 0
@@ -87,8 +93,12 @@ def parse_classic_query(query: str) -> Phrase:
     if query[token_start:]:
         tokens.append(query[token_start:])
 
-    # cast tokens to class-based representations
-    classed_tokens = []
+    return tokens
+
+
+def _cast_tokens(tokens: List[Union[str, Phrase]]) -> Union[Operator, Term, Phrase]:
+    """Cast tokens to class-based representations."""
+    classed_tokens: Union[Operator, Term, Phrase] = []
     for token in tokens:
         if isinstance(token, str):
             if ':' in token:
@@ -99,8 +109,12 @@ def parse_classic_query(query: str) -> Phrase:
                 classed_tokens.append(token)
         else:
             classed_tokens.append(token)
+    
+    return classed_tokens
 
-    # group operators together with Term
+
+def _group_tokens(classed_tokens: Union[Operator, Term, Phrase]) -> Phrase:
+    """Group operators together with Term."""
     phrases: List[Phrase] = []
     current_op: Optional[Operator] = None
     for token in classed_tokens:
@@ -124,7 +138,7 @@ def _parse_operator(characters: str) -> Operator:
         raise BadRequest(f'Cannot parse fragment: {characters}') from e
 
 
-def _parse_field_query(field_part: str) -> Tuple[Field, str]:
+def _parse_field_query(field_part: str) -> Term:
     field_name, value = field_part.split(':', 1)
 
     # cast field to Field enum
