@@ -132,20 +132,20 @@ class AtomXMLSerializer(BaseSerializer):
                            query: Optional[APIQuery] = None) -> None:
         """Select a subset of :class:`Document` properties for public API."""
         entry = fg.add_entry()
-        entry.id(url_for("api.paper", paper_id=doc['paper_id'],
+        entry.id(url_for("abs", paper_id=doc['paper_id'],
                              version=doc['version'], _external=True))
         entry.title(doc['title'])
         entry.summary(doc['abstract'])
         entry.published(doc['submitted_date'])
         entry.updated(doc['updated_date'])
-        entry.link({'href': url_for("api.paper", paper_id=doc['paper_id'], version=doc['version'], _external=True),
+        entry.link({'href': url_for("abs", paper_id=doc['paper_id'], 
+                                    version=doc['version'], _external=True),
                     "type": "text/html"})
         
-        # TODO: Implement api.pdf method
-        """
-        entry.link({'href': url_for("api.pdf", paper_id=doc['paper_id'], version=doc['version'], _external=True),
+
+        entry.link({'href': url_for("pdf", paper_id=doc['paper_id'], 
+                                    version=doc['version'], _external=True),
                     "type": "application/pdf", 'rel': 'related'})
-        """
 
         if doc['comments']:
             entry.arxiv.comment(doc['comments'])
@@ -213,5 +213,3 @@ def as_atom(document_or_set: Union[DocumentSet, Document],
     if 'paper_id' in document_or_set:
         return AtomXMLSerializer.serialize_document(document_or_set, query=query)  # type: ignore
     return AtomXMLSerializer.serialize(document_or_set, query=query)  # type: ignore
-    
-
