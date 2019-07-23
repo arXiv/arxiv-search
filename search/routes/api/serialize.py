@@ -159,7 +159,8 @@ class AtomXMLSerializer(BaseSerializer):
         entry.arxiv.primary_category(doc['primary_classification']['archive']['id'])
         entry.category(
             term=doc['primary_classification']['archive']['id'],
-            scheme=ARXIV_NS)
+            scheme=ARXIV_NS
+        )
         
         for category in doc['secondary_classification']:
             entry.category(

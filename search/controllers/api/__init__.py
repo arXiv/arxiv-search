@@ -24,7 +24,7 @@ from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
     DateRange, ClassificationList, Classification, asdict, DocumentSet, \
     Document, ClassicAPIQuery
 from ...domain.api import Phrase, Term, Operator, Field
-from .classic_parser import parse_classic_query # TODO: fix path to _tokenizer
+from .classic_parser import parse_classic_query  # TODO: fix path to _tokenizer.
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
@@ -53,14 +53,14 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
     q = APIQuery()
 
-    # parse NG queries utilizing the Classic API syntax.
+    # Parse NG queries utilizing the Classic API syntax.
     # This implementation parses the `query` parameter as if it were
     # using the Classic endpoint's `search_query` parameter. It is meant
     # as a migration pathway so that the URL and query structure aren't
     # both changed at the same time by end users.
     # TODO: Complete this implementation.
     try:
-        parsed_operators, parsed_terms = _parse_search_query(params.get('query',''))
+        parsed_operators, parsed_terms = _parse_search_query(params.get('query', ''))
         params = params.copy()
         for field, term in parsed_terms.items():
             params.add(field, term)
