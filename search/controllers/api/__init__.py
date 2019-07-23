@@ -1,16 +1,16 @@
 """Controller for search API requests."""
 
-from typing import Tuple, Dict, Any, Optional, List, Union
-from mypy_extensions import TypedDict
-import re
 from collections import defaultdict
 from datetime import date, datetime
+import re
+
+from typing import Tuple, Dict, Any, Optional, List, Union
+from mypy_extensions import TypedDict
+
 from dateutil.relativedelta import relativedelta
 import dateutil.parser
-from pytz import timezone
 import pytz
-
-
+from pytz import timezone
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from werkzeug.exceptions import InternalServerError, BadRequest, NotFound
 from flask import url_for
@@ -24,7 +24,7 @@ from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
     DateRange, ClassificationList, Classification, asdict, DocumentSet, \
     Document, ClassicAPIQuery
 from ...domain.api import Phrase, Term, Operator, Field
-from .classic_parser import parse_classic_query  # TODO: fix path to _tokenizer.
+from .classic_parser import parse_classic_query
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
@@ -161,21 +161,21 @@ def classic_query(params: MultiDict) \
         phrase = parse_classic_query(raw_query)
         # TODO: add support for order, size, page_start
         query = ClassicAPIQuery(phrase=phrase)
-        
+
         # pass to search indexer, which will handle parsing
         document_set: DocumentSet = index.SearchSession.search(query)
         data: SearchResponseData = {'results': document_set, 'query': query}
         logger.debug('Got document set with %i results',
-                        len(document_set['results']))
+                     len(document_set['results']))
 
         if id_list: # and raw_query
             results = [paper for paper in document_set.results
-                        if paper.paper_id in id_list or paper.paper_id_v in id_list]
+                       if paper.paper_id in id_list or paper.paper_id_v in id_list]
             data = {
                 'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
                 'query' : query
             }
-    
+
     elif id_list: # and not raw_query
         # Process only id_lists.
         # Note lack of error handling to implicitly propogate any errors.

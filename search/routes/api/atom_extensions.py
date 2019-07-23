@@ -14,7 +14,6 @@ class OpenSearchExtension(BaseExtension):
 
     def __init__(self: BaseExtension) -> None:
         """Initialize extension parameters."""
-
         # __ syntax follows convention of :module:`feedgen.ext`
         self.__opensearch_totalResults = None
         self.__opensearch_startIndex = None
@@ -81,15 +80,15 @@ class OpenSearchExtension(BaseExtension):
         return {'opensearch': OPENSEARCH_NS}
 
     def totalResults(self: BaseExtension, text: str):
-        """ Set the totalResults parameter. """
+        """Set the totalResults parameter."""
         self.__opensearch_totalResults = str(text)
 
     def startIndex(self: BaseExtension, text: str):
-        """ Set the startIndex parameter. """
+        """Set the startIndex parameter."""
         self.__opensearch_startIndex = str(text)
         
     def itemsPerPage(self: BaseExtension, text: str):
-        """ Set the itemsPerPage parameter. """
+        """Set the itemsPerPage parameter."""
         self.__opensearch_itemsPerPage = str(text)
 
 
@@ -98,7 +97,6 @@ class ArxivExtension(BaseExtension):
 
     def __init__(self: BaseExtension) -> None:
         """Noop initialization."""
-        pass
 
     @staticmethod
     def extend_atom(atom_feed: FeedGenerator) -> FeedGenerator:

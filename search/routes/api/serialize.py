@@ -5,7 +5,6 @@ from datetime import datetime
 from xml.etree import ElementTree as etree
 from flask import jsonify, url_for, Response
 
-from datetime import datetime
 from feedgen.feed import FeedGenerator
 from pytz import utc
 from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
@@ -202,7 +201,6 @@ class AtomXMLSerializer(BaseSerializer):
     def serialize_document(cls, document: Document,
                            query: Optional[APIQuery] = None) -> str:
         """Generate Atom feed for a single :class:`Document`."""
-
         # wrap the single document in a DocumentSet wrapper.
         document_set = DocumentSet(results=[document], metadata=dict()) # TODO: Revise metadata
 

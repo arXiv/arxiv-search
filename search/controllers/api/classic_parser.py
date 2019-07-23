@@ -34,8 +34,7 @@ from ...domain.api import Phrase, Operator, Field, Term
 
 
 def parse_classic_query(query: str) -> Phrase:
-    """
-    Parse Classic API-style query string into app-native Phrase.
+    """Parse Classic API-style query string into app-native Phrase.
 
     Iterates through each character in the string, applying a recursive-descent
     parser and appropriately handling parens and quotes. See module docstring.
@@ -45,18 +44,16 @@ def parse_classic_query(query: str) -> Phrase:
     query : str
         A Classic API query string.
 
-    Returns_group_tokens(_cast_tokens(tokens))
+    Returns
     -------
     :class:`Phrase`
         A tuple representing the query.
     """
-
     return _group_tokens(_cast_tokens(_tokenize_query_string(query)))
 
 
 def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
-    """
-    """
+    """Tokenizes query string into list of strings and sub-Phrases."""
     # Intializing state variables
     tokens: List[Union[str, Phrase]] = []
     token_start = 0
@@ -96,24 +93,24 @@ def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
     return tokens
 
 
-def _cast_tokens(tokens: List[Union[str, Phrase]]) -> Union[Operator, Term, Phrase]:
+def _cast_tokens(tokens: List[Union[str, Phrase]]) -> List[Union[Operator, Term, Phrase]]:
     """Cast tokens to class-based representations."""
-    classed_tokens: Union[Operator, Term, Phrase] = []
+    classed_tokens: List[Union[Operator, Term, Phrase]] = []
     for token in tokens:
         if isinstance(token, str):
             if ':' in token:
                 token = _parse_field_query(token)
                 classed_tokens.append(token)
             else:
-                token = _parse_operator(token)
-                classed_tokens.append(token)
+                operator = _parse_operator(token)
+                classed_tokens.append(operator)
         else:
             classed_tokens.append(token)
-    
+
     return classed_tokens
 
 
-def _group_tokens(classed_tokens: Union[Operator, Term, Phrase]) -> Phrase:
+def _group_tokens(classed_tokens: List[Union[Operator, Term, Phrase]]) -> Phrase:
     """Group operators together with Term."""
     phrases: List[Phrase] = []
     current_op: Optional[Operator] = None
