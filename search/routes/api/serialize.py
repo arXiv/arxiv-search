@@ -147,21 +147,22 @@ class AtomXMLSerializer(BaseSerializer):
                                     version=doc['version'], _external=True),
                     "type": "application/pdf", 'rel': 'related'})
 
-        if doc['comments']:
+        if doc.get('comments'):
             entry.arxiv.comment(doc['comments'])
 
-        if doc['journal_ref']:
+        if doc.get('journal_ref'):
             entry.arxiv.journal_ref(doc['journal_ref'])
 
-        if doc['doi']:
+        if doc.get('doi'):
             entry.arxiv.doi(doc['doi'])
 
-        entry.arxiv.primary_category(doc['primary_classification']['archive']['id'])
-        entry.category(
-            term=doc['primary_classification']['archive']['id'],
-            scheme=ARXIV_NS
-        )
-        
+        if doc['primary_classification']['archive']['id']:
+            entry.arxiv.primary_category(doc['primary_classification']['archive']['id'])
+            entry.category(
+                term=doc['primary_classification']['archive']['id'],
+                scheme=ARXIV_NS
+            )
+
         for category in doc['secondary_classification']:
             entry.category(
                 term=category['archive']['id'],
