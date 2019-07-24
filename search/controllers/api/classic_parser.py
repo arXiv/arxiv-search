@@ -126,7 +126,8 @@ def _group_tokens(classed_tokens: List[Union[Operator, Term, Phrase]]) -> Phrase
     if len(phrases) == 1:
         return phrases[0]
     else:
-        return tuple(phrases)
+        # When mypy adds full support for recursive types, this should be fine.
+        return tuple(phrases)  # type: ignore
 
 def _parse_operator(characters: str) -> Operator:
     try:

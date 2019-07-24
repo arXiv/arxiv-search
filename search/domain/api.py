@@ -42,7 +42,7 @@ Examples
 
 """
 
-Phrase = Union[Term, Tuple[Operator, 'Phrase'], Tuple['Phrase']]
+Phrase = Union[Term, Tuple[Operator, 'Phrase'], Tuple['Phrase']]  #type: ignore
 """
 
 Examples
