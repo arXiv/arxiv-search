@@ -7,13 +7,12 @@ from flask import jsonify, url_for, Response
 
 from feedgen.feed import FeedGenerator
 from pytz import utc
-from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
-    OpenSearchExtension, ARXIV_NS
 
 from arxiv import status
 from search.domain import DocumentSet, Document, Classification, Person, \
     APIQuery
-
+from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
+    OpenSearchExtension, ARXIV_NS
 
 class BaseSerializer(object):
     """Base class for API serializers."""
@@ -132,17 +131,16 @@ class AtomXMLSerializer(BaseSerializer):
         """Select a subset of :class:`Document` properties for public API."""
         entry = fg.add_entry()
         entry.id(url_for("abs", paper_id=doc['paper_id'],
-                             version=doc['version'], _external=True))
+                         version=doc['version'], _external=True))
         entry.title(doc['title'])
         entry.summary(doc['abstract'])
         entry.published(doc['submitted_date'])
         entry.updated(doc['updated_date'])
-        entry.link({'href': url_for("abs", paper_id=doc['paper_id'], 
+        entry.link({'href': url_for("abs", paper_id=doc['paper_id'],
                                     version=doc['version'], _external=True),
                     "type": "text/html"})
-        
 
-        entry.link({'href': url_for("pdf", paper_id=doc['paper_id'], 
+        entry.link({'href': url_for("pdf", paper_id=doc['paper_id'],
                                     version=doc['version'], _external=True),
                     "type": "application/pdf", 'rel': 'related'})
 

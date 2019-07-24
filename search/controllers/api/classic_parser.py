@@ -68,7 +68,7 @@ def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
             start = paren_group.pop() # get innermost open paren
             if not paren_group and start == 0 and i + 1 == len(query):
                 # Parent spans whole group, strip the parens and just return the de-parened phrase
-                return parse_classic_query(query[1:i])
+                return _tokenize_query_string(query[1:i])
             elif not paren_group:
                 # pass the paren-stripped phrase for parsing
                 tokens.append(parse_classic_query(query[start+1:i]))
