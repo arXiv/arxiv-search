@@ -4,12 +4,13 @@ from flask import Blueprint, make_response, render_template, redirect, \
     request, Response, url_for
 
 from arxiv.base import logging
-from search.controllers import api
-
-from . import serialize, exceptions
 
 from arxiv.users.auth.decorators import scoped
 from arxiv.users.auth import scopes
+
+from search.controllers import api
+from . import serialize, exceptions
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,6 @@ def query() -> Response:
 @scoped(required=scopes.READ_PUBLIC)
 def paper(paper_id: str, version: str) -> Response:
     """Document metadata endpoint."""
-
     # TODO: Investigate if this method should be removed
     data, status_code, headers = api.paper(f'{paper_id}v{version}')
     response_data = serialize.as_atom(data['results'])

@@ -1,8 +1,4 @@
-
-"""
-Module for translating classic API `Phrase` objects to the
-Elasticsearch DSL and retrieving results.
-"""
+"""Translate classic API `Phrase` objects to Elasticsearch DSL."""
 
 from typing import Dict, Callable
 
@@ -37,9 +33,7 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
 
 
 def _phrase_to_query(phrase: Phrase) -> Q:
-    """
-    Parses a Phrase of a Classic API request into an ES Q object.
-    """
+    """Parses a Phrase of a Classic API request into an ES Q object."""
     # base case - simple term query automatically handled by delegation.
     if isinstance(phrase[0], Field) and len(phrase) == 2:
         return _term_to_query(phrase) # type: ignore
@@ -65,7 +59,7 @@ def _phrase_to_query(phrase: Phrase) -> Q:
             elif current_operator is Operator.OR:
                 q |= phrase_q
             elif current_operator is Operator.ANDNOT:
-                q &= ~phrase_q
+                q &= ~phrase_q  # pylint: disable=invalid-unary-operand-type
 
     return q
 
@@ -74,20 +68,22 @@ def _term_to_query(term: Term) -> Q:
     """
     Parses a fielded term using transfromations from the current API.
 
-    See also: :module:`.api`
+    See Also
+    --------
+        :module:`.api`
     """
     field, val = term
-   
+
     FIELD_TERM_MAPPING: Dict[Field, Callable[[str], Q]] = {
         Field.Author : SEARCH_FIELDS['author'],
         Field.Comment : SEARCH_FIELDS['comments'],
         Field.Identifier : SEARCH_FIELDS['paper_id'], # TODO: edge case of versioned data
         Field.JournalReference : SEARCH_FIELDS['journal_ref'],
         Field.ReportNumber : SEARCH_FIELDS['report_num'],
-        Field.SubjectCategory : SEARCH_FIELDS['cross_list_category'], # TODO: unsure of where classifications are unified
+        # TODO: unsure of where classifications are unified:
+        Field.SubjectCategory : SEARCH_FIELDS['cross_list_category'],
         Field.Title : SEARCH_FIELDS['title'],
         Field.All : SEARCH_FIELDS['all']
     }
 
     return FIELD_TERM_MAPPING[field](val)
-

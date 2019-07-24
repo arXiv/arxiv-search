@@ -13,12 +13,12 @@ for indexing (e.g. by the
 
 import json
 import warnings
-import urllib3
 from contextlib import contextmanager
 from typing import Any, Optional, Tuple, Union, List, Generator, Mapping
 from functools import reduce, wraps
 from operator import ior
 
+import urllib3
 from flask import current_app
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError, NotFoundError, \

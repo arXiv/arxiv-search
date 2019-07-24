@@ -39,7 +39,7 @@ def search() -> Response:
     # if requested == ATOM_XML:
     #     return serialize.as_atom(data), status, headers
     response_data = serialize.as_json(data['results'], query=data['query'])
-    
+
     headers.update({'Content-type': f'{JSON}; charset=utf-8'})
     response: Response = make_response(response_data, status_code, headers)
     return response
