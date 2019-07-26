@@ -1,4 +1,4 @@
-from ...api.classic_parser import parse_classic_query
+from ...api.classic_parser import parse_classic_query, serialize_query_string
 
 from ....domain.api import Phrase, Term, ClassicAPIQuery, Field, Operator
 
@@ -113,3 +113,33 @@ class TestParsing(TestCase):
         querystring = "or ti:a and ti:b"
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
+    
+    def test_serialize_query(self):
+        querystring = "au:copernicus"
+        phrase: Phrase = (Field.Author, 'copernicus')
+        self.assertEqual(serialize_query_string(phrase), querystring)
+
+    def test_serialize_simple_query_with_quotes(self):
+        """Simple query with quotations."""
+        querystring = 'ti:"dark matter"'
+        phrase: Phrase = (Field.Title, 'dark matter')
+        self.assertEqual(serialize_query_string(phrase), querystring)
+
+    def test_serialize_simple_conjunct_query(self):
+        """Simple conjunct query."""
+        querystring = "au:del_maestro AND ti:checkerboard"
+        phrase: Phrase = ((Field.Author, 'del_maestro'),
+                          (Operator.AND,
+                           (Field.Title, 'checkerboard')))
+        self.assertEqual(serialize_query_string(phrase), querystring)
+
+    def test_serialize_conjunct_with_nested_phrases(self):
+        """Conjunct query with nested disjunct query."""
+        querystring \
+            = "(ti:checkerboard OR ti:Pyrochlore) AND (au:del_maestro OR au:hawking)"
+        phrase = (((Field.Title, 'checkerboard'), 
+                    (Operator.OR, (Field.Title, 'Pyrochlore'))),
+                  (Operator.AND,
+                   ((Field.Author, 'del_maestro'), 
+                    (Operator.OR, (Field.Author, 'hawking')))))
+        self.assertEqual(serialize_query_string(phrase), querystring)

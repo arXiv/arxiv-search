@@ -17,11 +17,11 @@ See :module:`tests.test_classic_parser` for more examples.
 
 
 from typing import Any, List, Optional, Tuple, Union
+from operator import attrgetter
 
 from werkzeug.exceptions import BadRequest
 
 from ...domain.api import Phrase, Operator, Field, Term
-
 
 def parse_classic_query(query: str) -> Phrase:
     """
@@ -152,3 +152,31 @@ def _parse_field_query(field_part: str) -> Term:
         value = value[1:-1]
 
     return field, value
+
+
+def serialize_query_string(phrase: Phrase) -> str:
+    """Converts a phrase object back to a query string."""
+    parts: List[str] = []
+    for token in phrase:
+        if isinstance(token, Operator):
+            parts.append(token.value)
+        elif isinstance(token, Field):
+            parts.append(f"{token.value}:")
+        elif isinstance(token, str):
+            # strings are added to the field or operator preceeding it 
+            if ' ' in token:
+                parts[-1] += f'"{token}"'
+            else:
+                parts[-1] += token
+        elif isinstance(token, tuple):
+            part = serialize_query_string(token)
+            # If the returned part is a Phrase, add parens
+            if ' ' in part and part.count(':') > 1 \
+                and part.split()[0] not in map(attrgetter('value'), Operator):  # doesn't start with an operator
+                part = f'({part})'
+    
+            parts.append(part)
+        else:
+            raise ValueError(f"Invalid token in phrase: {token}")
+    
+    return ' '.join(parts)
