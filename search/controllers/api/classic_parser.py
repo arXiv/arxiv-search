@@ -154,7 +154,7 @@ def _parse_field_query(field_part: str) -> Term:
     return field, value
 
 
-def serialize_query_string(phrase: Phrase) -> str:
+def phrase_to_query_string(phrase: Phrase) -> str:
     """Converts a phrase object back to a query string."""
     parts: List[str] = []
     for token in phrase:
@@ -169,7 +169,7 @@ def serialize_query_string(phrase: Phrase) -> str:
             else:
                 parts[-1] += token
         elif isinstance(token, tuple):
-            part = serialize_query_string(token)
+            part = phrase_to_query_string(token)
             # If the returned part is a Phrase, add parens
             if ' ' in part and part.count(':') > 1 \
                 and part.split()[0] not in map(attrgetter('value'), Operator):  # doesn't start with an operator

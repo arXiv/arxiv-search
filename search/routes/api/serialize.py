@@ -13,7 +13,7 @@ from search.domain import DocumentSet, Document, Classification, Person, \
     APIQuery
 from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
     OpenSearchExtension, ARXIV_NS
-from ...controllers.api.classic_parser import serialize_query_string
+from ...controllers.api.classic_parser import phrase_to_query_string
 
 class BaseSerializer(object):
     """Base class for API serializers."""
@@ -182,9 +182,9 @@ class AtomXMLSerializer(BaseSerializer):
         fg.register_extension('opensearch', OpenSearchExtension)
         fg.register_extension("arxiv", ArxivExtension, ArxivEntryExtension, rss=False)
         
-        fg.title(f'arXiv Query: "{serialize_query_string(query.phrase)}"')
+        fg.title(f'arXiv Query: "{phrase_to_query_string(query.phrase)}"')
         if query:
-            query_string = serialize_query_string(query.phrase)
+            query_string = phrase_to_query_string(query.phrase)
             fg.id(url_for('classic.query', search_query=query_string))
             fg.link({
                 "href" : url_for('classic.query', search_query=query_string),

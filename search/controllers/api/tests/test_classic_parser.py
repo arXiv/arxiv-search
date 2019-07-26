@@ -1,4 +1,4 @@
-from ...api.classic_parser import parse_classic_query, serialize_query_string
+from ...api.classic_parser import parse_classic_query, phrase_to_query_string
 
 from ....domain.api import Phrase, Term, ClassicAPIQuery, Field, Operator
 
@@ -117,13 +117,13 @@ class TestParsing(TestCase):
     def test_serialize_query(self):
         querystring = "au:copernicus"
         phrase: Phrase = (Field.Author, 'copernicus')
-        self.assertEqual(serialize_query_string(phrase), querystring)
+        self.assertEqual(phrase_to_query_string(phrase), querystring)
 
     def test_serialize_simple_query_with_quotes(self):
         """Simple query with quotations."""
         querystring = 'ti:"dark matter"'
         phrase: Phrase = (Field.Title, 'dark matter')
-        self.assertEqual(serialize_query_string(phrase), querystring)
+        self.assertEqual(phrase_to_query_string(phrase), querystring)
 
     def test_serialize_simple_conjunct_query(self):
         """Simple conjunct query."""
@@ -131,7 +131,7 @@ class TestParsing(TestCase):
         phrase: Phrase = ((Field.Author, 'del_maestro'),
                           (Operator.AND,
                            (Field.Title, 'checkerboard')))
-        self.assertEqual(serialize_query_string(phrase), querystring)
+        self.assertEqual(phrase_to_query_string(phrase), querystring)
 
     def test_serialize_conjunct_with_nested_phrases(self):
         """Conjunct query with nested disjunct query."""
@@ -142,4 +142,4 @@ class TestParsing(TestCase):
                   (Operator.AND,
                    ((Field.Author, 'del_maestro'), 
                     (Operator.OR, (Field.Author, 'hawking')))))
-        self.assertEqual(serialize_query_string(phrase), querystring)
+        self.assertEqual(phrase_to_query_string(phrase), querystring)
