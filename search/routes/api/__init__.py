@@ -40,7 +40,7 @@ def search() -> Response:
     #     return serialize.as_atom(data), status, headers
     response_data = serialize.as_json(data['results'], query=data['query'])
 
-    headers.update({'Content-type': JSON)
+    headers.update({'Content-type': JSON})
     response: Response = make_response(response_data, status_code, headers)
     return response
 
