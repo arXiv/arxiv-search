@@ -157,7 +157,7 @@ class SearchSession(metaclass=MetaIntegration):
         return Search(using=self.es, index=self.index)
 
     def _load_mapping(self) -> dict:
-        if not self.mapping or type(self.mapping) is not str:
+        if not self.mapping or isinstance(self.mapping, str):
             raise IndexingError('Mapping not set')
         with open(self.mapping) as f:
             mappings: dict = json.load(f)

@@ -3,16 +3,6 @@ Utility module for Classic API Query parsing.
 
 We use a recursive descent parser, implemented via :func:`parse_classic_query`.
 
-It iterates through each character:
-1.  If a paren group is opened, we append to a list of start positions for
-    open paren groups.
-2.  If a paren is closed, we pop out the most recent open paren from the stack
-    of start positions and recursively parse the paren group, adding it to our
-    list of tokens.
-3.  If a quote is opened, flip a quotation flag.
-4.  If a space is encountered, append the token to the list of tokens and reset
-    the token start position.
-
 Tokens are themselves parsed using two helpers: :func:`_parse_operator` and
 :func:`_parse_field_query`.
 
@@ -34,10 +24,21 @@ from ...domain.api import Phrase, Operator, Field, Term
 
 
 def parse_classic_query(query: str) -> Phrase:
-    """Parse Classic API-style query string into app-native Phrase.
+    """
+    Parse Classic API-style query string into app-native Phrase.
 
     Iterates through each character in the string, applying a recursive-descent
-    parser and appropriately handling parens and quotes. See module docstring.
+    parser and appropriately handling parens and quotes.
+
+    It iterates through each character:
+    1.  If a paren group is opened, we append to a list of start positions for
+        open paren groups.
+    2.  If a paren is closed, we pop out the most recent open paren from the 
+        stack of start positions and recursively parse the paren group, adding
+        it to our list of tokens.
+    3.  If a quote is opened, flip a quotation flag.
+    4.  If a space is encountered, append the token to the list of tokens and
+        reset the token start position.
 
     Parameters
     ----------
@@ -48,6 +49,7 @@ def parse_classic_query(query: str) -> Phrase:
     -------
     :class:`Phrase`
         A tuple representing the query.
+
     """
     return _group_tokens(_cast_tokens(_tokenize_query_string(query)))
 

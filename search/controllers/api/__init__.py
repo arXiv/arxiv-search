@@ -60,7 +60,8 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     # using the Classic endpoint's `search_query` parameter. It is meant
     # as a migration pathway so that the URL and query structure aren't
     # both changed at the same time by end users.
-    # TODO: Complete this implementation.
+    # TODO: Implement the NG API using the Classic API domain.
+    parsed_operators = None  # Default in the event that there is not a Classic query.
     try:
         parsed_operators, parsed_terms = _parse_search_query(params.get('query', ''))
         params = params.copy()
@@ -72,6 +73,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     # process fielded terms, using the operators above
     query_terms: List[Dict[str, Any]] = []
     terms = _get_fielded_terms(params, query_terms, parsed_operators)
+
     if terms is not None:
         q.terms = terms
     date_range = _get_date_params(params, query_terms)

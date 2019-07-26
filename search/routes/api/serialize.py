@@ -182,6 +182,7 @@ class AtomXMLSerializer(BaseSerializer):
         fg.register_extension("arxiv", ArxivExtension, ArxivEntryExtension, rss=False)
         fg.id("http://api.arxiv.org/") # TODO: review API ID generation
         fg.title(f"arXiv Query: {query}")
+        # TODO: Implement URL generation with url_for an the APIQuery object.
         fg.link({"href" : "https://api.arxiv.org/", "type": 'application/atom+xml'})
         fg.updated(datetime.utcnow().replace(tzinfo=utc))
 

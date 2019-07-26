@@ -42,6 +42,7 @@ Examples
 
 """
 
+# mypy doesn't yet support recursive type definitions, so we suppress analysis
 Phrase = Union[Term, Tuple[Operator, 'Phrase'], Tuple['Phrase']]  #type: ignore
 """
 

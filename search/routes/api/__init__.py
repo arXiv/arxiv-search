@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 blueprint = Blueprint('api', __name__, url_prefix='/')
 
-ATOM_XML = "application/atom+xml"
-JSON = "application/json"
+ATOM_XML = "application/atom+xml; charset=utf-8"
+JSON = "application/json; charset=utf-8"
 
 
 @blueprint.route('/', methods=['GET'])
@@ -40,17 +40,17 @@ def search() -> Response:
     #     return serialize.as_atom(data), status, headers
     response_data = serialize.as_json(data['results'], query=data['query'])
 
-    headers.update({'Content-type': f'{JSON}; charset=utf-8'})
+    headers.update({'Content-type': JSON)
     response: Response = make_response(response_data, status_code, headers)
     return response
 
 
-@blueprint.route('<arxiv:paper_id>v<string:version>', methods=['GET'])
+@blueprint.route('/<arxiv:paper_id>v<string:version>', methods=['GET'])
 @scoped(required=scopes.READ_PUBLIC)
 def paper(paper_id: str, version: str) -> Response:
     """Document metadata endpoint."""
     data, status_code, headers = api.paper(f'{paper_id}v{version}')
     response_data = serialize.as_json(data['results'])
-    headers.update({'Content-type': f'{JSON}; charset=utf-8'})
+    headers.update({'Content-type': JSON})
     response: Response = make_response(response_data, status_code, headers)
     return response
