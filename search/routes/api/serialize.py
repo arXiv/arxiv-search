@@ -182,12 +182,12 @@ class AtomXMLSerializer(BaseSerializer):
         fg.register_extension('opensearch', OpenSearchExtension)
         fg.register_extension("arxiv", ArxivExtension, ArxivEntryExtension, rss=False)
         
-        fg.title(f"arXiv Query: {serialize_query_string(query)}")
+        fg.title(f'arXiv Query: "{serialize_query_string(query.phrase)}"')
         if query:
-            query_string = serialize_query_string(query)
-            fg.id(url_for('api.classic.query', search_query=query_string))
+            query_string = serialize_query_string(query.phrase)
+            fg.id(url_for('classic.query', search_query=query_string))
             fg.link({
-                "href" : url_for('api.classic.query', search_query=query_string),
+                "href" : url_for('classic.query', search_query=query_string),
                 "type": 'application/atom+xml'})
         fg.updated(datetime.utcnow().replace(tzinfo=utc))
 
