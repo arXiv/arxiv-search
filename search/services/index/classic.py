@@ -34,9 +34,10 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
 
 def _phrase_to_query(phrase: Phrase) -> Q:
     """Parses a Phrase of a Classic API request into an ES Q object."""
+    # mypy doesn't yet handle recursive type annotations, so ignored types
     # base case - simple term query automatically handled by delegation.
     if isinstance(phrase[0], Field) and len(phrase) == 2:
-        return _term_to_query(phrase) # type: ignore
+        return _term_to_query(phrase)  # type: ignore
 
     # parse Phrase object an build Q
     q = Q()
@@ -48,9 +49,9 @@ def _phrase_to_query(phrase: Phrase) -> Q:
         elif isinstance(token, tuple):
             phrase_q: Q = Q()
             if isinstance(token[0], Operator) or len(token) == 3:
-                phrase_q = _phrase_to_query(token)
+                phrase_q = _phrase_to_query(token)  # type: ignore
             elif len(token) == 2:
-                phrase_q = _term_to_query(token)
+                phrase_q = _term_to_query(token)  # type: ignore
             else:
                 raise ValueError(f"invalid phrase component: {token}")
 
