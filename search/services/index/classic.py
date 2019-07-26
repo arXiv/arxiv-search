@@ -48,9 +48,9 @@ def _phrase_to_query(phrase: Phrase) -> Q:
         elif isinstance(token, tuple):
             phrase_q: Q = Q()
             if isinstance(token[0], Operator) or len(token) == 3:
-                phrase_q = _phrase_to_query(token) # type: ignore
+                phrase_q = _phrase_to_query(token)
             elif len(token) == 2:
-                phrase_q = _term_to_query(token) # type: ignore
+                phrase_q = _term_to_query(token)
             else:
                 raise ValueError(f"invalid phrase component: {token}")
 

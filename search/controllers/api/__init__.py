@@ -29,9 +29,10 @@ from .classic_parser import parse_classic_query
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
 
-SearchResponseData = TypedDict('SearchResponseData', {
-    'results': DocumentSet,
-    'query': Union[Query, ClassicAPIQuery]})
+SearchResponseData = TypedDict(
+    'SearchResponseData', 
+    {'results': DocumentSet, 'query': Union[Query, ClassicAPIQuery]}
+)
 
 
 def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
