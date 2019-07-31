@@ -75,7 +75,7 @@ Examples
 class ClassicAPIQuery:
     """Query supported by the classic arXiv API."""
 
-    phrase: Phrase
+    phrase: Optional[Phrase] = field(default=None)
     order: Optional[str] = field(default=None)
     size: int = field(default=50)
     page_start: int = field(default=0)
