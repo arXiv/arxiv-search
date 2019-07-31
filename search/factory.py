@@ -80,7 +80,7 @@ def create_classic_api_web_app() -> Flask:
 
     app = Flask('search')
     app.json_encoder = ISO8601JSONEncoder
-    app.config.from_pyfile('config.py') # type: ignore
+    app.config.from_pyfile('config.py')  # type: ignore
 
     index.SearchSession.init_app(app)
 

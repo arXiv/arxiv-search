@@ -13,12 +13,12 @@ for indexing (e.g. by the
 
 import json
 import warnings
-import urllib3
 from contextlib import contextmanager
 from typing import Any, Optional, Tuple, Union, List, Generator, Mapping
 from functools import reduce, wraps
 from operator import ior
 
+import urllib3
 from flask import current_app
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError, NotFoundError, \
@@ -157,7 +157,7 @@ class SearchSession(metaclass=MetaIntegration):
         return Search(using=self.es, index=self.index)
 
     def _load_mapping(self) -> dict:
-        if not self.mapping or type(self.mapping) is not str:
+        if not self.mapping or isinstance(self.mapping, str):
             raise IndexingError('Mapping not set')
         with open(self.mapping) as f:
             mappings: dict = json.load(f)

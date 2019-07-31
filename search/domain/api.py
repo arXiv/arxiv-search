@@ -42,7 +42,8 @@ Examples
 
 """
 
-Phrase = Union[Term, Tuple[Operator, 'Phrase'], Tuple['Phrase']]
+# mypy doesn't yet support recursive type definitions, so we suppress analysis
+Phrase = Union[Term, Tuple[Operator, 'Phrase'], Tuple['Phrase']]  #type: ignore
 """
 
 Examples
@@ -89,6 +90,7 @@ class ClassicAPIQuery:
     def page(self) -> int:
         """Get the approximate page number."""
         return 1 + int(round(self.page_start/self.size))
+
 
 def get_default_extra_fields() -> List[str]:
     """These are the default extra fields."""

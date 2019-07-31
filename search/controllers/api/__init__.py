@@ -1,16 +1,16 @@
 """Controller for search API requests."""
 
-from typing import Tuple, Dict, Any, Optional, List, Union
-from mypy_extensions import TypedDict
-import re
 from collections import defaultdict
 from datetime import date, datetime
+import re
+
+from typing import Tuple, Dict, Any, Optional, List, Union
+from mypy_extensions import TypedDict
+
 from dateutil.relativedelta import relativedelta
 import dateutil.parser
-from pytz import timezone
 import pytz
-
-
+from pytz import timezone
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from werkzeug.exceptions import InternalServerError, BadRequest, NotFound
 from flask import url_for
@@ -24,13 +24,15 @@ from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
     DateRange, ClassificationList, Classification, asdict, DocumentSet, \
     Document, ClassicAPIQuery
 from ...domain.api import Phrase, Term, Operator, Field
-from .classic_parser import parse_classic_query # TODO: fix path to _tokenizer
+from .classic_parser import parse_classic_query
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
 
-SearchResponseData = TypedDict('SearchResponseData',
-    {'results': DocumentSet, 'query': Union[Query, ClassicAPIQuery]})
+SearchResponseData = TypedDict(
+    'SearchResponseData', 
+    {'results': DocumentSet, 'query': Union[Query, ClassicAPIQuery]}
+)
 
 
 def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -53,14 +55,15 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
     q = APIQuery()
 
-    # parse NG queries utilizing the Classic API syntax.
+    # Parse NG queries utilizing the Classic API syntax.
     # This implementation parses the `query` parameter as if it were
     # using the Classic endpoint's `search_query` parameter. It is meant
     # as a migration pathway so that the URL and query structure aren't
     # both changed at the same time by end users.
-    # TODO: Complete this implementation.
+    # TODO: Implement the NG API using the Classic API domain.
+    parsed_operators = None  # Default in the event that there is not a Classic query.
     try:
-        parsed_operators, parsed_terms = _parse_search_query(params.get('query',''))
+        parsed_operators, parsed_terms = _parse_search_query(params.get('query', ''))
         params = params.copy()
         for field, term in parsed_terms.items():
             params.add(field, term)
@@ -70,6 +73,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     # process fielded terms, using the operators above
     query_terms: List[Dict[str, Any]] = []
     terms = _get_fielded_terms(params, query_terms, parsed_operators)
+
     if terms is not None:
         q.terms = terms
     date_range = _get_date_params(params, query_terms)
@@ -161,21 +165,24 @@ def classic_query(params: MultiDict) \
         phrase = parse_classic_query(raw_query)
         # TODO: add support for order, size, page_start
         query = ClassicAPIQuery(phrase=phrase)
-        
+
         # pass to search indexer, which will handle parsing
         document_set: DocumentSet = index.SearchSession.search(query)
         data: SearchResponseData = {'results': document_set, 'query': query}
         logger.debug('Got document set with %i results',
-                        len(document_set['results']))
+                     len(document_set['results']))
 
         if id_list: # and raw_query
             results = [paper for paper in document_set.results
-                        if paper.paper_id in id_list or paper.paper_id_v in id_list]
+                       if paper.paper_id in id_list or paper.paper_id_v in id_list]
+
+
+            # TODO: Aggregate search metadata for response data
             data = {
-                'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
+                'results' : DocumentSet(results=results, metadata=dict()),
                 'query' : query
             }
-    
+
     elif id_list: # and not raw_query
         # Process only id_lists.
         # Note lack of error handling to implicitly propogate any errors.
@@ -184,8 +191,9 @@ def classic_query(params: MultiDict) \
 
         papers, _, _ = zip(*papers) # type: ignore
         results: List[Document] = [paper['results'] for paper in papers] # type: ignore
+        # TODO: Aggregate search metadata in result set
         data = {
-            'results' : DocumentSet(results=results, metadata=dict()), # TODO: Aggregate search metadata
+            'results' : DocumentSet(results=results, metadata=dict()),
             'query' : APIQuery() # TODO: Generate API query based on paper_ids
         }
 
@@ -235,7 +243,7 @@ def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
 
 
 def _get_fielded_terms(params: MultiDict, query_terms: List,
-        operators: Optional[Dict[str, Any]] = None) -> Optional[FieldedSearchList]:
+                       operators: Optional[Dict[str, Any]] = None) -> Optional[FieldedSearchList]:
     if operators is None:
         operators = defaultdict(default_factory=lambda: "AND")
     terms = FieldedSearchList()
@@ -278,7 +286,7 @@ def _get_date_params(params: MultiDict, query_terms: List) \
     return None
 
 
-def _to_classification(value: str, query_terms: List) \
+def _to_classification(value: str) \
         -> Tuple[Classification, ...]:
     clsns = []
     if value in taxonomy.definitions.GROUPS:
@@ -305,7 +313,7 @@ def _to_classification(value: str, query_terms: List) \
 def _get_classification(value: str, field: str, query_terms: List) \
         -> Tuple[Classification, ...]:
     try:
-        clsns = _to_classification(value, query_terms)
+        clsns = _to_classification(value)
     except ValueError:
         raise BadRequest(f'Not a valid classification term: {field}={value}')
     query_terms.append({'parameter': field, 'value': value})
@@ -325,9 +333,7 @@ SEARCH_QUERY_FIELDS = {
 
 
 def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-    """
-    Parses a query into a
-    """
+    """Parses a query into tuple of operators and parameters."""
     new_query_params = {}
     new_query_operators: Dict[str, str] = defaultdict(default_factory=lambda: "AND")
     terms = query.split()
@@ -365,7 +371,7 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
 
 
 def _get_search_query(params: MultiDict, query_terms: List,
-        operators: Dict[str, Any]) -> Optional[FieldedSearchList]:
+                      operators: Dict[str, Any]) -> Optional[FieldedSearchList]:
     terms = FieldedSearchList()
     for field, _ in Query.SUPPORTED_FIELDS:
         values = params.getlist(field)
@@ -376,6 +382,7 @@ def _get_search_query(params: MultiDict, query_terms: List,
                 field=field,
                 term=value
             ))
-    if len(terms) == 0:
+
+    if not terms:
         return None
     return terms

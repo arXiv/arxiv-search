@@ -5,16 +5,15 @@ from datetime import datetime
 from xml.etree import ElementTree as etree
 from flask import jsonify, url_for, Response
 
-from datetime import datetime
 from feedgen.feed import FeedGenerator
 from pytz import utc
-from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
-    OpenSearchExtension, ARXIV_NS
 
 from arxiv import status
 from search.domain import DocumentSet, Document, Classification, Person, \
     APIQuery
-
+from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
+    OpenSearchExtension, ARXIV_NS
+from ...controllers.api.classic_parser import phrase_to_query_string
 
 class BaseSerializer(object):
     """Base class for API serializers."""
@@ -133,34 +132,35 @@ class AtomXMLSerializer(BaseSerializer):
         """Select a subset of :class:`Document` properties for public API."""
         entry = fg.add_entry()
         entry.id(url_for("abs", paper_id=doc['paper_id'],
-                             version=doc['version'], _external=True))
+                         version=doc['version'], _external=True))
         entry.title(doc['title'])
         entry.summary(doc['abstract'])
         entry.published(doc['submitted_date'])
         entry.updated(doc['updated_date'])
-        entry.link({'href': url_for("abs", paper_id=doc['paper_id'], 
+        entry.link({'href': url_for("abs", paper_id=doc['paper_id'],
                                     version=doc['version'], _external=True),
                     "type": "text/html"})
-        
 
-        entry.link({'href': url_for("pdf", paper_id=doc['paper_id'], 
+        entry.link({'href': url_for("pdf", paper_id=doc['paper_id'],
                                     version=doc['version'], _external=True),
                     "type": "application/pdf", 'rel': 'related'})
 
-        if doc['comments']:
+        if doc.get('comments'):
             entry.arxiv.comment(doc['comments'])
 
-        if doc['journal_ref']:
+        if doc.get('journal_ref'):
             entry.arxiv.journal_ref(doc['journal_ref'])
 
-        if doc['doi']:
+        if doc.get('doi'):
             entry.arxiv.doi(doc['doi'])
 
-        entry.arxiv.primary_category(doc['primary_classification']['archive']['id'])
-        entry.category(
-            term=doc['primary_classification']['archive']['id'],
-            scheme=ARXIV_NS)
-        
+        if doc['primary_classification']['archive']['id']:
+            entry.arxiv.primary_category(doc['primary_classification']['archive']['id'])
+            entry.category(
+                term=doc['primary_classification']['archive']['id'],
+                scheme=ARXIV_NS
+            )
+
         for category in doc['secondary_classification']:
             entry.category(
                 term=category['archive']['id'],
@@ -181,9 +181,19 @@ class AtomXMLSerializer(BaseSerializer):
         fg = FeedGenerator()
         fg.register_extension('opensearch', OpenSearchExtension)
         fg.register_extension("arxiv", ArxivExtension, ArxivEntryExtension, rss=False)
-        fg.id("http://api.arxiv.org/") # TODO: review API ID generation
-        fg.title(f"arXiv Query: {query}")
-        fg.link({"href" : "https://api.arxiv.org/", "type": 'application/atom+xml'})
+        
+        if query:
+            query_string = phrase_to_query_string(query.phrase)
+            fg.title(
+                f'arXiv Query: search_query={query_string}'
+                f'&start={query.page_start}&max_results={query.size}')
+            fg.id(url_for('classic.query', search_query=query_string,
+                          start=query.page_start, max_results=query.size))
+            fg.link({
+                "href" : url_for('classic.query', search_query=query_string,
+                                 start=query.page_start, max_results=query.size),
+                "type": 'application/atom+xml'})
+
         fg.updated(datetime.utcnow().replace(tzinfo=utc))
 
         fg.opensearch.totalResults(document_set['metadata'].get('total'))
@@ -200,7 +210,6 @@ class AtomXMLSerializer(BaseSerializer):
     def serialize_document(cls, document: Document,
                            query: Optional[APIQuery] = None) -> str:
         """Generate Atom feed for a single :class:`Document`."""
-
         # wrap the single document in a DocumentSet wrapper.
         document_set = DocumentSet(results=[document], metadata=dict()) # TODO: Revise metadata
 

@@ -3,16 +3,6 @@ Utility module for Classic API Query parsing.
 
 We use a recursive descent parser, implemented via :func:`parse_classic_query`.
 
-It iterates through each character:
-1.  If a paren group is opened, we append to a list of start positions for
-    open paren groups.
-2.  If a paren is closed, we pop out the most recent open paren from the stack
-    of start positions and recursively parse the paren group, adding it to our
-    list of tokens.
-3.  If a quote is opened, flip a quotation flag.
-4.  If a space is encountered, append the token to the list of tokens and reset
-    the token start position.
-
 Tokens are themselves parsed using two helpers: :func:`_parse_operator` and
 :func:`_parse_field_query`.
 
@@ -27,18 +17,28 @@ See :module:`tests.test_classic_parser` for more examples.
 
 
 from typing import Any, List, Optional, Tuple, Union
+from operator import attrgetter
 
 from werkzeug.exceptions import BadRequest
 
-from ...domain.api import Phrase, Operator, Field
-
+from ...domain.api import Phrase, Operator, Field, Term
 
 def parse_classic_query(query: str) -> Phrase:
     """
     Parse Classic API-style query string into app-native Phrase.
 
     Iterates through each character in the string, applying a recursive-descent
-    parser and appropriately handling parens and quotes. See module docstring.
+    parser and appropriately handling parens and quotes.
+
+    It iterates through each character:
+    1.  If a paren group is opened, we append to a list of start positions for
+        open paren groups.
+    2.  If a paren is closed, we pop out the most recent open paren from the 
+        stack of start positions and recursively parse the paren group, adding
+        it to our list of tokens.
+    3.  If a quote is opened, flip a quotation flag.
+    4.  If a space is encountered, append the token to the list of tokens and
+        reset the token start position.
 
     Parameters
     ----------
@@ -49,8 +49,13 @@ def parse_classic_query(query: str) -> Phrase:
     -------
     :class:`Phrase`
         A tuple representing the query.
-    """
 
+    """
+    return _group_tokens(_cast_tokens(_tokenize_query_string(query)))
+
+
+def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
+    """Tokenizes query string into list of strings and sub-Phrases."""
     # Intializing state variables
     tokens: List[Union[str, Phrase]] = []
     token_start = 0
@@ -65,7 +70,7 @@ def parse_classic_query(query: str) -> Phrase:
             start = paren_group.pop() # get innermost open paren
             if not paren_group and start == 0 and i + 1 == len(query):
                 # Parent spans whole group, strip the parens and just return the de-parened phrase
-                return parse_classic_query(query[1:i])
+                return _tokenize_query_string(query[1:i])
             elif not paren_group:
                 # pass the paren-stripped phrase for parsing
                 tokens.append(parse_classic_query(query[start+1:i]))
@@ -87,20 +92,28 @@ def parse_classic_query(query: str) -> Phrase:
     if query[token_start:]:
         tokens.append(query[token_start:])
 
-    # cast tokens to class-based representations
-    classed_tokens = []
+    return tokens
+
+
+def _cast_tokens(tokens: List[Union[str, Phrase]]) -> List[Union[Operator, Term, Phrase]]:
+    """Cast tokens to class-based representations."""
+    classed_tokens: List[Union[Operator, Term, Phrase]] = []
     for token in tokens:
         if isinstance(token, str):
             if ':' in token:
                 token = _parse_field_query(token)
                 classed_tokens.append(token)
             else:
-                token = _parse_operator(token)
-                classed_tokens.append(token)
+                operator = _parse_operator(token)
+                classed_tokens.append(operator)
         else:
             classed_tokens.append(token)
 
-    # group operators together with Term
+    return classed_tokens
+
+
+def _group_tokens(classed_tokens: List[Union[Operator, Term, Phrase]]) -> Phrase:
+    """Group operators together with Term."""
     phrases: List[Phrase] = []
     current_op: Optional[Operator] = None
     for token in classed_tokens:
@@ -115,7 +128,8 @@ def parse_classic_query(query: str) -> Phrase:
     if len(phrases) == 1:
         return phrases[0]
     else:
-        return tuple(phrases)
+        # When mypy adds full support for recursive types, this should be fine.
+        return tuple(phrases)  # type: ignore
 
 def _parse_operator(characters: str) -> Operator:
     try:
@@ -124,7 +138,7 @@ def _parse_operator(characters: str) -> Operator:
         raise BadRequest(f'Cannot parse fragment: {characters}') from e
 
 
-def _parse_field_query(field_part: str) -> Tuple[Field, str]:
+def _parse_field_query(field_part: str) -> Term:
     field_name, value = field_part.split(':', 1)
 
     # cast field to Field enum
@@ -138,3 +152,31 @@ def _parse_field_query(field_part: str) -> Tuple[Field, str]:
         value = value[1:-1]
 
     return field, value
+
+
+def phrase_to_query_string(phrase: Phrase) -> str:
+    """Converts a phrase object back to a query string."""
+    parts: List[str] = []
+    for token in phrase:
+        if isinstance(token, Operator):
+            parts.append(token.value)
+        elif isinstance(token, Field):
+            parts.append(f"{token.value}:")
+        elif isinstance(token, str):
+            # strings are added to the field or operator preceeding it 
+            if ' ' in token:
+                parts[-1] += f'"{token}"'
+            else:
+                parts[-1] += token
+        elif isinstance(token, tuple):
+            part = phrase_to_query_string(token)
+            # If the returned part is a Phrase, add parens
+            if ' ' in part and part.count(':') > 1 \
+                and part.split()[0] not in map(attrgetter('value'), Operator):  # doesn't start with an operator
+                part = f'({part})'
+    
+            parts.append(part)
+        else:
+            raise ValueError(f"Invalid token in phrase: {token}")
+    
+    return ' '.join(parts)
