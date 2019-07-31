@@ -27,7 +27,13 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
         that implement the advanced query.
 
     """
-    dsl_query = _phrase_to_query(query.phrase)
+    if query.phrase:
+        dsl_query = _phrase_to_query(query.phrase)
+
+    # TODO: support for query.id_list 
+    # - if phrase: filter requests
+    # - else: return list of papers
+    #         papers = [paper(paper_id) for paper_id in id_list]
 
     return search.query(dsl_query)
 
