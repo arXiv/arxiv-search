@@ -78,6 +78,7 @@ class ClassicAPIQuery:
     order: Optional[str] = field(default=None)
     size: int = field(default=50)
     page_start: int = field(default=0)
+    id_list: Optional[List[str]] = field(default=None)
 
     @property
     def page_end(self) -> int:
