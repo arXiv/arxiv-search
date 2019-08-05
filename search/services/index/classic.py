@@ -27,23 +27,26 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
         that implement the advanced query.
 
     """
-    search = search.filter("term", is_current=True)
-
-    # Initialize query
+    # Initialize query.
     if query.phrase:
         dsl_query = _phrase_to_query(query.phrase)
     else:
         dsl_query = Q()
 
-    # filter id_list if necessary
+    # Filter id_list if necessary.
     if query.id_list:
-        id_query = Q()
-        for id in query.id_list:
-            id_query &= (Q('terms', paper_id=query.id_list) 
-                         | Q('terms', paper_id_v=query.id_list))
-            print(f"adding {id} to query")
+        # Separate versioned and unversioned papers.
+        paper_ids = [id for id in query.id_list if 'v' not in id]
+        paper_ids_vs = [id for id in query.id_list if 'v' in id]
+        
+        # Filter by most recent unversioned paper or any versioned paper.
+        id_query = ((Q('terms', paper_id=paper_ids) & Q('term', is_current=True))
+                     | Q('terms', paper_id_v=paper_ids_vs))
 
         search = search.filter(id_query)
+    else:
+        # If no id_list, only display current results.
+        search = search.filter("term", is_current=True)
 
     return search.query(dsl_query)
 
