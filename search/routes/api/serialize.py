@@ -184,9 +184,11 @@ class AtomXMLSerializer(BaseSerializer):
         
         if query:
             query_string = phrase_to_query_string(query.phrase)
+            id_list = ','.join(query.id_list)
             fg.title(
                 f'arXiv Query: search_query={query_string}'
-                f'&start={query.page_start}&max_results={query.size}')
+                f'&start={query.page_start}&max_results={query.size}'
+                f'&id_list={id_list}')
             fg.id(url_for('classic.query', search_query=query_string,
                           start=query.page_start, max_results=query.size))
             fg.link({
