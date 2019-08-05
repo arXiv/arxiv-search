@@ -29,21 +29,23 @@ class Field(Enum):
     All = 'all'
 
 
-Term = Tuple[Field, str]     # The 1th position is the value of the field.
+Term = Tuple[Field, str]
 """
+Tuple representing a Field and search term.
 
 Examples
 --------
 
 .. code-block:: python
 
-   term: Term = ('ti': 'dark matter')
+   term: Term = (Field.Title : 'dark matter')
 
 """
 
 # mypy doesn't yet support recursive type definitions, so we suppress analysis
 Phrase = Union[Term, Tuple[Operator, 'Phrase'], Tuple['Phrase']]  #type: ignore
 """
+Recursive representation of a search query.
 
 Examples
 --------
