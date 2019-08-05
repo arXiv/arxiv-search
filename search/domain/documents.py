@@ -1,6 +1,7 @@
 """Data structs for search documents."""
 
 from datetime import datetime, date
+from dataclasses import field
 from typing import Optional, List, Dict, Any
 from mypy_extensions import TypedDict
 
@@ -79,8 +80,44 @@ class Document(TypedDict):
     """Contains fields for which the preview is truncated."""
 
 
+class DocumentSetMetadata(TypedDict):
+    """Metadata for search results."""
+
+    current_page: int
+    end: int
+    max_pages: int
+    size: int
+    start: int
+    total: int
+    total_pages: int
+
+
 class DocumentSet(TypedDict):
     """A set of search results retrieved from the search index."""
 
-    metadata: Dict[str, Any]
+    metadata: DocumentSetMetadata
     results: List[Document]
+
+
+def document_set_from_documents(documents: List[Document]) -> DocumentSet:
+    """Utility for generating a DocumentSet with only a list of Documents.
+
+    Generates the metadata automatically, which is an advantage over calling
+    DocumentSet(results=documents, metadata=dict()).
+    """
+    return DocumentSet(
+        results=documents,
+        metadata=metadata_from_documents(documents))
+
+def metadata_from_documents(documents: List[Document]) -> DocumentSetMetadata:
+    """Utility for generating DocumentSet metadata from a list of documents."""
+    metadata: DocumentSetMetadata = {}
+    metadata['size'] = len(documents)
+    metadata['end'] = len(documents)
+    metadata['total'] = len(documents)
+    metadata['start'] = 0
+    metadata['max_pages'] = 1
+    metadata['current_page'] = 1
+    metadata['total_pages'] = 1
+
+    return metadata

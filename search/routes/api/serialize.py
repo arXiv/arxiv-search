@@ -10,7 +10,7 @@ from pytz import utc
 
 from arxiv import status
 from search.domain import DocumentSet, Document, Classification, Person, \
-    APIQuery, ClassicAPIQuery
+    APIQuery, ClassicAPIQuery, document_set_from_documents
 from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
     OpenSearchExtension, ARXIV_NS
 from ...controllers.api.classic_parser import phrase_to_query_string
@@ -228,7 +228,7 @@ class AtomXMLSerializer(BaseSerializer):
                            query: Optional[ClassicAPIQuery] = None) -> str:
         """Generate Atom feed for a single :class:`Document`."""
         # Wrap the single document in a DocumentSet wrapper.
-        document_set = DocumentSet(results=[document], metadata=dict())  # TODO: Revise metadata
+        document_set = document_set_from_documents([document])
 
         return cls.serialize(document_set, query=query)
 
