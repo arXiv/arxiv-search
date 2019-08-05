@@ -27,6 +27,8 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
         that implement the advanced query.
 
     """
+    search = search.filter("term", is_current=True)
+
     # Initialize query
     if query.phrase:
         dsl_query = _phrase_to_query(query.phrase)
@@ -37,10 +39,11 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
     if query.id_list:
         id_query = Q()
         for id in query.id_list:
-            id_query |= SEARCH_FIELDS['paper_id'](id)
+            id_query &= (Q('terms', paper_id=query.id_list) 
+                         | Q('terms', paper_id_v=query.id_list))
             print(f"adding {id} to query")
-        
-        dsl_query &= id_query
+
+        search = search.filter(id_query)
 
     return search.query(dsl_query)
 
