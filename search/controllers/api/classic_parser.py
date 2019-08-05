@@ -87,11 +87,11 @@ def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
         else:
             continue
 
-    # Handle final-position token.
+    # As the final token does not end with a ' ', process it here.
     if query[token_start:]:
         tokens.append(query[token_start:])
 
-    # handle unclosed quotation mark
+    # Handle unclosed quotation mark.
     if in_quote:
         raise BadRequest(f'Quotation does not close: {query[token_start:]}')
 
@@ -155,7 +155,8 @@ def _parse_field_query(field_part: str) -> Term:
     except ValueError as e:
         raise BadRequest(f'Invalid field: {field_name}') from e
 
-    # Process quotes, if present.
+    # Process leading and trailing whitespace and quotes, if present.
+    value = value.strip()
     if value.startswith('"') and value.endswith('"'):
         value = value[1:-1]
 

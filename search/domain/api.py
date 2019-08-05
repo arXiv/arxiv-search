@@ -1,11 +1,10 @@
 """API-specific domain classes."""
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import NamedTuple, Optional, Tuple, Union
 
 from .base import DateRange, Query, ClassificationList, Classification, List
 from .advanced import FieldedSearchList, FieldedSearchTerm
-
-from dataclasses import dataclass, field
 
 
 class Operator(Enum):
@@ -81,7 +80,7 @@ class ClassicAPIQuery:
     page_start: int = field(default=0)
     id_list: Optional[List[str]] = field(default=None)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Ensure that either a phrase or id_list is set."""
         if self.phrase is None and self.id_list is None:
             raise ValueError("ClassicAPIQuery requires either a phrase, id_list, or both")
