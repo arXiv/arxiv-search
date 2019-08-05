@@ -146,24 +146,37 @@ def classic_query(params: MultiDict) \
     """
     params = params.copy()
 
-    # parse classic search query
+    # Parse classic search query.
     raw_query = params.get('search_query')
     if raw_query:
         phrase: Optional[Phrase] = parse_classic_query(raw_query)
     else:
         phrase = None
 
-    # parse id_list
+    # Parse id_list.
     id_list = params.get('id_list', '')
     if id_list:
         id_list = id_list.split(',')
     else:
         id_list = None
 
-    # TODO: add support for order, size, page_start
-
+    # Parse result size.
     try:
-        query = ClassicAPIQuery(phrase=phrase, id_list=id_list)
+        size = int(params.get('max_results', 50))
+    except ValueError:
+        # Ignore size errors.
+        size = 50
+    
+    # Parse result start point.
+    try:
+        page_start = int(params.get('start', 0))
+    except ValueError:
+        # Start at beginning by default.
+        page_start = 0
+    
+    try:
+        query = ClassicAPIQuery(phrase=phrase, id_list=id_list, size=size,
+                                page_start=page_start)
     except ValueError:
         raise BadRequest("Either a search_query or id_list must be specified"
                          " for the classic API.")
