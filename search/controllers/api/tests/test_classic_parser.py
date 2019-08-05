@@ -1,3 +1,5 @@
+# type: ignore
+"""Test cases for the classic parser."""
 from ...api.classic_parser import parse_classic_query, phrase_to_query_string
 
 from ....domain.api import Phrase, Term, ClassicAPIQuery, Field, Operator
@@ -7,6 +9,8 @@ from unittest import TestCase
 
 
 class TestParsing(TestCase):
+    """Testing the classic parser."""
+
     def test_simple_query_without_nesting(self):
         """Simple query without grouping/nesting."""
         querystring = "au:copernicus"
@@ -95,37 +99,43 @@ class TestParsing(TestCase):
         self.assertEqual(parse_classic_query(querystring), phrase)
 
     def test_error_double_conjunct(self):
+        """Error case with two consecutive operators."""
         querystring = "ti:a or and ti:b"
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
 
     def test_error_double_operand(self):
+        """Error case with two consecutive terms."""
         querystring = "ti:a and ti:b ti:c"
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
 
     def test_error_trailing_operator(self):
+        """Error case with a trailing operator."""
         querystring = "ti:a and ti:b and"
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
     
-    def test_error_leading_operand(self):
+    def test_error_leading_operator(self):
+        """Error case with a leading operator."""
         querystring = "or ti:a and ti:b"
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
 
-
     def test_bad_quote(self):
-        querystring = "or ti:a and ti:\"b"
+        """Testing unclosed quote."""
+        querystring = "ti:a and ti:\"b"
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
     
-    def test_double_operator(self):
+    def test_multiple_errors(self):
+        """Testing query string with many problems."""
         querystring = "or ti:a and and ti:\"b"
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
 
     def test_serialize_query(self):
+        """Simple query serialization."""
         querystring = "au:copernicus"
         phrase: Phrase = (Field.Author, 'copernicus')
         self.assertEqual(phrase_to_query_string(phrase), querystring)
