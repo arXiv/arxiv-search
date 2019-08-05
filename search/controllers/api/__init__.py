@@ -356,21 +356,3 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
 
 
     return new_query_operators, new_query_params
-
-
-def _get_search_query(params: MultiDict, query_terms: List,
-                      operators: Dict[str, Any]) -> Optional[FieldedSearchList]:
-    terms = FieldedSearchList()
-    for field, _ in Query.SUPPORTED_FIELDS:
-        values = params.getlist(field)
-        for value in values:
-            query_terms.append({'parameter': field, 'value': value})
-            terms.append(FieldedSearchTerm(     # type: ignore
-                operator=operators[field],
-                field=field,
-                term=value
-            ))
-
-    if not terms:
-        return None
-    return terms
