@@ -149,7 +149,7 @@ def classic_query(params: MultiDict) \
     # parse classic search query
     raw_query = params.get('search_query')
     if raw_query:
-        phrase = parse_classic_query(raw_query)
+        phrase: Optional[Phrase] = parse_classic_query(raw_query)
     else:
         phrase = None
 
@@ -169,12 +169,13 @@ def classic_query(params: MultiDict) \
                          " for the classic API.")
 
     # pass to search indexer, which will handle parsing
-    document_set: DocumentSet = index.SearchSession.search(query)
+    document_set: DocumentSet = index.SearchSession.current_session().search(query)
     data: SearchResponseData = {'results': document_set, 'query': query}
     logger.debug('Got document set with %i results',
                     len(document_set['results']))
 
-    return data, status.HTTP_200_OK, {}
+    # bad mypy inference on TypedDict and the status code
+    return data, status.HTTP_200_OK, {}  # type:ignore
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -202,7 +203,7 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     """
     try:
-        document = index.SearchSession.get_document(paper_id)    # type: ignore
+        document = index.SearchSession.current_session().get_document(paper_id)    # type: ignore
     except index.DocumentNotFound as e:
         logger.error('Document not found')
         raise NotFound('No such document') from e
@@ -314,20 +315,18 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     new_query_operators: Dict[str, str] = defaultdict(default_factory=lambda: "AND")
     terms = query.split()
 
-    expect_new = True
-    """expect_new handles quotation state."""
-    next_operator = "AND"
-    """new_bool handles the operator state """
+    expect_new = True  # expect_new handles quotation state.
+    next_operator = "AND"  # next_operator handles the operator state.
 
     for term in terms:
         if expect_new and term in ["AND", "OR", "ANDNOT", "NOT"]:
             if term == "ANDNOT":
-                term = "NOT" # translate to new representation
+                term = "NOT"  # Translate to NG representation.
             next_operator = term
         elif expect_new:
             field, term = term.split(':')
 
-            # quotation handling
+            # Quotation handling.
             if term.startswith('"') and not term.endswith('"'):
                 expect_new = False
             term = term.replace('"', '')
@@ -335,7 +334,7 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
             new_query_params[SEARCH_QUERY_FIELDS[field]] = term
             new_query_operators[SEARCH_QUERY_FIELDS[field]] = next_operator
         else:
-            # quotation handling, expecting more terms
+            # If the term ends in a quote, we close the term and look for the next one.
             if term.endswith('"'):
                 expect_new = True
                 term = term.replace('"', '')
