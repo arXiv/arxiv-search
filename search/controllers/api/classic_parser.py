@@ -120,13 +120,17 @@ def _group_tokens(classed_tokens: List[Union[Operator, Term, Phrase]]) -> Phrase
     """Group operators together with Term."""
     phrases: List[Phrase] = []
     current_op: Optional[Operator] = None
+    prev_token: Optional[Union[Operator, Term, Phrase]] = None
     for token in classed_tokens:
+        if isinstance(token, Operator) and isinstance(prev_token, Operator):
+            raise BadRequest(f'Query contains 2 consecutive operators: {prev_token} {token}')
         if isinstance(token, Operator):
             current_op = token
         else:
             if current_op:
                 token = (current_op, token)
             phrases.append(token)
+        prev_token = token
 
     # Return single-token query, otherwise cast to a tuple.
     if len(phrases) == 1:

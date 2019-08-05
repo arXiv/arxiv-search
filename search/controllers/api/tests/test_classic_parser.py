@@ -120,6 +120,10 @@ class TestParsing(TestCase):
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
     
+    def test_double_operator(self):
+        querystring = "or ti:a and and ti:\"b"
+        with self.assertRaises(BadRequest):
+            parse_classic_query(querystring)
 
     def test_serialize_query(self):
         querystring = "au:copernicus"
