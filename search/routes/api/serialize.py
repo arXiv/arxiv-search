@@ -10,7 +10,7 @@ from pytz import utc
 
 from arxiv import status
 from search.domain import DocumentSet, Document, Classification, Person, \
-    APIQuery
+    APIQuery, ClassicAPIQuery
 from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
     OpenSearchExtension, ARXIV_NS
 from ...controllers.api.classic_parser import phrase_to_query_string
@@ -128,7 +128,7 @@ class AtomXMLSerializer(BaseSerializer):
 
     @classmethod
     def transform_document(cls, fg: FeedGenerator, doc: Document,
-                           query: Optional[APIQuery] = None) -> None:
+                           query: Optional[ClassicAPIQuery] = None) -> None:
         """Select a subset of :class:`Document` properties for public API."""
         entry = fg.add_entry()
         entry.id(url_for("abs", paper_id=doc['paper_id'],
@@ -176,18 +176,22 @@ class AtomXMLSerializer(BaseSerializer):
 
     @classmethod
     def serialize(cls, document_set: DocumentSet,
-                  query: Optional[APIQuery] = None) -> str:
+                  query: Optional[ClassicAPIQuery] = None) -> str:
         """Generate Atom response for a :class:`DocumentSet`."""
         fg = FeedGenerator()
         fg.register_extension('opensearch', OpenSearchExtension)
         fg.register_extension("arxiv", ArxivExtension, ArxivEntryExtension, rss=False)
-        
+
         if query:
-            query_string = phrase_to_query_string(query.phrase)
+            if query.phrase is not None:
+                query_string = phrase_to_query_string(query.phrase)
+            else:
+                query_string = ''
+
             if query.id_list:
                 id_list = ','.join(query.id_list)
             else:
-                id_list = None
+                id_list = ''
 
             fg.title(
                 f'arXiv Query: search_query={query_string}'
@@ -204,19 +208,22 @@ class AtomXMLSerializer(BaseSerializer):
 
         fg.updated(datetime.utcnow().replace(tzinfo=utc))
 
+        # pylint struggles with the opensearch extensions, so we ignore no-member here.
+        # pylint: disable=no-member
         fg.opensearch.totalResults(document_set['metadata'].get('total'))
         fg.opensearch.itemsPerPage(document_set['metadata'].get('size'))
         fg.opensearch.startIndex(document_set['metadata'].get('start'))
 
-        for doc in document_set['results']:
-            cls.transform_document(fg, doc, query=query)
+        if query:
+            for doc in document_set['results']:
+                cls.transform_document(fg, doc, query=query)
 
         serialized: str = fg.atom_str(pretty=True)
         return serialized
 
     @classmethod
     def serialize_document(cls, document: Document,
-                           query: Optional[APIQuery] = None) -> str:
+                           query: Optional[ClassicAPIQuery] = None) -> str:
         """Generate Atom feed for a single :class:`Document`."""
         # Wrap the single document in a DocumentSet wrapper.
         document_set = DocumentSet(results=[document], metadata=dict())  # TODO: Revise metadata
