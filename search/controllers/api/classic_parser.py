@@ -56,12 +56,13 @@ def parse_classic_query(query: str) -> Phrase:
 
 def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
     """Tokenizes query string into list of strings and sub-Phrases."""
-    # Intializing state variables
+    # Intializing state variables.
     tokens: List[Union[str, Phrase]] = []
     token_start = 0
     paren_group = []
     in_quote = False
 
+    # Parsing characters.
     for i, c in enumerate(query):
         if c == '(':
             paren_group.append(i)  # Add open paren start position to stack.
