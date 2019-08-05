@@ -113,7 +113,14 @@ class TestParsing(TestCase):
         querystring = "or ti:a and ti:b"
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
+
+
+    def test_bad_quote(self):
+        querystring = "or ti:a and ti:\"b"
+        with self.assertRaises(BadRequest):
+            parse_classic_query(querystring)
     
+
     def test_serialize_query(self):
         querystring = "au:copernicus"
         phrase: Phrase = (Field.Author, 'copernicus')

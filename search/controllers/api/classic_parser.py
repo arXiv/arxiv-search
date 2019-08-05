@@ -92,6 +92,10 @@ def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
     if query[token_start:]:
         tokens.append(query[token_start:])
 
+    # handle unclosed quotation mark
+    if in_quote:
+        raise BadRequest(f'Quotation does not close: {query[token_start:]}')
+
     return tokens
 
 
