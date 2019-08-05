@@ -71,29 +71,16 @@ Examples
 
 
 @dataclass
-class ClassicAPIQuery:
+class ClassicAPIQuery(Query):
     """Query supported by the classic arXiv API."""
 
     phrase: Optional[Phrase] = field(default=None)
-    order: Optional[str] = field(default=None)
-    size: int = field(default=50)
-    page_start: int = field(default=0)
     id_list: Optional[List[str]] = field(default=None)
 
     def __post_init__(self) -> None:
         """Ensure that either a phrase or id_list is set."""
         if self.phrase is None and self.id_list is None:
             raise ValueError("ClassicAPIQuery requires either a phrase, id_list, or both")
-
-    @property
-    def page_end(self) -> int:
-        """Get the index/offset of the end of the page."""
-        return self.page_start + self.size
-
-    @property
-    def page(self) -> int:
-        """Get the approximate page number."""
-        return 1 + int(round(self.page_start/self.size))
 
 
 def get_default_extra_fields() -> List[str]:
