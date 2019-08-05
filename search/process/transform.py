@@ -163,7 +163,7 @@ def to_search_document(metadata: DocMeta,
             value = source(metadata)
         if value is None and not is_required:
             continue
-        data[key] = value # type: ignore
+        data[key] = value  # type: ignore
     # if fulltext:
     #     data['fulltext'] = fulltext.content
     return data

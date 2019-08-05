@@ -62,33 +62,32 @@ def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
     paren_group = []
     in_quote = False
 
-    # Iterate through characters
     for i, c in enumerate(query):
         if c == '(':
-            paren_group.append(i) # add open paren start position to stack
+            paren_group.append(i)  # Add open paren start position to stack.
         elif c == ')':
-            start = paren_group.pop() # get innermost open paren
+            start = paren_group.pop()  # Get innermost open paren.
             if not paren_group and start == 0 and i + 1 == len(query):
-                # Parent spans whole group, strip the parens and just return the de-parened phrase
+                # Paren spans whole group, strip the parens and just return the de-parened phrase.
                 return _tokenize_query_string(query[1:i])
             elif not paren_group:
-                # pass the paren-stripped phrase for parsing
-                tokens.append(parse_classic_query(query[start+1:i]))
+                # Pass the paren-stripped phrase for parsing.
+                tokens.append(parse_classic_query(query[start + 1:i]))
                 token_start = i+1
         elif c == '"':
-            in_quote = not in_quote # flip quotation bit
+            in_quote = not in_quote  # Flip quotation bit.
         elif c == ' ':
             if in_quote:
-                continue # keep moving if parsing a quote
+                continue  # Keep moving if parsing a quote.
             elif not paren_group and token_start != i:
-                tokens.append(query[token_start:i]) # append the token
+                tokens.append(query[token_start:i])
                 token_start = i + 1
             elif token_start == i:
-                token_start = i + 1 # multiple spaces, move the token_start back
+                token_start = i + 1  # Multiple spaces, move the token_start back.
         else:
             continue
 
-    # handle final-position token
+    # Handle final-position token.
     if query[token_start:]:
         tokens.append(query[token_start:])
 
@@ -139,6 +138,7 @@ def _group_tokens(classed_tokens: List[Union[Operator, Term, Phrase]]) -> Phrase
         # When mypy adds full support for recursive types, this should be fine.
         return tuple(phrases)  # type: ignore
 
+
 def _parse_operator(characters: str) -> Operator:
     try:
         return Operator(characters.strip())
@@ -149,13 +149,13 @@ def _parse_operator(characters: str) -> Operator:
 def _parse_field_query(field_part: str) -> Term:
     field_name, value = field_part.split(':', 1)
 
-    # cast field to Field enum
+    # Cast field to Field enum.
     try:
         field = Field(field_name)
     except ValueError as e:
         raise BadRequest(f'Invalid field: {field_name}') from e
 
-    # process quotes, if present
+    # Process quotes, if present.
     if value.startswith('"') and value.endswith('"'):
         value = value[1:-1]
 
@@ -171,16 +171,16 @@ def phrase_to_query_string(phrase: Phrase) -> str:
         elif isinstance(token, Field):
             parts.append(f"{token.value}:")
         elif isinstance(token, str):
-            # strings are added to the field or operator preceeding it 
+            # Strings are added to the field or operator preceeding it.
             if ' ' in token:
                 parts[-1] += f'"{token}"'
             else:
                 parts[-1] += token
         elif isinstance(token, tuple):
             part = phrase_to_query_string(token)
-            # If the returned part is a Phrase, add parens
+            # If the returned part is a Phrase, add parens.
             if ' ' in part and part.count(':') > 1 \
-                and part.split()[0] not in map(attrgetter('value'), Operator):  # doesn't start with an operator
+                    and part.split()[0] not in map(attrgetter('value'), Operator):  # Doesn't start with an operator.
                 part = f'({part})'
     
             parts.append(part)

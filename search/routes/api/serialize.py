@@ -218,8 +218,8 @@ class AtomXMLSerializer(BaseSerializer):
     def serialize_document(cls, document: Document,
                            query: Optional[APIQuery] = None) -> str:
         """Generate Atom feed for a single :class:`Document`."""
-        # wrap the single document in a DocumentSet wrapper.
-        document_set = DocumentSet(results=[document], metadata=dict()) # TODO: Revise metadata
+        # Wrap the single document in a DocumentSet wrapper.
+        document_set = DocumentSet(results=[document], metadata=dict())  # TODO: Revise metadata
 
         return cls.serialize(document_set, query=query)
 

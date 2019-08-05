@@ -55,7 +55,7 @@ def _phrase_to_query(phrase: Phrase) -> Q:
     if isinstance(phrase[0], Field) and len(phrase) == 2:
         return _term_to_query(phrase)  # type: ignore
 
-    # parse Phrase object an build Q
+    # Parse Phrase object an build Q.
     q = Q()
     current_operator: Operator = Operator.AND
 
@@ -87,7 +87,8 @@ def _term_to_query(term: Term) -> Q:
 
     See Also
     --------
-        :module:`.api`
+    :module:`.api`
+
     """
     field, val = term
 
