@@ -98,7 +98,7 @@ class OpenSearchExtension(BaseExtension):
         self.__opensearch_itemsPerPage = str(text)
 
 
-class ArxivExtension(BaseExtension):
+class ArXivExtension(BaseExtension):
     """Extension of the Feedgen base class to allow us to define namespaces."""
 
     def __init__(self: BaseExtension) -> None:
@@ -154,7 +154,7 @@ class ArxivExtension(BaseExtension):
         return {'arxiv': ARXIV_NS}
 
 
-class ArxivEntryExtension(BaseEntryExtension):
+class ArXivEntryExtension(BaseEntryExtension):
     """Extension of the Feedgen base class to allow us to add elements to the Atom output."""
 
     def __init__(self: BaseEntryExtension):

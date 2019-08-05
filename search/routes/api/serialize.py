@@ -11,7 +11,7 @@ from pytz import utc
 from arxiv import status
 from search.domain import DocumentSet, Document, Classification, Person, \
     APIQuery, ClassicAPIQuery, document_set_from_documents
-from .atom_extensions import ArxivExtension, ArxivEntryExtension, \
+from .atom_extensions import ArXivExtension, ArXivEntryExtension, \
     OpenSearchExtension, ARXIV_NS
 from ...controllers.api.classic_parser import phrase_to_query_string
 
@@ -182,7 +182,7 @@ class AtomXMLSerializer(BaseSerializer):
         """Generate Atom response for a :class:`DocumentSet`."""
         fg = FeedGenerator()
         fg.register_extension('opensearch', OpenSearchExtension)
-        fg.register_extension("arxiv", ArxivExtension, ArxivEntryExtension, rss=False)
+        fg.register_extension("arxiv", ArXivExtension, ArXivEntryExtension, rss=False)
 
         if query:
             if query.phrase is not None:
