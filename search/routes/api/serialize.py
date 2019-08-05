@@ -190,10 +190,12 @@ class AtomXMLSerializer(BaseSerializer):
                 f'&start={query.page_start}&max_results={query.size}'
                 f'&id_list={id_list}')
             fg.id(url_for('classic.query', search_query=query_string,
-                          start=query.page_start, max_results=query.size))
+                          start=query.page_start, max_results=query.size,
+                          id_list=id_list))
             fg.link({
                 "href" : url_for('classic.query', search_query=query_string,
-                                 start=query.page_start, max_results=query.size),
+                                 start=query.page_start, max_results=query.size,
+                                 id_list=id_list),
                 "type": 'application/atom+xml'})
 
         fg.updated(datetime.utcnow().replace(tzinfo=utc))
