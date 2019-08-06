@@ -6,7 +6,7 @@ from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import QueryString
 
 from ...domain import ClassicAPIQuery, Phrase, Term, Field, Operator
-from .prepare import SEARCH_FIELDS
+from .prepare import SEARCH_FIELDS, query_any_subject_exact_raw
 
 
 def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
@@ -38,10 +38,10 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
         # Separate versioned and unversioned papers.
         paper_ids = [id for id in query.id_list if 'v' not in id]
         paper_ids_vs = [id for id in query.id_list if 'v' in id]
-        
+
         # Filter by most recent unversioned paper or any versioned paper.
         id_query = ((Q('terms', paper_id=paper_ids) & Q('term', is_current=True))
-                     | Q('terms', paper_id_v=paper_ids_vs))
+                    | Q('terms', paper_id_v=paper_ids_vs))
 
         search = search.filter(id_query)
     else:
@@ -98,11 +98,11 @@ def _term_to_query(term: Term) -> Q:
     FIELD_TERM_MAPPING: Dict[Field, Callable[[str], Q]] = {
         Field.Author : SEARCH_FIELDS['author'],
         Field.Comment : SEARCH_FIELDS['comments'],
-        Field.Identifier : SEARCH_FIELDS['paper_id'], # TODO: edge case of versioned data
+        Field.Identifier : SEARCH_FIELDS['paper_id'],
         Field.JournalReference : SEARCH_FIELDS['journal_ref'],
         Field.ReportNumber : SEARCH_FIELDS['report_num'],
-        # TODO: unsure of where classifications are unified:
-        Field.SubjectCategory : SEARCH_FIELDS['cross_list_category'],
+        # Expects to match on primary or secondary category.
+        Field.SubjectCategory : query_any_subject_exact_raw,
         Field.Title : SEARCH_FIELDS['title'],
         Field.All : SEARCH_FIELDS['all']
     }

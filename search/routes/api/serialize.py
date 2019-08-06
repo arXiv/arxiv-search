@@ -154,26 +154,27 @@ class AtomXMLSerializer(BaseSerializer):
         if doc.get('doi'):
             entry.arxiv.doi(doc['doi'])
 
-        # mypy has outstanding issues with nested TypedDict inference, ignoring below.
-        if doc['primary_classification']['archive']['id']:  # type: ignore
+        if doc['primary_classification']['category']['id']:
             entry.arxiv.primary_category(
-                doc['primary_classification']['archive']['id'])  # type: ignore
+                doc['primary_classification']['category']['id']
+            )
             entry.category(
-                term=doc['primary_classification']['archive']['id'],  # type: ignore
+                term=doc['primary_classification']['category']['id'],
                 scheme=ARXIV_NS
             )
 
         for category in doc['secondary_classification']:
             entry.category(
-                term=category['archive']['id'],  # type: ignore
-                scheme=ARXIV_NS)
+                term=category['category']['id'],
+                scheme=ARXIV_NS
+            )
 
         for author in doc['authors']:
             author_data = {
                 "name": author['full_name']
             }
             if author.get('affiliation'):
-                author_data['affiliation'] = author['affiliation']  # type: ignore
+                author_data['affiliation'] = author['affiliation']
             entry.arxiv.author(author_data)
 
     @classmethod
@@ -182,7 +183,8 @@ class AtomXMLSerializer(BaseSerializer):
         """Generate Atom response for a :class:`DocumentSet`."""
         fg = FeedGenerator()
         fg.register_extension('opensearch', OpenSearchExtension)
-        fg.register_extension("arxiv", ArXivExtension, ArXivEntryExtension, rss=False)
+        fg.register_extension("arxiv", ArXivExtension, ArXivEntryExtension,
+                              rss=False)
 
         if query:
             if query.phrase is not None:

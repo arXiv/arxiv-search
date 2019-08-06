@@ -91,7 +91,7 @@ You can run the API in dev mode by changing `FLASK_APP` to point to ``api.py``,
 i.e.:
 
 ```bash
-FLASK_APP=api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
+JWT_SECRET=foosecret FLASK_APP=api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
 ```
 
 

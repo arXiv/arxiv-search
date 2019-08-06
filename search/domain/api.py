@@ -14,6 +14,26 @@ class Operator(Enum):
     OR = 'OR'
     ANDNOT = 'ANDNOT'
 
+    @classmethod
+    def is_valid_value(cls, value: str) -> bool:
+        """
+        Determine whether or not ``value`` is a valid value of a member.
+
+        Parameters
+        ----------
+        value : str
+
+        Returns
+        -------
+        bool
+
+        """
+        try:
+            cls(value)
+        except ValueError:
+            return False
+        return True
+
 
 class Field(Enum):
     """Supported fields in the classic API."""

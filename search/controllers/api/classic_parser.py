@@ -33,7 +33,7 @@ def parse_classic_query(query: str) -> Phrase:
     It iterates through each character:
     1.  If a paren group is opened, we append to a list of start positions for
         open paren groups.
-    2.  If a paren is closed, we pop out the most recent open paren from the 
+    2.  If a paren is closed, we pop out the most recent open paren from the
         stack of start positions and recursively parse the paren group, adding
         it to our list of tokens.
     3.  If a quote is opened, flip a quotation flag.
@@ -181,12 +181,13 @@ def phrase_to_query_string(phrase: Phrase) -> str:
         elif isinstance(token, tuple):
             part = phrase_to_query_string(token)
             # If the returned part is a Phrase, add parens.
-            if ' ' in part and part.count(':') > 1 \
-                    and part.split()[0] not in map(attrgetter('value'), Operator):  # Doesn't start with an operator.
+            if ' ' in part \
+                    and part.count(':') > 1 \
+                    and not Operator.is_valid_value(part.split()[0]):
                 part = f'({part})'
-    
+
             parts.append(part)
         else:
             raise ValueError(f"Invalid token in phrase: {token}")
-    
+
     return ' '.join(parts)
