@@ -210,6 +210,10 @@ class AtomXMLSerializer(BaseSerializer):
                                  start=query.page_start, max_results=query.size,
                                  id_list=id_list),
                 "type": 'application/atom+xml'})
+        else:
+            # TODO: Discuss better defaults
+            fg.title("arXiv Search Results")
+            fg.id("https://arxiv.org/")
 
         fg.updated(datetime.utcnow().replace(tzinfo=utc))
 
