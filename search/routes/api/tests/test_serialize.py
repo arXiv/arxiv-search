@@ -3,6 +3,7 @@
 import os
 from unittest import TestCase, mock
 from datetime import datetime
+import pytz
 import json
 import jsonschema
 from .... import domain, encode
@@ -165,15 +166,15 @@ class TestSerializeAtomDocument(TestCase):
     def test_to_atom(self):
         """Just your run-of-the-mill arXiv document generates valid Atom."""
         document = dict(
-            submitted_date=datetime.now(),
-            submitted_date_first=datetime.now(),
-            announced_date_first=datetime.now(),
+            submitted_date=datetime.now(pytz.utc),
+            submitted_date_first=datetime.now(pytz.utc),
+            announced_date_first=datetime.now(pytz.utc),
             id='1234.5678',
             abstract='very abstract',
             authors=[dict(full_name='F. Bar', orcid='1234-5678-9012-3456')],
             submitter=dict(full_name='S. Ubmitter', author_id='su_1'),
-            modified_date=datetime.now(),
-            updated_date=datetime.now(),
+            modified_date=datetime.now(pytz.utc),
+            updated_date=datetime.now(pytz.utc),
             is_current=True,
             is_withdrawn=False,
             license={
