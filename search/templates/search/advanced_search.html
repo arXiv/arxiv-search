@@ -324,7 +324,7 @@
 
 {% block title %}
     {% if not show_form and results %}
-        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.end }} of {{ '{0:,}'.format(metadata.total) }} results
+        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.end }} of {{ '{0:,}'.format(metadata.total_results) }} results
     {% elif show_form %}
         Advanced Search
     {% else %}

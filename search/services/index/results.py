@@ -100,7 +100,7 @@ def to_documentset(query: Query, response: Response, highlight: bool = True) \
             'start': query.page_start,
             'end': min(query.page_start + query.size,
                        response['hits']['total']),
-            'total': response['hits']['total'],
+            'total_results': response['hits']['total'],
             'current_page': query.page,
             'total_pages': N_pages,
             'size': query.size,

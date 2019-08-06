@@ -1,8 +1,9 @@
 """Data structs for search documents."""
 
 from datetime import datetime, date
-from dataclasses import field
 from typing import Optional, List, Dict, Any
+
+from dataclasses import field
 from mypy_extensions import TypedDict
 
 
@@ -80,7 +81,10 @@ class Document(TypedDict):
     """Contains fields for which the preview is truncated."""
 
 
-class DocumentSetMetadata(TypedDict):
+# The class keyword ``total=False`` allows instances that do not contain all of
+# the typed keys. See https://github.com/python/mypy/issues/2632 for
+# background.
+class DocumentSetMetadata(TypedDict, total=False):
     """Metadata for search results."""
 
     current_page: int
@@ -88,8 +92,9 @@ class DocumentSetMetadata(TypedDict):
     max_pages: int
     size: int
     start: int
-    total: int
+    total_results: int
     total_pages: int
+    query: List[Dict[str, Any]]
 
 
 class DocumentSet(TypedDict):
@@ -107,14 +112,16 @@ def document_set_from_documents(documents: List[Document]) -> DocumentSet:
     """
     return DocumentSet(
         results=documents,
-        metadata=metadata_from_documents(documents))
+        metadata=metadata_from_documents(documents)
+    )
+
 
 def metadata_from_documents(documents: List[Document]) -> DocumentSetMetadata:
     """Utility for generating DocumentSet metadata from a list of documents."""
     metadata: DocumentSetMetadata = {}
     metadata['size'] = len(documents)
     metadata['end'] = len(documents)
-    metadata['total'] = len(documents)
+    metadata['total_results'] = len(documents)
     metadata['start'] = 0
     metadata['max_pages'] = 1
     metadata['current_page'] = 1

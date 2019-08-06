@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
 
 SearchResponseData = TypedDict(
-    'SearchResponseData', 
+    'SearchResponseData',
     {'results': DocumentSet, 'query': Union[Query, ClassicAPIQuery]}
 )
 
@@ -166,14 +166,14 @@ def classic_query(params: MultiDict) \
     except ValueError:
         # Ignore size errors.
         size = 50
-    
+
     # Parse result start point.
     try:
         page_start = int(params.get('start', 0))
     except ValueError:
         # Start at beginning by default.
         page_start = 0
-    
+
     try:
         query = ClassicAPIQuery(phrase=phrase, id_list=id_list, size=size,
                                 page_start=page_start)
@@ -233,7 +233,8 @@ def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
 
 
 def _get_fielded_terms(params: MultiDict, query_terms: List,
-                       operators: Optional[Dict[str, Any]] = None) -> Optional[FieldedSearchList]:
+                       operators: Optional[Dict[str, Any]] = None) \
+        -> Optional[FieldedSearchList]:
     if operators is None:
         operators = defaultdict(default_factory=lambda: "AND")
     terms = FieldedSearchList()
