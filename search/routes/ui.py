@@ -8,9 +8,10 @@ from functools import lru_cache as memoize
 
 from flask.json import jsonify
 from flask import Blueprint, render_template, redirect, request, Response, \
-    url_for
+    url_for, make_response
 from werkzeug.urls import Href
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
+from werkzeug.wrappers import Response as WerkzeugResponse
 
 from arxiv import status
 from arxiv.base import logging
@@ -18,6 +19,8 @@ from werkzeug.exceptions import InternalServerError
 from search.controllers import simple, advanced, health_check
 
 from . import context_processors
+
+_Response = Union[Response, WerkzeugResponse]
 
 logger = logging.getLogger(__name__)
 
@@ -73,54 +76,67 @@ def apply_response_headers(response: Response) -> Response:
 
 @blueprint.route('<archive:archives>', methods=['GET'])
 @blueprint.route('/', methods=['GET'])
-def search(archives: Optional[List[str]] = None) -> Union[str, Response]:
+def search(archives: Optional[List[str]] = None) -> _Response:
     """Simple search interface."""
-    response, code, headers = simple.search(request.args, archives)
+    data, code, hdrs = simple.search(request.args, archives)
     logger.debug(f"controller returned code: {code}")
     if code == status.HTTP_200_OK:
-        return render_template("search/search.html", pagetitle="Search", # type: ignore
-                               archives=archives, **response)
+        content = render_template("search/search.html", pagetitle="Search",
+                                  archives=archives, **data)
+        response: Response = make_response(content)
+        for key, value in hdrs.items():
+            response.headers[key] = value
+        return response
     elif (code == status.HTTP_301_MOVED_PERMANENTLY
           or code == status.HTTP_303_SEE_OTHER):
-        return redirect(headers['Location'], code=code) # type: ignore
+        return redirect(hdrs['Location'], code=code)
     raise InternalServerError('Unexpected error')
 
 
 @blueprint.route('advanced', methods=['GET'])
-def advanced_search() -> Union[str, Response]:
+def advanced_search() -> _Response:
     """Advanced search interface."""
-    response, code, headers = advanced.search(request.args)
-    return render_template( # type: ignore
-        "search/advanced_search.html",
-        pagetitle="Advanced Search",
-        **response
-    )
+    data, code, hdrs = advanced.search(request.args)
+    content = render_template("search/advanced_search.html",
+                              pagetitle="Advanced Search", **data)
+    response: Response = make_response(content)
+    response.status_code = code
+    for key, value in hdrs.items():
+        response.headers[key] = value
+    return response
 
 
 @blueprint.route('advanced/<string:groups_or_archives>', methods=['GET'])
-def group_search(groups_or_archives: str) -> Union[str, Response]:
+def group_search(groups_or_archives: str) -> _Response:
     """
     Short-cut for advanced search with group or archive pre-selected.
 
     Note that this only supports options supported in the advanced search
     interface. Anything else will result in a 404.
     """
-    response, code, _ = advanced.group_search(request.args, groups_or_archives)
-    return render_template( # type: ignore
-        "search/advanced_search.html",
-        pagetitle="Advanced Search",
-        **response
-    )
+    data, code, hdrs = advanced.group_search(request.args, groups_or_archives)
+    content = render_template("search/advanced_search.html",
+                              pagetitle="Advanced Search", **data)
+    response: Response = make_response(content)
+    response.status_code = code
+    for key, value in hdrs.items():
+        response.headers[key] = value
+    return response
 
 
 @blueprint.route('status', methods=['GET', 'HEAD'])
-def service_status() -> Union[str, Response]:
+def service_status() -> _Response:
     """
     Health check endpoint for search.
 
     Exercises the search index connection with a real query.
     """
-    return health_check() # type: ignore
+    content, code, hdrs = health_check()
+    response: Response = make_response(content)
+    response.status_code = code
+    for key, value in hdrs.items():
+        response.headers[key] = value
+    return response
 
 
 # Register context processors.

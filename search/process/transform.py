@@ -152,9 +152,7 @@ def to_search_document(metadata: DocMeta,
     ValueError
 
     """
-    # Initialize an empty document, which causes issues for the TypedDict
-    # representation undelying Document, so we ignore throughout.
-    data: Document = {}  # type: ignore
+    data: Document = {}
 
     for key, source, is_required in _transformations:
         if isinstance(source, str):
@@ -163,8 +161,7 @@ def to_search_document(metadata: DocMeta,
             value = source(metadata)
         if value is None and not is_required:
             continue
-        data[key] = value  # type: ignore
+        data[key] = value
     # if fulltext:
     #     data['fulltext'] = fulltext.content
     return data
-    # See https://github.com/python/mypy/issues/3937

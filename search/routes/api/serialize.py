@@ -1,6 +1,6 @@
 """Serializers for API responses."""
 
-from typing import Union, Optional
+from typing import Union, Optional, Dict, Any
 from datetime import datetime
 from xml.etree import ElementTree as etree
 from flask import jsonify, url_for, Response
@@ -91,6 +91,7 @@ class JSONSerializer(BaseSerializer):
     def serialize(cls, document_set: DocumentSet,
                   query: Optional[APIQuery] = None) -> Response:
         """Generate JSON for a :class:`DocumentSet`."""
+        total_results = int(document_set['metadata'].get('total_results', 0))
         serialized: Response = jsonify({
             'results': [cls.transform_document(doc, query=query)
                         for doc in document_set['results']],
@@ -98,7 +99,7 @@ class JSONSerializer(BaseSerializer):
                 'start': document_set['metadata'].get('start', ''),
                 'end': document_set['metadata'].get('end', ''),
                 'size': document_set['metadata'].get('size', ''),
-                'total': document_set['metadata'].get('total', ''),
+                'total_results': total_results,
                 'query': document_set['metadata'].get('query', [])
             },
         })
@@ -154,7 +155,7 @@ class AtomXMLSerializer(BaseSerializer):
         if doc.get('doi'):
             entry.arxiv.doi(doc['doi'])
 
-        if doc['primary_classification']['category']['id']:
+        if doc['primary_classification']['category'] is not None:
             entry.arxiv.primary_category(
                 doc['primary_classification']['category']['id']
             )
@@ -170,7 +171,7 @@ class AtomXMLSerializer(BaseSerializer):
             )
 
         for author in doc['authors']:
-            author_data = {
+            author_data: Dict[str, Any] = {
                 "name": author['full_name']
             }
             if author.get('affiliation'):
@@ -214,7 +215,9 @@ class AtomXMLSerializer(BaseSerializer):
 
         # pylint struggles with the opensearch extensions, so we ignore no-member here.
         # pylint: disable=no-member
-        fg.opensearch.totalResults(document_set['metadata'].get('total'))
+        fg.opensearch.totalResults(
+            document_set['metadata'].get('total_results')
+        )
         fg.opensearch.itemsPerPage(document_set['metadata'].get('size'))
         fg.opensearch.startIndex(document_set['metadata'].get('start'))
 

@@ -6,8 +6,15 @@ from typing import Optional, List, Dict, Any
 from dataclasses import field
 from mypy_extensions import TypedDict
 
+from .base import Classification, ClassificationList
 
-class Person(TypedDict):
+
+# The class keyword ``total=False`` allows instances that do not contain all of
+# the typed keys. See https://github.com/python/mypy/issues/2632 for
+# background.
+
+
+class Person(TypedDict, total=False):
     """Represents an author, owner, or other person in metadata."""
 
     full_name: str
@@ -25,7 +32,7 @@ class Person(TypedDict):
     """Legacy arXiv author identifier."""
 
 
-class Document(TypedDict):
+class Document(TypedDict, total=False):
     """A search document, representing an arXiv paper."""
 
     submitted_date: datetime
@@ -63,8 +70,8 @@ class Document(TypedDict):
     comments: str
     abs_categories: str
     formats: List[str]
-    primary_classification: Dict[str, str]
-    secondary_classification: List[Dict[str, str]]
+    primary_classification: Classification
+    secondary_classification: ClassificationList
 
     score: float
 
@@ -81,9 +88,6 @@ class Document(TypedDict):
     """Contains fields for which the preview is truncated."""
 
 
-# The class keyword ``total=False`` allows instances that do not contain all of
-# the typed keys. See https://github.com/python/mypy/issues/2632 for
-# background.
 class DocumentSetMetadata(TypedDict, total=False):
     """Metadata for search results."""
 
