@@ -6,6 +6,7 @@ from datetime import datetime
 from unittest import TestCase, mock
 
 import jsonschema
+import pytz
 
 from arxiv.users import helpers, auth
 from arxiv.users.domain import Scope
@@ -40,21 +41,21 @@ class TestClassicAPISearchRequests(TestCase):
             headers={'Authorization': token})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch(f'{factory.__name__}.api.api')
+    @mock.patch(f'{factory.__name__}.api.classic.api')
     def test_with_valid_token(self, mock_controller):
         """Client auth token has required public read scope."""
         document = dict(
-            submitted_date=datetime.now(),
-            submitted_date_first=datetime.now(),
-            announced_date_first=datetime.now(),
+            submitted_date=datetime.now(pytz.utc),
+            submitted_date_first=datetime.now(pytz.utc),
+            announced_date_first=datetime.now(pytz.utc),
             id='1234.5678',
             abstract='very abstract',
             authors=[
                 dict(full_name='F. Bar', orcid='1234-5678-9012-3456')
             ],
             submitter=dict(full_name='S. Ubmitter', author_id='su_1'),
-            modified_date=datetime.now(),
-            updated_date=datetime.now(),
+            modified_date=datetime.now(pytz.utc),
+            updated_date=datetime.now(pytz.utc),
             is_current=True,
             is_withdrawn=False,
             license={
@@ -97,8 +98,8 @@ class TestClassicAPISearchRequests(TestCase):
             results=[document],
             metadata={'start': 0, 'end': 1, 'size': 50, 'total': 1}
         )
-        r_data = {'results': docs, 'query': domain.APIQuery()}
-        mock_controller.search.return_value = r_data, status.HTTP_200_OK, {}
+        r_data = {'results': docs, 'query': domain.ClassicAPIQuery(id_list=['1234.5678'])}
+        mock_controller.classic_query.return_value = r_data, status.HTTP_200_OK, {}
         token = helpers.generate_token('1234', 'foo@bar.com', 'foouser',
                                        scope=[auth.scopes.READ_PUBLIC])
         response = self.client.get(
