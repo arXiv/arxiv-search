@@ -142,3 +142,14 @@ class TestAPISearch(TestCase):
 
         self.assertEqual(query.date_range.date_type,
                          DateRange.ANNOUNCED)
+
+
+class TestClassicAPISearch(TestCase):
+    """Tests for :func:`.api.search`."""
+
+    @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_no_params(self, mock_index):
+        """Request with no parameters."""
+        params = MultiDict({})
+        with self.assertRaises(BadRequest):
+            data, code, headers = api.classic_query(params)
