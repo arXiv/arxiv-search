@@ -163,7 +163,7 @@ class TestClassicAPISearch(TestCase):
         self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
         self.assertIn("results", data, "Results are returned")
         self.assertIn("query", data, "Query object is returned")
-
+    
     @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_classic_id_list(self, mock_index):
         """Request with multi-element id_list with versioned and unversioned ids."""
