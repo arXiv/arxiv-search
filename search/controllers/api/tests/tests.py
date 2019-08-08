@@ -34,6 +34,21 @@ class TestAPISearch(TestCase):
                          "Default set of fields is included")
 
     @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_query_param(self, mock_index):
+        """Request with no parameters."""
+        params = MultiDict({'query' : 'au:copernicus AND ti:astronomy'})
+        data, code, headers = api.search(params)
+
+        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertIn("results", data, "Results are returned")
+        self.assertIn("query", data, "Query object is returned")
+        expected_fields = api_domain.get_required_fields() \
+            + api_domain.get_default_extra_fields()
+        self.assertEqual(set(data["query"].include_fields),
+                         set(expected_fields),
+                         "Default set of fields is included")
+
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_include_fields(self, mock_index):
         """Request with specific fields included."""
         extra_fields = ['title', 'abstract', 'authors']
