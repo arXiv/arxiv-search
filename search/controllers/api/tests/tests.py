@@ -145,7 +145,7 @@ class TestAPISearch(TestCase):
 
 
 class TestClassicAPISearch(TestCase):
-    """Tests for :func:`.api.search`."""
+    """Tests for :func:`.api.classic_query`."""
 
     @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_no_params(self, mock_index):
@@ -153,3 +153,23 @@ class TestClassicAPISearch(TestCase):
         params = MultiDict({})
         with self.assertRaises(BadRequest):
             data, code, headers = api.classic_query(params)
+
+    @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_classic_search_query(self, mock_index):
+        """Request with search_query."""
+        params = MultiDict({'search_query' : 'au:Copernicus'})
+
+        data, code, headers = api.classic_query(params)
+        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertIn("results", data, "Results are returned")
+        self.assertIn("query", data, "Query object is returned")
+
+    @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_classic_id_list(self, mock_index):
+        """Request with multi-element id_list with versioned and unversioned ids."""
+        params = MultiDict({'id_list' : '1234.56789,1234.56789v3'})
+
+        data, code, headers = api.classic_query(params)
+        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertIn("results", data, "Results are returned")
+        self.assertIn("query", data, "Query object is returned")
