@@ -14,7 +14,7 @@ script:
   - pipenv install
   - pipenv install --dev --skip-lock
   - pipenv run nose2 -vvv tests.base_app_tests
-  - pipenv run nose2 -vvv --with-coverage --cover-package=search
+  - pipenv run nose2 -vvv --with-coverage
 after_success:
   - coveralls
   - pipenv install pylint pydocstyle mypy
