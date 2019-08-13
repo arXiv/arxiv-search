@@ -35,8 +35,8 @@ class TestAPISearch(TestCase):
 
     @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_query_param(self, mock_index):
-        """Request with no parameters."""
-        params = MultiDict({'query' : 'au:copernicus AND ti:astronomy'})
+        """Request with a query string. Tests conjuncts and quoted phrases"""
+        params = MultiDict({'query' : 'au:copernicus AND ti:"dark matter"'})
         data, code, headers = api.search(params)
 
         self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
@@ -178,7 +178,17 @@ class TestClassicAPISearch(TestCase):
         self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
         self.assertIn("results", data, "Results are returned")
         self.assertIn("query", data, "Query object is returned")
-    
+
+    @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_classic_search_query_with_quotes(self, mock_index):
+        """Request with search_query that includes a quoted phrase."""
+        params = MultiDict({'search_query' : 'ti:"dark matter"'})
+
+        data, code, headers = api.classic_query(params)
+        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertIn("results", data, "Results are returned")
+        self.assertIn("query", data, "Query object is returned")
+
     @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_classic_id_list(self, mock_index):
         """Request with multi-element id_list with versioned and unversioned ids."""
@@ -188,3 +198,13 @@ class TestClassicAPISearch(TestCase):
         self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
         self.assertIn("results", data, "Results are returned")
         self.assertIn("query", data, "Query object is returned")
+
+class TestPaper(TestCase):
+    """Tests for :func:`.api.paper`."""
+    
+    @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_paper(self, mock_index):
+        """Request with single parameter paper."""
+        params = MultiDict({})
+        data, code, headers = api.paper('1234.56789')
+
