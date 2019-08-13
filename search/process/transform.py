@@ -48,7 +48,9 @@ def _transformAuthor(author: dict) -> Optional[Dict]:
     author['full_name'] = re.sub(r'\s+', ' ', f"{author['first_name']} {author['last_name']}")
     author['initials'] = " ".join([pt[0] for pt in author['first_name'].split() if pt])
     name_parts = author['first_name'].split() + author['last_name'].split()
-    author['full_name_initialized'] = ' '.join([part[0] for part in name_parts[:-1]] + [name_parts[-1]])
+    author['full_name_initialized'] = ' '.join(
+        [part[0] for part in name_parts[:-1]] + [name_parts[-1]])
+
     return author
 
 
@@ -150,6 +152,7 @@ def to_search_document(metadata: DocMeta,
 
     """
     data: Document = {}
+
     for key, source, is_required in _transformations:
         if isinstance(source, str):
             value = getattr(metadata, source, None)
@@ -161,4 +164,3 @@ def to_search_document(metadata: DocMeta,
     # if fulltext:
     #     data['fulltext'] = fulltext.content
     return data
-    # See https://github.com/python/mypy/issues/3937

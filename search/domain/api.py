@@ -1,10 +1,112 @@
 """API-specific domain classes."""
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import NamedTuple, Optional, Tuple, Union
 
 from .base import DateRange, Query, ClassificationList, Classification, List
 from .advanced import FieldedSearchList, FieldedSearchTerm
 
-from dataclasses import dataclass, field
-from typing import NamedTuple, Optional, Tuple
+
+class Operator(Enum):
+    """Supported boolean operators."""
+
+    AND = 'AND'
+    OR = 'OR'
+    ANDNOT = 'ANDNOT'
+
+    @classmethod
+    def is_valid_value(cls, value: str) -> bool:
+        """
+        Determine whether or not ``value`` is a valid value of a member.
+
+        Parameters
+        ----------
+        value : str
+
+        Returns
+        -------
+        bool
+
+        """
+        try:
+            cls(value)
+        except ValueError:
+            return False
+        return True
+
+
+class Field(Enum):
+    """Supported fields in the classic API."""
+
+    Title = 'ti'
+    Author = 'au'
+    Abstract = 'abs'
+    Comment = 'co'
+    JournalReference = 'jr'
+    SubjectCategory = 'cat'
+    ReportNumber = 'rn'
+    Identifier = 'id'
+    All = 'all'
+
+
+Term = Tuple[Field, str]
+"""
+Tuple representing a Field and search term.
+
+Examples
+--------
+
+.. code-block:: python
+
+   term: Term = (Field.Title : 'dark matter')
+
+"""
+
+# mypy doesn't yet support recursive type definitions. These ignores suppress
+# the cyclic definition error, and forward-references to ``Phrase`` are
+# are replaced with ``Any``.
+Phrase = Union[Term,                            # type: ignore
+               Tuple[Operator, 'Phrase'],       # type: ignore
+               Tuple['Phrase', ...]]            # type: ignore
+"""
+Recursive representation of a search query.
+
+Examples
+--------
+
+.. code-block:: python
+
+   # Simple query without grouping/nesting.
+   phrase: Phrase = ('au', 'copernicus')
+
+   # Simple query with a unary operator without grouping/nesting.
+   phrase: Phrase = ('ANDNOT', ('au', 'copernicus'))
+
+   # Simple conjunct query.
+   phrase: Phrase = (('au', 'del_maestro'), 'AND', ('ti', 'checkerboard'))
+
+   # Disjunct query with an unary not.
+   phrase = (('au', 'del_maestro'), 'OR', ('ANDNOT', ('ti', 'checkerboard')))
+
+   # Conjunct query with nested disjunct query.
+   phrase = (('au', 'del_maestro'), 'ANDNOT',
+             (('ti', 'checkerboard'), 'OR', ('ti', 'Pyrochlore')))
+
+
+"""
+
+
+@dataclass
+class ClassicAPIQuery(Query):
+    """Query supported by the classic arXiv API."""
+
+    phrase: Optional[Phrase] = field(default=None)
+    id_list: Optional[List[str]] = field(default=None)
+
+    def __post_init__(self) -> None:
+        """Ensure that either a phrase or id_list is set."""
+        if self.phrase is None and self.id_list is None:
+            raise ValueError("ClassicAPIQuery requires either a phrase, id_list, or both")
 
 
 def get_default_extra_fields() -> List[str]:

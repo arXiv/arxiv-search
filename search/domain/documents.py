@@ -2,10 +2,19 @@
 
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
+
+from dataclasses import field
 from mypy_extensions import TypedDict
 
+from .base import Classification, ClassificationList
 
-class Person(TypedDict):
+
+# The class keyword ``total=False`` allows instances that do not contain all of
+# the typed keys. See https://github.com/python/mypy/issues/2632 for
+# background.
+
+
+class Person(TypedDict, total=False):
     """Represents an author, owner, or other person in metadata."""
 
     full_name: str
@@ -23,7 +32,7 @@ class Person(TypedDict):
     """Legacy arXiv author identifier."""
 
 
-class Document(TypedDict):
+class Document(TypedDict, total=False):
     """A search document, representing an arXiv paper."""
 
     submitted_date: datetime
@@ -61,8 +70,8 @@ class Document(TypedDict):
     comments: str
     abs_categories: str
     formats: List[str]
-    primary_classification: Dict[str, str]
-    secondary_classification: List[Dict[str, str]]
+    primary_classification: Classification
+    secondary_classification: ClassificationList
 
     score: float
 
@@ -79,8 +88,47 @@ class Document(TypedDict):
     """Contains fields for which the preview is truncated."""
 
 
+class DocumentSetMetadata(TypedDict, total=False):
+    """Metadata for search results."""
+
+    current_page: int
+    end: int
+    max_pages: int
+    size: int
+    start: int
+    total_results: int
+    total_pages: int
+    query: List[Dict[str, Any]]
+
+
 class DocumentSet(TypedDict):
     """A set of search results retrieved from the search index."""
 
-    metadata: Dict[str, Any]
+    metadata: DocumentSetMetadata
     results: List[Document]
+
+
+def document_set_from_documents(documents: List[Document]) -> DocumentSet:
+    """Utility for generating a DocumentSet with only a list of Documents.
+
+    Generates the metadata automatically, which is an advantage over calling
+    DocumentSet(results=documents, metadata=dict()).
+    """
+    return DocumentSet(
+        results=documents,
+        metadata=metadata_from_documents(documents)
+    )
+
+
+def metadata_from_documents(documents: List[Document]) -> DocumentSetMetadata:
+    """Utility for generating DocumentSet metadata from a list of documents."""
+    metadata: DocumentSetMetadata = {}
+    metadata['size'] = len(documents)
+    metadata['end'] = len(documents)
+    metadata['total_results'] = len(documents)
+    metadata['start'] = 0
+    metadata['max_pages'] = 1
+    metadata['current_page'] = 1
+    metadata['total_pages'] = 1
+
+    return metadata

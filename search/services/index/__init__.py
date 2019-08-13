@@ -13,12 +13,12 @@ for indexing (e.g. by the
 
 import json
 import warnings
-import urllib3
 from contextlib import contextmanager
 from typing import Any, Optional, Tuple, Union, List, Generator, Mapping
 from functools import reduce, wraps
 from operator import ior
 
+import urllib3
 from flask import current_app
 from elasticsearch import Elasticsearch, ElasticsearchException, \
                           SerializationError, TransportError, NotFoundError, \
@@ -32,7 +32,7 @@ from arxiv.base import logging
 from arxiv.integration.meta import MetaIntegration
 from search.context import get_application_config, get_application_global
 from search.domain import Document, DocumentSet, Query, AdvancedQuery, \
-    SimpleQuery, asdict, APIQuery
+    SimpleQuery, asdict, APIQuery, ClassicAPIQuery
 
 from .exceptions import QueryError, IndexConnectionError, DocumentNotFound, \
     IndexingError, OutsideAllowedRange, MappingError
@@ -40,6 +40,7 @@ from .util import MAX_RESULTS
 from .advanced import advanced_search
 from .simple import simple_search
 from .api import api_search
+from .classic import classic_search
 from . import highlighting
 from . import results
 
@@ -156,7 +157,7 @@ class SearchSession(metaclass=MetaIntegration):
         return Search(using=self.es, index=self.index)
 
     def _load_mapping(self) -> dict:
-        if not self.mapping or type(self.mapping) is not str:
+        if not self.mapping or not isinstance(self.mapping, str):
             raise IndexingError('Mapping not set')
         with open(self.mapping) as f:
             mappings: dict = json.load(f)
@@ -421,6 +422,8 @@ class SearchSession(metaclass=MetaIntegration):
                 current_search = simple_search(current_search, query)
             elif isinstance(query, APIQuery):
                 current_search = api_search(current_search, query)
+            elif isinstance(query, ClassicAPIQuery):
+                current_search = classic_search(current_search, query)
         except TypeError as e:
             raise e
             # logger.error('Malformed query: %s', str(e))

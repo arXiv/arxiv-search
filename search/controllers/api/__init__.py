@@ -1,14 +1,16 @@
 """Controller for search API requests."""
 
-from typing import Tuple, Dict, Any, Optional, List
-import re
+from collections import defaultdict
 from datetime import date, datetime
+import re
+
+from typing import Tuple, Dict, Any, Optional, List, Union
+from mypy_extensions import TypedDict
+
 from dateutil.relativedelta import relativedelta
 import dateutil.parser
-from pytz import timezone
 import pytz
-
-
+from pytz import timezone
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from werkzeug.exceptions import InternalServerError, BadRequest, NotFound
 from flask import url_for
@@ -19,10 +21,18 @@ from arxiv.base import logging
 from search.services import index, fulltext, metadata
 from search.controllers.util import paginate
 from ...domain import Query, APIQuery, FieldedSearchList, FieldedSearchTerm, \
-    DateRange, ClassificationList, Classification, Document
+    DateRange, ClassificationList, Classification, asdict, DocumentSet, \
+    Document, ClassicAPIQuery
+from ...domain.api import Phrase, Term, Operator, Field
+from .classic_parser import parse_classic_query
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone('US/Eastern')
+
+SearchResponseData = TypedDict(
+    'SearchResponseData',
+    {'results': DocumentSet, 'query': Union[Query, ClassicAPIQuery]}
+)
 
 
 def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -45,18 +55,25 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     """
     q = APIQuery()
 
-    # parse advanced classic-style queries
+    # Parse NG queries utilizing the Classic API syntax.
+    # This implementation parses the `query` parameter as if it were
+    # using the Classic endpoint's `search_query` parameter. It is meant
+    # as a migration pathway so that the URL and query structure aren't
+    # both changed at the same time by end users.
+    # TODO: Implement the NG API using the Classic API domain.
+    parsed_operators = None  # Default in the event that there is not a Classic query.
     try:
-        parsed_terms = _parse_search_query(params.get('query', ''))
+        parsed_operators, parsed_terms = _parse_search_query(params.get('query', ''))
         params = params.copy()
         for field, term in parsed_terms.items():
-            params[field] = term
+            params.add(field, term)
     except ValueError:
         raise BadRequest(f"Improper syntax in query: {params.get('query')}")
 
-    # process fielded terms
+    # process fielded terms, using the operators above
     query_terms: List[Dict[str, Any]] = []
-    terms = _get_fielded_terms(params, query_terms)
+    terms = _get_fielded_terms(params, query_terms, parsed_operators)
+
     if terms is not None:
         q.terms = terms
     date_range = _get_date_params(params, query_terms)
@@ -128,51 +145,50 @@ def classic_query(params: MultiDict) \
         Raised when the search_query and id_list are not specified.
     """
     params = params.copy()
-    raw_query = params.get('search_query')
 
-    # parse id_list
+    # Parse classic search query.
+    raw_query = params.get('search_query')
+    if raw_query:
+        phrase: Optional[Phrase] = parse_classic_query(raw_query)
+    else:
+        phrase = None
+
+    # Parse id_list.
     id_list = params.get('id_list', '')
     if id_list:
         id_list = id_list.split(',')
     else:
-        id_list = []
+        id_list = None
 
-    # error if neither search_query nor id_list are specified.
-    if not id_list and not raw_query:
+    # Parse result size.
+    try:
+        size = int(params.get('max_results', 50))
+    except ValueError:
+        # Ignore size errors.
+        size = 50
+
+    # Parse result start point.
+    try:
+        page_start = int(params.get('start', 0))
+    except ValueError:
+        # Start at beginning by default.
+        page_start = 0
+
+    try:
+        query = ClassicAPIQuery(phrase=phrase, id_list=id_list, size=size,
+                                page_start=page_start)
+    except ValueError:
         raise BadRequest("Either a search_query or id_list must be specified"
                          " for the classic API.")
 
-    if raw_query:
-        # migrate search_query -> query variable
-        params['query'] = raw_query
-        del params['search_query']
+    # pass to search indexer, which will handle parsing
+    document_set: DocumentSet = index.SearchSession.current_session().search(query)
+    data: SearchResponseData = {'results': document_set, 'query': query}
+    logger.debug('Got document set with %i results',
+                    len(document_set['results']))
 
-        # pass to normal search, which will handle parsing
-        data, _, _ = search(params)
-
-    if id_list and not raw_query:
-        # Process only id_lists.
-        # Note lack of error handling to implicitly propogate any errors.
-        # Classic API also errors if even one ID is malformed.
-        papers = [paper(paper_id) for paper_id in id_list]
-
-        data, _, _ = zip(*papers)
-        results = [paper['results'] for paper in data]   # type: ignore
-        data = {
-            'results' : dict(results=results, metadata=dict()), # TODO: Aggregate search metadata
-            'query' : APIQuery() # TODO: Specify query
-        }
-
-    elif id_list and raw_query:
-        # Filter results based on id_list
-        results = [paper for paper in data['results']['results']
-                       if paper.paper_id in id_list or paper.paper_id_v in id_list]
-        data = {
-            'results' : dict(results=results, metadata=dict()), # TODO: Aggregate search metadata
-            'query' : APIQuery() # TODO: Specify query
-        }
-
-    return data, status.HTTP_200_OK, {}
+    # bad mypy inference on TypedDict and the status code
+    return data, status.HTTP_200_OK, {}  # type:ignore
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -200,7 +216,7 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     """
     try:
-        document = index.SearchSession.get_document(paper_id)    # type: ignore
+        document = index.SearchSession.current_session().get_document(paper_id)    # type: ignore
     except index.DocumentNotFound as e:
         logger.error('Document not found')
         raise NotFound('No such document') from e
@@ -216,15 +232,18 @@ def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
     return []
 
 
-def _get_fielded_terms(params: MultiDict, query_terms: List) \
+def _get_fielded_terms(params: MultiDict, query_terms: List,
+                       operators: Optional[Dict[str, Any]] = None) \
         -> Optional[FieldedSearchList]:
+    if operators is None:
+        operators = defaultdict(default_factory=lambda: "AND")
     terms = FieldedSearchList()
     for field, _ in Query.SUPPORTED_FIELDS:
         values = params.getlist(field)
         for value in values:
             query_terms.append({'parameter': field, 'value': value})
             terms.append(FieldedSearchTerm(     # type: ignore
-                operator='AND',
+                operator=operators[field],
                 field=field,
                 term=value
             ))
@@ -258,7 +277,7 @@ def _get_date_params(params: MultiDict, query_terms: List) \
     return None
 
 
-def _to_classification(value: str, query_terms: List) \
+def _to_classification(value: str) \
         -> Tuple[Classification, ...]:
     clsns = []
     if value in taxonomy.definitions.GROUPS:
@@ -285,7 +304,7 @@ def _to_classification(value: str, query_terms: List) \
 def _get_classification(value: str, field: str, query_terms: List) \
         -> Tuple[Classification, ...]:
     try:
-        clsns = _to_classification(value, query_terms)
+        clsns = _to_classification(value)
     except ValueError:
         raise BadRequest(f'Not a valid classification term: {field}={value}')
     query_terms.append({'parameter': field, 'value': value})
@@ -304,29 +323,32 @@ SEARCH_QUERY_FIELDS = {
 }
 
 
-def _parse_search_query(query: str) -> Dict[str, Any]:
-    # TODO: Add support for booleans.
+def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Parses a query into tuple of operators and parameters."""
     new_query_params = {}
+    new_query_operators: Dict[str, str] = defaultdict(default_factory=lambda: "AND")
     terms = query.split()
 
-    expect_new = True
-    """expect_new handles quotation state."""
+    expect_new = True  # expect_new handles quotation state.
+    next_operator = "AND"  # next_operator handles the operator state.
 
     for term in terms:
-        if expect_new and term in ["AND", "OR", "ANDNOT"]:
-            # TODO: Process booleans
-            pass
+        if expect_new and term in ["AND", "OR", "ANDNOT", "NOT"]:
+            if term == "ANDNOT":
+                term = "NOT"  # Translate to NG representation.
+            next_operator = term
         elif expect_new:
             field, term = term.split(':')
 
-            # quotation handling
+            # Quotation handling.
             if term.startswith('"') and not term.endswith('"'):
                 expect_new = False
             term = term.replace('"', '')
 
             new_query_params[SEARCH_QUERY_FIELDS[field]] = term
+            new_query_operators[SEARCH_QUERY_FIELDS[field]] = next_operator
         else:
-            # quotation handling, expecting more terms
+            # If the term ends in a quote, we close the term and look for the next one.
             if term.endswith('"'):
                 expect_new = True
                 term = term.replace('"', '')
@@ -334,4 +356,4 @@ def _parse_search_query(query: str) -> Dict[str, Any]:
             new_query_params[SEARCH_QUERY_FIELDS[field]] += " " + term
 
 
-    return new_query_params
+    return new_query_operators, new_query_params

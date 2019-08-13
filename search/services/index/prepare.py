@@ -144,6 +144,18 @@ def query_secondary_exact(classification: Classification) -> Q:
              ]))
 
 
+def query_any_subject_exact_raw(term: str) -> Q:
+    """
+    Generate a :class:`Q` for classification subject by ID with a raw value.
+
+    This will match any e-print that has a primary or secondary classification
+    with category identifier equal to ``term``.
+    """
+    return (Q("match", primary_classification__category__id=term)
+            | Q("nested", path="secondary_classification",
+                query=Q("match", secondary_classification__category__id=term)))
+
+
 def _query_secondary(term: str, operator: str = 'and') -> Q:
     return Q(
         "nested",

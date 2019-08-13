@@ -1,13 +1,19 @@
 [run]
 omit =
+    api.py
     app.py
+    audit.py
+    classic_api.py
     setup.py
     docs/*
-    test*
+    *test*
     wsgi.py
+    wsgi-api.py
+    wsgi-app.py
     populate_test_metadata.py
     upload_static_assets.py
     create_index.py
+    reindex.py
     bulk_index.py
     shard_ids_for_index.py
     search/config.py

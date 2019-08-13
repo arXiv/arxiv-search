@@ -34,6 +34,21 @@ class TestAPISearch(TestCase):
                          "Default set of fields is included")
 
     @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_query_param(self, mock_index):
+        """Request with a query string. Tests conjuncts and quoted phrases."""
+        params = MultiDict({'query' : 'au:copernicus AND ti:"dark matter"'})
+        data, code, headers = api.search(params)
+
+        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertIn("results", data, "Results are returned")
+        self.assertIn("query", data, "Query object is returned")
+        expected_fields = api_domain.get_required_fields() \
+            + api_domain.get_default_extra_fields()
+        self.assertEqual(set(data["query"].include_fields),
+                         set(expected_fields),
+                         "Default set of fields is included")
+
+    @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_include_fields(self, mock_index):
         """Request with specific fields included."""
         extra_fields = ['title', 'abstract', 'authors']
@@ -142,3 +157,54 @@ class TestAPISearch(TestCase):
 
         self.assertEqual(query.date_range.date_type,
                          DateRange.ANNOUNCED)
+
+
+class TestClassicAPISearch(TestCase):
+    """Tests for :func:`.api.classic_query`."""
+
+    @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_no_params(self, mock_index):
+        """Request with no parameters."""
+        params = MultiDict({})
+        with self.assertRaises(BadRequest):
+            data, code, headers = api.classic_query(params)
+
+    @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_classic_search_query(self, mock_index):
+        """Request with search_query."""
+        params = MultiDict({'search_query' : 'au:Copernicus'})
+
+        data, code, headers = api.classic_query(params)
+        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertIn("results", data, "Results are returned")
+        self.assertIn("query", data, "Query object is returned")
+
+    @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_classic_search_query_with_quotes(self, mock_index):
+        """Request with search_query that includes a quoted phrase."""
+        params = MultiDict({'search_query' : 'ti:"dark matter"'})
+
+        data, code, headers = api.classic_query(params)
+        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertIn("results", data, "Results are returned")
+        self.assertIn("query", data, "Query object is returned")
+
+    @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_classic_id_list(self, mock_index):
+        """Request with multi-element id_list with versioned and unversioned ids."""
+        params = MultiDict({'id_list' : '1234.56789,1234.56789v3'})
+
+        data, code, headers = api.classic_query(params)
+        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertIn("results", data, "Results are returned")
+        self.assertIn("query", data, "Query object is returned")
+
+class TestPaper(TestCase):
+    """Tests for :func:`.api.paper`."""
+    
+    @mock.patch(f'{api.__name__}.index.SearchSession')
+    def test_paper(self, mock_index):
+        """Request with single parameter paper."""
+        params = MultiDict({})
+        data, code, headers = api.paper('1234.56789')
+
