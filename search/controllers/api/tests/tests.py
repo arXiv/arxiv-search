@@ -35,7 +35,7 @@ class TestAPISearch(TestCase):
 
     @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_query_param(self, mock_index):
-        """Request with a query string. Tests conjuncts and quoted phrases"""
+        """Request with a query string. Tests conjuncts and quoted phrases."""
         params = MultiDict({'query' : 'au:copernicus AND ti:"dark matter"'})
         data, code, headers = api.search(params)
 
