@@ -4,10 +4,8 @@ Exception handlers for API endpoints.
 .. todo:: This module belongs in :mod:`arxiv.base`.
 
 """
-
-from typing import Callable, List, Tuple
 from http import HTTPStatus
-
+from typing import Callable, List, Tuple
 from werkzeug.exceptions import (
     NotFound,
     Forbidden,
@@ -18,10 +16,12 @@ from werkzeug.exceptions import (
     InternalServerError,
     HTTPException,
 )
-from flask import make_response, Response, jsonify
+from flask import make_response, Response
 
 from arxiv.base import logging
-from search.routes.consts import JSON
+from search.serialize import as_atom
+from search.domain import Error
+from search.routes.consts import ATOM_XML
 
 logger = logging.getLogger(__name__)
 
@@ -51,48 +51,54 @@ def get_handlers() -> List[Tuple[type, Callable]]:
     return _handlers
 
 
-def respond(error, status: HTTPStatus) -> Response:
+def respond(
+    error,
+    link="http://arxiv.org/api/errors",
+    status: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
+) -> Response:
     return make_response(
-        jsonify({"code": error.code, "error": error.description}),
+        as_atom(Error(id=link, error=error, link=link)),
         status,
-        {"Content-type": JSON},
+        {"Content-type": ATOM_XML},
     )
 
 
 @handler(NotFound)
 def handle_not_found(error: NotFound) -> Response:
     """Render the base 404 error page."""
-    return respond(error, HTTPStatus.NOT_FOUND)
+    return respond(error.description, status=HTTPStatus.NOT_FOUND)
 
 
 @handler(Forbidden)
 def handle_forbidden(error: Forbidden) -> Response:
     """Render the base 403 error page."""
-    return respond(error, HTTPStatus.FORBIDDEN)
+    return respond(error.description, status=HTTPStatus.FORBIDDEN)
 
 
 @handler(Unauthorized)
 def handle_unauthorized(error: Unauthorized) -> Response:
     """Render the base 401 error page."""
-    return respond(error, HTTPStatus.UNAUTHORIZED)
+    return respond(error.description, status=HTTPStatus.UNAUTHORIZED)
 
 
 @handler(MethodNotAllowed)
 def handle_method_not_allowed(error: MethodNotAllowed) -> Response:
     """Render the base 405 error page."""
-    return respond(error, HTTPStatus.METHOD_NOT_ALLOWED)
+    return respond(error.description, status=HTTPStatus.METHOD_NOT_ALLOWED)
 
 
 @handler(RequestEntityTooLarge)
 def handle_request_entity_too_large(error: RequestEntityTooLarge) -> Response:
     """Render the base 413 error page."""
-    return respond(error, HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
+    return respond(
+        error.description, status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE
+    )
 
 
 @handler(BadRequest)
 def handle_bad_request(error: BadRequest) -> Response:
     """Render the base 400 error page."""
-    return respond(error, HTTPStatus.BAD_REQUEST)
+    return respond(error.description, status=HTTPStatus.BAD_REQUEST)
 
 
 @handler(InternalServerError)
@@ -100,5 +106,4 @@ def handle_internal_server_error(error: InternalServerError) -> Response:
     """Render the base 500 error page."""
     if not isinstance(error, HTTPException):
         logger.error("Caught unhandled exception: %s", error)
-        error.code = HTTPStatus.INTERNAL_SERVER_ERROR
-    return respond(error, HTTPStatus.INTERNAL_SERVER_ERROR)
+    return respond(error.description, status=HTTPStatus.INTERNAL_SERVER_ERROR)

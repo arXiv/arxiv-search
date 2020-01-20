@@ -90,7 +90,7 @@ def create_classic_api_web_app() -> Flask:
     wrap(app, [request_logs.ClassicLogsMiddleware,
                auth.middleware.AuthMiddleware])
 
-    for error, handler in api.exceptions.get_handlers():
+    for error, handler in classic.exceptions.get_handlers():
         app.errorhandler(error)(handler)
 
     return app

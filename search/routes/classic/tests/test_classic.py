@@ -1,6 +1,7 @@
 """Tests for API routes."""
 
 import os
+from http import HTTPStatus
 from datetime import datetime
 from unittest import TestCase, mock
 
@@ -8,7 +9,6 @@ import pytz
 
 from arxiv.users import helpers, auth
 from arxiv.users.domain import Scope
-from arxiv import status
 
 from search import factory
 from search import domain
@@ -28,7 +28,7 @@ class TestClassicAPISearchRequests(TestCase):
     def test_request_without_token(self):
         """No auth token is provided on the request."""
         response = self.client.get('/classic/query?search_query=au:copernicus')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
     def test_with_token_lacking_scope(self):
         """Client auth token lacks required public read scope."""
@@ -37,7 +37,7 @@ class TestClassicAPISearchRequests(TestCase):
         response = self.client.get(
             '/classic/query?search_query=au:copernicus',
             headers={'Authorization': token})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
 
     @mock.patch(f'{factory.__name__}.classic.classic')
     def test_with_valid_token(self, mock_controller):
@@ -97,14 +97,13 @@ class TestClassicAPISearchRequests(TestCase):
             metadata={'start': 0, 'end': 1, 'size': 50, 'total': 1}
         )
         r_data = {'results': docs, 'query': domain.ClassicAPIQuery(id_list=['1234.5678'])}
-        mock_controller.query.return_value = r_data, status.HTTP_200_OK, {}
+        mock_controller.query.return_value = r_data, HTTPStatus.OK, {}
         token = helpers.generate_token('1234', 'foo@bar.com', 'foouser',
                                        scope=[auth.scopes.READ_PUBLIC])
         response = self.client.get(
             '/classic/query?search_query=au:copernicus',
             headers={'Authorization': token})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     @mock.patch(f'{factory.__name__}.classic.classic')
     def test_paper_retrieval(self, mock_controller):
@@ -164,8 +163,8 @@ class TestClassicAPISearchRequests(TestCase):
             metadata={'start': 0, 'end': 1, 'size': 50, 'total': 1}
         )
         r_data = {'results': docs, 'query': domain.APIQuery()}
-        mock_controller.paper.return_value = r_data, status.HTTP_200_OK, {}
+        mock_controller.paper.return_value = r_data, HTTPStatus.OK, {}
         token = helpers.generate_token('1234', 'foo@bar.com', 'foouser',
                                        scope=[auth.scopes.READ_PUBLIC])
         response = self.client.get('/classic/1234.56789v6', headers={'Authorization': token})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, HTTPStatus.OK)

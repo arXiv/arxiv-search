@@ -6,6 +6,7 @@ from arxiv.base import logging
 from search import serialize
 from search.controllers import api
 
+from search.routes.consts import JSON
 from search.routes.api import exceptions
 
 from arxiv.users.auth.decorators import scoped
@@ -14,9 +15,6 @@ from arxiv.users.auth import scopes
 logger = logging.getLogger(__name__)
 
 blueprint = Blueprint('api', __name__, url_prefix='/')
-
-ATOM_XML = "application/atom+xml; charset=utf-8"
-JSON = "application/json; charset=utf-8"
 
 
 @blueprint.route('/', methods=['GET'])

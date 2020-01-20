@@ -6,7 +6,7 @@ from flask import url_for
 from feedgen.feed import FeedGenerator
 
 from search.domain import (
-    DocumentSet, Document, APIQuery, ClassicAPIQuery,
+    Error, DocumentSet, Document, APIQuery, ClassicAPIQuery,
     document_set_from_documents
 )
 from search.serialize.atom_extensions import (
@@ -70,10 +70,8 @@ class AtomXMLSerializer(BaseSerializer):
                 author_data['affiliation'] = author['affiliation']
             entry.arxiv.author(author_data)
 
-    @classmethod
-    def serialize(cls, document_set: DocumentSet,
-                  query: Optional[ClassicAPIQuery] = None) -> str:
-        """Generate Atom response for a :class:`DocumentSet`."""
+    @staticmethod
+    def _get_feed(query: Optional[ClassicAPIQuery] = None) -> FeedGenerator:
         fg = FeedGenerator()
         fg.register_extension('opensearch', OpenSearchExtension)
         fg.register_extension("arxiv", ArXivExtension, ArXivEntryExtension,
@@ -98,9 +96,9 @@ class AtomXMLSerializer(BaseSerializer):
                           start=query.page_start, max_results=query.size,
                           id_list=id_list))
             fg.link({
-                "href" : url_for('classic.query', search_query=query_string,
-                                 start=query.page_start, max_results=query.size,
-                                 id_list=id_list),
+                "href": url_for('classic.query', search_query=query_string,
+                                start=query.page_start, max_results=query.size,
+                                id_list=id_list),
                 "type": 'application/atom+xml'})
         else:
             # TODO: Discuss better defaults
@@ -108,8 +106,16 @@ class AtomXMLSerializer(BaseSerializer):
             fg.id("https://arxiv.org/")
 
         fg.updated(datetime.utcnow().replace(tzinfo=utc))
+        return fg
 
-        # pylint struggles with the opensearch extensions, so we ignore no-member here.
+    @classmethod
+    def serialize(cls, document_set: DocumentSet,
+                  query: Optional[ClassicAPIQuery] = None) -> str:
+        """Generate Atom response for a :class:`DocumentSet`."""
+        fg = cls._get_feed(query)
+
+        # pylint struggles with the opensearch extensions, so we ignore
+        # no-member here.
         # pylint: disable=no-member
         fg.opensearch.totalResults(
             document_set['metadata'].get('total_results')
@@ -120,8 +126,28 @@ class AtomXMLSerializer(BaseSerializer):
         for doc in document_set['results']:
             cls.transform_document(fg, doc, query=query)
 
-        serialized: str = fg.atom_str(pretty=True)
-        return serialized
+        return fg.atom_str(pretty=True)
+
+    @classmethod
+    def serialize_error(cls, error: Error, query: Optional[ClassicAPIQuery] = None) -> str:
+        fg = cls._get_feed(query)
+
+        # pylint struggles with the opensearch extensions, so we ignore
+        # no-member here.
+        # pylint: disable=no-member
+        fg.opensearch.totalResults(1)
+        fg.opensearch.itemsPerPage(1)
+        fg.opensearch.startIndex(0)
+
+        entry = fg.add_entry()
+        entry.id(error.id)
+        entry.title("Error")
+        entry.summary(error.error)
+        entry.updated(error.created)
+        entry.link({'href': error.link, "rel": "alternate", "type": "text/html"})
+        entry.arxiv.author({"name": error.author})
+
+        return fg.atom_str(pretty=True)
 
     @classmethod
     def serialize_document(cls, document: Document,
@@ -133,9 +159,11 @@ class AtomXMLSerializer(BaseSerializer):
         return cls.serialize(document_set, query=query)
 
 
-def as_atom(document_or_set: Union[DocumentSet, Document],
+def as_atom(document_or_set: Union[Error, DocumentSet, Document],
             query: Optional[APIQuery] = None) -> str:
     """Serialize a :class:`DocumentSet` as Atom."""
-    if 'paper_id' in document_or_set:
+    if isinstance(document_or_set, Error):
+        return AtomXMLSerializer.serialize_error(document_or_set, query=query)
+    elif 'paper_id' in document_or_set:
         return AtomXMLSerializer.serialize_document(document_or_set, query=query)  # type: ignore
     return AtomXMLSerializer.serialize(document_or_set, query=query)  # type: ignore
