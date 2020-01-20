@@ -1,17 +1,21 @@
 """Feedgen extensions to implement serialization of the arXiv legacy API atom feed.
 
-Throughout module, pylint: disable=arguments-differ due to inconsistencies in feedgen library.
+Throughout module, pylint: disable=arguments-differ due to inconsistencies in
+feedgen library.
 """
 # pylint: disable=arguments-differ
 
 from typing import Any, Dict, List
+
+from lxml import etree
 from feedgen.ext.base import BaseEntryExtension, BaseExtension
 from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
-from lxml import etree
 
-ARXIV_NS = 'http://arxiv.org/schemas/atom'
-OPENSEARCH_NS = 'http://a9.com/-/spec/opensearch/1.1/'
+
+ARXIV_NS = "http://arxiv.org/schemas/atom"
+OPENSEARCH_NS = "http://a9.com/-/spec/opensearch/1.1/"
+
 
 class OpenSearchExtension(BaseExtension):
     """Extension of the Feedgen base class to put OpenSearch metadata."""
@@ -25,7 +29,9 @@ class OpenSearchExtension(BaseExtension):
         self.__opensearch_startIndex = None
         self.__opensearch_itemsPerPage = None
 
-    def extend_atom(self: BaseExtension, atom_feed: FeedGenerator) -> FeedGenerator:
+    def extend_atom(
+        self: BaseExtension, atom_feed: FeedGenerator
+    ) -> FeedGenerator:
         """
         Assign the Atom feed generator to the extension.
 
@@ -41,15 +47,19 @@ class OpenSearchExtension(BaseExtension):
 
         """
         if self.__opensearch_itemsPerPage is not None:
-            elt = etree.SubElement(atom_feed, f'{{{OPENSEARCH_NS}}}itemsPerPage')
+            elt = etree.SubElement(
+                atom_feed, f"{{{OPENSEARCH_NS}}}itemsPerPage"
+            )
             elt.text = self.__opensearch_itemsPerPage
 
         if self.__opensearch_totalResults is not None:
-            elt = etree.SubElement(atom_feed, f'{{{OPENSEARCH_NS}}}totalResults')
+            elt = etree.SubElement(
+                atom_feed, f"{{{OPENSEARCH_NS}}}totalResults"
+            )
             elt.text = self.__opensearch_totalResults
 
         if self.__opensearch_startIndex is not None:
-            elt = etree.SubElement(atom_feed, f'{{{OPENSEARCH_NS}}}startIndex')
+            elt = etree.SubElement(atom_feed, f"{{{OPENSEARCH_NS}}}startIndex")
             elt.text = self.__opensearch_startIndex
 
         return atom_feed
@@ -83,7 +93,7 @@ class OpenSearchExtension(BaseExtension):
             The definition string for the "arxiv" namespace.
 
         """
-        return {'opensearch': OPENSEARCH_NS}
+        return {"opensearch": OPENSEARCH_NS}
 
     def totalResults(self: BaseExtension, text: str) -> None:
         """Set the totalResults parameter."""
@@ -151,7 +161,7 @@ class ArXivExtension(BaseExtension):
             The definition string for the "arxiv" namespace.
 
         """
-        return {'arxiv': ARXIV_NS}
+        return {"arxiv": ARXIV_NS}
 
 
 class ArXivEntryExtension(BaseEntryExtension):
@@ -181,37 +191,42 @@ class ArXivEntryExtension(BaseEntryExtension):
 
         """
         if self.__arxiv_comment:
-            comment_element = etree.SubElement(entry, f'{{{ARXIV_NS}}}comment')
+            comment_element = etree.SubElement(entry, f"{{{ARXIV_NS}}}comment")
             comment_element.text = self.__arxiv_comment
 
         if self.__arxiv_primary_category:
-            primary_category_element = etree.SubElement(entry, f'{{{ARXIV_NS}}}primary_category')
-            primary_category_element.attrib['term'] = self.__arxiv_primary_category
+            primary_category_element = etree.SubElement(
+                entry, f"{{{ARXIV_NS}}}primary_category"
+            )
+            primary_category_element.attrib[
+                "term"
+            ] = self.__arxiv_primary_category
 
         if self.__arxiv_journal_ref:
-            journal_ref_element = \
-                etree.SubElement(entry, f'{{{ARXIV_NS}}}journal_ref')
+            journal_ref_element = etree.SubElement(
+                entry, f"{{{ARXIV_NS}}}journal_ref"
+            )
             journal_ref_element.text = self.__arxiv_journal_ref
 
         if self.__arxiv_authors:
             for author in self.__arxiv_authors:
-                author_element = etree.SubElement(entry, 'author')
-                name_element = etree.SubElement(author_element, 'name')
-                name_element.text = author['name']
-                for affiliation in author.get('affiliation', []):
-                    affiliation_element = \
-                        etree.SubElement(author_element,
-                                         '{%s}affiliation' % ARXIV_NS)
+                author_element = etree.SubElement(entry, "author")
+                name_element = etree.SubElement(author_element, "name")
+                name_element.text = author["name"]
+                for affiliation in author.get("affiliation", []):
+                    affiliation_element = etree.SubElement(
+                        author_element, "{%s}affiliation" % ARXIV_NS
+                    )
                     affiliation_element.text = affiliation
 
         if self.__arxiv_doi:
             for doi in self.__arxiv_doi:
-                doi_element = etree.SubElement(entry, f'{{{ARXIV_NS}}}doi')
+                doi_element = etree.SubElement(entry, f"{{{ARXIV_NS}}}doi")
                 doi_element.text = doi
 
-                doi_link_element = etree.SubElement(entry, 'link')
-                doi_link_element.set('rel', 'related')
-                doi_link_element.set('href', f'https://doi.org/{doi}')
+                doi_link_element = etree.SubElement(entry, "link")
+                doi_link_element.set("rel", "related")
+                doi_link_element.set("href", f"https://doi.org/{doi}")
 
         return entry
 

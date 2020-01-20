@@ -4,12 +4,11 @@ import logging
 
 from flask import Flask
 from flask_s3 import FlaskS3
-from werkzeug.contrib.profiler import ProfilerMiddleware
 
 from arxiv.base import Base
 from arxiv.base.middleware import wrap, request_logs
 from arxiv.users import auth
-from search.routes import ui, api
+from search.routes import ui, api, classic
 from search.services import index
 from search.converters import ArchiveConverter
 from search.encode import ISO8601JSONEncoder
@@ -86,7 +85,7 @@ def create_classic_api_web_app() -> Flask:
 
     Base(app)
     auth.Auth(app)
-    app.register_blueprint(api.classic.blueprint)
+    app.register_blueprint(classic.blueprint)
 
     wrap(app, [request_logs.ClassicLogsMiddleware,
                auth.middleware.AuthMiddleware])

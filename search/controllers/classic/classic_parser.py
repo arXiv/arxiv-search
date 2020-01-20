@@ -21,7 +21,7 @@ from operator import attrgetter
 
 from werkzeug.exceptions import BadRequest
 
-from ...domain.api import Phrase, Operator, Field, Term
+from search.domain.api import Phrase, Operator, Field, Term
 
 def parse_classic_query(query: str) -> Phrase:
     """

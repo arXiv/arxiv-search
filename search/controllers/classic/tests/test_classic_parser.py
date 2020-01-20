@@ -1,8 +1,8 @@
 # type: ignore
 """Test cases for the classic parser."""
-from ...api.classic_parser import parse_classic_query, phrase_to_query_string
+from search.controllers.classic.classic_parser import parse_classic_query, phrase_to_query_string
 
-from ....domain.api import Phrase, Term, ClassicAPIQuery, Field, Operator
+from search.domain.api import Phrase, Field, Operator
 
 from werkzeug.exceptions import BadRequest
 from unittest import TestCase

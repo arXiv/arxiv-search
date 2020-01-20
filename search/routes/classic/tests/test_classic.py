@@ -1,11 +1,9 @@
 """Tests for API routes."""
 
 import os
-import json
 from datetime import datetime
 from unittest import TestCase, mock
 
-import jsonschema
 import pytz
 
 from arxiv.users import helpers, auth
@@ -41,7 +39,7 @@ class TestClassicAPISearchRequests(TestCase):
             headers={'Authorization': token})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch(f'{factory.__name__}.api.classic.api')
+    @mock.patch(f'{factory.__name__}.classic.classic')
     def test_with_valid_token(self, mock_controller):
         """Client auth token has required public read scope."""
         document = dict(
@@ -99,7 +97,7 @@ class TestClassicAPISearchRequests(TestCase):
             metadata={'start': 0, 'end': 1, 'size': 50, 'total': 1}
         )
         r_data = {'results': docs, 'query': domain.ClassicAPIQuery(id_list=['1234.5678'])}
-        mock_controller.classic_query.return_value = r_data, status.HTTP_200_OK, {}
+        mock_controller.query.return_value = r_data, status.HTTP_200_OK, {}
         token = helpers.generate_token('1234', 'foo@bar.com', 'foouser',
                                        scope=[auth.scopes.READ_PUBLIC])
         response = self.client.get(
@@ -108,7 +106,7 @@ class TestClassicAPISearchRequests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-    @mock.patch(f'{factory.__name__}.api.classic.api')
+    @mock.patch(f'{factory.__name__}.classic.classic')
     def test_paper_retrieval(self, mock_controller):
         """Test single-paper retrieval."""
         document = dict(
