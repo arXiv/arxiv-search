@@ -144,7 +144,11 @@ class AtomXMLSerializer(BaseSerializer):
         entry.title("Error")
         entry.summary(error.error)
         entry.updated(error.created)
-        entry.link({'href': error.link, "rel": "alternate", "type": "text/html"})
+        entry.link({
+            'href': error.link,
+            "rel": "alternate",
+            "type": "text/html"
+        })
         entry.arxiv.author({"name": error.author})
 
         return fg.atom_str(pretty=True)

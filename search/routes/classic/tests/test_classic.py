@@ -4,6 +4,7 @@ import os
 from http import HTTPStatus
 from datetime import datetime
 from unittest import TestCase, mock
+from xml.etree import ElementTree
 
 import pytz
 
@@ -24,6 +25,12 @@ class TestClassicAPISearchRequests(TestCase):
         self.app = factory.create_classic_api_web_app()
         self.app.config['JWT_SECRET'] = jwt_secret
         self.client = self.app.test_client()
+        self.auth_header = {
+            'Authorization': helpers.generate_token(
+                '1234', 'foo@bar.com', 'foouser',
+                scope=[auth.scopes.READ_PUBLIC]
+            )
+        }
 
     def test_request_without_token(self):
         """No auth token is provided on the request."""
@@ -98,11 +105,9 @@ class TestClassicAPISearchRequests(TestCase):
         )
         r_data = {'results': docs, 'query': domain.ClassicAPIQuery(id_list=['1234.5678'])}
         mock_controller.query.return_value = r_data, HTTPStatus.OK, {}
-        token = helpers.generate_token('1234', 'foo@bar.com', 'foouser',
-                                       scope=[auth.scopes.READ_PUBLIC])
         response = self.client.get(
             '/classic/query?search_query=au:copernicus',
-            headers={'Authorization': token})
+            headers=self.auth_header)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     @mock.patch(f'{factory.__name__}.classic.classic')
@@ -164,7 +169,86 @@ class TestClassicAPISearchRequests(TestCase):
         )
         r_data = {'results': docs, 'query': domain.APIQuery()}
         mock_controller.paper.return_value = r_data, HTTPStatus.OK, {}
-        token = helpers.generate_token('1234', 'foo@bar.com', 'foouser',
-                                       scope=[auth.scopes.READ_PUBLIC])
-        response = self.client.get('/classic/1234.56789v6', headers={'Authorization': token})
+        response = self.client.get(
+            '/classic/1234.56789v6', headers=self.auth_header
+        )
         self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    # Validation errors
+    def _fix_path(self, path):
+        return "/".join([
+            "{{http://www.w3.org/2005/Atom}}{}".format(p)
+            for p in path.split("/")
+        ])
+
+    def _node(self, et: ElementTree, path: str):
+        """Return the node."""
+        return et.find(self._fix_path(path))
+
+    def _text(self, et: ElementTree, path: str):
+        """Return the text content of the node"""
+        return et.findtext(self._fix_path(path))
+
+    def check_validation_error(self, response, error, link):
+        et = ElementTree.fromstring(response.get_data(as_text=True))
+        self.assertEqual(self._text(et, "entry/id"), link)
+        self.assertEqual(self._text(et, "entry/title"), "Error")
+        self.assertEqual(self._text(et, "entry/summary"), error)
+        link_attrib = self._node(et, "entry/link").attrib
+        self.assertEqual(link_attrib["href"], link)
+
+    def test_start_not_a_number(self):
+        response = self.client.get(
+            '/classic/query?search_query=au:copernicus&start=non_number',
+            headers=self.auth_header)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.check_validation_error(
+            response,
+            "start must be an integer",
+            "http://arxiv.org/api/errors#start_must_be_an_integer"
+        )
+
+    def test_start_negative(self):
+        response = self.client.get(
+            '/classic/query?search_query=au:copernicus&start=-1',
+            headers=self.auth_header)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.check_validation_error(
+            response,
+            "start must be non-negative",
+            "http://arxiv.org/api/errors#start_must_be_non-negative"
+        )
+
+    def test_max_results_not_a_number(self):
+        response = self.client.get(
+            '/classic/query?search_query=au:copernicus&max_results=non_number',
+            headers=self.auth_header)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.check_validation_error(
+            response,
+            "max_results must be an integer",
+            "http://arxiv.org/api/errors#max_results_must_be_an_integer"
+        )
+
+    def test_max_results_negative(self):
+        response = self.client.get(
+            '/classic/query?search_query=au:copernicus&max_results=-1',
+            headers=self.auth_header)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.check_validation_error(
+            response,
+            "max_results must be non-negative",
+            "http://arxiv.org/api/errors#max_results_must_be_non-negative"
+        )
+
+    def test_invalid_arxiv_id(self):
+        response = self.client.get(
+            '/classic/query?id_list=cond—mat/0709123',
+            headers=self.auth_header)
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.check_validation_error(
+            response,
+            "incorrect id format for cond—mat/0709123",
+            "http://arxiv.org/api/errors#"
+            "incorrect_id_format_for_cond—mat/0709123"
+        )

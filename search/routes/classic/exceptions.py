@@ -22,6 +22,8 @@ from arxiv.base import logging
 from search.serialize import as_atom
 from search.domain import Error
 from search.routes.consts import ATOM_XML
+from search.errors import ValidationError
+
 
 logger = logging.getLogger(__name__)
 
@@ -107,3 +109,11 @@ def handle_internal_server_error(error: InternalServerError) -> Response:
     if not isinstance(error, HTTPException):
         logger.error("Caught unhandled exception: %s", error)
     return respond(error.description, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@handler(ValidationError)
+def handle_validation_error(error: ValidationError) -> Response:
+    """Render the base 400 error page."""
+    return respond(
+        error=error.message, link=error.link, status=HTTPStatus.BAD_REQUEST
+    )
