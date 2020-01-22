@@ -1,4 +1,4 @@
-"""Controller for search API requests."""
+"""Controller for classic arXiv API requests."""
 
 from typing import Tuple, Dict, Any, Optional, Union
 from mypy_extensions import TypedDict
