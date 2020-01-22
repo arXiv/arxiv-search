@@ -26,8 +26,8 @@ class TestRetrieveExistantContent(unittest.TestCase):
 
         try:
             fulltext_session.retrieve('1234.5678v3')
-        except Exception as e:
-            self.fail('Choked on valid response: %s' % e)
+        except Exception as ex:
+            self.fail('Choked on valid response: %s' % ex)
         args, _ = mock_get.call_args
         self.assertTrue(args[0].startswith(base))
 
@@ -63,8 +63,8 @@ class TestRetrieveNonexistantRecord(unittest.TestCase):
         with self.assertRaises(IOError):
             try:
                 fulltext.retrieve('1234.5678v3')
-            except Exception as e:
-                if type(e) is SSLError:
+            except Exception as ex:
+                if type(ex) is SSLError:
                     self.fail('Should not return dependency exception')
                 raise
 

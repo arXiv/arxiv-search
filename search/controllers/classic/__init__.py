@@ -168,7 +168,7 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         document = index.SearchSession.current_session().get_document(
             paper_id
         )  # type: ignore
-    except index.DocumentNotFound as e:
+    except index.DocumentNotFound as ex:
         logger.error("Document not found")
-        raise NotFound("No such document") from e
+        raise NotFound("No such document") from ex
     return {"results": document}, status.HTTP_200_OK, {}

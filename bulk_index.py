@@ -56,7 +56,7 @@ def populate(print_indexable: bool, paper_id: str, id_list: str,
                 if load_cache:
                     try:
                         this_meta = from_cache(cache_dir, paper_id)
-                    except RuntimeError as e:    # No document.
+                    except RuntimeError:    # No document.
                         pass
 
                 if this_meta:
@@ -67,7 +67,7 @@ def populate(print_indexable: bool, paper_id: str, id_list: str,
                 if len(chunk) == retrieve_chunk_size or i == last:
                     try:
                         new_meta = metadata.bulk_retrieve(chunk)
-                    except metadata.ConnectionFailed as e:  # Try again.
+                    except metadata.ConnectionFailed:  # Try again.
                         new_meta = metadata.bulk_retrieve(chunk)
                     # Add metadata to the cache.
                     key = lambda dm: dm.paper_id
@@ -93,8 +93,8 @@ def populate(print_indexable: bool, paper_id: str, id_list: str,
                     meta = []
                     index_bar.update(i)
 
-    except Exception as e:
-        raise RuntimeError('Populate failed: %s' % str(e)) from e
+    except Exception as ex:
+        raise RuntimeError('Populate failed: %s' % str(ex)) from ex
 
     finally:
         click.echo(f"Indexed {index_count} documents in total")
@@ -162,8 +162,8 @@ def to_cache(cache_dir: str, arxiv_id: str, docmeta: List[DocMeta]) -> None:
     try:
         with open(cache_path, 'w') as f:
             json.dump([asdict(dm) for dm in docmeta], f)
-    except Exception as e:
-        raise RuntimeError(str(e)) from e
+    except Exception as ex:
+        raise RuntimeError(str(ex)) from ex
 
 
 def load_id_list(path: str) -> List[str]:

@@ -143,8 +143,8 @@ def _group_tokens(classed_tokens: List[Union[Operator, Term, Phrase]]) -> Phrase
 def _parse_operator(characters: str) -> Operator:
     try:
         return Operator(characters.strip())
-    except ValueError as e:
-        raise BadRequest(f'Cannot parse fragment: {characters}') from e
+    except ValueError as ex:
+        raise BadRequest(f'Cannot parse fragment: {characters}') from ex
 
 
 def _parse_field_query(field_part: str) -> Term:
@@ -153,8 +153,8 @@ def _parse_field_query(field_part: str) -> Term:
     # Cast field to Field enum.
     try:
         field = Field(field_name)
-    except ValueError as e:
-        raise BadRequest(f'Invalid field: {field_name}') from e
+    except ValueError as ex:
+        raise BadRequest(f'Invalid field: {field_name}') from ex
 
     # Process leading and trailing whitespace and quotes, if present.
     value = value.strip()

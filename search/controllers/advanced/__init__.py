@@ -116,30 +116,30 @@ def search(request_params: MultiDict) -> Response:
                 #  template rendering, so they get added directly to the
                 #  response content. asdict(
                 response_data.update(SearchSession.search(q))  # type: ignore
-            except index.IndexConnectionError as e:
+            except index.IndexConnectionError as ex:
                 # There was a (hopefully transient) connection problem. Either
                 #  this will clear up relatively quickly (next request), or
                 #  there is a more serious outage.
-                logger.error('IndexConnectionError: %s', e)
+                logger.error('IndexConnectionError: %s', ex)
                 raise InternalServerError(
                     "There was a problem connecting to the search index. This "
                     "is quite likely a transient issue, so please try your "
                     "search again. If this problem persists, please report it "
                     "to help@arxiv.org."
-                ) from e
-            except index.QueryError as e:
+                ) from ex
+            except index.QueryError as ex:
                 # Base exception routers should pick this up and show bug page.
-                logger.error('QueryError: %s', e)
+                logger.error('QueryError: %s', ex)
                 raise InternalServerError(
                     "There was a problem executing your query. Please try "
                     "your search again.  If this problem persists, please "
                     "report it to help@arxiv.org."
-                ) from e
-            except index.OutsideAllowedRange as e:
+                ) from ex
+            except index.OutsideAllowedRange as ex:
                 raise BadRequest(
                     "Hello clever friend. You can't get results in that range"
                     " right now."
-                ) from e
+                ) from ex
             response_data['query'] = q
         else:
             logger.debug('form is invalid: %s', str(form.errors))

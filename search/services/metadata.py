@@ -116,14 +116,14 @@ class DocMetaSession(object):
             )
             response = requests.get(target, verify=self._verify_cert,
                                     headers={'User-Agent': 'arXiv/system'})
-        except requests.exceptions.SSLError as e:
-            logger.error('SSLError: %s', e)
-            raise SecurityException('SSL failed: %s' % e) from e
-        except requests.exceptions.ConnectionError as e:
-            logger.error('ConnectionError: %s', e)
+        except requests.exceptions.SSLError as ex:
+            logger.error('SSLError: %s', ex)
+            raise SecurityException('SSL failed: %s' % ex) from ex
+        except requests.exceptions.ConnectionError as ex:
+            logger.error('ConnectionError: %s', ex)
             raise ConnectionFailed(
-                'Could not connect to metadata service: %s' % e
-            ) from e
+                'Could not connect to metadata service: %s' % ex
+            ) from ex
 
         if response.status_code not in \
                 [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]:
@@ -137,11 +137,11 @@ class DocMetaSession(object):
         try:
             data = DocMeta(**response.json())   # type: ignore
             # See https://github.com/python/mypy/issues/3937
-        except json.decoder.JSONDecodeError as e:
-            logger.error('JSONDecodeError: %s', e)
+        except json.decoder.JSONDecodeError as ex:
+            logger.error('JSONDecodeError: %s', ex)
             raise BadResponse(
-                '%s: could not decode response: %s' % (document_id, e)
-            ) from e
+                '%s: could not decode response: %s' % (document_id, ex)
+            ) from ex
         logger.debug(f'{document_id}: response decoded; done!')
         return data
 
@@ -176,14 +176,14 @@ class DocMetaSession(object):
                 f' verify {self._verify_cert}'
             )
             response = self._session.get(target, verify=self._verify_cert)
-        except requests.exceptions.SSLError as e:
-            logger.error('SSLError: %s', e)
-            raise SecurityException('SSL failed: %s' % e) from e
-        except requests.exceptions.ConnectionError as e:
-            logger.error('ConnectionError: %s', e)
+        except requests.exceptions.SSLError as ex:
+            logger.error('SSLError: %s', ex)
+            raise SecurityException('SSL failed: %s' % ex) from ex
+        except requests.exceptions.ConnectionError as ex:
+            logger.error('ConnectionError: %s', ex)
             raise ConnectionFailed(
-                'Could not connect to metadata service: %s' % e
-            ) from e
+                'Could not connect to metadata service: %s' % ex
+            ) from ex
 
         if response.status_code not in \
                 [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]:
@@ -198,11 +198,11 @@ class DocMetaSession(object):
             resp = response.json()  # A list with metadata for each paper.
             data: List[DocMeta]
             data = [DocMeta(**value) for value in resp]     # type: ignore
-        except json.decoder.JSONDecodeError as e:
-            logger.error('JSONDecodeError: %s', e)
+        except json.decoder.JSONDecodeError as ex:
+            logger.error('JSONDecodeError: %s', ex)
             raise BadResponse(
-                '%s: could not decode response: %s' % (document_ids, e)
-            ) from e
+                '%s: could not decode response: %s' % (document_ids, ex)
+            ) from ex
         logger.debug(f'{document_ids}: response decoded; done!')
         return data
 

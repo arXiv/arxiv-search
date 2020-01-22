@@ -31,8 +31,8 @@ class TestRetrieveDocument(TestCase):
         with self.assertRaises(InternalServerError):
             try:
                 response_data, code, headers = simple.retrieve_document(1)
-            except QueryError as e:
-                self.fail("QueryError should be handled (caught %s)" % e)
+            except QueryError as ex:
+                self.fail("QueryError should be handled (caught %s)" % ex)
 
         self.assertEqual(mock_index.get_document.call_count, 1,
                          "A search should be attempted")
@@ -62,8 +62,8 @@ class TestRetrieveDocument(TestCase):
         with self.assertRaises(NotFound):
             try:
                 response_data, code, headers = simple.retrieve_document(1)
-            except DocumentNotFound as e:
-                self.fail("DocumentNotFound should be handled (caught %s)" % e)
+            except DocumentNotFound as ex:
+                self.fail("DocumentNotFound should be handled (caught %s)" % ex)
 
         self.assertEqual(mock_index.get_document.call_count, 1,
                          "A search should be attempted")
@@ -164,8 +164,8 @@ class TestSearchController(TestCase):
         with self.assertRaises(InternalServerError):
             try:
                 response_data, code, headers = simple.search(request_data)
-            except QueryError as e:
-                self.fail("QueryError should be handled (caught %s)" % e)
+            except QueryError as ex:
+                self.fail("QueryError should be handled (caught %s)" % ex)
 
         self.assertEqual(mock_index.search.call_count, 1,
                          "A search should be attempted")
