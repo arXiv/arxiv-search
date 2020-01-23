@@ -13,7 +13,7 @@ from search.domain import (
 from search.serialize.atom_extensions import (
     ArXivExtension, ArXivEntryExtension, OpenSearchExtension, ARXIV_NS
 )
-from search.controllers.classic.classic_parser import phrase_to_query_string
+from search.controllers.classic_api.query_parser import phrase_to_query_string
 from search.serialize.base import BaseSerializer
 
 
@@ -93,11 +93,11 @@ class AtomXMLSerializer(BaseSerializer):
                 f'arXiv Query: search_query={query_string}'
                 f'&start={query.page_start}&max_results={query.size}'
                 f'&id_list={id_list}')
-            fg.id(url_for('classic.query', search_query=query_string,
+            fg.id(url_for('classic_api.query', search_query=query_string,
                           start=query.page_start, max_results=query.size,
                           id_list=id_list))
             fg.link({
-                "href": url_for('classic.query', search_query=query_string,
+                "href": url_for('classic_api.query', search_query=query_string,
                                 start=query.page_start, max_results=query.size,
                                 id_list=id_list),
                 "type": 'application/atom+xml'})
@@ -127,7 +127,7 @@ class AtomXMLSerializer(BaseSerializer):
         for doc in document_set['results']:
             cls.transform_document(fg, doc, query=query)
 
-        return str(fg.atom_str(pretty=True))
+        return fg.atom_str(pretty=True)  # type: ignore
 
     @classmethod
     def serialize_error(cls, error: Error,
@@ -154,7 +154,7 @@ class AtomXMLSerializer(BaseSerializer):
         })
         entry.arxiv.author({"name": error.author})
 
-        return str(fg.atom_str(pretty=True))
+        return fg.atom_str(pretty=True)  # type: ignore
 
     @classmethod
     def serialize_document(cls, document: Document,
