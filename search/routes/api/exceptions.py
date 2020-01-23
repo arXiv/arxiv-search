@@ -30,7 +30,6 @@ _handlers = []
 
 def handler(exception: type) -> Callable:
     """Generate a decorator to register a handler for an exception."""
-
     def deco(func: Callable) -> Callable:
         """Register a function as an exception handler."""
         _handlers.append((exception, func))
@@ -47,11 +46,13 @@ def get_handlers() -> List[Tuple[type, Callable]]:
     -------
     list
         List of (:class:`.HTTPException`, callable) tuples.
+
     """
     return _handlers
 
 
 def respond(error, status: HTTPStatus) -> Response:
+    """Generate a JSON response."""
     return make_response(
         jsonify({"code": error.code, "error": error.description}),
         status,

@@ -1,5 +1,5 @@
 """
-Exception handlers for API endpoints.
+Exception handlers for classic arXiv API endpoints.
 
 .. todo:: This module belongs in :mod:`arxiv.base`.
 
@@ -32,7 +32,6 @@ _handlers = []
 
 def handler(exception: type) -> Callable:
     """Generate a decorator to register a handler for an exception."""
-
     def deco(func: Callable) -> Callable:
         """Register a function as an exception handler."""
         _handlers.append((exception, func))
@@ -42,13 +41,13 @@ def handler(exception: type) -> Callable:
 
 
 def get_handlers() -> List[Tuple[type, Callable]]:
-    """
-    Get a list of registered exception handlers.
+    """Get a list of registered exception handlers.
 
     Returns
     -------
     list
         List of (:class:`.HTTPException`, callable) tuples.
+
     """
     return _handlers
 
@@ -58,6 +57,7 @@ def respond(
     link="http://arxiv.org/api/errors",
     status: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
 ) -> Response:
+    """Generate an Atom response."""
     return make_response(
         as_atom(Error(id=link, error=error, link=link)),
         status,

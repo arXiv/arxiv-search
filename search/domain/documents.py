@@ -21,6 +21,7 @@ def utcnow() -> datetime:
 @dataclass
 class Error:
     """Represents an error that happened in the system."""
+
     id: str
     error: str
     link: str
@@ -123,7 +124,7 @@ class DocumentSet(TypedDict):
 
 
 def document_set_from_documents(documents: List[Document]) -> DocumentSet:
-    """Utility for generating a DocumentSet with only a list of Documents.
+    """Generate a DocumentSet with only a list of Documents.
 
     Generates the metadata automatically, which is an advantage over calling
     DocumentSet(results=documents, metadata=dict()).
@@ -135,7 +136,7 @@ def document_set_from_documents(documents: List[Document]) -> DocumentSet:
 
 
 def metadata_from_documents(documents: List[Document]) -> DocumentSetMetadata:
-    """Utility for generating DocumentSet metadata from a list of documents."""
+    """Generate DocumentSet metadata from a list of documents."""
     metadata: DocumentSetMetadata = {}
     metadata['size'] = len(documents)
     metadata['end'] = len(documents)

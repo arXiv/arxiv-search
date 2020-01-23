@@ -1,3 +1,5 @@
+"""Atom serialization for classic arXiv API."""
+
 from typing import Union, Optional, Dict, Any
 from datetime import datetime
 
@@ -129,7 +131,9 @@ class AtomXMLSerializer(BaseSerializer):
         return fg.atom_str(pretty=True)
 
     @classmethod
-    def serialize_error(cls, error: Error, query: Optional[ClassicAPIQuery] = None) -> str:
+    def serialize_error(cls, error: Error,
+                        query: Optional[ClassicAPIQuery] = None) -> str:
+        """Generate Atom error response."""
         fg = cls._get_feed(query)
 
         # pylint struggles with the opensearch extensions, so we ignore
@@ -169,5 +173,7 @@ def as_atom(document_or_set: Union[Error, DocumentSet, Document],
     if isinstance(document_or_set, Error):
         return AtomXMLSerializer.serialize_error(document_or_set, query=query)
     elif 'paper_id' in document_or_set:
-        return AtomXMLSerializer.serialize_document(document_or_set, query=query)  # type: ignore
-    return AtomXMLSerializer.serialize(document_or_set, query=query)  # type: ignore
+        # type: ignore
+        return AtomXMLSerializer.serialize_document(document_or_set, query=query)
+    # type: ignore
+    return AtomXMLSerializer.serialize(document_or_set, query=query)
