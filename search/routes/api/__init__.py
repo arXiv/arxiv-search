@@ -1,22 +1,13 @@
 """Provides routing blueprint from the search API."""
 
-import json
-from typing import Dict, Callable, Union, Any, Optional, List
-from functools import wraps
-from urllib.parse import urljoin, urlparse, parse_qs, urlencode, urlunparse
+from flask import Blueprint, make_response, request, Response
 
-from flask.json import jsonify
-from flask import Blueprint, make_response, render_template, redirect, \
-    request, Response, url_for
-from werkzeug.urls import Href, url_encode, url_parse, url_unparse, url_encode
-from werkzeug.datastructures import MultiDict, ImmutableMultiDict
-
-from arxiv import status
 from arxiv.base import logging
-from werkzeug.exceptions import InternalServerError
+from search import serialize
 from search.controllers import api
 
-from . import serialize, exceptions, classic
+from search.routes.consts import JSON
+from search.routes.api import exceptions
 
 from arxiv.users.auth.decorators import scoped
 from arxiv.users.auth import scopes
@@ -24,9 +15,6 @@ from arxiv.users.auth import scopes
 logger = logging.getLogger(__name__)
 
 blueprint = Blueprint('api', __name__, url_prefix='/')
-
-ATOM_XML = "application/atom+xml; charset=utf-8"
-JSON = "application/json; charset=utf-8"
 
 
 @blueprint.route('/', methods=['GET'])

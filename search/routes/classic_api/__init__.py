@@ -1,23 +1,18 @@
 """Provides the classic search API."""
 
-from flask import Blueprint, make_response, render_template, redirect, \
-    request, Response, url_for
+from flask import Blueprint, make_response, request, Response
 
 from arxiv.base import logging
-
-from arxiv.users.auth.decorators import scoped
 from arxiv.users.auth import scopes
-
-from search.controllers import api
-from . import serialize, exceptions
-
+from arxiv.users.auth.decorators import scoped
+from search import serialize
+from search.controllers import classic_api
+from search.routes.consts import ATOM_XML
+from search.routes.classic_api import exceptions
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint('classic', __name__, url_prefix='/classic')
-
-ATOM_XML = "application/atom+xml; charset=utf-8"
-JSON = "application/json; charset=utf-8"
+blueprint = Blueprint('classic_api', __name__, url_prefix='/classic_api')
 
 
 @blueprint.route('/query', methods=['GET'])
@@ -25,7 +20,7 @@ JSON = "application/json; charset=utf-8"
 def query() -> Response:
     """Main query endpoint."""
     logger.debug('Got query: %s', request.args)
-    data, status_code, headers = api.classic_query(request.args)
+    data, status_code, headers = classic_api.query(request.args)
     # requested = request.accept_mimetypes.best_match([JSON, ATOM_XML])
     # if requested == ATOM_XML:
     #     return serialize.as_atom(data), status, headers
@@ -39,7 +34,7 @@ def query() -> Response:
 @scoped(required=scopes.READ_PUBLIC)
 def paper(paper_id: str, version: str) -> Response:
     """Document metadata endpoint."""
-    data, status_code, headers = api.paper(f'{paper_id}v{version}')
+    data, status_code, headers = classic_api.paper(f'{paper_id}v{version}')
     response_data = serialize.as_atom(data['results'])
     headers.update({'Content-type': ATOM_XML})
     response: Response = make_response(response_data, status_code, headers)

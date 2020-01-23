@@ -62,35 +62,35 @@ def handle_es_exceptions() -> Generator:
     """Handle common ElasticSearch-related exceptions."""
     try:
         yield
-    except TransportError as e:
-        if e.error == 'resource_already_exists_exception':
+    except TransportError as ex:
+        if ex.error == 'resource_already_exists_exception':
             logger.debug('Index already exists; move along')
             return
-        elif e.error == 'mapper_parsing_exception':
-            logger.error('ES mapper_parsing_exception: %s', e.info)
-            logger.debug(str(e.info))
-            raise MappingError('Invalid mapping: %s' % str(e.info)) from e
-        elif e.error == 'index_not_found_exception':
-            logger.error('ES index_not_found_exception: %s', e.info)
+        elif ex.error == 'mapper_parsing_exception':
+            logger.error('ES mapper_parsing_exception: %s', ex.info)
+            logger.debug(str(ex.info))
+            raise MappingError('Invalid mapping: %s' % str(ex.info)) from ex
+        elif ex.error == 'index_not_found_exception':
+            logger.error('ES index_not_found_exception: %s', ex.info)
             SearchSession.current_session().create_index()
-        elif e.error == 'parsing_exception':
-            logger.error('ES parsing_exception: %s', e.info)
-            raise QueryError(e.info) from e
-        elif e.status_code == 404:
-            logger.error('Caught NotFoundError: %s', e)
+        elif ex.error == 'parsing_exception':
+            logger.error('ES parsing_exception: %s', ex.info)
+            raise QueryError(ex.info) from ex
+        elif ex.status_code == 404:
+            logger.error('Caught NotFoundError: %s', ex)
             raise DocumentNotFound('No such document')
-        logger.error('Problem communicating with ES: %s' % e.error)
+        logger.error('Problem communicating with ES: %s' % ex.error)
         raise IndexConnectionError(
-            'Problem communicating with ES: %s' % e.error
-        ) from e
-    except SerializationError as e:
-        logger.error("SerializationError: %s", e)
-        raise IndexingError('Problem serializing document: %s' % e) from e
-    except BulkIndexError as e:
-        logger.error("BulkIndexError: %s", e)
-        raise IndexingError('Problem with bulk indexing: %s' % e) from e
-    except Exception as e:
-        logger.error('Unhandled exception: %s')
+            'Problem communicating with ES: %s' % ex.error
+        ) from ex
+    except SerializationError as ex:
+        logger.error("SerializationError: %s", ex)
+        raise IndexingError('Problem serializing document: %s' % ex) from ex
+    except BulkIndexError as ex:
+        logger.error("BulkIndexError: %s", ex)
+        raise IndexingError('Problem with bulk indexing: %s' % ex) from ex
+    except Exception as ex:
+        logger.error('Unhandled exception: %s' % ex)
         raise
 
 
@@ -146,11 +146,11 @@ class SearchSession(metaclass=MetaIntegration):
                 [self.conn_params],
                 connection_class=Urllib3HttpConnection,
                 **self.conn_extra)
-        except ElasticsearchException as e:
-            logger.error('ElasticsearchException: %s', e)
+        except ElasticsearchException as ex:
+            logger.error('ElasticsearchException: %s', ex)
             raise IndexConnectionError(
-                'Could not initialize ES session: %s' % e
-            ) from e
+                'Could not initialize ES session: %s' % ex
+            ) from ex
         return es
 
     def _base_search(self) -> Search:
@@ -193,11 +193,11 @@ class SearchSession(metaclass=MetaIntegration):
         try:
             self.es.cluster.health(wait_for_status='yellow', request_timeout=1)
             return True
-        except urllib3.exceptions.HTTPError as e:
-            logger.debug('Health check failed: %s', str(e))
+        except urllib3.exceptions.HTTPError as ex:
+            logger.debug('Health check failed: %s', str(ex))
             return False
-        except Exception as e:
-            logger.debug('Health check failed: %s', str(e))
+        except Exception as ex:
+            logger.debug('Health check failed: %s', str(ex))
             return False
 
     def create_index(self) -> None:
@@ -424,8 +424,8 @@ class SearchSession(metaclass=MetaIntegration):
                 current_search = api_search(current_search, query)
             elif isinstance(query, ClassicAPIQuery):
                 current_search = classic_search(current_search, query)
-        except TypeError as e:
-            raise e
+        except TypeError as ex:
+            raise ex
             # logger.error('Malformed query: %s', str(e))
             # raise QueryError('Malformed query') from e
 

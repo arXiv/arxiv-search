@@ -161,8 +161,8 @@ class TestSearchController(TestCase):
         with self.assertRaises(InternalServerError):
             try:
                 response_data, code, headers = advanced.search(request_data)
-            except QueryError as e:
-                self.fail("QueryError should be handled (caught %s)" % e)
+            except QueryError as ex:
+                self.fail("QueryError should be handled (caught %s)" % ex)
 
         self.assertEqual(mock_index.search.call_count, 1,
                          "A search should be attempted")

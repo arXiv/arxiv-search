@@ -1,17 +1,32 @@
 """Data structs for search documents."""
 
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Optional, List, Dict, Any
 
-from dataclasses import field
+from dataclasses import dataclass, field
 from mypy_extensions import TypedDict
 
-from .base import Classification, ClassificationList
+from search.domain.base import Classification, ClassificationList
 
 
 # The class keyword ``total=False`` allows instances that do not contain all of
 # the typed keys. See https://github.com/python/mypy/issues/2632 for
 # background.
+
+def utcnow() -> datetime:
+    """Return timezone aware current timestamp."""
+    return datetime.utcnow().astimezone(timezone.utc)
+
+
+@dataclass
+class Error:
+    """Represents an error that happened in the system."""
+
+    id: str
+    error: str
+    link: str
+    author: str = "arXiv api core"
+    created: datetime = field(default_factory=utcnow)
 
 
 class Person(TypedDict, total=False):
@@ -109,7 +124,7 @@ class DocumentSet(TypedDict):
 
 
 def document_set_from_documents(documents: List[Document]) -> DocumentSet:
-    """Utility for generating a DocumentSet with only a list of Documents.
+    """Generate a DocumentSet with only a list of Documents.
 
     Generates the metadata automatically, which is an advantage over calling
     DocumentSet(results=documents, metadata=dict()).
@@ -121,7 +136,7 @@ def document_set_from_documents(documents: List[Document]) -> DocumentSet:
 
 
 def metadata_from_documents(documents: List[Document]) -> DocumentSetMetadata:
-    """Utility for generating DocumentSet metadata from a list of documents."""
+    """Generate DocumentSet metadata from a list of documents."""
     metadata: DocumentSetMetadata = {}
     metadata['size'] = len(documents)
     metadata['end'] = len(documents)

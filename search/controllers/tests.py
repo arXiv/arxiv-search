@@ -71,5 +71,5 @@ class TestUnderscoreHandling(TestCase):
         """Garbage input is passed."""
         try:
             catch_underscore_syntax("")
-        except Exception as e:
-            self.fail(e)
+        except Exception as ex:
+            self.fail(ex)

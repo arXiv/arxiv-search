@@ -6,8 +6,8 @@ from datetime import datetime
 import pytz
 import json
 import jsonschema
-from .... import domain, encode
-from .. import serialize
+from search import encode
+from search import serialize
 
 
 def mock_jsonify(o):
@@ -23,8 +23,9 @@ class TestSerializeJSONDocument(TestCase):
         with open(self.SCHEMA_PATH) as f:
             self.schema = json.load(f)
 
-    @mock.patch(f'{serialize.__name__}.url_for', lambda *a, **k: 'http://f/12')
-    @mock.patch(f'{serialize.__name__}.jsonify', mock_jsonify)
+    @mock.patch(f'search.serialize.json.url_for',
+                lambda *a, **k: 'http://f/12')
+    @mock.patch(f'search.serialize.json.jsonify', mock_jsonify)
     def test_to_json(self):
         """Just your run-of-the-mill arXiv document generates valid JSON."""
         document = dict(
@@ -94,8 +95,9 @@ class TestSerializeJSONDocumentSet(TestCase):
         with open(self.SCHEMA_PATH) as f:
             self.schema = json.load(f)
 
-    @mock.patch(f'{serialize.__name__}.url_for', lambda *a, **k: 'http://f/12')
-    @mock.patch(f'{serialize.__name__}.jsonify', mock_jsonify)
+    @mock.patch(f'search.serialize.json.url_for',
+                lambda *a, **k: 'http://f/12')
+    @mock.patch(f'search.serialize.json.jsonify', mock_jsonify)
     def test_to_json(self):
         """Just your run-of-the-mill arXiv document generates valid JSON."""
         document = dict(
@@ -159,10 +161,11 @@ class TestSerializeJSONDocumentSet(TestCase):
             jsonschema.validate(json.loads(srlzd), self.schema, resolver=res)
         )
 
+
 class TestSerializeAtomDocument(TestCase):
     """Serialize a single :class:`domain.Document` as Atom."""
-    @mock.patch(f'{serialize.__name__}.url_for', lambda *a, **k: 'http://f/12')
-    @mock.patch(f'{serialize.__name__}.jsonify', mock_jsonify)
+    @mock.patch(f'search.serialize.atom.url_for',
+                lambda *a, **k: 'http://f/12')
     def test_to_atom(self):
         """Just your run-of-the-mill arXiv document generates valid Atom."""
         document = dict(

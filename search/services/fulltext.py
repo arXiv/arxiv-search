@@ -54,17 +54,17 @@ class FulltextSession(object):
 
         try:
             response = requests.get(urljoin(self.endpoint, document_id))
-        except requests.exceptions.SSLError as e:
-            raise IOError('SSL failed: %s' % e)
+        except requests.exceptions.SSLError as ex:
+            raise IOError('SSL failed: %s' % ex)
 
         if response.status_code != status.HTTP_200_OK:
             raise IOError('%s: could not retrieve fulltext: %i' %
                           (document_id, response.status_code))
         try:
             data = response.json()
-        except json.decoder.JSONDecodeError as e:
+        except json.decoder.JSONDecodeError as ex:
             raise IOError('%s: could not decode response: %s' %
-                          (document_id, e)) from e
+                          (document_id, ex)) from ex
         return Fulltext(**data)     # type: ignore
         # See https://github.com/python/mypy/issues/3937
 

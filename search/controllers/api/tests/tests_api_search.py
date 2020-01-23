@@ -1,18 +1,14 @@
 """Tests for advanced search controller, :mod:`search.controllers.advanced`."""
 
 from unittest import TestCase, mock
-from datetime import date, datetime
-from dateutil.relativedelta import relativedelta
 from werkzeug import MultiDict
-from werkzeug.exceptions import InternalServerError, BadRequest
+from werkzeug.exceptions import BadRequest
 
 from arxiv import status
 
-from search.domain import Query, DateRange, FieldedSearchTerm, Classification,\
-    AdvancedQuery, DocumentSet
+from search.domain import DateRange, Classification
 from search.controllers import api
 from search.domain import api as api_domain
-from search.services.index import IndexConnectionError, QueryError
 
 
 class TestAPISearch(TestCase):
@@ -158,46 +154,6 @@ class TestAPISearch(TestCase):
         self.assertEqual(query.date_range.date_type,
                          DateRange.ANNOUNCED)
 
-
-class TestClassicAPISearch(TestCase):
-    """Tests for :func:`.api.classic_query`."""
-
-    @mock.patch(f'{api.__name__}.index.SearchSession')
-    def test_no_params(self, mock_index):
-        """Request with no parameters."""
-        params = MultiDict({})
-        with self.assertRaises(BadRequest):
-            data, code, headers = api.classic_query(params)
-
-    @mock.patch(f'{api.__name__}.index.SearchSession')
-    def test_classic_search_query(self, mock_index):
-        """Request with search_query."""
-        params = MultiDict({'search_query' : 'au:Copernicus'})
-
-        data, code, headers = api.classic_query(params)
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
-        self.assertIn("results", data, "Results are returned")
-        self.assertIn("query", data, "Query object is returned")
-
-    @mock.patch(f'{api.__name__}.index.SearchSession')
-    def test_classic_search_query_with_quotes(self, mock_index):
-        """Request with search_query that includes a quoted phrase."""
-        params = MultiDict({'search_query' : 'ti:"dark matter"'})
-
-        data, code, headers = api.classic_query(params)
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
-        self.assertIn("results", data, "Results are returned")
-        self.assertIn("query", data, "Query object is returned")
-
-    @mock.patch(f'{api.__name__}.index.SearchSession')
-    def test_classic_id_list(self, mock_index):
-        """Request with multi-element id_list with versioned and unversioned ids."""
-        params = MultiDict({'id_list' : '1234.56789,1234.56789v3'})
-
-        data, code, headers = api.classic_query(params)
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
-        self.assertIn("results", data, "Results are returned")
-        self.assertIn("query", data, "Query object is returned")
 
 class TestPaper(TestCase):
     """Tests for :func:`.api.paper`."""

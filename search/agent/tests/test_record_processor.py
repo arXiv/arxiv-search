@@ -122,8 +122,8 @@ class TestAddToIndex(TestCase):
         processor = consumer.MetadataRecordProcessor(*self.args)
         try:
             processor._add_to_index(Document())
-        except Exception as e:
-            self.fail(e)
+        except Exception as ex:
+            self.fail(ex)
         mock_index.add_document.assert_called_once()
 
     @mock.patch('boto3.client')
@@ -178,8 +178,8 @@ class TestBulkAddToIndex(TestCase):
         processor = consumer.MetadataRecordProcessor(*self.args)
         try:
             processor._bulk_add_to_index([Document()])
-        except Exception as e:
-            self.fail(e)
+        except Exception as ex:
+            self.fail(ex)
         mock_index.bulk_add_documents.assert_called_once()
 
     @mock.patch('boto3.client')
