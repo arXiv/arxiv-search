@@ -8,8 +8,7 @@ from flask import url_for
 from feedgen.feed import FeedGenerator
 
 from search.domain import (
-    Error, DocumentSet, Document, APIQuery, ClassicAPIQuery,
-    document_set_from_documents
+    Error, DocumentSet, Document, ClassicAPIQuery, document_set_from_documents
 )
 from search.serialize.atom_extensions import (
     ArXivExtension, ArXivEntryExtension, OpenSearchExtension, ARXIV_NS
@@ -128,7 +127,7 @@ class AtomXMLSerializer(BaseSerializer):
         for doc in document_set['results']:
             cls.transform_document(fg, doc, query=query)
 
-        return fg.atom_str(pretty=True)
+        return str(fg.atom_str(pretty=True))
 
     @classmethod
     def serialize_error(cls, error: Error,
@@ -155,7 +154,7 @@ class AtomXMLSerializer(BaseSerializer):
         })
         entry.arxiv.author({"name": error.author})
 
-        return fg.atom_str(pretty=True)
+        return str(fg.atom_str(pretty=True))
 
     @classmethod
     def serialize_document(cls, document: Document,
@@ -168,12 +167,11 @@ class AtomXMLSerializer(BaseSerializer):
 
 
 def as_atom(document_or_set: Union[Error, DocumentSet, Document],
-            query: Optional[APIQuery] = None) -> str:
+            query: Optional[ClassicAPIQuery] = None) -> str:
     """Serialize a :class:`DocumentSet` as Atom."""
     if isinstance(document_or_set, Error):
-        return AtomXMLSerializer.serialize_error(document_or_set, query=query)
-    elif 'paper_id' in document_or_set:
+        return AtomXMLSerializer.serialize_error(document_or_set, query=query)  # type: ignore
         # type: ignore
-        return AtomXMLSerializer.serialize_document(document_or_set, query=query)
-    # type: ignore
-    return AtomXMLSerializer.serialize(document_or_set, query=query)
+    elif 'paper_id' in document_or_set:
+        return AtomXMLSerializer.serialize_document(document_or_set, query=query)  # type: ignore
+    return AtomXMLSerializer.serialize(document_or_set, query=query)  # type: ignore

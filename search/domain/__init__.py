@@ -12,4 +12,4 @@ intelligibility of the codebase.
 from .base import *
 from .advanced import *
 from .api import *
-from .documents import *
+from .documents import *  # type: ignore

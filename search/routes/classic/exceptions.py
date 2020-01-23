@@ -53,13 +53,13 @@ def get_handlers() -> List[Tuple[type, Callable]]:
 
 
 def respond(
-    error,
-    link="http://arxiv.org/api/errors",
+    error_msg: str,
+    link: str = "http://arxiv.org/api/errors",
     status: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
 ) -> Response:
     """Generate an Atom response."""
-    return make_response(
-        as_atom(Error(id=link, error=error, link=link)),
+    return make_response(  # type: ignore
+        as_atom(Error(id=link, error=error_msg, link=link)),
         status,
         {"Content-type": ATOM_XML},
     )
@@ -115,5 +115,5 @@ def handle_internal_server_error(error: InternalServerError) -> Response:
 def handle_validation_error(error: ValidationError) -> Response:
     """Render the base 400 error page."""
     return respond(
-        error=error.message, link=error.link, status=HTTPStatus.BAD_REQUEST
+        error_msg=error.message, link=error.link, status=HTTPStatus.BAD_REQUEST
     )

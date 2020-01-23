@@ -51,9 +51,9 @@ def get_handlers() -> List[Tuple[type, Callable]]:
     return _handlers
 
 
-def respond(error, status: HTTPStatus) -> Response:
+def respond(error: HTTPException, status: HTTPStatus) -> Response:
     """Generate a JSON response."""
-    return make_response(
+    return make_response(  # type: ignore
         jsonify({"code": error.code, "error": error.description}),
         status,
         {"Content-type": JSON},
