@@ -12,7 +12,7 @@ set of Tuples::
     >>> parse_classic_query("au:del_maestro AND ti:checkerboard")
     ((Field.Author, 'del_maestro'), Operator.AND, (Field.Title, 'checkerboard'))
 
-See :module:`tests.test_classic_parser` for more examples.
+See :module:`tests.test_query_parser` for more examples.
 """
 
 

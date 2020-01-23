@@ -14,7 +14,7 @@ from search.services import index
 from search.domain.api import Phrase
 from search.errors import ValidationError
 from search.domain import Query, DocumentSet, ClassicAPIQuery
-from search.controllers.classic.classic_parser import parse_classic_query
+from search.controllers.classic_api.query_parser import parse_classic_query
 
 
 logger = logging.getLogger(__name__)

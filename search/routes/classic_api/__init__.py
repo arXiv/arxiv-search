@@ -6,13 +6,13 @@ from arxiv.base import logging
 from arxiv.users.auth import scopes
 from arxiv.users.auth.decorators import scoped
 from search import serialize
-from search.controllers import classic
+from search.controllers import classic_api
 from search.routes.consts import ATOM_XML
-from search.routes.classic import exceptions
+from search.routes.classic_api import exceptions
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint('classic', __name__, url_prefix='/classic')
+blueprint = Blueprint('classic_api', __name__, url_prefix='/classic_api')
 
 
 @blueprint.route('/query', methods=['GET'])
@@ -20,7 +20,7 @@ blueprint = Blueprint('classic', __name__, url_prefix='/classic')
 def query() -> Response:
     """Main query endpoint."""
     logger.debug('Got query: %s', request.args)
-    data, status_code, headers = classic.query(request.args)
+    data, status_code, headers = classic_api.query(request.args)
     # requested = request.accept_mimetypes.best_match([JSON, ATOM_XML])
     # if requested == ATOM_XML:
     #     return serialize.as_atom(data), status, headers
@@ -34,7 +34,7 @@ def query() -> Response:
 @scoped(required=scopes.READ_PUBLIC)
 def paper(paper_id: str, version: str) -> Response:
     """Document metadata endpoint."""
-    data, status_code, headers = classic.paper(f'{paper_id}v{version}')
+    data, status_code, headers = classic_api.paper(f'{paper_id}v{version}')
     response_data = serialize.as_atom(data['results'])
     headers.update({'Content-type': ATOM_XML})
     response: Response = make_response(response_data, status_code, headers)

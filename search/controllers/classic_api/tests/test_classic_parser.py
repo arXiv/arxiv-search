@@ -1,6 +1,6 @@
 # type: ignore
 """Test cases for the classic parser."""
-from search.controllers.classic.classic_parser import parse_classic_query, phrase_to_query_string
+from search.controllers.classic_api.query_parser import parse_classic_query, phrase_to_query_string
 
 from search.domain.api import Phrase, Field, Operator
 
