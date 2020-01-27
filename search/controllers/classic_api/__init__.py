@@ -1,12 +1,13 @@
 """Controller for classic arXiv API requests."""
 
+from pytz import timezone
+from http import HTTPStatus
 from typing import Tuple, Dict, Any, Optional, Union
 from mypy_extensions import TypedDict
-from pytz import timezone
+
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest, NotFound
 
-from arxiv import status
 from arxiv.base import logging
 from arxiv.identifier import parse_arxiv_id
 
@@ -26,7 +27,9 @@ SearchResponseData = TypedDict(
 )
 
 
-def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
+def query(
+    params: MultiDict
+) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
     """
     Handle a search request from the Clasic API.
 
@@ -83,8 +86,10 @@ def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
             except ValueError:
                 raise ValidationError(
                     message="incorrect id format for {}".format(arxiv_id),
-                    link=("http://arxiv.org/api/errors#"
-                          "incorrect_id_format_for_{}").format(arxiv_id)
+                    link=(
+                        "http://arxiv.org/api/errors#"
+                        "incorrect_id_format_for_{}"
+                    ).format(arxiv_id),
                 )
     else:
         id_list = None
@@ -100,7 +105,7 @@ def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     if max_results < 0:
         raise ValidationError(
             message="max_results must be non-negative",
-            link="http://arxiv.org/api/errors#max_results_must_be_non-negative"
+            link="http://arxiv.org/api/errors#max_results_must_be_non-negative",
         )
 
     # Parse result start point.
@@ -109,17 +114,18 @@ def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     except ValueError:
         raise ValidationError(
             message="start must be an integer",
-            link="http://arxiv.org/api/errors#start_must_be_an_integer"
+            link="http://arxiv.org/api/errors#start_must_be_an_integer",
         )
     if start < 0:
         raise ValidationError(
             message="start must be non-negative",
-            link="http://arxiv.org/api/errors#start_must_be_non-negative"
+            link="http://arxiv.org/api/errors#start_must_be_non-negative",
         )
 
     try:
         query = ClassicAPIQuery(
-            phrase=phrase, id_list=id_list, size=max_results, page_start=start
+            raw_query=raw_query, phrase=phrase, id_list=id_list,
+            size=max_results, page_start=start
         )
     except ValueError:
         raise BadRequest(
@@ -137,10 +143,10 @@ def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     )
 
     # bad mypy inference on TypedDict and the status code
-    return data, status.HTTP_200_OK, {}  # type:ignore
+    return data, HTTPStatus.OK, {}  # type:ignore
 
 
-def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
+def paper(paper_id: str) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
     """
     Handle a request for paper metadata from the API.
 
@@ -171,4 +177,4 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     except index.DocumentNotFound as ex:
         logger.error("Document not found")
         raise NotFound("No such document") from ex
-    return {"results": document}, status.HTTP_200_OK, {}
+    return {"results": document}, HTTPStatus.OK, {}

@@ -1,7 +1,9 @@
 """Atom serialization for classic arXiv API."""
 
-from typing import Union, Optional, Dict, Any
+import base64
+import hashlib
 from datetime import datetime
+from typing import Union, Optional, Dict, Any
 
 from pytz import utc
 from flask import url_for
@@ -89,13 +91,20 @@ class AtomXMLSerializer(BaseSerializer):
             else:
                 id_list = ''
 
-            fg.title(
-                f'arXiv Query: search_query={query_string}'
-                f'&start={query.page_start}&max_results={query.size}'
-                f'&id_list={id_list}')
-            fg.id(url_for('classic_api.query', search_query=query_string,
-                          start=query.page_start, max_results=query.size,
-                          id_list=id_list))
+            fg.title(f"arXiv Query: {query.to_query_string()}")
+
+            # From perl documentation of the old site:
+            # search_id is calculated by taking SHA-1 digest of the query
+            # string. Digest is in bytes form and it's 20 bytes long. Then it's
+            # base64 encoded, but perls version returns only 27 characters -
+            # it omits the `=` sign at the end.
+            search_id = base64.b64encode(
+                hashlib.sha1(query.to_query_string().encode("utf-8")).digest()
+            ).decode("utf-8")[:-1]
+            fg.id(
+                url_for('classic_api.query').replace("/query", f"/{search_id}")
+            )
+
             fg.link({
                 "href": url_for('classic_api.query', search_query=query_string,
                                 start=query.page_start, max_results=query.size,

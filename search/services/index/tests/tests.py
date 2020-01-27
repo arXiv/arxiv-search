@@ -1,19 +1,97 @@
 """Tests for :mod:`search.services.index`."""
 
-from unittest import TestCase, mock
-from datetime import date, datetime, timedelta
 from pytz import timezone
-from elasticsearch_dsl import Search, Q
-from elasticsearch_dsl.query import Range, Match, Bool, Nested
+from unittest import TestCase, mock
+from datetime import datetime, timedelta
 
 from search.services import index
 from search.services.index import advanced
 from search.services.index.util import wildcard_escape, Q_
-from search.domain import Query, FieldedSearchTerm, DateRange, Classification,\
-    AdvancedQuery, FieldedSearchList, ClassificationList, SimpleQuery, \
-    DocumentSet, Field, ClassicAPIQuery, Operator
+from search.domain import (
+    FieldedSearchTerm, DateRange, Classification,AdvancedQuery,
+    FieldedSearchList, ClassificationList, SimpleQuery, Field, ClassicAPIQuery,
+    Operator, Phrase
+)
 
 EASTERN = timezone('US/Eastern')
+
+
+class TestClassicApiQuery(TestCase):
+    def test_classis_query_creation(self):
+        self.assertRaises(ValueError, lambda: ClassicAPIQuery())
+
+        # There is no assert not raises
+        self.assertIsNotNone(ClassicAPIQuery(phrase=""))
+        self.assertIsNotNone(ClassicAPIQuery(id_list=[]))
+
+    def test_to_query_string(self):
+        self.assertEqual(
+            ClassicAPIQuery(phrase="").to_query_string(),
+            "search_query=&id_list=&start=0&max_results=10"
+        )
+        self.assertEqual(
+            ClassicAPIQuery(id_list=[]).to_query_string(),
+            "search_query=&id_list=&start=0&max_results=10"
+        )
+        self.assertEqual(
+            ClassicAPIQuery(
+                raw_query="all:electron", id_list=[]
+            ).to_query_string(),
+            "search_query=all:electron&id_list=&start=0&max_results=10"
+        )
+        self.assertEqual(
+            ClassicAPIQuery(
+                raw_query="all:electron",
+                id_list=["1705.09169v3", "1705.09129v3"]
+            ).to_query_string(),
+            "search_query=all:electron&id_list=1705.09169v3,1705.09129v3"
+            "&start=0&max_results=10"
+        )
+        self.assertEqual(
+            ClassicAPIQuery(
+                raw_query="all:electron",
+                id_list=["1705.09169v3", "1705.09129v3"],
+                page_start=3,
+            ).to_query_string(),
+            "search_query=all:electron&id_list=1705.09169v3,1705.09129v3"
+            "&start=3&max_results=10"
+        )
+        self.assertEqual(
+            ClassicAPIQuery(
+                raw_query="all:electron",
+                id_list=["1705.09169v3", "1705.09129v3"],
+                page_start=3,
+                size=50
+            ).to_query_string(),
+            "search_query=all:electron&id_list=1705.09169v3,1705.09129v3"
+            "&start=3&max_results=50"
+        )
+        self.assertEqual(
+            ClassicAPIQuery(
+                raw_query="all:electron",
+                phrase="",
+                page_start=3,
+                size=50
+            ).to_query_string(),
+            "search_query=all:electron&id_list=&start=3&max_results=50"
+        )
+        self.assertEqual(
+            ClassicAPIQuery(
+                id_list=["1705.09169v3", "1705.09129v3"],
+                page_start=3,
+                size=50
+            ).to_query_string(),
+            "search_query=&id_list=1705.09169v3,1705.09129v3"
+            "&start=3&max_results=50"
+        )
+        self.assertEqual(
+            ClassicAPIQuery(
+                raw_query="all:electron",
+                phrase="",
+                size=50
+            ).to_query_string(),
+            "search_query=all:electron&id_list=&start=0&max_results=50"
+        )
 
 
 class TestSearch(TestCase):

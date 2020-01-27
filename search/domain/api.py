@@ -100,13 +100,26 @@ Examples
 class ClassicAPIQuery(Query):
     """Query supported by the classic arXiv API."""
 
+    raw_query: Optional[str] = field(default=None)
     phrase: Optional[Phrase] = field(default=None)
     id_list: Optional[List[str]] = field(default=None)
+    size: int = field(default=10)
 
     def __post_init__(self) -> None:
         """Ensure that either a phrase or id_list is set."""
         if self.phrase is None and self.id_list is None:
-            raise ValueError("ClassicAPIQuery requires either a phrase, id_list, or both")
+            raise ValueError(
+                "ClassicAPIQuery requires either a phrase, id_list, or both"
+            )
+
+    def to_query_string(self) -> str:
+        """Returns a string representation of the API query."""
+        return (
+                f"search_query={self.raw_query or ''}&"
+                f"id_list={','.join(self.id_list) if self.id_list else ''}&"
+                f"start={self.page_start}&"
+                f"max_results={self.size}"
+        )
 
 
 def get_default_extra_fields() -> List[str]:
