@@ -91,7 +91,7 @@ def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     # Parse result size.
     try:
-        max_results = int(params.get("max_results", 50))
+        max_results = int(params.get("max_results", 10))
     except ValueError:
         raise ValidationError(
             message="max_results must be an integer",
