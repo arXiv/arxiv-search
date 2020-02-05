@@ -10,7 +10,7 @@ from search.services.index.util import wildcard_escape, Q_
 from search.domain import (
     FieldedSearchTerm, DateRange, Classification,AdvancedQuery,
     FieldedSearchList, ClassificationList, SimpleQuery, Field, ClassicAPIQuery,
-    Operator, Phrase
+    Operator
 )
 
 EASTERN = timezone('US/Eastern')
@@ -21,12 +21,12 @@ class TestClassicApiQuery(TestCase):
         self.assertRaises(ValueError, lambda: ClassicAPIQuery())
 
         # There is no assert not raises
-        self.assertIsNotNone(ClassicAPIQuery(phrase=""))
+        self.assertIsNotNone(ClassicAPIQuery(search_query=""))
         self.assertIsNotNone(ClassicAPIQuery(id_list=[]))
 
     def test_to_query_string(self):
         self.assertEqual(
-            ClassicAPIQuery(phrase="").to_query_string(),
+            ClassicAPIQuery(search_query="").to_query_string(),
             "search_query=&id_list=&start=0&max_results=10"
         )
         self.assertEqual(
@@ -35,13 +35,13 @@ class TestClassicApiQuery(TestCase):
         )
         self.assertEqual(
             ClassicAPIQuery(
-                raw_query="all:electron", id_list=[]
+                search_query="all:electron", id_list=[]
             ).to_query_string(),
             "search_query=all:electron&id_list=&start=0&max_results=10"
         )
         self.assertEqual(
             ClassicAPIQuery(
-                raw_query="all:electron",
+                search_query="all:electron",
                 id_list=["1705.09169v3", "1705.09129v3"]
             ).to_query_string(),
             "search_query=all:electron&id_list=1705.09169v3,1705.09129v3"
@@ -49,7 +49,7 @@ class TestClassicApiQuery(TestCase):
         )
         self.assertEqual(
             ClassicAPIQuery(
-                raw_query="all:electron",
+                search_query="all:electron",
                 id_list=["1705.09169v3", "1705.09129v3"],
                 page_start=3,
             ).to_query_string(),
@@ -58,7 +58,7 @@ class TestClassicApiQuery(TestCase):
         )
         self.assertEqual(
             ClassicAPIQuery(
-                raw_query="all:electron",
+                search_query="all:electron",
                 id_list=["1705.09169v3", "1705.09129v3"],
                 page_start=3,
                 size=50
@@ -68,8 +68,7 @@ class TestClassicApiQuery(TestCase):
         )
         self.assertEqual(
             ClassicAPIQuery(
-                raw_query="all:electron",
-                phrase="",
+                search_query="all:electron",
                 page_start=3,
                 size=50
             ).to_query_string(),
@@ -86,8 +85,7 @@ class TestClassicApiQuery(TestCase):
         )
         self.assertEqual(
             ClassicAPIQuery(
-                raw_query="all:electron",
-                phrase="",
+                search_query="all:electron",
                 size=50
             ).to_query_string(),
             "search_query=all:electron&id_list=&start=0&max_results=50"

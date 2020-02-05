@@ -15,7 +15,7 @@ from search.domain import (
 from search.serialize.atom_extensions import (
     ArXivExtension, ArXivEntryExtension, OpenSearchExtension, ARXIV_NS
 )
-from search.controllers.classic_api.query_parser import phrase_to_query_string
+from search.domain.classic_api.query_parser import phrase_to_query_string
 from search.serialize.base import BaseSerializer
 
 

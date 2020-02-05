@@ -2,7 +2,7 @@
 
 from pytz import timezone
 from http import HTTPStatus
-from typing import Tuple, Dict, Any, Optional, Union
+from typing import Tuple, Dict, Any, Union
 from mypy_extensions import TypedDict
 
 from werkzeug.datastructures import MultiDict
@@ -12,11 +12,8 @@ from arxiv.base import logging
 from arxiv.identifier import parse_arxiv_id
 
 from search.services import index
-from search.domain.api import Phrase
 from search.errors import ValidationError
 from search.domain import Query, DocumentSet, ClassicAPIQuery
-from search.controllers.classic_api.query_parser import parse_classic_query
-
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone("US/Eastern")
@@ -69,11 +66,7 @@ def query(
     params = params.copy()
 
     # Parse classic search query.
-    raw_query = params.get("search_query")
-    if raw_query:
-        phrase: Optional[Phrase] = parse_classic_query(raw_query)
-    else:
-        phrase = None
+    search_query = params.get("search_query", None)
 
     # Parse id_list.
     id_list = params.get("id_list", "")
@@ -124,8 +117,10 @@ def query(
 
     try:
         query = ClassicAPIQuery(
-            raw_query=raw_query, phrase=phrase, id_list=id_list,
-            size=max_results, page_start=start
+            search_query=search_query,
+            id_list=id_list,
+            size=max_results,
+            page_start=start,
         )
     except ValueError:
         raise BadRequest(

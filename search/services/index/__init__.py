@@ -14,35 +14,37 @@ for indexing (e.g. by the
 import json
 import warnings
 from contextlib import contextmanager
-from typing import Any, Optional, Tuple, Union, List, Generator, Mapping
-from functools import reduce, wraps
-from operator import ior
+from typing import Any, Optional, List, Generator
 
 import urllib3
 from flask import current_app
-from elasticsearch import Elasticsearch, ElasticsearchException, \
-                          SerializationError, TransportError, NotFoundError, \
-                          helpers
+from elasticsearch import (
+    Elasticsearch, ElasticsearchException, SerializationError, TransportError,
+    helpers
+)
 from elasticsearch.connection import Urllib3HttpConnection
 from elasticsearch.helpers import BulkIndexError
-
 from elasticsearch_dsl import Search, Q
 
 from arxiv.base import logging
 from arxiv.integration.meta import MetaIntegration
 from search.context import get_application_config, get_application_global
-from search.domain import Document, DocumentSet, Query, AdvancedQuery, \
-    SimpleQuery, asdict, APIQuery, ClassicAPIQuery
+from search.domain import (
+    Document, DocumentSet, Query, AdvancedQuery, SimpleQuery, APIQuery,
+    ClassicAPIQuery
+)
 
-from .exceptions import QueryError, IndexConnectionError, DocumentNotFound, \
-    IndexingError, OutsideAllowedRange, MappingError
-from .util import MAX_RESULTS
-from .advanced import advanced_search
-from .simple import simple_search
-from .api import api_search
-from .classic import classic_search
-from . import highlighting
-from . import results
+from search.services.index.exceptions import (
+    QueryError, IndexConnectionError, DocumentNotFound, IndexingError,
+    OutsideAllowedRange, MappingError
+)
+from search.services.index.util import MAX_RESULTS
+from search.services.index.advanced import advanced_search
+from search.services.index.simple import simple_search
+from search.services.index.api import api_search
+from search.services.index.classic import classic_search
+from search.services.index import highlighting
+from search.services.index import results
 
 logger = logging.getLogger(__name__)
 

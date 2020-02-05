@@ -1,16 +1,12 @@
 """Base domain classes for search service."""
 
-from typing import Any, Optional, List, Dict
-from datetime import datetime, date
-from operator import attrgetter
+from enum import Enum
 from pytz import timezone
-import re
+from datetime import datetime
+from typing import Any, Optional, List, Dict, Union, Tuple
+from dataclasses import dataclass, field, asdict as _asdict
+
 from mypy_extensions import TypedDict
-
-from arxiv import taxonomy
-
-from dataclasses import dataclass, field
-from dataclasses import asdict as _asdict
 
 EASTERN = timezone('US/Eastern')
 
@@ -124,6 +120,95 @@ class ClassificationList(list):
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
         return ', '.join([str(item) for item in self])
+
+
+class Operator(Enum):
+    """Supported boolean operators."""
+
+    AND = 'AND'
+    OR = 'OR'
+    ANDNOT = 'ANDNOT'
+
+    @classmethod
+    def is_valid_value(cls, value: str) -> bool:
+        """
+        Determine whether or not ``value`` is a valid value of a member.
+
+        Parameters
+        ----------
+        value : str
+
+        Returns
+        -------
+        bool
+
+        """
+        try:
+            cls(value)
+        except ValueError:
+            return False
+        return True
+
+
+class Field(Enum):
+    """Supported fields in the classic API."""
+
+    Title = 'ti'
+    Author = 'au'
+    Abstract = 'abs'
+    Comment = 'co'
+    JournalReference = 'jr'
+    SubjectCategory = 'cat'
+    ReportNumber = 'rn'
+    Identifier = 'id'
+    All = 'all'
+
+
+Term = Tuple[Field, str]
+"""
+Tuple representing a Field and search term.
+
+Examples
+--------
+
+.. code-block:: python
+
+   term: Term = (Field.Title : 'dark matter')
+
+"""
+
+# mypy doesn't yet support recursive type definitions. These ignores suppress
+# the cyclic definition error, and forward-references to ``Phrase`` are
+# are replaced with ``Any``.
+Phrase = Union[Term,                            # type: ignore
+               Tuple[Operator, 'Phrase'],       # type: ignore
+               Tuple['Phrase', ...]]            # type: ignore
+"""
+Recursive representation of a search query.
+
+Examples
+--------
+
+.. code-block:: python
+
+   # Simple query without grouping/nesting.
+   phrase: Phrase = ('au', 'copernicus')
+
+   # Simple query with a unary operator without grouping/nesting.
+   phrase: Phrase = ('ANDNOT', ('au', 'copernicus'))
+
+   # Simple conjunct query.
+   phrase: Phrase = (('au', 'del_maestro'), 'AND', ('ti', 'checkerboard'))
+
+   # Disjunct query with an unary not.
+   phrase = (('au', 'del_maestro'), 'OR', ('ANDNOT', ('ti', 'checkerboard')))
+
+   # Conjunct query with nested disjunct query.
+   phrase = (('au', 'del_maestro'), 'ANDNOT',
+             (('ti', 'checkerboard'), 'OR', ('ti', 'Pyrochlore')))
+
+
+"""
 
 
 @dataclass

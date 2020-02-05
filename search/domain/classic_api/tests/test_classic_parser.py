@@ -1,8 +1,9 @@
 # type: ignore
 """Test cases for the classic parser."""
-from search.controllers.classic_api.query_parser import parse_classic_query, phrase_to_query_string
-
-from search.domain.api import Phrase, Field, Operator
+from search.domain import Phrase, Field, Operator
+from search.domain.classic_api.query_parser import (
+    parse_classic_query, phrase_to_query_string
+)
 
 from werkzeug.exceptions import BadRequest
 from unittest import TestCase
@@ -91,10 +92,10 @@ class TestParsing(TestCase):
         """Conjunct query with nested disjunct query."""
         querystring \
             = "(ti:checkerboard OR ti:Pyrochlore) AND (au:del_maestro OR au:hawking)"
-        phrase = (((Field.Title, 'checkerboard'), 
+        phrase = (((Field.Title, 'checkerboard'),
                     (Operator.OR, (Field.Title, 'Pyrochlore'))),
                   (Operator.AND,
-                   ((Field.Author, 'del_maestro'), 
+                   ((Field.Author, 'del_maestro'),
                     (Operator.OR, (Field.Author, 'hawking')))))
         self.assertEqual(parse_classic_query(querystring), phrase)
 
@@ -115,7 +116,7 @@ class TestParsing(TestCase):
         querystring = "ti:a and ti:b and"
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
-    
+
     def test_error_leading_operator(self):
         """Error case with a leading operator."""
         querystring = "or ti:a and ti:b"
@@ -127,7 +128,7 @@ class TestParsing(TestCase):
         querystring = "ti:a and ti:\"b"
         with self.assertRaises(BadRequest):
             parse_classic_query(querystring)
-    
+
     def test_multiple_errors(self):
         """Testing query string with many problems."""
         querystring = "or ti:a and and ti:\"b"
@@ -158,9 +159,9 @@ class TestParsing(TestCase):
         """Conjunct query with nested disjunct query."""
         querystring \
             = "(ti:checkerboard OR ti:Pyrochlore) AND (au:del_maestro OR au:hawking)"
-        phrase = (((Field.Title, 'checkerboard'), 
+        phrase = (((Field.Title, 'checkerboard'),
                     (Operator.OR, (Field.Title, 'Pyrochlore'))),
                   (Operator.AND,
-                   ((Field.Author, 'del_maestro'), 
+                   ((Field.Author, 'del_maestro'),
                     (Operator.OR, (Field.Author, 'hawking')))))
         self.assertEqual(phrase_to_query_string(phrase), querystring)

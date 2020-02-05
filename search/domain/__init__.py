@@ -9,7 +9,8 @@ intelligibility of the codebase.
 """
 
 # pylint: disable=wildcard-import
-from .base import *
-from .advanced import *
-from .api import *
-from .documents import *  # type: ignore
+from search.domain.base import *
+from search.domain.advanced import *
+from search.domain.api import APIQuery
+from search.domain.classic_api import ClassicAPIQuery
+from search.domain.documents import *  # type: ignore
