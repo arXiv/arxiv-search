@@ -2,10 +2,9 @@
 
 import base64
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Union, Optional, Dict, Any
 
-from pytz import utc
 from flask import url_for
 from feedgen.feed import FeedGenerator
 
@@ -24,6 +23,27 @@ from search.serialize.atom_extensions import (
 )
 from search.domain.classic_api.query_parser import phrase_to_query_string
 from search.serialize.base import BaseSerializer
+
+
+class DateTime(datetime):
+    """This is a hack!
+
+    Feedgen doesn't have custom timestamp formatting. It uses isoformat, so
+    we use a custom class that overrides the isoformat class.
+    """
+    def isoformat(self, sep='T', timespec='auto') -> str:
+        return self.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    @property
+    def tzinfo(self) -> timezone:
+        return timezone.utc
+
+
+def to_utc(dt: Optional[datetime]) -> Optional[datetime]:
+    """Localize datetime objects to UTC timezone."""
+    if dt is None:
+        return None
+    return DateTime.fromtimestamp(dt.astimezone(timezone.utc).timestamp())
 
 
 class AtomXMLSerializer(BaseSerializer):
@@ -48,8 +68,8 @@ class AtomXMLSerializer(BaseSerializer):
         )
         entry.title(doc["title"])
         entry.summary(doc["abstract"])
-        entry.published(doc["submitted_date"])
-        entry.updated(doc["updated_date"])
+        entry.published(to_utc(doc["submitted_date"]))
+        entry.updated(to_utc(doc["updated_date"]))
         entry.link(
             {
                 "href": url_for(
@@ -153,7 +173,7 @@ class AtomXMLSerializer(BaseSerializer):
             fg.title("arXiv Search Results")
             fg.id("https://arxiv.org/")
 
-        fg.updated(datetime.utcnow().replace(tzinfo=utc))
+        fg.updated(to_utc(datetime.utcnow()))
         return fg
 
     @classmethod
@@ -195,7 +215,7 @@ class AtomXMLSerializer(BaseSerializer):
         entry.id(error.id)
         entry.title("Error")
         entry.summary(error.error)
-        entry.updated(error.created)
+        entry.updated(to_utc(error.created))
         entry.link(
             {"href": error.link, "rel": "alternate", "type": "text/html"}
         )
