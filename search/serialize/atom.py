@@ -26,20 +26,23 @@ from search.serialize.base import BaseSerializer
 
 
 class DateTime(datetime):
-    """This is a hack!
+    """DateTime is a hack wrapper around datetime.
 
     Feedgen doesn't have custom timestamp formatting. It uses isoformat, so
     we use a custom class that overrides the isoformat class.
     """
-    def isoformat(self, sep='T', timespec='auto') -> str:
+
+    def isoformat(self, sep: str = "T", timespec: str = "auto") -> str:
+        """Return formatted datetime."""
         return self.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     @property
     def tzinfo(self) -> timezone:
+        """Return the objects timezone."""
         return timezone.utc
 
 
-def to_utc(dt: Optional[datetime]) -> Optional[datetime]:
+def to_utc(dt: Optional[datetime]) -> Optional[DateTime]:
     """Localize datetime objects to UTC timezone."""
     if dt is None:
         return None
