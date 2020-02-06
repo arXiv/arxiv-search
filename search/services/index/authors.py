@@ -9,8 +9,13 @@ from elasticsearch_dsl import Search, Q, SF
 
 from arxiv.base import logging
 
-from .util import wildcard_escape, escape, STRING_LITERAL, \
-    remove_single_characters, has_wildcard
+from .util import (
+    wildcard_escape,
+    escape,
+    STRING_LITERAL,
+    remove_single_characters,
+    has_wildcard,
+)
 
 logger = logging.getLogger(__name__)
 logger.propagate = False
@@ -25,9 +30,12 @@ def _remove_stopwords(term: str) -> str:
     """Remove common stopwords, except in literal queries."""
     parts = re.split(STRING_LITERAL, term)
     for stopword in STOP:
-        parts = [re.sub(f"(^|\s+){stopword}(\s+|$)", " ", part)
-                 if not part.startswith('"') and not part.startswith("'")
-                 else part for part in parts]
+        parts = [
+            re.sub(f"(^|\s+){stopword}(\s+|$)", " ", part)
+            if not part.startswith('"') and not part.startswith("'")
+            else part
+            for part in parts
+        ]
     return "".join(parts)
 
 
@@ -61,10 +69,10 @@ def part_query(term: str, path: str = "authors") -> Q:
     AUTHOR_QUERY_FIELDS = [
         f"{path}.full_name",
         f"{path}.last_name",
-        f"{path}.full_name_initialized"
+        f"{path}.full_name_initialized",
     ]
     term = term.strip()
-    logger.debug(f'{path} part_query for {term}')
+    logger.debug(f"{path} part_query for {term}")
 
     # Commas are used to distinguish surname and forename.
     forename_is_individuated = "," in term
@@ -77,38 +85,46 @@ def part_query(term: str, path: str = "authors") -> Q:
         forename = " ".join(name_parts[1:]).strip()
 
         # Doing a query string so that wildcards and literals are just handled.
-        q_surname = Q("query_string", fields=[f"{path}.last_name"],
-                      query=escape(surname),
-                      default_operator='AND',
-                      allow_leading_wildcard=False)
+        q_surname = Q(
+            "query_string",
+            fields=[f"{path}.last_name"],
+            query=escape(surname),
+            default_operator="AND",
+            allow_leading_wildcard=False,
+        )
 
         if forename:
             # If a wildcard is provided in the forename, we treat it as a
             # query string query. This has the disadvantage of losing term
             # order, but the advantage of handling wildcards as expected.
-            logger.debug(f'Forename: {forename}')
+            logger.debug(f"Forename: {forename}")
             if has_wildcard(forename):
-                q_forename = Q("query_string", fields=[f"{path}.first_name"],
-                               query=escape(forename),
-                               auto_generate_phrase_queries=True,
-                               default_operator='AND',
-                               allow_leading_wildcard=False)
+                q_forename = Q(
+                    "query_string",
+                    fields=[f"{path}.first_name"],
+                    query=escape(forename),
+                    auto_generate_phrase_queries=True,
+                    default_operator="AND",
+                    allow_leading_wildcard=False,
+                )
 
             # Otherwise, we expect the forename to match as a phrase. The
             # _prefix bit means that the last word can match as a prefix of the
             # corresponding term.
             else:
-                q_forename = Q("match_phrase_prefix",
-                               **{f"{path}__first_name": forename})
+                q_forename = Q(
+                    "match_phrase_prefix", **{f"{path}__first_name": forename}
+                )
 
             # It may be the case that the forename consists of initials or some
             # other prefix/partial forename. For a match of this kind, each
             # part of the forename part must be a prefix of a term in the
             # forename.
-            if path == 'authors' and forename:
-                logger.debug('Consider initials: %s', forename)
-                q_forename |= Q("match_phrase_prefix",
-                                **{f"{path}__initials": forename})
+            if path == "authors" and forename:
+                logger.debug("Consider initials: %s", forename)
+                q_forename |= Q(
+                    "match_phrase_prefix", **{f"{path}__initials": forename}
+                )
 
             # We will treat this as a search for a single author; surname and
             # forename parts must match in the same (nested) author.
@@ -119,22 +135,31 @@ def part_query(term: str, path: str = "authors") -> Q:
         # Match across all fields within a single author. We don't know which
         # bits of the query match which bits of the author name. This will
         # handle wildcards, literals, etc.
-        q = Q("query_string",
-              fields=AUTHOR_QUERY_FIELDS, default_operator='AND',
-              allow_leading_wildcard=False,
-              type="cross_fields", query=escape(term))
-    return Q("nested", path=path, query=q, score_mode='sum')
+        q = Q(
+            "query_string",
+            fields=AUTHOR_QUERY_FIELDS,
+            default_operator="AND",
+            allow_leading_wildcard=False,
+            type="cross_fields",
+            query=escape(term),
+        )
+    return Q("nested", path=path, query=q, score_mode="sum")
 
 
-def string_query(term: str, path: str = 'authors', operator: str = 'AND') -> Q:
+def string_query(term: str, path: str = "authors", operator: str = "AND") -> Q:
     """Build a query that handles query strings within a single author."""
-    q = Q("query_string", fields=[f"{path}.full_name"],
-          default_operator=operator, allow_leading_wildcard=False,
-          type="cross_fields", query=escape(term))
-    return Q('nested', path=path, query=q, score_mode='sum')
+    q = Q(
+        "query_string",
+        fields=[f"{path}.full_name"],
+        default_operator=operator,
+        allow_leading_wildcard=False,
+        type="cross_fields",
+        query=escape(term),
+    )
+    return Q("nested", path=path, query=q, score_mode="sum")
 
 
-def author_query(term: str, operator: str = 'and') -> Q:
+def author_query(term: str, operator: str = "and") -> Q:
     """
     Construct a query based on author (and owner) names.
 
@@ -174,23 +199,33 @@ def author_query(term: str, operator: str = 'and') -> Q:
         logger.debug(f"Contains literal: {term}")
 
         # Apply literal parts of the query separately.
-        return reduce(iand if operator.upper() == 'AND' else ior, [
-            (string_query(part, operator=operator)
-             | string_query(part, path="owners", operator=operator))
-            for part in re.split(STRING_LITERAL, term) if part.strip()
-        ])
+        return reduce(
+            iand if operator.upper() == "AND" else ior,
+            [
+                (
+                    string_query(part, operator=operator)
+                    | string_query(part, path="owners", operator=operator)
+                )
+                for part in re.split(STRING_LITERAL, term)
+                if part.strip()
+            ],
+        )
 
-    term = term.replace('"', '')    # Just ignore unbalanced quotes.
+    term = term.replace('"', "")  # Just ignore unbalanced quotes.
 
-    if ";" in term:     # Authors are individuated.
+    if ";" in term:  # Authors are individuated.
         logger.debug(f"Authors are individuated: {term}")
         logger.debug(f"Operator: {operator}")
-        return reduce(iand if operator.upper() == "AND" else ior, [
-            (part_query(author_part) | part_query(author_part, "owners"))
-            for author_part in term.split(";") if author_part
-        ])
+        return reduce(
+            iand if operator.upper() == "AND" else ior,
+            [
+                (part_query(author_part) | part_query(author_part, "owners"))
+                for author_part in term.split(";")
+                if author_part
+            ],
+        )
 
-    if "," in term:     # Forename is individuated.
+    if "," in term:  # Forename is individuated.
         logger.debug(f"Forename is individuated: {term}")
         return part_query(term) | part_query(term, "owners")
 
@@ -201,51 +236,85 @@ def author_query(term: str, operator: str = 'and') -> Q:
     #
     # A query_string query on the combined field will yield matches among
     # authors.
-    q = Q('query_string', fields=['authors_combined'],
-          query=escape(term, quotes=True),
-          default_operator='and')
+    q = Q(
+        "query_string",
+        fields=["authors_combined"],
+        query=escape(term, quotes=True),
+        default_operator="and",
+    )
 
     # A nested query_string query on full name will match within individual
     # authors.
-    q |= (
-        Q('nested', path='authors', score_mode='sum',
-          query=Q("query_string", fields=['authors.full_name'],
-                  default_operator=operator, allow_leading_wildcard=False,
-                  query=escape(term, quotes=True)))
-        | Q('nested', path='owners', score_mode='sum',
-            query=Q("query_string", fields=['owners.full_name'],
-                    default_operator=operator, allow_leading_wildcard=False,
-                    query=escape(term, quotes=True)))
+    q |= Q(
+        "nested",
+        path="authors",
+        score_mode="sum",
+        query=Q(
+            "query_string",
+            fields=["authors.full_name"],
+            default_operator=operator,
+            allow_leading_wildcard=False,
+            query=escape(term, quotes=True),
+        ),
+    ) | Q(
+        "nested",
+        path="owners",
+        score_mode="sum",
+        query=Q(
+            "query_string",
+            fields=["owners.full_name"],
+            default_operator=operator,
+            allow_leading_wildcard=False,
+            query=escape(term, quotes=True),
+        ),
     )
     return q
 
 
-def author_id_query(term: str, operator: str = 'and') -> Q:
+def author_id_query(term: str, operator: str = "and") -> Q:
     """Generate a query part for Author ID using the ES DSL."""
-    term = term.lower()     # Just in case.
-    if operator == 'or':
-        return (
-            Q("nested", path="owners",
-                query=Q("terms", **{"owners__author_id": term.split()}))
-            | Q("terms", **{"submitter__author_id": term.split()})
-        )
-    return reduce(iand, [(
-        Q("nested", path="owners",
-            query=Q("term", **{"owners__author_id": part}))
-        | Q("term", **{"submitter__author_id": part})
-    ) for part in term.split()])
+    term = term.lower()  # Just in case.
+    if operator == "or":
+        return Q(
+            "nested",
+            path="owners",
+            query=Q("terms", **{"owners__author_id": term.split()}),
+        ) | Q("terms", **{"submitter__author_id": term.split()})
+    return reduce(
+        iand,
+        [
+            (
+                Q(
+                    "nested",
+                    path="owners",
+                    query=Q("term", **{"owners__author_id": part}),
+                )
+                | Q("term", **{"submitter__author_id": part})
+            )
+            for part in term.split()
+        ],
+    )
 
 
-def orcid_query(term: str, operator: str = 'and') -> Q:
+def orcid_query(term: str, operator: str = "and") -> Q:
     """Generate a query part for ORCID ID using the ES DSL."""
-    if operator == 'or':
-        return (
-            Q("nested", path="owners",
-                query=Q("terms", **{"owners__orcid": term.split()}))
-            | Q("terms", **{"submitter__orcid": term.split()})
-        )
-    return reduce(iand, [(
-        Q("nested", path="owners",
-            query=Q("term", **{"owners__orcid": part}))
-        | Q("term", **{"submitter__orcid": part})
-    ) for part in term.split()])
+    if operator == "or":
+        return Q(
+            "nested",
+            path="owners",
+            query=Q("terms", **{"owners__orcid": term.split()}),
+        ) | Q("terms", **{"submitter__orcid": term.split()})
+    return reduce(
+        iand,
+        [
+            (
+                Q(
+                    "nested",
+                    path="owners",
+                    query=Q("term", **{"owners__orcid": part}),
+                )
+                | Q("term", **{"submitter__orcid": part})
+            )
+            for part in term.split()
+        ],
+    )

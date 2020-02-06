@@ -32,6 +32,7 @@ _handlers = []
 
 def handler(exception: type) -> Callable:
     """Generate a decorator to register a handler for an exception."""
+
     def deco(func: Callable) -> Callable:
         """Register a function as an exception handler."""
         _handlers.append((exception, func))

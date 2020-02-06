@@ -36,12 +36,13 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
     # Filter id_list if necessary.
     if query.id_list:
         # Separate versioned and unversioned papers.
-        paper_ids = [id for id in query.id_list if 'v' not in id]
-        paper_ids_vs = [id for id in query.id_list if 'v' in id]
+        paper_ids = [id for id in query.id_list if "v" not in id]
+        paper_ids_vs = [id for id in query.id_list if "v" in id]
 
         # Filter by most recent unversioned paper or any versioned paper.
-        id_query = ((Q('terms', paper_id=paper_ids) & Q('term', is_current=True))
-                    | Q('terms', paper_id_v=paper_ids_vs))
+        id_query = (
+            Q("terms", paper_id=paper_ids) & Q("term", is_current=True)
+        ) | Q("terms", paper_id_v=paper_ids_vs)
 
         search = search.filter(id_query)
     else:
@@ -96,15 +97,15 @@ def _term_to_query(term: Term) -> Q:
     field, val = term
 
     FIELD_TERM_MAPPING: Dict[Field, Callable[[str], Q]] = {
-        Field.Author : SEARCH_FIELDS['author'],
-        Field.Comment : SEARCH_FIELDS['comments'],
-        Field.Identifier : SEARCH_FIELDS['paper_id'],
-        Field.JournalReference : SEARCH_FIELDS['journal_ref'],
-        Field.ReportNumber : SEARCH_FIELDS['report_num'],
+        Field.Author: SEARCH_FIELDS["author"],
+        Field.Comment: SEARCH_FIELDS["comments"],
+        Field.Identifier: SEARCH_FIELDS["paper_id"],
+        Field.JournalReference: SEARCH_FIELDS["journal_ref"],
+        Field.ReportNumber: SEARCH_FIELDS["report_num"],
         # Expects to match on primary or secondary category.
-        Field.SubjectCategory : query_any_subject_exact_raw,
-        Field.Title : SEARCH_FIELDS['title'],
-        Field.All : SEARCH_FIELDS['all']
+        Field.SubjectCategory: query_any_subject_exact_raw,
+        Field.Title: SEARCH_FIELDS["title"],
+        Field.All: SEARCH_FIELDS["all"],
     }
 
     return FIELD_TERM_MAPPING[field](val)

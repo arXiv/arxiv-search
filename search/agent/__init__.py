@@ -29,6 +29,6 @@ def process_stream(duration: Optional[int] = None) -> None:
     """
     # We use the Flask application instance for configuration, and to manage
     # integrations with metadata service, search index.
-    agent.process_stream(MetadataRecordProcessor, app.config,
-                         duration=duration)
-
+    agent.process_stream(
+        MetadataRecordProcessor, app.config, duration=duration
+    )

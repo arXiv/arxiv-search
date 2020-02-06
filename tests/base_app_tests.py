@@ -11,5 +11,5 @@ from arxiv.base.app_tests import *
 app = create_ui_web_app()
 app.app_context().push()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

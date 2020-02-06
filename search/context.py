@@ -7,7 +7,9 @@ from flask import current_app as flask_app
 import werkzeug
 
 
-def get_application_config(app: Optional[Union[Flask, object]] = None) -> Union[dict, os._Environ]:
+def get_application_config(
+    app: Optional[Union[Flask, object]] = None
+) -> Union[dict, os._Environ]:
     """
     Get a configuration from the current app, or fall back to env.
 
@@ -24,9 +26,9 @@ def get_application_config(app: Optional[Union[Flask, object]] = None) -> Union[
     # pylint: disable=protected-access
     if app is not None:
         if isinstance(app, Flask):
-            return app.config # type: ignore
-    if flask_app:    # Proxy object; falsey if there is no application context.
-        return flask_app.config # type: ignore
+            return app.config  # type: ignore
+    if flask_app:  # Proxy object; falsey if there is no application context.
+        return flask_app.config  # type: ignore
     return os.environ
 
 
@@ -39,5 +41,5 @@ def get_application_global() -> Optional[werkzeug.local.LocalProxy]:
     proxy or None
     """
     if g:
-        return g # type: ignore
+        return g  # type: ignore
     return None

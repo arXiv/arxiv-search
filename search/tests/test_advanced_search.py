@@ -15,12 +15,18 @@ class TestAdvancedSearch(TestCase):
     def test_archive_shortcut(self):
         """User requests a sub-path with classification archive."""
         for archive in taxonomy.ARCHIVES.keys():
-            response = self.client.get(f'/advanced/{archive}')
-            self.assertEqual(response.status_code, status.HTTP_200_OK,
-                             "Should support shortcut for archive {archive}")
+            response = self.client.get(f"/advanced/{archive}")
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_200_OK,
+                "Should support shortcut for archive {archive}",
+            )
 
     def test_nonexistant_archive_shortcut(self):
         """User requests a sub-path with non-existant archive."""
-        response = self.client.get('/advanced/fooarchive')
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND,
-                         "Should return a 404 error")
+        response = self.client.get("/advanced/fooarchive")
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+            "Should return a 404 error",
+        )

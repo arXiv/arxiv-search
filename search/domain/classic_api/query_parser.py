@@ -64,27 +64,29 @@ def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
 
     # Parsing characters.
     for i, c in enumerate(query):
-        if c == '(':
+        if c == "(":
             paren_group.append(i)  # Add open paren start position to stack.
-        elif c == ')':
+        elif c == ")":
             start = paren_group.pop()  # Get innermost open paren.
             if not paren_group and start == 0 and i + 1 == len(query):
                 # Paren spans whole group, strip the parens and just return the de-parened phrase.
                 return _tokenize_query_string(query[1:i])
             elif not paren_group:
                 # Pass the paren-stripped phrase for parsing.
-                tokens.append(parse_classic_query(query[start + 1:i]))
-                token_start = i+1
+                tokens.append(parse_classic_query(query[start + 1 : i]))
+                token_start = i + 1
         elif c == '"':
             in_quote = not in_quote  # Flip quotation bit.
-        elif c == ' ':
+        elif c == " ":
             if in_quote:
                 continue  # Keep moving if parsing a quote.
             elif not paren_group and token_start != i:
                 tokens.append(query[token_start:i])
                 token_start = i + 1
             elif token_start == i:
-                token_start = i + 1  # Multiple spaces, move the token_start back.
+                token_start = (
+                    i + 1
+                )  # Multiple spaces, move the token_start back.
         else:
             continue
 
@@ -94,17 +96,19 @@ def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
 
     # Handle unclosed quotation mark.
     if in_quote:
-        raise BadRequest(f'Quotation does not close: {query[token_start:]}')
+        raise BadRequest(f"Quotation does not close: {query[token_start:]}")
 
     return tokens
 
 
-def _cast_tokens(tokens: List[Union[str, Phrase]]) -> List[Union[Operator, Term, Phrase]]:
+def _cast_tokens(
+    tokens: List[Union[str, Phrase]]
+) -> List[Union[Operator, Term, Phrase]]:
     """Cast tokens to class-based representations."""
     classed_tokens: List[Union[Operator, Term, Phrase]] = []
     for token in tokens:
         if isinstance(token, str):
-            if ':' in token:
+            if ":" in token:
                 token = _parse_field_query(token)
                 classed_tokens.append(token)
             else:
@@ -116,14 +120,18 @@ def _cast_tokens(tokens: List[Union[str, Phrase]]) -> List[Union[Operator, Term,
     return classed_tokens
 
 
-def _group_tokens(classed_tokens: List[Union[Operator, Term, Phrase]]) -> Phrase:
+def _group_tokens(
+    classed_tokens: List[Union[Operator, Term, Phrase]]
+) -> Phrase:
     """Group operators together with Term."""
     phrases: List[Phrase] = []
     current_op: Optional[Operator] = None
     prev_token: Optional[Union[Operator, Term, Phrase]] = None
     for token in classed_tokens:
         if isinstance(token, Operator) and isinstance(prev_token, Operator):
-            raise BadRequest(f'Query contains 2 consecutive operators: {prev_token} {token}')
+            raise BadRequest(
+                f"Query contains 2 consecutive operators: {prev_token} {token}"
+            )
         if isinstance(token, Operator):
             current_op = token
         else:
@@ -144,17 +152,17 @@ def _parse_operator(characters: str) -> Operator:
     try:
         return Operator(characters.strip())
     except ValueError as ex:
-        raise BadRequest(f'Cannot parse fragment: {characters}') from ex
+        raise BadRequest(f"Cannot parse fragment: {characters}") from ex
 
 
 def _parse_field_query(field_part: str) -> Term:
-    field_name, value = field_part.split(':', 1)
+    field_name, value = field_part.split(":", 1)
 
     # Cast field to Field enum.
     try:
         field = Field(field_name)
     except ValueError as ex:
-        raise BadRequest(f'Invalid field: {field_name}') from ex
+        raise BadRequest(f"Invalid field: {field_name}") from ex
 
     # Process leading and trailing whitespace and quotes, if present.
     value = value.strip()
@@ -174,20 +182,22 @@ def phrase_to_query_string(phrase: Phrase) -> str:
             parts.append(f"{token.value}:")
         elif isinstance(token, str):
             # Strings are added to the field or operator preceeding it.
-            if ' ' in token:
+            if " " in token:
                 parts[-1] += f'"{token}"'
             else:
                 parts[-1] += token
         elif isinstance(token, tuple):
             part = phrase_to_query_string(token)
             # If the returned part is a Phrase, add parens.
-            if ' ' in part \
-                    and part.count(':') > 1 \
-                    and not Operator.is_valid_value(part.split()[0]):
-                part = f'({part})'
+            if (
+                " " in part
+                and part.count(":") > 1
+                and not Operator.is_valid_value(part.split()[0])
+            ):
+                part = f"({part})"
 
             parts.append(part)
         else:
             raise ValueError(f"Invalid token in phrase: {token}")
 
-    return ' '.join(parts)
+    return " ".join(parts)

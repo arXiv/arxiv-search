@@ -12,13 +12,13 @@ class ArchiveConverter(BaseConverter):
     def to_python(self, value: str) -> Optional[List[str]]:
         """Parse URL path part to Python rep (str)."""
         valid_archives = []
-        for archive in value.split(','):
+        for archive in value.split(","):
             if archive not in taxonomy.ARCHIVES:
                 continue
             # Support old archives.
             if archive in taxonomy.ARCHIVES_SUBSUMED:
                 cat = taxonomy.CATEGORIES[taxonomy.ARCHIVES_SUBSUMED[archive]]
-                archive = cat['in_archive']
+                archive = cat["in_archive"]
             valid_archives.append(archive)
         if not valid_archives:
             raise ValidationError()

@@ -6,50 +6,55 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 from search.domain import Document, DocMeta, Fulltext
 
 DEFAULT_LICENSE = {
-    'uri': 'http://arxiv.org/licenses/assumed-1991-2003/',
-    'label': "Assumed arXiv.org perpetual, non-exclusive license to distribute"
-             " this article for submissions made before January 2004"
+    "uri": "http://arxiv.org/licenses/assumed-1991-2003/",
+    "label": "Assumed arXiv.org perpetual, non-exclusive license to distribute"
+    " this article for submissions made before January 2004",
 }
 
 
 def _constructLicense(meta: DocMeta) -> dict:
     """Get the document license, or set the default."""
-    if not meta.license or not meta.license['uri']:
+    if not meta.license or not meta.license["uri"]:
         return DEFAULT_LICENSE
     return meta.license
 
 
 def _strip_punctuation(s: str) -> str:
-    return ''.join([c for c in s if c not in punctuation])
+    return "".join([c for c in s if c not in punctuation])
 
 
 def _constructPaperVersion(meta: DocMeta) -> str:
     """Generate a version-qualified paper ID."""
-    return '%sv%i' % (meta.paper_id, meta.version)
+    return "%sv%i" % (meta.paper_id, meta.version)
 
 
 def _constructMSCClass(meta: DocMeta) -> Optional[list]:
     """Extract ``msc_class`` field as an array."""
     if not meta.msc_class:
         return None
-    return [obj.strip() for obj in meta.msc_class.split(',')]
+    return [obj.strip() for obj in meta.msc_class.split(",")]
 
 
 def _constructACMClass(meta: DocMeta) -> Optional[list]:
     """Extract ``acm_class`` field as an array."""
     if not meta.acm_class:
         return None
-    return [obj.strip() for obj in meta.acm_class.split(';')]
+    return [obj.strip() for obj in meta.acm_class.split(";")]
 
 
 def _transformAuthor(author: dict) -> Optional[Dict]:
-    if (not author['last_name']) and (not author['first_name']):
+    if (not author["last_name"]) and (not author["first_name"]):
         return None
-    author['full_name'] = re.sub(r'\s+', ' ', f"{author['first_name']} {author['last_name']}")
-    author['initials'] = " ".join([pt[0] for pt in author['first_name'].split() if pt])
-    name_parts = author['first_name'].split() + author['last_name'].split()
-    author['full_name_initialized'] = ' '.join(
-        [part[0] for part in name_parts[:-1]] + [name_parts[-1]])
+    author["full_name"] = re.sub(
+        r"\s+", " ", f"{author['first_name']} {author['last_name']}"
+    )
+    author["initials"] = " ".join(
+        [pt[0] for pt in author["first_name"].split() if pt]
+    )
+    name_parts = author["first_name"].split() + author["last_name"].split()
+    author["full_name_initialized"] = " ".join(
+        [part[0] for part in name_parts[:-1]] + [name_parts[-1]]
+    )
 
     return author
 
@@ -98,8 +103,11 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("authors_freeform", "authors_utf8", False),
     ("owners", _constructAuthorOwners, False),
     ("submitted_date", "submitted_date", True),
-    ("submitted_date_all",
-     lambda meta: meta.submitted_date_all if meta.is_current else None, True),
+    (
+        "submitted_date_all",
+        lambda meta: meta.submitted_date_all if meta.is_current else None,
+        True,
+    ),
     ("submitted_date_first", _getFirstSubDate, True),
     ("submitted_date_latest", _getLastSubDate, True),
     ("modified_date", "modified_date", True),
@@ -128,12 +136,13 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("abs_categories", "abs_categories", False),
     ("formats", "formats", True),
     ("latest_version", "latest_version", True),
-    ("latest", "latest", True)
+    ("latest", "latest", True),
 ]
 
 
-def to_search_document(metadata: DocMeta,
-                       fulltext: Optional[Fulltext] = None) -> Document:
+def to_search_document(
+    metadata: DocMeta, fulltext: Optional[Fulltext] = None
+) -> Document:
     """
     Transform metadata (and fulltext) into a valid search document.
 
@@ -156,7 +165,7 @@ def to_search_document(metadata: DocMeta,
     for key, source, is_required in _transformations:
         if isinstance(source, str):
             value = getattr(metadata, source, None)
-        elif hasattr(source, '__call__'):
+        elif hasattr(source, "__call__"):
             value = source(metadata)
         if value is None and not is_required:
             continue

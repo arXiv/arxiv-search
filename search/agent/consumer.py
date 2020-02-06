@@ -32,8 +32,10 @@ class MetadataRecordProcessor(BaseConsumer):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize exception counter."""
-        self.sleep: float = kwargs.pop('sleep', 0.1)
-        super(MetadataRecordProcessor, self).__init__(*args, **kwargs)  # type: ignore
+        self.sleep: float = kwargs.pop("sleep", 0.1)
+        super(MetadataRecordProcessor, self).__init__(
+            *args, **kwargs
+        )  # type: ignore
         self._error_count = 0
 
     # TODO: bring McCabe index down.
@@ -61,28 +63,33 @@ class MetadataRecordProcessor(BaseConsumer):
             is unlikely for subsequent papers.
 
         """
-        logger.debug('%s: get metadata', arxiv_id)
+        logger.debug("%s: get metadata", arxiv_id)
 
         try:
-            docmeta: DocMeta = retry_call(metadata.retrieve, (arxiv_id,),
-                                          exceptions=metadata.ConnectionFailed,
-                                          tries=2)
+            docmeta: DocMeta = retry_call(
+                metadata.retrieve,
+                (arxiv_id,),
+                exceptions=metadata.ConnectionFailed,
+                tries=2,
+            )
         except metadata.ConnectionFailed as ex:
             # Things really are looking bad. There is no need to keep
             # trying with subsequent records, so let's abort entirely.
-            logger.error('%s: second attempt failed, giving up', arxiv_id)
+            logger.error("%s: second attempt failed, giving up", arxiv_id)
             raise IndexingFailed(
-                'Indexing failed; metadata endpoint could not be reached.'
+                "Indexing failed; metadata endpoint could not be reached."
             ) from ex
         except metadata.RequestFailed as ex:
-            logger.error(f'{arxiv_id}: request failed')
-            raise DocumentFailed('Request to metadata service failed') from ex
+            logger.error(f"{arxiv_id}: request failed")
+            raise DocumentFailed("Request to metadata service failed") from ex
         except metadata.BadResponse as ex:
-            logger.error(f'{arxiv_id}: bad response from metadata service')
-            raise DocumentFailed('Bad response from metadata service') from ex
+            logger.error(f"{arxiv_id}: bad response from metadata service")
+            raise DocumentFailed("Bad response from metadata service") from ex
         except Exception as ex:
-            logger.error(f'{arxiv_id}: unhandled error, metadata service: {ex}')
-            raise IndexingFailed('Unhandled exception') from ex
+            logger.error(
+                f"{arxiv_id}: unhandled error, metadata service: {ex}"
+            )
+            raise IndexingFailed("Unhandled exception") from ex
         return docmeta
 
     def _get_bulk_metadata(self, arxiv_ids: List[str]) -> List[DocMeta]:
@@ -110,26 +117,31 @@ class MetadataRecordProcessor(BaseConsumer):
             is unlikely for subsequent papers.
 
         """
-        logger.debug('%s: get bulk metadata', arxiv_ids)
+        logger.debug("%s: get bulk metadata", arxiv_ids)
         meta: List[DocMeta]
         try:
-            meta = retry_call(metadata.bulk_retrieve, (arxiv_ids,),
-                              exceptions=metadata.ConnectionFailed,
-                              tries=2)
+            meta = retry_call(
+                metadata.bulk_retrieve,
+                (arxiv_ids,),
+                exceptions=metadata.ConnectionFailed,
+                tries=2,
+            )
         except metadata.ConnectionFailed as ex:
             # Things really are looking bad. There is no need to keep
             # trying with subsequent records, so let's abort entirely.
-            logger.error('%s: second attempt failed, giving up', arxiv_ids)
-            raise IndexingFailed('Metadata endpoint not available') from ex
+            logger.error("%s: second attempt failed, giving up", arxiv_ids)
+            raise IndexingFailed("Metadata endpoint not available") from ex
         except metadata.RequestFailed as ex:
-            logger.error('%s: request failed', arxiv_ids)
-            raise DocumentFailed('Request to metadata service failed') from ex
+            logger.error("%s: request failed", arxiv_ids)
+            raise DocumentFailed("Request to metadata service failed") from ex
         except metadata.BadResponse as ex:
-            logger.error('%s: bad response from metadata service', arxiv_ids)
-            raise DocumentFailed('Bad response from metadata service') from ex
+            logger.error("%s: bad response from metadata service", arxiv_ids)
+            raise DocumentFailed("Bad response from metadata service") from ex
         except Exception as ex:
-            logger.error('%s: unhandled error, metadata svc: %s', arxiv_ids, ex)
-            raise IndexingFailed('Unhandled exception') from ex
+            logger.error(
+                "%s: unhandled error, metadata svc: %s", arxiv_ids, ex
+            )
+            raise IndexingFailed("Unhandled exception") from ex
         return meta
 
     @staticmethod
@@ -158,8 +170,8 @@ class MetadataRecordProcessor(BaseConsumer):
             document = transform.to_search_document(docmeta)
         except Exception as ex:
             # At the moment we don't have any special exceptions.
-            logger.error('unhandled exception during transform: %s', ex)
-            raise DocumentFailed('Could not transform document') from ex
+            logger.error("unhandled exception during transform: %s", ex)
+            raise DocumentFailed("Could not transform document") from ex
 
         return document
 
@@ -180,13 +192,17 @@ class MetadataRecordProcessor(BaseConsumer):
 
         """
         try:
-            retry_call(index.SearchSession.add_document, (document,),
-                       exceptions=index.IndexConnectionError, tries=2)
+            retry_call(
+                index.SearchSession.add_document,
+                (document,),
+                exceptions=index.IndexConnectionError,
+                tries=2,
+            )
         except index.IndexConnectionError as ex:
-            raise IndexingFailed('Could not index document') from ex
+            raise IndexingFailed("Could not index document") from ex
         except Exception as ex:
-            logger.error(f'Unhandled exception from index service: {ex}')
-            raise IndexingFailed('Unhandled exception') from ex
+            logger.error(f"Unhandled exception from index service: {ex}")
+            raise IndexingFailed("Unhandled exception") from ex
 
     @staticmethod
     def _bulk_add_to_index(documents: List[Document]) -> None:
@@ -205,13 +221,17 @@ class MetadataRecordProcessor(BaseConsumer):
 
         """
         try:
-            retry_call(index.SearchSession.bulk_add_documents, (documents,),
-                       exceptions=index.IndexConnectionError, tries=2)
+            retry_call(
+                index.SearchSession.bulk_add_documents,
+                (documents,),
+                exceptions=index.IndexConnectionError,
+                tries=2,
+            )
         except index.IndexConnectionError as ex:
-            raise IndexingFailed('Could not bulk index documents') from ex
+            raise IndexingFailed("Could not bulk index documents") from ex
         except Exception as ex:
-            logger.error(f'Unhandled exception from index service: {ex}')
-            raise IndexingFailed('Unhandled exception') from ex
+            logger.error(f"Unhandled exception from index service: {ex}")
+            raise IndexingFailed("Unhandled exception") from ex
 
     def index_paper(self, arxiv_id: str) -> None:
         """
@@ -247,16 +267,16 @@ class MetadataRecordProcessor(BaseConsumer):
         try:
             documents = []
             for docmeta in self._get_bulk_metadata(arxiv_ids):
-                logger.debug('%s: transform to Document', docmeta.paper_id)
+                logger.debug("%s: transform to Document", docmeta.paper_id)
                 document = MetadataRecordProcessor._transform_to_document(
                     docmeta
                 )
                 documents.append(document)
-            logger.debug('add to index in bulk')
+            logger.debug("add to index in bulk")
             MetadataRecordProcessor._bulk_add_to_index(documents)
         except (DocumentFailed, IndexingFailed) as ex:
             # We just pass these along so that process_record() can keep track.
-            logger.debug(f'{arxiv_ids}: Document failed: {ex}')
+            logger.debug(f"{arxiv_ids}: Document failed: {ex}")
             raise ex
 
     def process_record(self, record: dict) -> None:
@@ -281,22 +301,22 @@ class MetadataRecordProcessor(BaseConsumer):
         time.sleep(self.sleep)
         logger.info(f'Processing record {record["SequenceNumber"]}')
         if self._error_count > self.MAX_ERRORS:
-            raise IndexingFailed('Too many errors')
+            raise IndexingFailed("Too many errors")
 
         try:
-            deserialized = json.loads(record['Data'].decode('utf-8'))
+            deserialized = json.loads(record["Data"].decode("utf-8"))
         except json.decoder.JSONDecodeError as ex:
             logger.error("Error while deserializing data %s", ex)
-            logger.error("Data payload: %s", record['Data'])
-            raise DocumentFailed('Could not deserialize record data')
+            logger.error("Data payload: %s", record["Data"])
+            raise DocumentFailed("Could not deserialize record data")
             # return   # Don't bring down the whole batch.
 
         try:
-            arxiv_id: str = deserialized.get('document_id')
+            arxiv_id: str = deserialized.get("document_id")
             self.index_paper(arxiv_id)
         except DocumentFailed as ex:
-            logger.debug('%s: failed to index document: %s', arxiv_id, ex)
+            logger.debug("%s: failed to index document: %s", arxiv_id, ex)
             self._error_count += 1
         except IndexingFailed as ex:
-            logger.error('Indexing failed: %s', ex)
+            logger.error("Indexing failed: %s", ex)
             raise

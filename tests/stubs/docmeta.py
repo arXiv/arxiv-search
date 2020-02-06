@@ -11,26 +11,26 @@ from arxiv.base import logging
 
 logger = logging.getLogger(__name__)
 
-METADATA_DIR = os.environ.get('METADATA_DIR')
+METADATA_DIR = os.environ.get("METADATA_DIR")
 
 
-app = Flask('metadata')
+app = Flask("metadata")
 Base(app)
 
-app.url_map.converters['arxiv'] = ArXivConverter
+app.url_map.converters["arxiv"] = ArXivConverter
 
 
-@app.route('/docmeta/<arxiv:document_id>', methods=["GET"])
+@app.route("/docmeta/<arxiv:document_id>", methods=["GET"])
 def docmeta(document_id):
     """Retrieve document metadata."""
-    logger.debug(f'Get metadata for {document_id}')
-    logger.debug(f'Metadata base is {METADATA_DIR}')
+    logger.debug(f"Get metadata for {document_id}")
+    logger.debug(f"Metadata base is {METADATA_DIR}")
     if not METADATA_DIR:
-        raise InternalServerError('Metadata directory not set')
+        raise InternalServerError("Metadata directory not set")
     metadata_path = os.path.join(METADATA_DIR, f"{document_id}.json")
-    logger.debug(f'Metadata path is {metadata_path}')
+    logger.debug(f"Metadata path is {metadata_path}")
     if not os.path.exists(metadata_path):
-        raise NotFound('No such document')
+        raise NotFound("No such document")
     with open(metadata_path) as f:
         return jsonify(json.load(f))
 

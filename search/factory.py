@@ -20,13 +20,13 @@ s3 = FlaskS3()
 
 def create_ui_web_app() -> Flask:
     """Initialize an instance of the search frontend UI web application."""
-    logging.getLogger('boto').setLevel(logging.ERROR)
-    logging.getLogger('boto3').setLevel(logging.ERROR)
-    logging.getLogger('botocore').setLevel(logging.ERROR)
+    logging.getLogger("boto").setLevel(logging.ERROR)
+    logging.getLogger("boto3").setLevel(logging.ERROR)
+    logging.getLogger("botocore").setLevel(logging.ERROR)
 
-    app = Flask('search')
-    app.config.from_pyfile('config.py')   # type: ignore
-    app.url_map.converters['archive'] = ArchiveConverter
+    app = Flask("search")
+    app.config.from_pyfile("config.py")  # type: ignore
+    app.url_map.converters["archive"] = ArchiveConverter
 
     index.SearchSession.init_app(app)
 
@@ -48,13 +48,13 @@ def create_ui_web_app() -> Flask:
 
 def create_api_web_app() -> Flask:
     """Initialize an instance of the search frontend UI web application."""
-    logging.getLogger('boto').setLevel(logging.ERROR)
-    logging.getLogger('boto3').setLevel(logging.ERROR)
-    logging.getLogger('botocore').setLevel(logging.ERROR)
+    logging.getLogger("boto").setLevel(logging.ERROR)
+    logging.getLogger("boto3").setLevel(logging.ERROR)
+    logging.getLogger("botocore").setLevel(logging.ERROR)
 
-    app = Flask('search')
+    app = Flask("search")
     app.json_encoder = ISO8601JSONEncoder
-    app.config.from_pyfile('config.py')    # type: ignore
+    app.config.from_pyfile("config.py")  # type: ignore
 
     index.SearchSession.init_app(app)
 
@@ -62,8 +62,10 @@ def create_api_web_app() -> Flask:
     auth.Auth(app)
     app.register_blueprint(api.blueprint)
 
-    wrap(app, [request_logs.ClassicLogsMiddleware,
-               auth.middleware.AuthMiddleware])
+    wrap(
+        app,
+        [request_logs.ClassicLogsMiddleware, auth.middleware.AuthMiddleware],
+    )
 
     for error, handler in api.exceptions.get_handlers():
         app.errorhandler(error)(handler)
@@ -73,13 +75,13 @@ def create_api_web_app() -> Flask:
 
 def create_classic_api_web_app() -> Flask:
     """Initialize an instance of the search frontend UI web application."""
-    logging.getLogger('boto').setLevel(logging.ERROR)
-    logging.getLogger('boto3').setLevel(logging.ERROR)
-    logging.getLogger('botocore').setLevel(logging.ERROR)
+    logging.getLogger("boto").setLevel(logging.ERROR)
+    logging.getLogger("boto3").setLevel(logging.ERROR)
+    logging.getLogger("botocore").setLevel(logging.ERROR)
 
-    app = Flask('search')
+    app = Flask("search")
     app.json_encoder = ISO8601JSONEncoder
-    app.config.from_pyfile('config.py')  # type: ignore
+    app.config.from_pyfile("config.py")  # type: ignore
 
     index.SearchSession.init_app(app)
 
@@ -87,8 +89,10 @@ def create_classic_api_web_app() -> Flask:
     auth.Auth(app)
     app.register_blueprint(classic_api.blueprint)
 
-    wrap(app, [request_logs.ClassicLogsMiddleware,
-               auth.middleware.AuthMiddleware])
+    wrap(
+        app,
+        [request_logs.ClassicLogsMiddleware, auth.middleware.AuthMiddleware],
+    )
 
     for error, handler in classic_api.exceptions.get_handlers():
         app.errorhandler(error)(handler)

@@ -29,10 +29,10 @@ def health_check() -> Tuple[str, int, Dict[str, Any]]:
     """
     try:
         document_set = index.SearchSession.search(  # type: ignore
-            SimpleQuery(search_field='all', value='theory')
+            SimpleQuery(search_field="all", value="theory")
         )
     except Exception:
-        return 'DOWN', status.HTTP_500_INTERNAL_SERVER_ERROR, {}
-    if document_set['results']:
-        return 'OK', status.HTTP_200_OK, {}
-    return 'DOWN', status.HTTP_500_INTERNAL_SERVER_ERROR, {}
+        return "DOWN", status.HTTP_500_INTERNAL_SERVER_ERROR, {}
+    if document_set["results"]:
+        return "OK", status.HTTP_200_OK, {}
+    return "DOWN", status.HTTP_500_INTERNAL_SERVER_ERROR, {}

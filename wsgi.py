@@ -18,9 +18,9 @@ def application(environ, start_response):
         # be a container ID, which is not helpful for things like building
         # URLs. We want to keep ``SERVER_NAME`` explicitly configured, either
         # in config.py or via an os.environ var loaded by config.py.
-        if key == 'SERVER_NAME':
+        if key == "SERVER_NAME":
             continue
-        logger.debug('Setting %s = %s from environ', key, value)
+        logger.debug("Setting %s = %s from environ", key, value)
         os.environ[key] = str(value)
         __flask_app__.config[key] = value
 

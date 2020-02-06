@@ -13,6 +13,7 @@ from search.domain.base import Classification, ClassificationList
 # the typed keys. See https://github.com/python/mypy/issues/2632 for
 # background.
 
+
 def utcnow() -> datetime:
     """Return timezone aware current timestamp."""
     return datetime.utcnow().astimezone(timezone.utc)
@@ -130,20 +131,19 @@ def document_set_from_documents(documents: List[Document]) -> DocumentSet:
     DocumentSet(results=documents, metadata=dict()).
     """
     return DocumentSet(
-        results=documents,
-        metadata=metadata_from_documents(documents)
+        results=documents, metadata=metadata_from_documents(documents)
     )
 
 
 def metadata_from_documents(documents: List[Document]) -> DocumentSetMetadata:
     """Generate DocumentSet metadata from a list of documents."""
     metadata: DocumentSetMetadata = {}
-    metadata['size'] = len(documents)
-    metadata['end'] = len(documents)
-    metadata['total_results'] = len(documents)
-    metadata['start'] = 0
-    metadata['max_pages'] = 1
-    metadata['current_page'] = 1
-    metadata['total_pages'] = 1
+    metadata["size"] = len(documents)
+    metadata["end"] = len(documents)
+    metadata["total_results"] = len(documents)
+    metadata["start"] = 0
+    metadata["max_pages"] = 1
+    metadata["current_page"] = 1
+    metadata["total_pages"] = 1
 
     return metadata

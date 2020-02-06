@@ -17,11 +17,17 @@ from arxiv import status, identifier, taxonomy
 
 from arxiv.base import logging
 from search.services import index, fulltext, metadata, SearchSession
-from search.domain import Query, SimpleQuery, asdict, Classification, \
-    ClassificationList
+from search.domain import (
+    Query,
+    SimpleQuery,
+    asdict,
+    Classification,
+    ClassificationList,
+)
 from search.controllers.util import paginate, catch_underscore_syntax
 
 from .forms import SimpleSearchForm
+
 # from search.routes.ui import external_url_builder
 
 logger = logging.getLogger(__name__)
@@ -29,8 +35,9 @@ logger = logging.getLogger(__name__)
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
 
-def search(request_params: MultiDict,
-           archives: Optional[List[str]] = None) -> Response:
+def search(
+    request_params: MultiDict, archives: Optional[List[str]] = None
+) -> Response:
     """
     Perform a simple search.
 
@@ -63,64 +70,72 @@ def search(request_params: MultiDict,
 
     """
     if archives is not None and len(archives) == 0:
-        raise NotFound('No such archive')
+        raise NotFound("No such archive")
 
     # We may need to intervene on the request parameters, so we'll
     # reinstantiate as a mutable MultiDict.
     if isinstance(request_params, ImmutableMultiDict):
         request_params = MultiDict(request_params.items(multi=True))
 
-    logger.debug('simple search form')
+    logger.debug("simple search form")
     response_data = {}  # type: Dict[str, Any]
 
-    logger.debug('simple search request')
-    if 'query' in request_params:
+    logger.debug("simple search request")
+    if "query" in request_params:
         try:
             # first check if the URL includes an arXiv ID
             arxiv_id: Optional[str] = identifier.parse_arxiv_id(
-                request_params['query']
+                request_params["query"]
             )
             # If so, redirect.
             logger.debug(f"got arXiv ID: {arxiv_id}")
         except ValueError:
-            logger.debug('No arXiv ID detected; fall back to form')
+            logger.debug("No arXiv ID detected; fall back to form")
             arxiv_id = None
     else:
         arxiv_id = None
 
     if arxiv_id:
-        headers = {'Location': url_for('abs_by_id', paper_id=arxiv_id)}
+        headers = {"Location": url_for("abs_by_id", paper_id=arxiv_id)}
         return {}, status.HTTP_301_MOVED_PERMANENTLY, headers
 
     # Here we intervene on the user's query to look for holdouts from the
     # classic search system's author indexing syntax (surname_f). We
     # rewrite with a comma, and show a warning to the user about the
     # change.
-    response_data['has_classic_format'] = False
-    if 'searchtype' in request_params and 'query' in request_params:
-        if request_params['searchtype'] in ['author', 'all']:
-            _query, _classic = catch_underscore_syntax(request_params['query'])
-            response_data['has_classic_format'] = _classic
-            request_params['query'] = _query
+    response_data["has_classic_format"] = False
+    if "searchtype" in request_params and "query" in request_params:
+        if request_params["searchtype"] in ["author", "all"]:
+            _query, _classic = catch_underscore_syntax(request_params["query"])
+            response_data["has_classic_format"] = _classic
+            request_params["query"] = _query
 
     # Fall back to form-based search.
     form = SimpleSearchForm(request_params)
 
     if form.query.data:
         # Temporary workaround to support classic help search
-        if form.searchtype.data == 'help':
-            return {}, status.HTTP_301_MOVED_PERMANENTLY,\
-                {'Location': f'/help/search?q={form.query.data}'}
+        if form.searchtype.data == "help":
+            return (
+                {},
+                status.HTTP_301_MOVED_PERMANENTLY,
+                {"Location": f"/help/search?q={form.query.data}"},
+            )
 
         # Support classic "expeirmental" search
-        elif form.searchtype.data == 'full_text':
-            return {}, status.HTTP_301_MOVED_PERMANENTLY,\
-                {'Location': 'http://search.arxiv.org:8081/'
-                             f'?in=&query={form.query.data}'}
+        elif form.searchtype.data == "full_text":
+            return (
+                {},
+                status.HTTP_301_MOVED_PERMANENTLY,
+                {
+                    "Location": "http://search.arxiv.org:8081/"
+                    f"?in=&query={form.query.data}"
+                },
+            )
 
     q: Optional[Query]
     if form.validate():
-        logger.debug('form is valid')
+        logger.debug("form is valid")
         q = _query_from_form(form)
 
         if archives is not None:
@@ -138,7 +153,7 @@ def search(request_params: MultiDict,
             # There was a (hopefully transient) connection problem. Either
             #  this will clear up relatively quickly (next request), or
             #  there is a more serious outage.
-            logger.error('IndexConnectionError: %s', ex)
+            logger.error("IndexConnectionError: %s", ex)
             raise InternalServerError(
                 "There was a problem connecting to the search index. This is "
                 "quite likely a transient issue, so please try your search "
@@ -147,7 +162,7 @@ def search(request_params: MultiDict,
             ) from ex
         except index.QueryError as ex:
             # Base exception routers should pick this up and show bug page.
-            logger.error('QueryError: %s', ex)
+            logger.error("QueryError: %s", ex)
             raise InternalServerError(
                 "There was a problem executing your query. Please try your "
                 "search again.  If this problem persists, please report it to "
@@ -160,22 +175,23 @@ def search(request_params: MultiDict,
             ) from ex
 
         except Exception as ex:
-            logger.error('Unhandled exception: %s', str(ex))
+            logger.error("Unhandled exception: %s", str(ex))
             raise
     else:
-        logger.debug('form is invalid: %s', str(form.errors))
-        if 'order' in form.errors or 'size' in form.errors:
+        logger.debug("form is invalid: %s", str(form.errors))
+        if "order" in form.errors or "size" in form.errors:
             # It's likely that the user tried to set these parameters manually,
             # or that the search originated from somewhere else (and was
             # configured incorrectly).
-            simple_url = url_for('ui.search')
+            simple_url = url_for("ui.search")
             raise BadRequest(
                 f"It looks like there's something odd about your search"
                 f" request. Please try <a href='{simple_url}'>starting"
-                f" over</a>.")
+                f" over</a>."
+            )
         q = None
-    response_data['query'] = q
-    response_data['form'] = form
+    response_data["query"] = q
+    response_data["form"] = form
     return response_data, status.HTTP_200_OK, {}
 
 
@@ -211,7 +227,7 @@ def retrieve_document(document_id: str) -> Response:
         # There was a (hopefully transient) connection problem. Either
         #  this will clear up relatively quickly (next request), or
         #  there is a more serious outage.
-        logger.error('IndexConnectionError: %s', ex)
+        logger.error("IndexConnectionError: %s", ex)
         raise InternalServerError(
             "There was a problem connecting to the search index. This is "
             "quite likely a transient issue, so please try your search "
@@ -220,16 +236,16 @@ def retrieve_document(document_id: str) -> Response:
         ) from ex
     except index.QueryError as ex:
         # Base exception routers should pick this up and show bug page.
-        logger.error('QueryError: %s', ex)
+        logger.error("QueryError: %s", ex)
         raise InternalServerError(
             "There was a problem executing your query. Please try your "
             "search again.  If this problem persists, please report it to "
             "help@arxiv.org."
         ) from ex
     except index.DocumentNotFound as ex:
-        logger.error('DocumentNotFound: %s', ex)
+        logger.error("DocumentNotFound: %s", ex)
         raise NotFound(f"Could not find a paper with id {document_id}") from ex
-    return {'document': result}, status.HTTP_200_OK, {}
+    return {"document": result}, status.HTTP_200_OK, {}
 
 
 def _update_with_archives(q: SimpleQuery, archives: List[str]) -> SimpleQuery:
@@ -245,11 +261,13 @@ def _update_with_archives(q: SimpleQuery, archives: List[str]) -> SimpleQuery:
     -------
     :class:`SimpleQuery`
     """
-    logger.debug('Search within %s', archives)
-    q.classification = ClassificationList([
-        Classification(archive={'id': archive})    # type: ignore
-        for archive in archives
-    ])
+    logger.debug("Search within %s", archives)
+    q.classification = ClassificationList(
+        [
+            Classification(archive={"id": archive})  # type: ignore
+            for archive in archives
+        ]
+    )
     return q
 
 
@@ -272,6 +290,6 @@ def _query_from_form(form: SimpleSearchForm) -> SimpleQuery:
     q.value = form.query.data
     q.hide_abstracts = form.abstracts.data == form.HIDE_ABSTRACTS
     order = form.order.data
-    if order and order != 'None':
+    if order and order != "None":
         q.order = order
     return q

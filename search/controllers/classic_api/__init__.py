@@ -25,7 +25,7 @@ SearchResponseData = TypedDict(
 
 
 def query(
-    params: MultiDict
+    params: MultiDict,
 ) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
     """
     Handle a search request from the Clasic API.

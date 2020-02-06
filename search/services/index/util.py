@@ -14,22 +14,42 @@ from .exceptions import QueryError
 STRING_LITERAL = re.compile(r"([\"][^\"]*[\"])")
 """Pattern for string literals (quoted) in search queries."""
 
-TEXISM = re.compile(r'(([\$]{2}[^\$]+[\$]{2})|([\$]{1}[^\$]+[\$]{1}))')
+TEXISM = re.compile(r"(([\$]{2}[^\$]+[\$]{2})|([\$]{1}[^\$]+[\$]{1}))")
 
 # TODO: make this configurable.
 MAX_RESULTS = 10_000
 """This is the maximum result offset for pagination."""
 
-SPECIAL_CHARACTERS = ['+', '=', '&&', '||', '>', '<', '!', '(', ')', '{',
-                      '}', '[', ']', '^', '~', ':', '\\', '/', '-']
-DEFAULT_SORT = ['-announced_date_first', '_doc']
+SPECIAL_CHARACTERS = [
+    "+",
+    "=",
+    "&&",
+    "||",
+    ">",
+    "<",
+    "!",
+    "(",
+    ")",
+    "{",
+    "}",
+    "[",
+    "]",
+    "^",
+    "~",
+    ":",
+    "\\",
+    "/",
+    "-",
+]
+DEFAULT_SORT = ["-announced_date_first", "_doc"]
 
 DATE_PARTIAL = r"(?:^|[\s])(\d{2})((?:0[1-9]{1})|(?:1[0-2]{1}))(?:$|[\s])"
 """Used to match parts of paper IDs that encode the announcement date."""
 
-OLD_ID_NUMBER = \
-   r'(910[7-9]|911[0-2]|9[2-9](0[1-9]|1[0-2])|0[0-6](0[1-9]|1[0-2])|070[1-3])'\
-   r'(00[1-9]|0[1-9][0-9]|[1-9][0-9][0-9])'
+OLD_ID_NUMBER = (
+    r"(910[7-9]|911[0-2]|9[2-9](0[1-9]|1[0-2])|0[0-6](0[1-9]|1[0-2])|070[1-3])"
+    r"(00[1-9]|0[1-9][0-9]|[1-9][0-9][0-9])"
+)
 """
 The number part of the old arXiv identifier looks like YYMMNNN.
 
@@ -56,26 +76,30 @@ def wildcard_escape(querystring: str) -> Tuple[str, bool]:
     """
     # This should get caught by the controller (form validation), but just
     # in case we should check for it here.
-    if querystring.startswith('?') or querystring.startswith('*'):
-        raise QueryError('Query cannot start with a wildcard')
+    if querystring.startswith("?") or querystring.startswith("*"):
+        raise QueryError("Query cannot start with a wildcard")
 
     # Escape wildcard characters within string literals.
     # re.sub() can't handle the complexity, sadly...
     parts = re.split(STRING_LITERAL, querystring)
-    parts = [part.replace('*', r'\*').replace('?', r'\?')
-             if part.startswith('"') or part.startswith("'") else part
-             for part in parts]
+    parts = [
+        part.replace("*", r"\*").replace("?", r"\?")
+        if part.startswith('"') or part.startswith("'")
+        else part
+        for part in parts
+    ]
     querystring = "".join(parts)
 
     # Only unescaped wildcard characters should remain.
-    wildcard = re.search(r'(?<!\\)([\*\?])', querystring) is not None
+    wildcard = re.search(r"(?<!\\)([\*\?])", querystring) is not None
     return querystring, wildcard
 
 
 def has_wildcard(term: str) -> bool:
     """Determine whether or not ``term`` contains a wildcard."""
-    return (('*' in term or '?' in term) and not
-            (term.startswith('*') or term.startswith('?')))
+    return ("*" in term or "?" in term) and not (
+        term.startswith("*") or term.startswith("?")
+    )
 
 
 def is_literal_query(term: str) -> bool:
@@ -96,15 +120,15 @@ def is_old_papernum(term: str) -> bool:
 
 def strip_tex(term: str) -> str:
     """Remove TeX-isms from a term."""
-    return re.sub(TEXISM, '', term).strip()
+    return re.sub(TEXISM, "", term).strip()
 
 
-def Q_(qtype: str, field: str, value: str, operator: str = 'or') -> Q:
+def Q_(qtype: str, field: str, value: str, operator: str = "or") -> Q:
     """Construct a :class:`.Q`, but handle wildcards first."""
     value, wildcard = wildcard_escape(value)
     if wildcard:
-        return Q('wildcard', **{field: {'value': value.lower()}})
-    if 'match' in qtype:
+        return Q("wildcard", **{field: {"value": value.lower()}})
+    if "match" in qtype:
         return Q(qtype, **{field: value})
     return Q(qtype, **{field: value}, operator=operator)
 
@@ -121,13 +145,14 @@ def escape(term: str, quotes: bool = False) -> str:
 
 def strip_punctuation(s: str) -> str:
     """Remove all punctuation characters from a string."""
-    return ''.join([c for c in s if c not in punctuation])
+    return "".join([c for c in s if c not in punctuation])
 
 
 def remove_single_characters(term: str) -> str:
     """Remove any single characters in the search string."""
-    return ' '.join([part for part in term.split()
-                     if len(strip_punctuation(part)) > 1])
+    return " ".join(
+        [part for part in term.split() if len(strip_punctuation(part)) > 1]
+    )
 
 
 def sort(query: Query, search: Search) -> Search:
@@ -135,8 +160,8 @@ def sort(query: Query, search: Search) -> Search:
     if not query.order:
         sort_params = DEFAULT_SORT
     else:
-        direction = '-' if query.order.startswith('-') else ''
-        sort_params = [query.order, f'{direction}paper_id_v']
+        direction = "-" if query.order.startswith("-") else ""
+        sort_params = [query.order, f"{direction}paper_id_v"]
     if sort_params is not None:
         search = search.sort(*sort_params)
     return search
@@ -163,16 +188,16 @@ def parse_date(term: str) -> Tuple[str, str]:
         Raised if no date-related information is found in `term`.
 
     """
-    match = re.search(r'(?:^|[\s]+)([0-9]{4}-[0-9]{2})(?:$|[\s]+)', term)
+    match = re.search(r"(?:^|[\s]+)([0-9]{4}-[0-9]{2})(?:$|[\s]+)", term)
     if match:
-        remainder = term[:match.start()] + " " + term[match.end():]
+        remainder = term[: match.start()] + " " + term[match.end() :]
         return match.group(1), remainder.strip()
 
-    match = re.search(r'(?:^|[\s]+)([0-9]{4})(?:$|[\s]+)', term)
-    if match:   # Looks like a year:
-        remainder = term[:match.start()] + " " + term[match.end():]
+    match = re.search(r"(?:^|[\s]+)([0-9]{4})(?:$|[\s]+)", term)
+    if match:  # Looks like a year:
+        remainder = term[: match.start()] + " " + term[match.end() :]
         return match.group(1), remainder.strip()
-    raise ValueError('No date info detected')
+    raise ValueError("No date info detected")
 
 
 def parse_date_partial(term: str) -> Optional[str]:
@@ -197,6 +222,6 @@ def parse_date_partial(term: str) -> Optional[str]:
         year, month = match.groups()
         # This should be fine until 2091.
         century = 19 if int(year) >= 91 else 20
-        date_partial = f"{century}{year}-{month}"   # year_month format in ES.
+        date_partial = f"{century}{year}-{month}"  # year_month format in ES.
         return date_partial
     return None
