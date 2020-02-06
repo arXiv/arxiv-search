@@ -1,21 +1,19 @@
 """Controller for classic arXiv API requests."""
 
-from typing import Tuple, Dict, Any, Optional, Union
-from mypy_extensions import TypedDict
 from pytz import timezone
+from http import HTTPStatus
+from typing import Tuple, Dict, Any, Union
+from mypy_extensions import TypedDict
+
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest, NotFound
 
-from arxiv import status
 from arxiv.base import logging
 from arxiv.identifier import parse_arxiv_id
 
 from search.services import index
-from search.domain.api import Phrase
 from search.errors import ValidationError
 from search.domain import Query, DocumentSet, ClassicAPIQuery
-from search.controllers.classic_api.query_parser import parse_classic_query
-
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone("US/Eastern")
@@ -26,7 +24,9 @@ SearchResponseData = TypedDict(
 )
 
 
-def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
+def query(
+    params: MultiDict
+) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
     """
     Handle a search request from the Clasic API.
 
@@ -66,11 +66,7 @@ def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     params = params.copy()
 
     # Parse classic search query.
-    raw_query = params.get("search_query")
-    if raw_query:
-        phrase: Optional[Phrase] = parse_classic_query(raw_query)
-    else:
-        phrase = None
+    search_query = params.get("search_query", None)
 
     # Parse id_list.
     id_list = params.get("id_list", "")
@@ -83,15 +79,17 @@ def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
             except ValueError:
                 raise ValidationError(
                     message="incorrect id format for {}".format(arxiv_id),
-                    link=("http://arxiv.org/api/errors#"
-                          "incorrect_id_format_for_{}").format(arxiv_id)
+                    link=(
+                        "http://arxiv.org/api/errors#"
+                        "incorrect_id_format_for_{}"
+                    ).format(arxiv_id),
                 )
     else:
         id_list = None
 
     # Parse result size.
     try:
-        max_results = int(params.get("max_results", 50))
+        max_results = int(params.get("max_results", 10))
     except ValueError:
         raise ValidationError(
             message="max_results must be an integer",
@@ -100,7 +98,7 @@ def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     if max_results < 0:
         raise ValidationError(
             message="max_results must be non-negative",
-            link="http://arxiv.org/api/errors#max_results_must_be_non-negative"
+            link="http://arxiv.org/api/errors#max_results_must_be_non-negative",
         )
 
     # Parse result start point.
@@ -109,17 +107,20 @@ def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     except ValueError:
         raise ValidationError(
             message="start must be an integer",
-            link="http://arxiv.org/api/errors#start_must_be_an_integer"
+            link="http://arxiv.org/api/errors#start_must_be_an_integer",
         )
     if start < 0:
         raise ValidationError(
             message="start must be non-negative",
-            link="http://arxiv.org/api/errors#start_must_be_non-negative"
+            link="http://arxiv.org/api/errors#start_must_be_non-negative",
         )
 
     try:
         query = ClassicAPIQuery(
-            phrase=phrase, id_list=id_list, size=max_results, page_start=start
+            search_query=search_query,
+            id_list=id_list,
+            size=max_results,
+            page_start=start,
         )
     except ValueError:
         raise BadRequest(
@@ -137,10 +138,10 @@ def query(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     )
 
     # bad mypy inference on TypedDict and the status code
-    return data, status.HTTP_200_OK, {}  # type:ignore
+    return data, HTTPStatus.OK, {}  # type:ignore
 
 
-def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
+def paper(paper_id: str) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
     """
     Handle a request for paper metadata from the API.
 
@@ -171,4 +172,4 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     except index.DocumentNotFound as ex:
         logger.error("Document not found")
         raise NotFound("No such document") from ex
-    return {"results": document}, status.HTTP_200_OK, {}
+    return {"results": document}, HTTPStatus.OK, {}

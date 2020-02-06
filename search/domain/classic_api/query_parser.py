@@ -16,12 +16,12 @@ See :module:`tests.test_query_parser` for more examples.
 """
 
 
-from typing import Any, List, Optional, Tuple, Union
-from operator import attrgetter
+from typing import List, Optional, Union
 
 from werkzeug.exceptions import BadRequest
 
-from search.domain.api import Phrase, Operator, Field, Term
+from search.domain.base import Phrase, Operator, Field, Term
+
 
 def parse_classic_query(query: str) -> Phrase:
     """
