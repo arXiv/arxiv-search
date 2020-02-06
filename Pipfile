@@ -61,7 +61,7 @@ pylint = "*"
 pytest = "*"
 nose = "*"
 mypy = "==0.720"
-pre-commit = "2.0.1"
+pre-commit = "==2.0.1"
 
 [requires]
 python_version = "3.6"
