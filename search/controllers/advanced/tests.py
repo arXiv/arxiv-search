@@ -8,14 +8,7 @@ from werkzeug.exceptions import InternalServerError, BadRequest
 
 from arxiv import status
 
-from search.domain import (
-    Query,
-    DateRange,
-    FieldedSearchTerm,
-    Classification,
-    AdvancedQuery,
-    DocumentSet,
-)
+from search.domain import Query, DateRange, FieldedSearchTerm, AdvancedQuery
 from search.controllers import advanced
 from search.controllers.advanced.forms import MultiFormatDateField
 from search.controllers.advanced.forms import AdvancedSearchForm
@@ -94,7 +87,7 @@ class TestSearchController(TestCase):
     @mock.patch("search.controllers.advanced.SearchSession")
     def test_single_field_term(self, mock_index):
         """Form data and ``advanced`` param are present."""
-        mock_index.search.return_value = dict(metadata={}, results=[])
+        mock_index.search.return_value = {"metadata": {}, "results": []}
 
         request_data = MultiDict(
             {
@@ -656,8 +649,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                 "order": "",
             }
         )
-        mock_index.search.return_value = dict(metadata={}, results=[])
-
+        mock_index.search.return_value = {"metadata": {}, "results": []}
         data, code, headers = advanced.search(request_data)
         self.assertEqual(
             data["query"].terms[0].term,
@@ -684,7 +676,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                 "order": "",
             }
         )
-        mock_index.search.return_value = dict(metadata={}, results=[])
+        mock_index.search.return_value = {"metadata": {}, "results": []}
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(
@@ -712,7 +704,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                 "order": "",
             }
         )
-        mock_index.search.return_value = dict(metadata={}, results=[])
+        mock_index.search.return_value = {"metadata": {}, "results": []}
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(
@@ -740,7 +732,7 @@ class TestClassicAuthorSyntaxIsIntercepted(TestCase):
                 "order": "",
             }
         )
-        mock_index.search.return_value = dict(metadata={}, results=[])
+        mock_index.search.return_value = {"metadata": {}, "results": []}
 
         data, code, headers = advanced.search(request_data)
         self.assertEqual(

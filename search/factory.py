@@ -38,7 +38,9 @@ def create_ui_web_app() -> Flask:
     wrap(app, [request_logs.ClassicLogsMiddleware])
     # app.config['PROFILE'] = True
     # app.config['DEBUG'] = True
-    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[100], sort_by=('cumtime', ))
+    # app.wsgi_app = ProfilerMiddleware(
+    #     app.wsgi_app, restrictions=[100], sort_by=('cumtime', )
+    # )
 
     for filter_name, template_filter in filters.filters:
         app.template_filter(filter_name)(template_filter)

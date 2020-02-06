@@ -1,21 +1,13 @@
 """Query-builders and helpers for searching by author name."""
 
-from typing import Tuple, Optional, List
 import re
-from functools import reduce, wraps
+from functools import reduce
 from operator import ior, iand
 
-from elasticsearch_dsl import Search, Q, SF
+from elasticsearch_dsl import Q
 
 from arxiv.base import logging
-
-from .util import (
-    wildcard_escape,
-    escape,
-    STRING_LITERAL,
-    remove_single_characters,
-    has_wildcard,
-)
+from search.services.index.util import escape, STRING_LITERAL, has_wildcard
 
 logger = logging.getLogger(__name__)
 logger.propagate = False
@@ -31,7 +23,7 @@ def _remove_stopwords(term: str) -> str:
     parts = re.split(STRING_LITERAL, term)
     for stopword in STOP:
         parts = [
-            re.sub(f"(^|\s+){stopword}(\s+|$)", " ", part)
+            re.sub(fr"(^|\s+){stopword}(\s+|$)", " ", part)
             if not part.startswith('"') and not part.startswith("'")
             else part
             for part in parts

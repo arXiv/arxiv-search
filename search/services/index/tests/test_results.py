@@ -1,6 +1,6 @@
 """Tests for :mod:`search.services.index`."""
 
-from unittest import TestCase, mock
+from unittest import TestCase
 from search.services.index import highlighting
 
 
@@ -51,9 +51,7 @@ class TestResultsHighlightAbstract(TestCase):
             '<span class="has-text-success has-text-weight-bold mathjax">'
         )
         end_tag = "</span>"
-        preview = highlighting.preview(
-            value, start_tag=start_tag, end_tag=end_tag
-        )
+        _ = highlighting.preview(value, start_tag=start_tag, end_tag=end_tag)
 
 
 class TestResultsEndSafely(TestCase):

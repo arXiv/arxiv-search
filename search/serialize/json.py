@@ -1,6 +1,6 @@
 """Serializers for API responses."""
 
-from typing import Union, Optional
+from typing import Union, Optional, Dict, Any
 from flask import jsonify, url_for, Response
 
 from search.serialize.base import BaseSerializer
@@ -10,8 +10,11 @@ from search.domain import DocumentSet, Document, Classification, APIQuery
 class JSONSerializer(BaseSerializer):
     """Serializes a :class:`DocumentSet` as JSON."""
 
+    # FIXME: Return type.
     @classmethod
-    def _transform_classification(cls, clsn: Classification) -> Optional[dict]:
+    def _transform_classification(
+        cls, clsn: Classification
+    ) -> Optional[Dict[Any, Any]]:
         category = clsn.get("category")
         if category is None:
             return None
@@ -21,15 +24,19 @@ class JSONSerializer(BaseSerializer):
             "category": category,
         }
 
+    # FIXME: Return type.
     @classmethod
-    def _transform_format(cls, fmt: str, paper_id: str, version: int) -> dict:
+    def _transform_format(
+        cls, fmt: str, paper_id: str, version: int
+    ) -> Dict[Any, Any]:
         return {
             "format": fmt,
             "href": url_for(fmt, paper_id=paper_id, version=version),
         }
 
+    # FIXME: Return type.
     @classmethod
-    def _transform_latest(cls, document: Document) -> Optional[dict]:
+    def _transform_latest(cls, document: Document) -> Optional[Dict[Any, Any]]:
         latest = document.get("latest")
         if latest is None:
             return None
@@ -49,17 +56,21 @@ class JSONSerializer(BaseSerializer):
             "version": document.get("latest_version"),
         }
 
+    # FIXME: Types.
     @classmethod
-    def _transform_license(cls, license: dict) -> Optional[dict]:
+    def _transform_license(
+        cls, license: Dict[Any, Any]
+    ) -> Optional[Dict[Any, Any]]:
         uri = license.get("uri")
         if uri is None:
             return None
         return {"label": license.get("label", ""), "href": uri}
 
+    # FIXME: Return type.
     @classmethod
     def transform_document(
         cls, doc: Document, query: Optional[APIQuery] = None
-    ) -> dict:
+    ) -> Dict[Any, Any]:
         """Select a subset of :class:`Document` properties for public API."""
         # Only return fields that have been explicitly requested.
         data = {

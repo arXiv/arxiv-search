@@ -1,16 +1,17 @@
 """Provides a record processor for MetadataIsAvailable notifications."""
 
 import json
-import os
 import time
-from typing import List, Any, Optional, Dict
-from arxiv.base import logging
-from search.services import metadata, index
-from search.process import transform
-from search.domain import DocMeta, Document, asdict
-from arxiv.base.agent import BaseConsumer
+from typing import List, Dict, Any
 
 from retry.api import retry_call
+
+from arxiv.base import logging
+from arxiv.base.agent import BaseConsumer
+from search.services import metadata, index
+from search.process import transform
+from search.domain import DocMeta, Document
+
 
 logger = logging.getLogger(__name__)
 logger.propagate = False
@@ -279,7 +280,8 @@ class MetadataRecordProcessor(BaseConsumer):
             logger.debug(f"{arxiv_ids}: Document failed: {ex}")
             raise ex
 
-    def process_record(self, record: dict) -> None:
+    # FIXME: Argument type.
+    def process_record(self, record: Dict[Any, Any]) -> None:
         """
         Call for each record that is passed to process_records.
 

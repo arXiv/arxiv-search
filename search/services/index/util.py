@@ -1,13 +1,14 @@
 """Helpers for building ES queries."""
 
 import re
-from typing import Any, Optional, Tuple, Union, List
 from string import punctuation
+from typing import Optional, Tuple
 
-from elasticsearch_dsl import Search, Q, SF
+
+from elasticsearch_dsl import Search, Q
 
 from search.domain import Query
-from .exceptions import QueryError
+from search.services.index.exceptions import QueryError
 
 
 # We'll compile this ahead of time, since it gets called quite a lot.
@@ -136,7 +137,7 @@ def Q_(qtype: str, field: str, value: str, operator: str = "or") -> Q:
 def escape(term: str, quotes: bool = False) -> str:
     """Escape special characters."""
     escaped = []
-    for i, char in enumerate(term):
+    for char in term:
         if char in SPECIAL_CHARACTERS or quotes and char == '"':
             escaped.append("\\")
         escaped.append(char)

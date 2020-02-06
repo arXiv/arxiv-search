@@ -7,20 +7,20 @@ GET requests to the author search endpoint. It uses
 parameters, and produce informative error messages for the user.
 """
 
-from typing import Tuple, Dict, Any, Optional
 import re
+from pytz import timezone
+from typing import Tuple, List, Dict, Any, Optional
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
-from pytz import timezone
 
-
+from flask import url_for
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from werkzeug.exceptions import InternalServerError, BadRequest, NotFound
-from flask import url_for
+
 
 from arxiv import status, taxonomy
-
-from search.services import index, SearchSession, fulltext, metadata
+from arxiv.base import logging
+from search.services import index, SearchSession
 from search.domain import (
     AdvancedQuery,
     FieldedSearchTerm,
@@ -29,16 +29,16 @@ from search.domain import (
     FieldedSearchList,
     ClassificationList,
     Query,
-    asdict,
 )
-from arxiv.base import logging
+from search.controllers.advanced import forms
 from search.controllers.util import paginate, catch_underscore_syntax
 
-from . import forms
 
 logger = logging.getLogger(__name__)
 
+
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
+
 
 EASTERN = timezone("US/Eastern")
 TERM_FIELD_PTN = re.compile(r"terms-([0-9])+-term")
@@ -240,8 +240,9 @@ def _update_query_with_classification(
     return q
 
 
+# FIXME: Argument type.
 def _update_query_with_terms(
-    q: AdvancedQuery, terms_data: list
+    q: AdvancedQuery, terms_data: List[Any]
 ) -> AdvancedQuery:
     q.terms = FieldedSearchList(
         [

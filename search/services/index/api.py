@@ -1,17 +1,19 @@
 """Supports the advanced search feature."""
 
-from typing import Any, Union
-
-from functools import reduce, wraps
-from operator import ior, iand
+from operator import ior
+from functools import reduce
+from typing import Any, Tuple
 
 from elasticsearch_dsl import Search, Q, SF
-from elasticsearch_dsl.query import Range, Match, Bool
+from elasticsearch_dsl.query import Range, Match
 
-from search.domain import Classification, APIQuery
-
-from .prepare import SEARCH_FIELDS, query_primary_exact, query_secondary_exact
-from .util import sort
+from search.domain import APIQuery
+from search.services.index.util import sort
+from search.services.index.prepare import (
+    SEARCH_FIELDS,
+    query_primary_exact,
+    query_secondary_exact,
+)
 
 
 def api_search(search: Search, query: APIQuery) -> Search:
@@ -81,7 +83,7 @@ def _date_range(q: APIQuery) -> Range:
     return Q("range", **{q.date_range.date_type: params})
 
 
-def _grouped_terms_to_q(term_pair: tuple) -> Q:
+def _grouped_terms_to_q(term_pair: Tuple[Any, Any, Any]) -> Q:
     """Generate a :class:`.Q` from grouped terms."""
     term_a_raw, operator, term_b_raw = term_pair
 
@@ -112,7 +114,8 @@ def _get_operator(obj: Any) -> str:
     return obj.operator  # type: ignore
 
 
-def _group_terms(query: APIQuery) -> tuple:
+# FIXME: Return type.
+def _group_terms(query: APIQuery) -> Tuple[Any, ...]:
     """Group fielded search terms into a set of nested tuples."""
     terms = query.terms[:]
     for operator in ["NOT", "AND", "OR"]:

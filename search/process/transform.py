@@ -12,7 +12,7 @@ DEFAULT_LICENSE = {
 }
 
 
-def _constructLicense(meta: DocMeta) -> dict:
+def _constructLicense(meta: DocMeta) -> Dict[str, str]:
     """Get the document license, or set the default."""
     if not meta.license or not meta.license["uri"]:
         return DEFAULT_LICENSE
@@ -42,7 +42,7 @@ def _constructACMClass(meta: DocMeta) -> Optional[list]:
     return [obj.strip() for obj in meta.acm_class.split(";")]
 
 
-def _transformAuthor(author: dict) -> Optional[Dict]:
+def _transformAuthor(author: Dict[str, str]) -> Optional[Dict[str, str]]:
     if (not author["last_name"]) and (not author["first_name"]):
         return None
     author["full_name"] = re.sub(
@@ -165,7 +165,7 @@ def to_search_document(
     for key, source, is_required in _transformations:
         if isinstance(source, str):
             value = getattr(metadata, source, None)
-        elif hasattr(source, "__call__"):
+        elif callable(source):
             value = source(metadata)
         if value is None and not is_required:
             continue

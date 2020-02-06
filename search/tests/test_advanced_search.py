@@ -1,6 +1,7 @@
-from unittest import TestCase, mock
+from http import HTTPStatus
+from unittest import TestCase
 
-from arxiv import taxonomy, status
+from arxiv import taxonomy
 from search.factory import create_ui_web_app
 
 
@@ -18,7 +19,7 @@ class TestAdvancedSearch(TestCase):
             response = self.client.get(f"/advanced/{archive}")
             self.assertEqual(
                 response.status_code,
-                status.HTTP_200_OK,
+                HTTPStatus.OK,
                 "Should support shortcut for archive {archive}",
             )
 
@@ -27,6 +28,6 @@ class TestAdvancedSearch(TestCase):
         response = self.client.get("/advanced/fooarchive")
         self.assertEqual(
             response.status_code,
-            status.HTTP_404_NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
             "Should return a 404 error",
         )

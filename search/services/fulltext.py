@@ -1,15 +1,14 @@
 """Provides access to fulltext content for arXiv papers."""
 
-from functools import wraps
-import os
-from urllib.parse import urljoin
 import json
+from functools import wraps
+from urllib.parse import urljoin
 
 import requests
 
 from arxiv import status
-from search.context import get_application_config, get_application_global
 from search.domain import Fulltext
+from search.context import get_application_config, get_application_global
 
 
 class FulltextSession(object):

@@ -2,18 +2,18 @@
 
 from unittest import TestCase, mock
 import os
-import time
-import subprocess
-import tempfile
-import boto3
 import json
-import threading
+import time
+import boto3
+import tempfile
+import subprocess
 
-from search.agent import process_stream
 from arxiv.base.agent import StopProcessing
-from search.services import metadata
 from search.domain import DocMeta
+from search.services import metadata
+from search.agent import process_stream
 from search.factory import create_ui_web_app
+
 
 BASE_PATH = os.path.join(
     os.path.split(os.path.abspath(__file__))[0], "../../../tests/data/examples"
@@ -41,7 +41,7 @@ class TestKinesisIntegration(TestCase):
         os.environ["KINESIS_START_TYPE"] = "TRIM_HORIZON"
 
         print("pulling localstack image")
-        pull_localstack = subprocess.run(
+        _ = subprocess.run(
             "docker pull atlassianlabs/localstack",
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -83,7 +83,7 @@ class TestKinesisIntegration(TestCase):
     @classmethod
     def tearDownClass(cls):
         """Tear down Elasticsearch once all tests have run."""
-        stop_es = subprocess.run(
+        _ = subprocess.run(
             f"docker rm -f {cls.ls_container}",
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

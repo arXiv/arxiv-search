@@ -13,7 +13,7 @@ from typing import Optional
 from flask import current_app as app
 
 from arxiv.base import agent
-from .consumer import MetadataRecordProcessor, DocumentFailed, IndexingFailed
+from search.agent.consumer import MetadataRecordProcessor
 
 
 def process_stream(duration: Optional[int] = None) -> None:

@@ -1,31 +1,25 @@
 """Provides the main search user interfaces."""
 
 import json
-from typing import Dict, Callable, Union, Any, Optional, List
-from functools import wraps
-from functools import lru_cache as memoize
+from typing import Union, Optional, List
 
-
-from flask.json import jsonify
 from flask import (
     Blueprint,
     render_template,
     redirect,
     request,
     Response,
-    url_for,
     make_response,
 )
-from werkzeug.urls import Href
-from werkzeug.datastructures import MultiDict, ImmutableMultiDict
+from werkzeug.datastructures import MultiDict
+from werkzeug.exceptions import InternalServerError
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from arxiv import status
 from arxiv.base import logging
-from werkzeug.exceptions import InternalServerError
+from search.routes import context_processors
 from search.controllers import simple, advanced, health_check
 
-from . import context_processors
 
 _Response = Union[Response, WerkzeugResponse]
 

@@ -1,5 +1,7 @@
 """Provides the classic search API."""
 
+__all__ = ["blueprint", "exceptions"]
+
 from flask import Blueprint, make_response, request, Response
 
 from arxiv.base import logging

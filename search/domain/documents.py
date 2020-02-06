@@ -91,16 +91,20 @@ class Document(TypedDict, total=False):
 
     score: float
 
-    highlight: dict
+    # FIXME: Type.
+    highlight: Dict[Any, Any]
     """Contains highlighted versions of field values."""
 
-    preview: dict
+    # FIXME: Type.
+    preview: Dict[Any, Any]
     """Contains truncations of field values for preview/snippet display."""
 
-    match: dict
+    # FIXME: Type.
+    match: Dict[Any, Any]
     """Contains fields that matched but lack highlighting."""
 
-    truncated: dict
+    # FIXME: Type.
+    truncated: Dict[Any, Any]
     """Contains fields for which the preview is truncated."""
 
 

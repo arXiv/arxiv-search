@@ -1,6 +1,5 @@
 """URL conversion for paths containing arXiv groups or archives."""
 
-import re
 from typing import List, Optional
 from arxiv import taxonomy
 from werkzeug.routing import BaseConverter, ValidationError

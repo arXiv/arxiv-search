@@ -94,6 +94,15 @@ class TestClassicApiQuery(TestCase):
         )
 
 
+def mock_rdata():
+    return {
+        "authors": [{"full_name": "N. Ame"}],
+        "owners": [{"full_name": "N. Ame"}],
+        "submitter": {"full_name": "N. Ame"},
+        "paper_id": "1234.56789",
+    }
+
+
 class TestSearch(TestCase):
     """Tests for :func:`.index.search`."""
 
@@ -103,12 +112,7 @@ class TestSearch(TestCase):
         """:class:`.index.search` supports :class:`AdvancedQuery`."""
         mock_results = mock.MagicMock()
         mock_results.__getitem__.return_value = {"total": 53}
-        rdata = dict(
-            authors=[{"full_name": "N. Ame"}],
-            owners=[{"full_name": "N. Ame"}],
-            submitter={"full_name": "N. Ame"},
-            paper_id="1234.56789",
-        )
+        rdata = mock_rdata()
         mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
@@ -196,12 +200,7 @@ class TestSearch(TestCase):
         """:class:`.index.search` supports :class:`SimpleQuery`."""
         mock_results = mock.MagicMock()
         mock_results.__getitem__.return_value = {"total": 53}
-        rdata = dict(
-            authors=[{"full_name": "N. Ame"}],
-            owners=[{"full_name": "N. Ame"}],
-            submitter={"full_name": "N. Ame"},
-            paper_id="1234.56789",
-        )
+        rdata = mock_rdata()
         mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
@@ -234,12 +233,7 @@ class TestSearch(TestCase):
         """:class:`.index.search` supports :class:`SimpleQuery`."""
         mock_results = mock.MagicMock()
         mock_results.__getitem__.return_value = {"total": 53}
-        rdata = dict(
-            authors=[{"full_name": "N. Ame"}],
-            owners=[{"full_name": "N. Ame"}],
-            submitter={"full_name": "N. Ame"},
-            paper_id="1234.56789",
-        )
+        rdata = mock_rdata()
         mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
@@ -273,12 +267,7 @@ class TestSearch(TestCase):
         """:class:`.index.search` supports :class:`SimpleQuery`."""
         mock_results = mock.MagicMock()
         mock_results.__getitem__.return_value = {"total": 53}
-        rdata = dict(
-            authors=[{"full_name": "N. Ame"}],
-            owners=[{"full_name": "N. Ame"}],
-            submitter={"full_name": "N. Ame"},
-            paper_id="1234.56789",
-        )
+        rdata = mock_rdata()
         mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
@@ -318,12 +307,7 @@ class TestSearch(TestCase):
         """:class:`.index.search` supports :class:`SimpleQuery`."""
         mock_results = mock.MagicMock()
         mock_results.__getitem__.return_value = {"total": 53}
-        rdata = dict(
-            authors=[{"full_name": "N. Ame"}],
-            owners=[{"full_name": "N. Ame"}],
-            submitter={"full_name": "N. Ame"},
-            paper_id="1234.56789",
-        )
+        rdata = mock_rdata()
         mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
@@ -357,12 +341,7 @@ class TestSearch(TestCase):
         """:class:`.index.search` supports :class:`SimpleQuery`."""
         mock_results = mock.MagicMock()
         mock_results.__getitem__.return_value = {"total": 53}
-        rdata = dict(
-            authors=[{"full_name": "N. Ame"}],
-            owners=[{"full_name": "N. Ame"}],
-            submitter={"full_name": "N. Ame"},
-            paper_id="1234.56789",
-        )
+        rdata = mock_rdata()
         mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
         mock_results.__iter__.return_value = [mock_result]
@@ -418,11 +397,13 @@ class TestWildcardSearch(TestCase):
         qs = '"Foo t*"'
         qs_escaped, wildcard = wildcard_escape(qs)
 
-        self.assertEqual(qs_escaped, '"Foo t\*"', "Wildcard should be escaped")
+        self.assertEqual(
+            qs_escaped, r'"Foo t\*"', "Wildcard should be escaped"
+        )
         self.assertFalse(wildcard, "Wildcard should not be detected")
         self.assertIsInstance(
             Q_("match", "title", qs),
-            type(index.Q("match", title='"Foo t\*"')),
+            type(index.Q("match", title=r'"Foo t\*"')),
             "Wildcard Q object should not be generated",
         )
 
@@ -432,12 +413,12 @@ class TestWildcardSearch(TestCase):
         qs_escaped, wildcard = wildcard_escape(qs)
 
         self.assertEqual(
-            qs_escaped, '"Fo\*o t\*"', "Both wildcards should be escaped"
+            qs_escaped, r'"Fo\*o t\*"', "Both wildcards should be escaped"
         )
         self.assertFalse(wildcard, "Wildcard should not be detected")
         self.assertIsInstance(
             Q_("match", "title", qs),
-            type(index.Q("match", title='"Fo\*o t\*"')),
+            type(index.Q("match", title=r'"Fo\*o t\*"')),
             "Wildcard Q object should not be generated",
         )
 
@@ -447,12 +428,12 @@ class TestWildcardSearch(TestCase):
         qs_escaped, wildcard = wildcard_escape(qs)
 
         self.assertEqual(
-            qs_escaped, '"Fo\? t\*"', "Both wildcards should be escaped"
+            qs_escaped, r'"Fo\? t\*"', "Both wildcards should be escaped"
         )
         self.assertFalse(wildcard, "Wildcard should not be detected")
         self.assertIsInstance(
             Q_("match", "title", qs),
-            type(index.Q("match", title='"Fo\? t\*"')),
+            type(index.Q("match", title=r'"Fo\? t\*"')),
             "Wildcard Q object should not be generated",
         )
 
@@ -463,13 +444,13 @@ class TestWildcardSearch(TestCase):
 
         self.assertEqual(
             qs_escaped,
-            '"Fo\? t\*" said the *',
+            r'"Fo\? t\*" said the *',
             "Wildcards in literal should be escaped",
         )
         self.assertTrue(wildcard, "Wildcard should be detected")
         self.assertIsInstance(
             Q_("match", "title", qs),
-            type(index.Q("wildcard", title='"Fo\? t\*" said the *')),
+            type(index.Q("wildcard", title=r'"Fo\? t\*" said the *')),
             "Wildcard Q object should be generated",
         )
 
@@ -480,14 +461,14 @@ class TestWildcardSearch(TestCase):
 
         self.assertEqual(
             qs_escaped,
-            '"Fo\?" s* "yes\*" o?',
+            r'"Fo\?" s* "yes\*" o?',
             "Wildcards in literal should be escaped",
         )
         self.assertTrue(wildcard, "Wildcard should be detected")
 
         self.assertIsInstance(
             Q_("match", "title", qs),
-            type(index.Q("wildcard", title='"Fo\?" s* "yes\*" o?')),
+            type(index.Q("wildcard", title=r'"Fo\?" s* "yes\*" o?')),
             "Wildcard Q object should be generated",
         )
 

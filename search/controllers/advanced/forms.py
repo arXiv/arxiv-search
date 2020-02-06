@@ -1,7 +1,7 @@
 """Provides form rendering and validation for the advanced search feature."""
 
-import calendar
 import re
+import calendar
 from datetime import date, datetime
 from typing import Callable, Optional, List, Any
 
@@ -12,15 +12,12 @@ from wtforms import (
     SelectField,
     validators,
     FormField,
-    SelectMultipleField,
     DateField,
     ValidationError,
     FieldList,
     RadioField,
 )
-
 from wtforms.fields import HiddenField
-from wtforms import widgets
 
 from arxiv import taxonomy
 from search.domain import DateRange, AdvancedQuery
@@ -38,13 +35,13 @@ class MultiFormatDateField(DateField):
         self,
         label: Optional[str] = None,
         validators: Optional[List[Callable]] = None,
-        formats: List[str] = ["%Y-%m-%d %H:%M:%S"],
+        formats: Optional[List[str]] = None,
         default_upper_bound: bool = False,
         **kwargs: Any,
     ) -> None:
         """Override to change ``format: str`` to ``formats: List[str]``."""
         super(DateField, self).__init__(label, validators, **kwargs)
-        self.formats = formats
+        self.formats = formats or ["%Y-%m-%d %H:%M:%S"]
         self.default_upper_bound = default_upper_bound
 
     def _value(self) -> str:

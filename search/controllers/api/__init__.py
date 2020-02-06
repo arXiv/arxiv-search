@@ -286,7 +286,8 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
             new_query_params[SEARCH_QUERY_FIELDS[field]] = term
             new_query_operators[SEARCH_QUERY_FIELDS[field]] = next_operator
         else:
-            # If the term ends in a quote, we close the term and look for the next one.
+            # If the term ends in a quote, we close the term and look for the
+            # next one.
             if term.endswith('"'):
                 expect_new = True
                 term = term.replace('"', "")

@@ -11,10 +11,12 @@ for indexing (e.g. by the
 :mod:`search.agent.consumer.MetadataRecordProcessor`).
 """
 
+__all__ = ["Q", "SearchSession"]
+
 import json
 import warnings
 from contextlib import contextmanager
-from typing import Any, Optional, List, Generator
+from typing import Any, Optional, List, Generator, Dict
 
 import urllib3
 from flask import current_app
@@ -195,7 +197,8 @@ class SearchSession(metaclass=MetaIntegration):
     def _base_search(self) -> Search:
         return Search(using=self.es, index=self.index)
 
-    def _load_mapping(self) -> dict:
+    # FIXME: Return type.
+    def _load_mapping(self) -> Dict[Any, Any]:
         if not self.mapping or not isinstance(self.mapping, str):
             raise IndexingError("Mapping not set")
         with open(self.mapping) as f:
@@ -271,9 +274,10 @@ class SearchSession(metaclass=MetaIntegration):
             _exists: bool = self.es.indices.exists(index_name)
             return _exists
 
+    # FIXME: Return type.
     def reindex(
         self, old_index: str, new_index: str, wait_for_completion: bool = False
-    ) -> dict:
+    ) -> Dict[Any, Any]:
         """
         Create a new index and reindex with the current mappings.
 
@@ -308,7 +312,8 @@ class SearchSession(metaclass=MetaIntegration):
         )
         return response
 
-    def get_task_status(self, task: str) -> dict:
+    # FIXME: Return type.
+    def get_task_status(self, task: str) -> Dict[Any, Any]:
         """
         Get the status of a running task in ES (e.g. reindex).
 

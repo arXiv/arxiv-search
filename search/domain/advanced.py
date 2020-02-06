@@ -1,9 +1,9 @@
 """Represents fielded search terms, with multiple operators."""
 
-from .base import DateRange, Query, ClassificationList
-
+from typing import Optional
 from dataclasses import dataclass, field
-from typing import NamedTuple, Optional
+
+from search.domain.base import DateRange, Query, ClassificationList
 
 
 @dataclass

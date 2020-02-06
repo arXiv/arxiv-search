@@ -5,7 +5,6 @@ Docstrings are from the `Flask configuration documentation
 <http://flask.pocoo.org/docs/0.12/config/>`_.
 """
 import os
-from typing import Mapping, Any
 
 APP_VERSION = "0.5.5"
 """The application version """
@@ -120,9 +119,9 @@ transport for instance.
 
 JSON_SORT_KEYS = os.environ.get("JSON_AS_ASCII") != OFF
 """
-By default Flask will serialize JSON objects in a way that the keys are ordered.
-This is done in order to ensure that independent of the hash seed of the
-dictionary the return value will be consistent to not trash external HTTP
+By default Flask will serialize JSON objects in a way that the keys are
+ordered. This is done in order to ensure that independent of the hash seed of
+the dictionary the return value will be consistent to not trash external HTTP
 caches. You can override the default behavior by changing this variable.
 This is not recommended but might give you a performance improvement on the
 cost of cacheability.

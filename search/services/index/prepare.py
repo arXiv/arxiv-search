@@ -7,40 +7,34 @@ fields to query-building functions in the module.
 See :func:`._query_all_fields` for information on how results are scored.
 """
 
-from typing import Any, List, Tuple, Callable, Dict, Optional
-from functools import reduce, wraps
-from operator import ior, iand
 import re
+from functools import reduce
 from datetime import datetime
-from string import punctuation
+from operator import ior, iand
+from typing import List, Callable, Dict, Optional
 
-from elasticsearch_dsl import Search, Q, SF
+from elasticsearch_dsl import Q, SF
 
 from arxiv.base import logging
 
-from search.domain import (
-    SimpleQuery,
-    Query,
-    AdvancedQuery,
-    Classification,
-    ClassificationList,
-)
-from .util import (
-    strip_tex,
+from search.domain import Classification, ClassificationList
+from search.services.index.util import (
     Q_,
     is_tex_query,
     is_literal_query,
     escape,
     wildcard_escape,
-    remove_single_characters,
     has_wildcard,
     is_old_papernum,
     parse_date,
     parse_date_partial,
 )
 
-from .highlighting import HIGHLIGHT_TAG_OPEN, HIGHLIGHT_TAG_CLOSE
-from .authors import author_query, author_id_query, orcid_query
+from search.services.index.authors import (
+    author_query,
+    author_id_query,
+    orcid_query,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -509,22 +503,20 @@ def limit_by_classification(
     return _q
 
 
-SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = dict(
-    [
-        ("author", author_query),
-        ("title", _query_title),
-        ("abstract", _query_abstract),
-        ("comments", _query_comments),
-        ("journal_ref", _query_journal_ref),
-        ("report_num", _query_report_num),
-        ("acm_class", _query_acm_class),
-        ("msc_class", _query_msc_class),
-        ("cross_list_category", _query_secondary),
-        ("doi", _query_doi),
-        ("paper_id", _query_paper_id),
-        ("orcid", orcid_query),
-        ("author_id", author_id_query),
-        ("license", _license_query),
-        ("all", _query_all_fields),
-    ]
-)
+SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = {
+    "author": author_query,
+    "title": _query_title,
+    "abstract": _query_abstract,
+    "comments": _query_comments,
+    "journal_ref": _query_journal_ref,
+    "report_num": _query_report_num,
+    "acm_class": _query_acm_class,
+    "msc_class": _query_msc_class,
+    "cross_list_category": _query_secondary,
+    "doi": _query_doi,
+    "paper_id": _query_paper_id,
+    "orcid": orcid_query,
+    "author_id": author_id_query,
+    "license": _license_query,
+    "all": _query_all_fields,
+}

@@ -1,10 +1,9 @@
 """Template filters for :mod:`search`."""
 
-from typing import Dict, Callable
 from operator import attrgetter
 
 from arxiv import taxonomy
-from .domain import Classification, Query
+from search.domain import Classification, Query
 
 
 def display_classification(classification: Classification) -> str:

@@ -1,29 +1,13 @@
 """Provides form rendering and validation for the simple search feature."""
 
-from datetime import date
-
-from wtforms import (
-    Form,
-    BooleanField,
-    StringField,
-    SelectField,
-    validators,
-    FormField,
-    SelectMultipleField,
-    DateField,
-    ValidationError,
-    FieldList,
-    widgets,
-    RadioField,
-)
-from wtforms.fields import HiddenField
+from wtforms import Form, StringField, SelectField, validators, RadioField
 
 from search.controllers.util import (
     does_not_start_with_wildcard,
     has_balanced_quotes,
     strip_white_space,
 )
-from ...domain import Query
+from search.domain import Query
 
 
 class SimpleSearchForm(Form):

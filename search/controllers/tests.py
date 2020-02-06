@@ -1,12 +1,10 @@
 """Tests for :mod:`search.controllers`."""
 
 from unittest import TestCase, mock
-from datetime import date
 
 from arxiv import status
-from search.domain import DocumentSet, Document
 from search.controllers import health_check
-from .util import catch_underscore_syntax
+from search.controllers.util import catch_underscore_syntax
 
 
 class TestHealthCheck(TestCase):
@@ -27,7 +25,7 @@ class TestHealthCheck(TestCase):
     @mock.patch("search.controllers.index.SearchSession")
     def test_index_returns_no_result(self, mock_index):
         """Test returns 'DOWN' + status 500 when index returns no results."""
-        mock_index.search.return_value = dict(metadata={}, results=[])
+        mock_index.search.return_value = {"metadata": {}, "results": []}
         response, status_code, _ = health_check()
         self.assertEqual(response, "DOWN", "Response content should be DOWN")
         self.assertEqual(
@@ -39,7 +37,7 @@ class TestHealthCheck(TestCase):
     @mock.patch("search.controllers.index.SearchSession")
     def test_index_returns_result(self, mock_index):
         """Test returns 'OK' + status 200 when index returns results."""
-        mock_index.search.return_value = dict(metadata={}, results=[dict()])
+        mock_index.search.return_value = {"metadata": {}, "results": [{}]}
         response, status_code, _ = health_check()
         self.assertEqual(response, "OK", "Response content should be OK")
         self.assertEqual(

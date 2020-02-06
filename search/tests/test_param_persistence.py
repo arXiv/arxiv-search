@@ -1,7 +1,8 @@
 """Tests related to the persistence of search parameters in a cookie."""
 
-from unittest import TestCase, mock
 import json
+from unittest import TestCase, mock
+
 from search.factory import create_ui_web_app
 from search.routes import ui
 
@@ -21,7 +22,10 @@ class TestParameterPersistence(TestCase):
         response = self.client.get("/?foo=bar&baz=bat")
 
         self.assertIn("Set-Cookie", response.headers, "Should set a cookie")
-        expected = 'foo-cookie="{\\"foo\\": \\"bar\\"\\054 \\"baz\\": \\"bat\\"}"; Path=/'
+        expected = (
+            'foo-cookie="{\\"foo\\": \\"bar\\"\\054 \\"baz\\": \\"bat\\"}"; '
+            "Path=/"
+        )
         self.assertEqual(
             response.headers["Set-Cookie"],
             expected,

@@ -2,7 +2,6 @@
 
 from unittest import TestCase, mock
 
-from flask import Flask
 from werkzeug.exceptions import InternalServerError
 
 from arxiv import status

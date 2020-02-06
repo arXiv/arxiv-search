@@ -10,21 +10,20 @@ mentioned above load the appropriate instance of :class:`.DocMetaSession`
 depending on the context of the request.
 """
 
-from typing import Dict, List
-
-import os
-from urllib.parse import urljoin
+import ast
 import json
+from typing import List
 from itertools import cycle
 from functools import wraps
+from urllib.parse import urljoin
 
 import requests
 from requests.packages.urllib3.util.retry import Retry
 
 from arxiv import status
-from search.context import get_application_config, get_application_global
 from arxiv.base import logging
 from search.domain import DocMeta
+from search.context import get_application_config, get_application_global
 
 
 logger = logging.getLogger(__name__)
@@ -219,7 +218,9 @@ def get_session(app: object = None) -> DocMetaSession:
     """Get a new session with the docmeta endpoint."""
     config = get_application_config(app)
     endpoint = config.get("METADATA_ENDPOINT", "https://arxiv.org/")
-    verify_cert = bool(eval(config.get("METADATA_VERIFY_CERT", "True")))
+    verify_cert = bool(
+        ast.literal_eval(config.get("METADATA_VERIFY_CERT", "True"))
+    )
     if "," in endpoint:
         return DocMetaSession(*(endpoint.split(",")), verify_cert=verify_cert)
     return DocMetaSession(endpoint, verify_cert=verify_cert)

@@ -1,7 +1,7 @@
 """Controller helpers."""
 
 import re
-from typing import Tuple
+from typing import Tuple, Dict, Any
 
 from wtforms import Form, StringField, validators
 
@@ -19,10 +19,8 @@ def does_not_start_with_wildcard(form: Form, field: StringField) -> None:
             "Search cannot start with a wildcard (? *)."
         )
     if any(
-        [
-            part.startswith("?") or part.startswith("*")
-            for part in field.data.split()
-        ]
+        part.startswith("?") or part.startswith("*")
+        for part in field.data.split()
     ):
         raise validators.ValidationError(
             "Search terms cannot start with a" " wildcard (? *)."
@@ -44,7 +42,8 @@ def strip_white_space(value: str) -> str:
     return value.strip()
 
 
-def paginate(query: Query, data: dict) -> Query:
+# FIXME: Argument type.
+def paginate(query: Query, data: Dict[Any, Any]) -> Query:
     """
     Update pagination parameters on a :class:`.Query` from request parameters.
 

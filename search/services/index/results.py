@@ -4,18 +4,16 @@ Functions for processing search results (after execution).
 The primary public function in this module is :func:`.to_documentset`.
 """
 
-import re
-from datetime import datetime
 from math import floor
-from typing import Any, Dict, Union
+from typing import Union
+from datetime import datetime
 
 from elasticsearch_dsl.response import Response, Hit
-from elasticsearch_dsl.utils import AttrList, AttrDict
-from search.domain import Document, Query, DocumentSet, Classification, Person
-from arxiv.base import logging
 
-from .util import MAX_RESULTS, TEXISM
-from .highlighting import add_highlighting, preview
+from arxiv.base import logging
+from search.domain import Document, Query, DocumentSet
+from search.services.index.util import MAX_RESULTS
+from search.services.index.highlighting import add_highlighting, preview
 
 logger = logging.getLogger(__name__)
 logger.propagate = False

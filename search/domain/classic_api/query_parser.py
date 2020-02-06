@@ -10,7 +10,11 @@ The final, parsed query is a :class:`domain.api.Phrase`, which is a nested
 set of Tuples::
 
     >>> parse_classic_query("au:del_maestro AND ti:checkerboard")
-    ((Field.Author, 'del_maestro'), Operator.AND, (Field.Title, 'checkerboard'))
+    (
+        (Field.Author, 'del_maestro'),
+        Operator.AND,
+        (Field.Title, 'checkerboard')
+    )
 
 See :module:`tests.test_query_parser` for more examples.
 """
@@ -69,7 +73,8 @@ def _tokenize_query_string(query: str) -> List[Union[str, Phrase]]:
         elif c == ")":
             start = paren_group.pop()  # Get innermost open paren.
             if not paren_group and start == 0 and i + 1 == len(query):
-                # Paren spans whole group, strip the parens and just return the de-parened phrase.
+                # Paren spans whole group, strip the parens and just return the
+                # de-parened phrase.
                 return _tokenize_query_string(query[1:i])
             elif not paren_group:
                 # Pass the paren-stripped phrase for parsing.

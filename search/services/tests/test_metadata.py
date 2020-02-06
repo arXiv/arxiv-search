@@ -1,10 +1,8 @@
 """Tests for :mod:`search.services.metadata`."""
 
+import json
 import unittest
 from unittest import mock
-import json
-import os
-from itertools import cycle
 
 from search.services import metadata
 from search.factory import create_ui_web_app

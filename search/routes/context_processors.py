@@ -1,19 +1,9 @@
 """Context processors for use in :mod:`.routes.ui`."""
 
-from typing import Dict, Callable, Optional, Any, List
-from urllib.parse import (
-    urljoin,
-    urlparse,
-    parse_qs,
-    urlunparse,
-    urlencode,
-    ParseResult,
-)
+from typing import Dict, Callable, List
+from urllib.parse import urlparse, urlunparse, urlencode, ParseResult
 
 from flask import request, url_for
-
-from arxiv import taxonomy
-from ..domain import Classification
 
 
 def url_for_page_builder() -> Dict[str, Callable]:
@@ -29,7 +19,7 @@ def url_for_page_builder() -> Dict[str, Callable]:
         url: str = urlunparse(parts)
         return url
 
-    return dict(url_for_page=url_for_page)
+    return {"url_for_page": url_for_page}
 
 
 def current_url_params_builder() -> Dict[str, Callable]:
@@ -40,7 +30,7 @@ def current_url_params_builder() -> Dict[str, Callable]:
         params: str = urlencode(list(request.args.items(multi=True)))
         return params
 
-    return dict(current_url_params=current_url_params)
+    return {"current_url_params": current_url_params}
 
 
 def current_url_sans_parameters_builder() -> Dict[str, Callable]:
@@ -59,7 +49,7 @@ def current_url_sans_parameters_builder() -> Dict[str, Callable]:
         url: str = urlunparse(parts)
         return url
 
-    return dict(current_url_sans_parameters=current_url_sans_parameters)
+    return {"current_url_sans_parameters": current_url_sans_parameters}
 
 
 def url_for_author_search_builder() -> Dict[str, Callable]:
@@ -94,7 +84,7 @@ def url_for_author_search_builder() -> Dict[str, Callable]:
         url: str = urlunparse(parts)
         return url
 
-    return dict(url_for_author_search=url_for_author_search)
+    return {"url_for_author_search": url_for_author_search}
 
 
 def url_with_params_builder() -> Dict[str, Callable]:
@@ -107,7 +97,7 @@ def url_with_params_builder() -> Dict[str, Callable]:
         url: str = urlunparse(parts)
         return url
 
-    return dict(url_with_params=url_with_params)
+    return {"url_with_params": url_with_params}
 
 
 def is_current_builder() -> Dict[str, Callable]:
@@ -126,7 +116,7 @@ def is_current_builder() -> Dict[str, Callable]:
             return True
         return False
 
-    return dict(is_current=is_current)
+    return {"is_current": is_current}
 
 
 context_processors: List[Callable[[], Dict[str, Callable]]] = [

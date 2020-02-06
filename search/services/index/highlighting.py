@@ -11,16 +11,17 @@ abridged display in the search results.
 import re
 from typing import Any, Union
 
-from elasticsearch_dsl import Search, Q, SF
-from elasticsearch_dsl.response import Response, Hit
-import bleach
 from flask import escape
-from arxiv.base import logging
+from elasticsearch_dsl import Search
+from elasticsearch_dsl.response import Response, Hit
 
+from arxiv.base import logging
 from search.domain import Document
-from .util import TEXISM
+from search.services.index.util import TEXISM
+
 
 logger = logging.getLogger(__name__)
+
 
 HIGHLIGHT_TAG_OPEN = '<span class="search-hit mathjax">'
 HIGHLIGHT_TAG_CLOSE = "</span>"

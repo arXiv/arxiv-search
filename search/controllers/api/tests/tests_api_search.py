@@ -183,5 +183,4 @@ class TestPaper(TestCase):
     @mock.patch(f"{api.__name__}.index.SearchSession")
     def test_paper(self, mock_index):
         """Request with single parameter paper."""
-        params = MultiDict({})
-        data, code, headers = api.paper("1234.56789")
+        _, _, _ = api.paper("1234.56789")

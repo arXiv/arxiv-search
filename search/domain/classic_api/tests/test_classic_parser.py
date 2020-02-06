@@ -112,7 +112,10 @@ class TestParsing(TestCase):
 
     def test_conjunct_with_nested_phrases(self):
         """Conjunct query with nested disjunct query."""
-        querystring = "(ti:checkerboard OR ti:Pyrochlore) AND (au:del_maestro OR au:hawking)"
+        querystring = (
+            "(ti:checkerboard OR ti:Pyrochlore) AND "
+            "(au:del_maestro OR au:hawking)"
+        )
         phrase = (
             (
                 (Field.Title, "checkerboard"),
@@ -187,7 +190,10 @@ class TestParsing(TestCase):
 
     def test_serialize_conjunct_with_nested_phrases(self):
         """Conjunct query with nested disjunct query."""
-        querystring = "(ti:checkerboard OR ti:Pyrochlore) AND (au:del_maestro OR au:hawking)"
+        querystring = (
+            "(ti:checkerboard OR ti:Pyrochlore) AND "
+            "(au:del_maestro OR au:hawking)"
+        )
         phrase = (
             (
                 (Field.Title, "checkerboard"),

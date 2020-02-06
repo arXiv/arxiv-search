@@ -1,11 +1,10 @@
 """Tests for :mod:`search.transform`."""
 
-from unittest import TestCase
 import json
-import jsonschema
-from datetime import datetime, date
+from unittest import TestCase
+
+from search.domain import DocMeta
 from search.process import transform
-from search.domain import Document, DocMeta
 
 
 class TestTransformMetdata(TestCase):
@@ -283,12 +282,6 @@ class TestTransformMetdata(TestCase):
         doc = transform.to_search_document(meta)
         self.assertTrue(doc["proxy"])
 
-    def test_metadata_id(self):
-        """Field ``metadata_id`` is populated from ``metadata_id``."""
-        meta = DocMeta(**{"paper_id": "1234.56789", "metadata_id": "690776"})
-        doc = transform.to_search_document(meta)
-        self.assertEqual(doc["metadata_id"], "690776")
-
     def test_msc_class(self):
         """Field ``msc_class`` is populated from ``msc_class``."""
         meta = DocMeta(
@@ -313,7 +306,13 @@ class TestTransformMetdata(TestCase):
         doc = transform.to_search_document(meta)
         self.assertEqual(doc["doi"], ["10.1103/PhysRevD.76.104043"])
 
-    def test_metadata_id(self):
+    def test_metadata_id1(self):
+        """Field ``metadata_id`` is populated from ``metadata_id``."""
+        meta = DocMeta(**{"paper_id": "1234.56789", "metadata_id": "690776"})
+        doc = transform.to_search_document(meta)
+        self.assertEqual(doc["metadata_id"], "690776")
+
+    def test_metadata_id2(self):
         """Field ``comments`` is populated from ``comments_utf8``."""
         meta = DocMeta(
             **{"paper_id": "1234.56789", "comments_utf8": "comments!"}

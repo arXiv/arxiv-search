@@ -11,7 +11,8 @@ from mypy_extensions import TypedDict
 EASTERN = timezone("US/Eastern")
 
 
-def asdict(obj: Any) -> dict:
+# FIXME: Return type.
+def asdict(obj: Any) -> Dict[Any, Any]:
     """Coerce a dataclass object to a dict."""
     return {key: value for key, value in _asdict(obj).items()}
 

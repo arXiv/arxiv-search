@@ -9,26 +9,22 @@ error messages for the user.
 
 from typing import Tuple, Dict, Any, Optional, List
 
+from flask import url_for
 from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
 from werkzeug import MultiDict, ImmutableMultiDict
-from flask import url_for
-
-from arxiv import status, identifier, taxonomy
 
 from arxiv.base import logging
-from search.services import index, fulltext, metadata, SearchSession
+from arxiv import status, identifier
+from search.services import index, SearchSession
+from search.controllers.simple.forms import SimpleSearchForm
+from search.controllers.util import paginate, catch_underscore_syntax
 from search.domain import (
     Query,
     SimpleQuery,
-    asdict,
     Classification,
     ClassificationList,
 )
-from search.controllers.util import paginate, catch_underscore_syntax
 
-from .forms import SimpleSearchForm
-
-# from search.routes.ui import external_url_builder
 
 logger = logging.getLogger(__name__)
 
