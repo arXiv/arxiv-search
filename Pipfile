@@ -4,8 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-#arxiv-auth = "==0.2.7"
-arxiv-auth = {git = "https://github.com/arXiv/arxiv-auth.git"}
+arxiv-auth = "==0.2.7"
 arxiv-base = "==0.16.5"
 boto = "==2.48.0"
 "boto3" = "==1.6.6"
