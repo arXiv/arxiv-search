@@ -22,13 +22,13 @@
         - search
         - tests
 
-#- repo: https://github.com/pycqa/pydocstyle
-#  rev: master
-#  hooks:
-#    - id: pydocstyle
-#      name: Python Documentation Style Check
-#      language: python
-#      entry: pydocstyle
-#      args:
-#        - search
-#        - tests
+- repo: https://github.com/pycqa/pydocstyle
+  rev: master
+  hooks:
+    - id: pydocstyle
+      name: Python Documentation Style Check
+      language: python
+      entry: pydocstyle
+      args:
+        - search
+        - tests
