@@ -2,8 +2,7 @@
 
 from pytz import timezone
 from http import HTTPStatus
-from typing import Tuple, Dict, Any, Union
-from mypy_extensions import TypedDict
+from typing import Tuple, Dict, Any
 
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest, NotFound
@@ -13,20 +12,19 @@ from arxiv.identifier import parse_arxiv_id
 
 from search.services import index
 from search.errors import ValidationError
-from search.domain import Query, DocumentSet, ClassicAPIQuery
+from search.domain import (
+    DocumentSet,
+    ClassicAPIQuery,
+    ClassicSearchResponseData,
+)
 
 logger = logging.getLogger(__name__)
 EASTERN = timezone("US/Eastern")
 
-SearchResponseData = TypedDict(
-    "SearchResponseData",
-    {"results": DocumentSet, "query": Union[Query, ClassicAPIQuery]},
-)
-
 
 def query(
     params: MultiDict,
-) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
+) -> Tuple[ClassicSearchResponseData, HTTPStatus, Dict[str, Any]]:
     """
     Handle a search request from the Clasic API.
 
@@ -51,7 +49,7 @@ def query(
 
     Returns
     -------
-    dict
+    SearchResponseData
         Response data (to serialize).
     int
         HTTP status code.
@@ -137,7 +135,7 @@ def query(
         )
 
     try:
-        query = ClassicAPIQuery(
+        classic_query = ClassicAPIQuery(
             search_query=search_query,
             id_list=id_list,
             size=max_results,
@@ -153,18 +151,22 @@ def query(
 
     # pass to search indexer, which will handle parsing
     document_set: DocumentSet = index.SearchSession.current_session().search(
-        query
+        classic_query
     )
-    data: SearchResponseData = {"results": document_set, "query": query}
     logger.debug(
         "Got document set with %i results", len(document_set["results"])
     )
 
-    # bad mypy inference on TypedDict and the status code
-    return data, HTTPStatus.OK, {}  # type:ignore
+    return (
+        ClassicSearchResponseData(results=document_set, query=classic_query),
+        HTTPStatus.OK,
+        {},
+    )
 
 
-def paper(paper_id: str) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
+def paper(
+    paper_id: str,
+) -> Tuple[ClassicSearchResponseData, HTTPStatus, Dict[str, Any]]:
     """
     Handle a request for paper metadata from the API.
 
@@ -195,4 +197,4 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
     except index.DocumentNotFound as ex:
         logger.error("Document not found")
         raise NotFound("No such document") from ex
-    return {"results": document}, HTTPStatus.OK, {}
+    return ClassicSearchResponseData(results=document), HTTPStatus.OK, {}

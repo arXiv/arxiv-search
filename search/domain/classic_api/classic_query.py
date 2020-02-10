@@ -3,6 +3,7 @@
 from typing import Optional, List
 from dataclasses import dataclass, field
 
+from search.domain.documents import DocumentSet
 from search.domain.base import SortBy, SortOrder, Query, Phrase
 from search.domain.classic_api.query_parser import parse_classic_query
 
@@ -39,3 +40,9 @@ class ClassicAPIQuery(Query):
             f"start={self.page_start}&"
             f"max_results={self.size}"
         )
+
+
+@dataclass
+class ClassicSearchResponseData:
+    results: DocumentSet = None
+    query: ClassicAPIQuery = None

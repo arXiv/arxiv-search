@@ -31,6 +31,7 @@ __all__ = [
     "APIQuery",
     # classic api
     "ClassicAPIQuery",
+    "ClassicSearchResponseData",
     # documenhts
     "Error",
     "Document",
@@ -60,7 +61,10 @@ from search.domain.advanced import (
     AdvancedQuery,
 )
 from search.domain.api import APIQuery
-from search.domain.classic_api import ClassicAPIQuery
+from search.domain.classic_api import (
+    ClassicAPIQuery,
+    ClassicSearchResponseData,
+)
 from search.domain.documents import (
     Error,
     Document,

@@ -26,7 +26,7 @@ def query() -> Response:
     # requested = request.accept_mimetypes.best_match([JSON, ATOM_XML])
     # if requested == ATOM_XML:
     #     return serialize.as_atom(data), status, headers
-    response_data = serialize.as_atom(data["results"], query=data["query"])
+    response_data = serialize.as_atom(data.results, query=data.query)
     headers.update({"Content-type": ATOM_XML})
     response: Response = make_response(response_data, status_code, headers)
     return response
@@ -37,7 +37,7 @@ def query() -> Response:
 def paper(paper_id: str, version: str) -> Response:
     """Document metadata endpoint."""
     data, status_code, headers = classic_api.paper(f"{paper_id}v{version}")
-    response_data = serialize.as_atom(data["results"])
+    response_data = serialize.as_atom(data.results)
     headers.update({"Content-type": ATOM_XML})
     response: Response = make_response(response_data, status_code, headers)
     return response

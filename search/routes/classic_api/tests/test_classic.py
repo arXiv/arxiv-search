@@ -60,10 +60,9 @@ class TestClassicAPISearchRequests(TestCase):
             "results": [document],
             "metadata": {"start": 0, "end": 1, "size": 50, "total": 1},
         }
-        r_data = {
-            "results": docs,
-            "query": domain.ClassicAPIQuery(id_list=["1234.5678"]),
-        }
+        r_data = domain.ClassicSearchResponseData(
+            results=docs, query=domain.ClassicAPIQuery(id_list=["1234.5678"])
+        )
         mock_controller.query.return_value = r_data, HTTPStatus.OK, {}
         response = self.client.get(
             "/classic_api/query?search_query=au:copernicus",
@@ -79,7 +78,9 @@ class TestClassicAPISearchRequests(TestCase):
             "results": [document],
             "metadata": {"start": 0, "end": 1, "size": 50, "total": 1},
         }
-        r_data = {"results": docs, "query": domain.APIQuery()}
+        r_data = domain.ClassicSearchResponseData(
+            results=docs, query=domain.APIQuery()
+        )
         mock_controller.paper.return_value = r_data, HTTPStatus.OK, {}
         response = self.client.get(
             "/classic_api/1234.56789v6", headers=self.auth_header
