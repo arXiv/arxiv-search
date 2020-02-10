@@ -10,7 +10,7 @@ error messages for the user.
 from typing import Tuple, Dict, Any, Optional, List
 
 from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
-from werkzeug import MultiDict, ImmutableMultiDict
+from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from flask import url_for
 
 from arxiv import status, identifier, taxonomy

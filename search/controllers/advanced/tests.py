@@ -3,7 +3,7 @@
 from unittest import TestCase, mock
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
-from werkzeug import MultiDict
+from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError, BadRequest
 
 from arxiv import status

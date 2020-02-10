@@ -1,7 +1,7 @@
 """Tests for advanced search controller, :mod:`search.controllers.advanced`."""
 
 from unittest import TestCase, mock
-from werkzeug import MultiDict
+from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest
 
 from arxiv import status
@@ -157,10 +157,9 @@ class TestAPISearch(TestCase):
 
 class TestPaper(TestCase):
     """Tests for :func:`.api.paper`."""
-    
+
     @mock.patch(f'{api.__name__}.index.SearchSession')
     def test_paper(self, mock_index):
         """Request with single parameter paper."""
         params = MultiDict({})
         data, code, headers = api.paper('1234.56789')
-
