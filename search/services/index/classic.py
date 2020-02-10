@@ -4,8 +4,18 @@ from typing import Dict, Callable
 
 from elasticsearch_dsl import Q, Search
 
-from ...domain import ClassicAPIQuery, Phrase, Term, Field, Operator
-from .prepare import SEARCH_FIELDS, query_any_subject_exact_raw
+from search.domain import (
+    ClassicAPIQuery,
+    Phrase,
+    Term,
+    SortOrder,
+    Field,
+    Operator,
+)
+from search.services.index.prepare import (
+    SEARCH_FIELDS,
+    query_any_subject_exact_raw,
+)
 
 
 def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
@@ -43,7 +53,11 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
             Q("terms", paper_id=paper_ids) & Q("term", is_current=True)
         ) | Q("terms", paper_id_v=paper_ids_vs)
 
-        search = search.filter(id_query)
+        search = search.filter(id_query).sort(
+            f"-{query.sort_by}"
+            if query.sort_order == SortOrder.descending
+            else f"{query.sort_by}"
+        )
     else:
         # If no id_list, only display current results.
         search = search.filter("term", is_current=True)
