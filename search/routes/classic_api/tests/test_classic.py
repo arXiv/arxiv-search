@@ -100,7 +100,7 @@ class TestClassicAPISearchRequests(TestCase):
         return et.find(self._fix_path(path))
 
     def _text(self, et: ElementTree, path: str):
-        """Return the text content of the node"""
+        """Return the text content of the node."""
         return et.findtext(self._fix_path(path))
 
     def check_validation_error(self, response, error, link):
@@ -158,6 +158,46 @@ class TestClassicAPISearchRequests(TestCase):
             response,
             "max_results must be non-negative",
             "http://arxiv.org/api/errors#max_results_must_be_non-negative",
+        )
+
+    def test_sort_by(self):
+        for value in domain.SortBy:
+            response = self.client.get(
+                f"/classic_api/query?search_query=au:copernicus&"
+                f"sortBy={value}",
+                headers=self.auth_header,
+            )
+            self.assertEqual(response.status_code, HTTPStatus.OK)
+
+        response = self.client.get(
+            "/classic_api/query?search_query=au:copernicus&sortBy=foo",
+            headers=self.auth_header,
+        )
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.check_validation_error(
+            response,
+            f"sortBy must be in: {', '.join(domain.SortBy)}",
+            "https://arxiv.org/help/api/user-manual#sort",
+        )
+
+    def test_sort_order(self):
+        for value in domain.SortOrder:
+            response = self.client.get(
+                f"/classic_api/query?search_query=au:copernicus&"
+                f"sortOrder={value}",
+                headers=self.auth_header,
+            )
+            self.assertEqual(response.status_code, HTTPStatus.OK)
+
+        response = self.client.get(
+            "/classic_api/query?search_query=au:copernicus&sortOrder=foo",
+            headers=self.auth_header,
+        )
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.check_validation_error(
+            response,
+            f"sortOrder must be in: {', '.join(domain.SortOrder)}",
+            "https://arxiv.org/help/api/user-manual#sort",
         )
 
     def test_invalid_arxiv_id(self):

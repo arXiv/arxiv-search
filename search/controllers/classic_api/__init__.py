@@ -116,12 +116,34 @@ def query(
             link="http://arxiv.org/api/errors#start_must_be_non-negative",
         )
 
+    # sort by and sort order
+    value = params.get("sortBy", ClassicAPIQuery.SortBy.relevance)
+    try:
+        sort_by = ClassicAPIQuery.SortBy(value)
+    except ValueError:
+        raise ValidationError(
+            message=f"sortBy must be in: {', '.join(ClassicAPIQuery.SortBy)}",
+            link="https://arxiv.org/help/api/user-manual#sort",
+        )
+    value = params.get("sortOrder", ClassicAPIQuery.SortOrder.descending)
+    try:
+        sort_order = ClassicAPIQuery.SortOrder(value)
+    except ValueError:
+        raise ValidationError(
+            message=(
+                f"sortOrder must be in: {', '.join(ClassicAPIQuery.SortOrder)}"
+            ),
+            link="https://arxiv.org/help/api/user-manual#sort",
+        )
+
     try:
         query = ClassicAPIQuery(
             search_query=search_query,
             id_list=id_list,
             size=max_results,
             page_start=start,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
     except ValueError:
         raise BadRequest(

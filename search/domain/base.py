@@ -215,6 +215,17 @@ Examples
 """
 
 
+class SortBy(str, Enum):
+    relevance = "relevance"
+    last_updated_date = "lastUpdatedDate"
+    submitted_date = "submittedDate"
+
+
+class SortOrder(str, Enum):
+    ascending = "ascending"
+    descending = "descending"
+
+
 @dataclass
 class Query:
     """Represents a search query originating from the UI or API."""
