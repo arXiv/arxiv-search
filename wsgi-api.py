@@ -1,10 +1,10 @@
-"""Web Server Gateway Interface entry-point."""
+"""Web Server Gateway Interface entry-point for API."""
 
 from search.factory import create_api_web_app
 import os
 
 
-__flask_app__ = create_api_web_app()
+__flask_app__ = None
 
 
 def application(environ, start_response):
@@ -15,8 +15,12 @@ def application(environ, start_response):
         # be a container ID, which is not helpful for things like building
         # URLs. We want to keep ``SERVER_NAME`` explicitly configured, either
         # in config.py or via an os.environ var loaded by config.py.
-        if key == 'SERVER_NAME':
+        if key == "SERVER_NAME":
             continue
-        os.environ[key] = str(value)
-        __flask_app__.config[key] = str(value)
+        if type(value) is str:
+            os.environ[key] = value
+    global __flask_app__
+    if __flask_app__ is None:
+        __flask_app__ = create_api_web_app()
+
     return __flask_app__(environ, start_response)
