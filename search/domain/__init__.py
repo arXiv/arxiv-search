@@ -20,8 +20,8 @@ __all__ = [
     "Field",
     "Term",
     "Phrase",
-    "SortBy",
     "SortOrder",
+    "SortBy",
     "Query",
     "SimpleQuery",
     # advanced
@@ -52,8 +52,8 @@ from search.domain.base import (
     Field,
     Term,
     Phrase,
-    SortBy,
     SortOrder,
+    SortBy,
     Query,
     SimpleQuery,
 )

@@ -8,7 +8,6 @@ from search.domain import (
     ClassicAPIQuery,
     Phrase,
     Term,
-    SortOrder,
     Field,
     Operator,
 )
@@ -53,16 +52,12 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
             Q("terms", paper_id=paper_ids) & Q("term", is_current=True)
         ) | Q("terms", paper_id_v=paper_ids_vs)
 
-        search = search.filter(id_query).sort(
-            f"-{query.sort_by}"
-            if query.sort_order == SortOrder.descending
-            else f"{query.sort_by}"
-        )
+        search = search.filter(id_query)
     else:
         # If no id_list, only display current results.
         search = search.filter("term", is_current=True)
 
-    return search.query(dsl_query)
+    return search.query(dsl_query).sort(query.sort_by.to_es(query.sort_order))
 
 
 def _phrase_to_query(phrase: Phrase) -> Q:

@@ -215,15 +215,29 @@ Examples
 """
 
 
+class SortOrder(str, Enum):
+    ascending = "ascending"
+    descending = "descending"
+
+
 class SortBy(str, Enum):
     relevance = "relevance"
     last_updated_date = "lastUpdatedDate"
     submitted_date = "submittedDate"
 
+    def to_es(self, order: SortOrder) -> Dict[str, Dict[str, str]]:
+        return {
+            self._table[self]: {
+                "order": "asc" if order == SortOrder.ascending else "desc"
+            }
+        }
 
-class SortOrder(str, Enum):
-    ascending = "ascending"
-    descending = "descending"
+
+SortBy._table = {
+    SortBy.relevance: "_score",
+    SortBy.last_updated_date: "update_date",
+    SortBy.submitted_date: "submitted_date",
+}
 
 
 @dataclass
