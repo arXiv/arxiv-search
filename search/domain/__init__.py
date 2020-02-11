@@ -10,6 +10,7 @@ intelligibility of the codebase.
 
 __all__ = [
     # base
+    "asdict",
     "DocMeta",
     "Fulltext",
     "DateRange",
@@ -41,6 +42,7 @@ __all__ = [
 
 # pylint: disable=wildcard-import
 from search.domain.base import (
+    asdict,
     DocMeta,
     Fulltext,
     DateRange,
