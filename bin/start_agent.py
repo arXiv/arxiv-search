@@ -10,5 +10,5 @@ def start_agent() -> None:
         process_stream()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start_agent()

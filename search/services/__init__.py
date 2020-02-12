@@ -1,3 +1,5 @@
 """Provides service integration modules for use by controllers."""
 
-from .index import SearchSession
+__all__ = ["SearchSession"]
+
+from search.services.index import SearchSession

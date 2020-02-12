@@ -10,21 +10,20 @@ mentioned above load the appropriate instance of :class:`.DocMetaSession`
 depending on the context of the request.
 """
 
-from typing import Dict, List
-
-import os
-from urllib.parse import urljoin
+import ast
 import json
+from typing import List
 from itertools import cycle
 from functools import wraps
+from urllib.parse import urljoin
 
 import requests
 from requests.packages.urllib3.util.retry import Retry
 
 from arxiv import status
-from search.context import get_application_config, get_application_global
 from arxiv.base import logging
 from search.domain import DocMeta
+from search.context import get_application_config, get_application_global
 
 
 logger = logging.getLogger(__name__)
@@ -66,25 +65,21 @@ class DocMetaSession(object):
         self._session = requests.Session()
         self._verify_cert = verify_cert
         self._retry = Retry(  # type: ignore
-            total=10,
-            read=10,
-            connect=10,
-            status=10,
-            backoff_factor=0.5
+            total=10, read=10, connect=10, status=10, backoff_factor=0.5
         )
         self._adapter = requests.adapters.HTTPAdapter(max_retries=self._retry)
-        self._session.mount('https://', self._adapter)
+        self._session.mount("https://", self._adapter)
 
         for endpoint in endpoints:
-            if not endpoint[-1] == '/':
-                endpoint += '/'
-        logger.debug(f'New DocMeta session with endpoints {endpoints}')
+            if not endpoint[-1] == "/":
+                endpoint += "/"
+        logger.debug(f"New DocMeta session with endpoints {endpoints}")
         self._endpoints = cycle(endpoints)
 
     @property
     def endpoint(self) -> str:
         """Get a metadata endpoint."""
-        logger.debug('get next endpoint')
+        logger.debug("get next endpoint")
         return self._endpoints.__next__()
 
     def retrieve(self, document_id: str) -> DocMeta:
@@ -104,45 +99,49 @@ class DocMetaSession(object):
         IOError
         ValueError
         """
-        if not document_id:    # This could use further elaboration.
-            raise ValueError('Invalid value for document_id')
+        if not document_id:  # This could use further elaboration.
+            raise ValueError("Invalid value for document_id")
 
         try:
-            target = urljoin(self.endpoint, '/docmeta/')
+            target = urljoin(self.endpoint, "/docmeta/")
             target = urljoin(target, document_id)
             logger.debug(
-                f'{document_id}: retrieve metadata from {target} with SSL'
-                f' verify {self._verify_cert}'
+                f"{document_id}: retrieve metadata from {target} with SSL"
+                f" verify {self._verify_cert}"
             )
-            response = requests.get(target, verify=self._verify_cert,
-                                    headers={'User-Agent': 'arXiv/system'})
+            response = requests.get(
+                target,
+                verify=self._verify_cert,
+                headers={"User-Agent": "arXiv/system"},
+            )
         except requests.exceptions.SSLError as ex:
-            logger.error('SSLError: %s', ex)
-            raise SecurityException('SSL failed: %s' % ex) from ex
+            logger.error("SSLError: %s", ex)
+            raise SecurityException("SSL failed: %s" % ex) from ex
         except requests.exceptions.ConnectionError as ex:
-            logger.error('ConnectionError: %s', ex)
+            logger.error("ConnectionError: %s", ex)
             raise ConnectionFailed(
-                'Could not connect to metadata service: %s' % ex
+                "Could not connect to metadata service: %s" % ex
             ) from ex
 
-        if response.status_code not in \
-                [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]:
-            logger.error('Request failed: %s', response.content)
+        if response.status_code not in [
+            status.HTTP_200_OK,
+            status.HTTP_206_PARTIAL_CONTENT,
+        ]:
+            logger.error("Request failed: %s", response.content)
             raise RequestFailed(
-                '%s: failed with %i: %s' % (
-                    document_id, response.status_code, response.content
-                )
+                "%s: failed with %i: %s"
+                % (document_id, response.status_code, response.content)
             )
-        logger.debug(f'{document_id}: response OK')
+        logger.debug(f"{document_id}: response OK")
         try:
-            data = DocMeta(**response.json())   # type: ignore
+            data = DocMeta(**response.json())  # type: ignore
             # See https://github.com/python/mypy/issues/3937
         except json.decoder.JSONDecodeError as ex:
-            logger.error('JSONDecodeError: %s', ex)
+            logger.error("JSONDecodeError: %s", ex)
             raise BadResponse(
-                '%s: could not decode response: %s' % (document_id, ex)
+                "%s: could not decode response: %s" % (document_id, ex)
             ) from ex
-        logger.debug(f'{document_id}: response decoded; done!')
+        logger.debug(f"{document_id}: response decoded; done!")
         return data
 
     def bulk_retrieve(self, document_ids: List[str]) -> List[DocMeta]:
@@ -162,65 +161,68 @@ class DocMetaSession(object):
         IOError
         ValueError
         """
-        if not document_ids:    # This could use further elaboration.
-            raise ValueError('Invalid value for document_ids')
+        if not document_ids:  # This could use further elaboration.
+            raise ValueError("Invalid value for document_ids")
 
-        query_string = '/docmeta_bulk?' + '&'.join(
-            f'id={document_id}' for document_id in document_ids
+        query_string = "/docmeta_bulk?" + "&".join(
+            f"id={document_id}" for document_id in document_ids
         )
 
         try:
             target = urljoin(self.endpoint, query_string)
             logger.debug(
-                f'{document_ids}: retrieve metadata from {target} with SSL'
-                f' verify {self._verify_cert}'
+                f"{document_ids}: retrieve metadata from {target} with SSL"
+                f" verify {self._verify_cert}"
             )
             response = self._session.get(target, verify=self._verify_cert)
         except requests.exceptions.SSLError as ex:
-            logger.error('SSLError: %s', ex)
-            raise SecurityException('SSL failed: %s' % ex) from ex
+            logger.error("SSLError: %s", ex)
+            raise SecurityException("SSL failed: %s" % ex) from ex
         except requests.exceptions.ConnectionError as ex:
-            logger.error('ConnectionError: %s', ex)
+            logger.error("ConnectionError: %s", ex)
             raise ConnectionFailed(
-                'Could not connect to metadata service: %s' % ex
+                "Could not connect to metadata service: %s" % ex
             ) from ex
 
-        if response.status_code not in \
-                [status.HTTP_200_OK, status.HTTP_206_PARTIAL_CONTENT]:
-            logger.error('Request failed: %s', response.content)
+        if response.status_code not in [
+            status.HTTP_200_OK,
+            status.HTTP_206_PARTIAL_CONTENT,
+        ]:
+            logger.error("Request failed: %s", response.content)
             raise RequestFailed(
-                '%s: failed with %i: %s' % (
-                    document_ids, response.status_code, response.content
-                )
+                "%s: failed with %i: %s"
+                % (document_ids, response.status_code, response.content)
             )
-        logger.debug(f'{document_ids}: response OK')
+        logger.debug(f"{document_ids}: response OK")
         try:
             resp = response.json()  # A list with metadata for each paper.
             data: List[DocMeta]
-            data = [DocMeta(**value) for value in resp]     # type: ignore
+            data = [DocMeta(**value) for value in resp]  # type: ignore
         except json.decoder.JSONDecodeError as ex:
-            logger.error('JSONDecodeError: %s', ex)
+            logger.error("JSONDecodeError: %s", ex)
             raise BadResponse(
-                '%s: could not decode response: %s' % (document_ids, ex)
+                "%s: could not decode response: %s" % (document_ids, ex)
             ) from ex
-        logger.debug(f'{document_ids}: response decoded; done!')
+        logger.debug(f"{document_ids}: response decoded; done!")
         return data
 
 
 def init_app(app: object = None) -> None:
     """Set default configuration parameters for an application instance."""
     config = get_application_config(app)
-    config.setdefault('METADATA_ENDPOINT', 'https://arxiv.org/')
-    config.setdefault('METADATA_VERIFY_CERT', 'True')
+    config.setdefault("METADATA_ENDPOINT", "https://arxiv.org/")
+    config.setdefault("METADATA_VERIFY_CERT", "True")
 
 
 def get_session(app: object = None) -> DocMetaSession:
     """Get a new session with the docmeta endpoint."""
     config = get_application_config(app)
-    endpoint = config.get('METADATA_ENDPOINT', 'https://arxiv.org/')
-    verify_cert = bool(eval(config.get('METADATA_VERIFY_CERT', 'True')))
-    if ',' in endpoint:
-        return DocMetaSession(*(endpoint.split(',')), verify_cert=verify_cert)
+    endpoint = config.get("METADATA_ENDPOINT", "https://arxiv.org/")
+    verify_cert = bool(
+        ast.literal_eval(config.get("METADATA_VERIFY_CERT", "True"))
+    )
+    if "," in endpoint:
+        return DocMetaSession(*(endpoint.split(",")), verify_cert=verify_cert)
     return DocMetaSession(endpoint, verify_cert=verify_cert)
 
 
@@ -229,9 +231,9 @@ def current_session() -> DocMetaSession:
     g = get_application_global()
     if not g:
         return get_session()
-    elif 'docmeta' not in g:
-        g.docmeta = get_session()   # type: ignore
-    return g.docmeta    # type: ignore
+    elif "docmeta" not in g:
+        g.docmeta = get_session()  # type: ignore
+    return g.docmeta  # type: ignore
 
 
 @wraps(DocMetaSession.retrieve)

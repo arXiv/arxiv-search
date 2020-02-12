@@ -25,7 +25,7 @@ SearchResponseData = TypedDict(
 
 
 def query(
-    params: MultiDict
+    params: MultiDict,
 ) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
     """
     Handle a search request from the Clasic API.
@@ -98,7 +98,8 @@ def query(
     if max_results < 0:
         raise ValidationError(
             message="max_results must be non-negative",
-            link="http://arxiv.org/api/errors#max_results_must_be_non-negative",
+            link="http://arxiv.org/api/errors#max_results_must_be_"
+            "non-negative",
         )
 
     # Parse result start point.

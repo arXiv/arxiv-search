@@ -16,17 +16,23 @@ from arxiv.base import logging
 from search.services import index
 from search.controllers.util import paginate
 from search.domain import (
-    Query, APIQuery, FieldedSearchList, FieldedSearchTerm, DateRange,
-    Classification, DocumentSet, ClassicAPIQuery
+    Query,
+    APIQuery,
+    FieldedSearchList,
+    FieldedSearchTerm,
+    DateRange,
+    Classification,
+    DocumentSet,
+    ClassicAPIQuery,
 )
 
 
 logger = logging.getLogger(__name__)
-EASTERN = timezone('US/Eastern')
+EASTERN = timezone("US/Eastern")
 
 SearchResponseData = TypedDict(
-    'SearchResponseData',
-    {'results': DocumentSet, 'query': Union[Query, ClassicAPIQuery]}
+    "SearchResponseData",
+    {"results": DocumentSet, "query": Union[Query, ClassicAPIQuery]},
 )
 
 
@@ -56,9 +62,13 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     # as a migration pathway so that the URL and query structure aren't
     # both changed at the same time by end users.
     # TODO: Implement the NG API using the Classic API domain.
-    parsed_operators = None  # Default in the event that there is not a Classic query.
+    parsed_operators = (
+        None  # Default in the event that there is not a Classic query.
+    )
     try:
-        parsed_operators, parsed_terms = _parse_search_query(params.get('query', ''))
+        parsed_operators, parsed_terms = _parse_search_query(
+            params.get("query", "")
+        )
         params = params.copy()
         for field, term in parsed_terms.items():
             params.add(field, term)
@@ -75,17 +85,17 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     if date_range is not None:
         q.date_range = date_range
 
-    primary = params.get('primary_classification')
+    primary = params.get("primary_classification")
     if primary:
-        primary_classification = _get_classification(primary,
-                                                     'primary_classification',
-                                                     query_terms)
+        primary_classification = _get_classification(
+            primary, "primary_classification", query_terms
+        )
         q.primary_classification = primary_classification
 
-    secondaries = params.getlist('secondary_classification')
+    secondaries = params.getlist("secondary_classification")
     if secondaries:
         q.secondary_classification = [
-            _get_classification(sec, 'secondary_classification', query_terms)
+            _get_classification(sec, "secondary_classification", query_terms)
             for sec in secondaries
         ]
 
@@ -93,12 +103,15 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     if include_fields:
         q.include_fields += include_fields
 
-    q = paginate(q, params)     # type: ignore
-    document_set = index.SearchSession.search(q, highlight=False)  # type: ignore
-    document_set['metadata']['query'] = query_terms
-    logger.debug('Got document set with %i results',
-                 len(document_set['results']))
-    return {'results': document_set, 'query': q}, status.HTTP_200_OK, {}
+    q = paginate(q, params)  # type: ignore
+    document_set = index.SearchSession.search(
+        q, highlight=False
+    )  # type: ignore
+    document_set["metadata"]["query"] = query_terms
+    logger.debug(
+        "Got document set with %i results", len(document_set["results"])
+    )
+    return {"results": document_set, "query": q}, status.HTTP_200_OK, {}
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -126,46 +139,51 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
     """
     try:
-        document = index.SearchSession.current_session().get_document(paper_id)    # type: ignore
+        document = index.SearchSession.current_session().get_document(
+            paper_id
+        )  # type: ignore
     except index.DocumentNotFound as ex:
-        logger.error('Document not found')
-        raise NotFound('No such document') from ex
-    return {'results': document}, status.HTTP_200_OK, {}
+        logger.error("Document not found")
+        raise NotFound("No such document") from ex
+    return {"results": document}, status.HTTP_200_OK, {}
 
 
 def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
-    include_fields: List[str] = params.getlist('include')
+    include_fields: List[str] = params.getlist("include")
     if include_fields:
         for field in include_fields:
-            query_terms.append({'parameter': 'include', 'value': field})
+            query_terms.append({"parameter": "include", "value": field})
         return include_fields
     return []
 
 
-def _get_fielded_terms(params: MultiDict, query_terms: List,
-                       operators: Optional[Dict[str, Any]] = None) \
-        -> Optional[FieldedSearchList]:
+def _get_fielded_terms(
+    params: MultiDict,
+    query_terms: List,
+    operators: Optional[Dict[str, Any]] = None,
+) -> Optional[FieldedSearchList]:
     if operators is None:
         operators = defaultdict(default_factory=lambda: "AND")
     terms = FieldedSearchList()
     for field, _ in Query.SUPPORTED_FIELDS:
         values = params.getlist(field)
         for value in values:
-            query_terms.append({'parameter': field, 'value': value})
-            terms.append(FieldedSearchTerm(     # type: ignore
-                operator=operators[field],
-                field=field,
-                term=value
-            ))
+            query_terms.append({"parameter": field, "value": value})
+            terms.append(
+                FieldedSearchTerm(  # type: ignore
+                    operator=operators[field], field=field, term=value
+                )
+            )
     if not terms:
         return None
     return terms
 
 
-def _get_date_params(params: MultiDict, query_terms: List) \
-        -> Optional[DateRange]:
+def _get_date_params(
+    params: MultiDict, query_terms: List
+) -> Optional[DateRange]:
     date_params = {}
-    for field in ['start_date', 'end_date']:
+    for field in ["start_date", "end_date"]:
         value = params.getlist(field)
         if not value:
             continue
@@ -175,69 +193,78 @@ def _get_date_params(params: MultiDict, query_terms: List) \
                 dt = pytz.utc.localize(dt)
             dt = dt.replace(tzinfo=EASTERN)
         except ValueError:
-            raise BadRequest(f'Invalid datetime in {field}')
+            raise BadRequest(f"Invalid datetime in {field}")
         date_params[field] = dt
-        query_terms.append({'parameter': field, 'value': dt})
-    if 'date_type' in params:
-        date_params['date_type'] = params.get('date_type')   # type: ignore
-        query_terms.append({'parameter': 'date_type',
-                            'value': date_params['date_type']})
+        query_terms.append({"parameter": field, "value": dt})
+    if "date_type" in params:
+        date_params["date_type"] = params.get("date_type")  # type: ignore
+        query_terms.append(
+            {"parameter": "date_type", "value": date_params["date_type"]}
+        )
     if date_params:
         return DateRange(**date_params)  # type: ignore
     return None
 
 
-def _to_classification(value: str) \
-        -> Tuple[Classification, ...]:
+def _to_classification(value: str) -> Tuple[Classification, ...]:
     clsns = []
     if value in taxonomy.definitions.GROUPS:
         klass = taxonomy.Group
-        field = 'group'
+        field = "group"
     elif value in taxonomy.definitions.ARCHIVES:
         klass = taxonomy.Archive
-        field = 'archive'
+        field = "archive"
     elif value in taxonomy.definitions.CATEGORIES:
         klass = taxonomy.Category
-        field = 'category'
+        field = "category"
     else:
-        raise ValueError('not a valid classification')
+        raise ValueError("not a valid classification")
     cast_value = klass(value)
-    clsns.append(Classification(**{field: {'id': value}}))   # type: ignore
+    clsns.append(Classification(**{field: {"id": value}}))  # type: ignore
     if cast_value.unalias() != cast_value:
-        clsns.append(Classification(**{field: {'id': cast_value.unalias()}}))   # type: ignore
-    if cast_value.canonical != cast_value \
-            and cast_value.canonical != cast_value.unalias():
-        clsns.append(Classification(**{field: {'id': cast_value.canonical}}))   # type: ignore
+        clsns.append(
+            Classification(**{field: {"id": cast_value.unalias()}})
+        )  # type: ignore
+    if (
+        cast_value.canonical != cast_value
+        and cast_value.canonical != cast_value.unalias()
+    ):
+        clsns.append(
+            Classification(**{field: {"id": cast_value.canonical}})
+        )  # type: ignore
     return tuple(clsns)
 
 
-def _get_classification(value: str, field: str, query_terms: List) \
-        -> Tuple[Classification, ...]:
+def _get_classification(
+    value: str, field: str, query_terms: List
+) -> Tuple[Classification, ...]:
     try:
         clsns = _to_classification(value)
     except ValueError:
-        raise BadRequest(f'Not a valid classification term: {field}={value}')
-    query_terms.append({'parameter': field, 'value': value})
+        raise BadRequest(f"Not a valid classification term: {field}={value}")
+    query_terms.append({"parameter": field, "value": value})
     return clsns
 
 
 SEARCH_QUERY_FIELDS = {
-    'ti': 'title',
-    'au': 'author',
-    'abs': 'abstract',
-    'co': 'comments',
-    'jr': 'journal_ref',
-    'cat': 'primary_classification',
-    'rn': 'report_number',
-    'id': 'paper_id',
-    'all': 'all'
+    "ti": "title",
+    "au": "author",
+    "abs": "abstract",
+    "co": "comments",
+    "jr": "journal_ref",
+    "cat": "primary_classification",
+    "rn": "report_number",
+    "id": "paper_id",
+    "all": "all",
 }
 
 
 def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Parses a query into tuple of operators and parameters."""
     new_query_params = {}
-    new_query_operators: Dict[str, str] = defaultdict(default_factory=lambda: "AND")
+    new_query_operators: Dict[str, str] = defaultdict(
+        default_factory=lambda: "AND"
+    )
     terms = query.split()
 
     expect_new = True  # expect_new handles quotation state.
@@ -249,22 +276,22 @@ def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
                 term = "NOT"  # Translate to NG representation.
             next_operator = term
         elif expect_new:
-            field, term = term.split(':')
+            field, term = term.split(":")
 
             # Quotation handling.
             if term.startswith('"') and not term.endswith('"'):
                 expect_new = False
-            term = term.replace('"', '')
+            term = term.replace('"', "")
 
             new_query_params[SEARCH_QUERY_FIELDS[field]] = term
             new_query_operators[SEARCH_QUERY_FIELDS[field]] = next_operator
         else:
-            # If the term ends in a quote, we close the term and look for the next one.
+            # If the term ends in a quote, we close the term and look for the
+            # next one.
             if term.endswith('"'):
                 expect_new = True
-                term = term.replace('"', '')
+                term = term.replace('"', "")
 
             new_query_params[SEARCH_QUERY_FIELDS[field]] += " " + term
-
 
     return new_query_operators, new_query_params

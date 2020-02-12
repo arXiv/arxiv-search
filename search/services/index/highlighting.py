@@ -11,19 +11,20 @@ abridged display in the search results.
 import re
 from typing import Any, Union
 
-from elasticsearch_dsl import Search, Q, SF
-from elasticsearch_dsl.response import Response, Hit
-import bleach
 from flask import escape
-from arxiv.base import logging
+from elasticsearch_dsl import Search
+from elasticsearch_dsl.response import Response, Hit
 
+from arxiv.base import logging
 from search.domain import Document
-from .util import TEXISM
+from search.services.index.util import TEXISM
+
 
 logger = logging.getLogger(__name__)
 
+
 HIGHLIGHT_TAG_OPEN = '<span class="search-hit mathjax">'
-HIGHLIGHT_TAG_CLOSE = '</span>'
+HIGHLIGHT_TAG_CLOSE = "</span>"
 
 
 def highlight(search: Search) -> Search:
@@ -43,38 +44,41 @@ def highlight(search: Search) -> Search:
     """
     # Highlight class .search-hit defined in search.sass
     search = search.highlight_options(
-        pre_tags=[HIGHLIGHT_TAG_OPEN],
-        post_tags=[HIGHLIGHT_TAG_CLOSE]
+        pre_tags=[HIGHLIGHT_TAG_OPEN], post_tags=[HIGHLIGHT_TAG_CLOSE]
     )
-    search = search.highlight('title', type='plain', number_of_fragments=0)
-    search = search.highlight('title.english', type='plain',
-                              number_of_fragments=0)
-    search = search.highlight('title.tex', type='plain',
-                              number_of_fragments=0)
+    search = search.highlight("title", type="plain", number_of_fragments=0)
+    search = search.highlight(
+        "title.english", type="plain", number_of_fragments=0
+    )
+    search = search.highlight("title.tex", type="plain", number_of_fragments=0)
 
-    search = search.highlight('comments', number_of_fragments=0)
+    search = search.highlight("comments", number_of_fragments=0)
     # Highlight any field the name of which begins with "author".
-    search = search.highlight('author*')
-    search = search.highlight('owner*')
-    search = search.highlight('announced_date_first')
-    search = search.highlight('submitter*')
-    search = search.highlight('journal_ref', type='plain')
-    search = search.highlight('acm_class', number_of_fragments=0)
-    search = search.highlight('msc_class', number_of_fragments=0)
-    search = search.highlight('doi', type='plain')
-    search = search.highlight('report_num', type='plain')
+    search = search.highlight("author*")
+    search = search.highlight("owner*")
+    search = search.highlight("announced_date_first")
+    search = search.highlight("submitter*")
+    search = search.highlight("journal_ref", type="plain")
+    search = search.highlight("acm_class", number_of_fragments=0)
+    search = search.highlight("msc_class", number_of_fragments=0)
+    search = search.highlight("doi", type="plain")
+    search = search.highlight("report_num", type="plain")
 
     # Setting number_of_fragments to 0 tells ES to highlight the entire field.
-    search = search.highlight('abstract', number_of_fragments=0)
-    search = search.highlight('abstract.tex', type='plain',
-                              number_of_fragments=0)
-    search = search.highlight('abstract.english', number_of_fragments=0)
+    search = search.highlight("abstract", number_of_fragments=0)
+    search = search.highlight(
+        "abstract.tex", type="plain", number_of_fragments=0
+    )
+    search = search.highlight("abstract.english", number_of_fragments=0)
     return search
 
 
-def preview(value: str, fragment_size: int = 400,
-            start_tag: str = HIGHLIGHT_TAG_OPEN,
-            end_tag: str = HIGHLIGHT_TAG_CLOSE) -> str:
+def preview(
+    value: str,
+    fragment_size: int = 400,
+    start_tag: str = HIGHLIGHT_TAG_OPEN,
+    end_tag: str = HIGHLIGHT_TAG_CLOSE,
+) -> str:
     """
     Generate a snippet preview that doesn't breaking TeXisms or highlighting.
 
@@ -109,13 +113,13 @@ def preview(value: str, fragment_size: int = 400,
         c = value[start - 1]
         s = start
         while start - s < start_frag_size and s > 0:
-            if c in '$>':   # This may or may not be an actual HTML tag or TeX.
-                break       # But it doesn't hurt to play it safe.
+            if c in "$>":  # This may or may not be an actual HTML tag or TeX.
+                break  # But it doesn't hurt to play it safe.
             s -= 1
             c = value[s - 1]
         start = s
         # Move the start forward slightly, to find a word boundary.
-        while c not in '.,!? \t\n$<' and start > 0:
+        while c not in ".,!? \t\n$<" and start > 0:
             start += 1
             c = value[start - 1]
     else:
@@ -127,8 +131,9 @@ def preview(value: str, fragment_size: int = 400,
     # Jump the end forward until we consume (as much as possible of) the
     # rest of the target fragment size.
     remaining = max(0, fragment_size - (end - start))
-    end += _end_safely(value[end:], remaining, start_tag=start_tag,
-                       end_tag=end_tag)
+    end += _end_safely(
+        value[end:], remaining, start_tag=start_tag, end_tag=end_tag
+    )
     snippet = value[start:end].strip()
     last_open = snippet.rfind(HIGHLIGHT_TAG_OPEN)
     last_close = snippet.rfind(HIGHLIGHT_TAG_CLOSE)
@@ -136,9 +141,9 @@ def preview(value: str, fragment_size: int = 400,
     if last_open > last_close and last_open >= 0:
         snippet += HIGHLIGHT_TAG_CLOSE
     snippet = (
-        ('&hellip;' if start > 0 else '')
+        ("&hellip;" if start > 0 else "")
         + snippet
-        + ('&hellip;' if end < len(value) else '')
+        + ("&hellip;" if end < len(value) else "")
     )
     return snippet
 
@@ -162,33 +167,32 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
 
     """
     # There may or may not be highlighting in the result set.
-    highlighted_fields = getattr(raw.meta, 'highlight', None)
+    highlighted_fields = getattr(raw.meta, "highlight", None)
 
     # ``meta.matched_queries`` contains a list of query ``_name``s that
     # matched. This is nice for non-string fields.
-    matched_fields = getattr(raw.meta, 'matched_queries', [])
+    matched_fields = getattr(raw.meta, "matched_queries", [])
 
     # These are from hits within child documents, e.g.
     # secondary_classification.
-    inner_hits = getattr(raw.meta, 'inner_hits', None)
+    inner_hits = getattr(raw.meta, "inner_hits", None)
 
     # The values here will (almost) always be list-like. So we need to stitch
     # them together. Note that dir(None) won't return anything, so this block
     # is skipped if there are no highlights from ES.
     for field in dir(highlighted_fields):
-        if field.startswith('_'):
+        if field.startswith("_"):
             continue
         value = getattr(highlighted_fields, field)
-        if hasattr(value, '__iter__'):
-            value = '&hellip;'.join(value)
+        if hasattr(value, "__iter__"):
+            value = "&hellip;".join(value)
 
         # Non-TeX searches may hit inside of TeXisms. Highlighting those
         # fragments (i.e. inserting HTML) will break MathJax rendering.
         # To guard against this while preserving highlighting, we move
         # any highlighting tags from within TeXisms to encapsulate the
         # entire TeXism.
-        if field in ['title', 'title.english',
-                     'abstract', 'abstract.english']:
+        if field in ["title", "title.english", "abstract", "abstract.english"]:
             value = _highlight_whole_texism(value)
             value = _escape(value)
 
@@ -197,46 +201,49 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
         # truncated. So instead of highlighting author names themselves, we
         # set a 'flag' that can get picked up in the template and highlight
         # the entire author field.
-        if field.startswith('author') or field.startswith('owner') \
-                or field.startswith('submitter'):
-            result['match']['author'] = True
+        if (
+            field.startswith("author")
+            or field.startswith("owner")
+            or field.startswith("submitter")
+        ):
+            result["match"]["author"] = True
             continue
 
-        result['highlight'][field] = value
+        result["highlight"][field] = value
 
     for field in matched_fields:
-        if field not in result['highlight']:
-            result['match'][field] = True
+        if field not in result["highlight"]:
+            result["match"][field] = True
 
     # We're using inner_hits to see which category in particular responded to
     # the query.
-    if hasattr(inner_hits, 'secondary_classification'):
-        result['match']['secondary_classification'] = [
+    if hasattr(inner_hits, "secondary_classification"):
+        result["match"]["secondary_classification"] = [
             ih.category.id for ih in inner_hits.secondary_classification
         ]
 
     # We just want to know whether there was a hit on the announcement date.
-    result['match']['announced_date_first'] = (
-        bool('announced_date_first' in matched_fields)
+    result["match"]["announced_date_first"] = bool(
+        "announced_date_first" in matched_fields
     )
 
     # If there is a hit in a TeX field, we prefer highlighting on that
     # field, since other tokenizers will clobber the TeX.
-    for field in ['abstract', 'title']:
-        if f'{field}.tex' in result['highlight']:
-            result['highlight'][field] = result['highlight'][f'{field}.tex']
-            del result['highlight'][f'{field}.tex']
+    for field in ["abstract", "title"]:
+        if f"{field}.tex" in result["highlight"]:
+            result["highlight"][field] = result["highlight"][f"{field}.tex"]
+            del result["highlight"][f"{field}.tex"]
 
-    for field in ['abstract.tex', 'abstract.english', 'abstract']:
-        if field in result['highlight']:
-            value = result['highlight'][field]
+    for field in ["abstract.tex", "abstract.english", "abstract"]:
+        if field in result["highlight"]:
+            value = result["highlight"][field]
             abstract_snippet = preview(value)
-            result['preview']['abstract'] = abstract_snippet
-            result['highlight']['abstract'] = value
+            result["preview"]["abstract"] = abstract_snippet
+            result["highlight"]["abstract"] = value
             break
-    for field in ['title.english', 'title']:
-        if field in result['highlight']:
-            result['highlight']['title'] = result['highlight'][field]
+    for field in ["title.english", "title"]:
+        if field in result["highlight"]:
+            result["highlight"]["title"] = result["highlight"][field]
             break
     return result
 
@@ -250,7 +257,7 @@ def _strip_highlight_and_enclose(match: Any) -> str:
     value = value.replace(HIGHLIGHT_TAG_CLOSE, "")
     # If HTML was removed, we will assume that it was highlighting HTML.
     # if len(new_value) < len(value):
-    value = f'{HIGHLIGHT_TAG_OPEN}{value}{HIGHLIGHT_TAG_CLOSE}'
+    value = f"{HIGHLIGHT_TAG_OPEN}{value}{HIGHLIGHT_TAG_CLOSE}"
     return value
 
 
@@ -281,70 +288,82 @@ def _escape(value: str) -> str:
             break
         if i_o is not None and i_c is not None:
             if i_o < i_c:
-                _sub = str(escape(value[i:i + i_o])) + tag_o
+                _sub = str(escape(value[i : i + i_o])) + tag_o
                 i += i_o + len(tag_o)
             elif i_c < i_o:
-                _sub = str(escape(value[i:i + i_c])) + tag_c
+                _sub = str(escape(value[i : i + i_c])) + tag_c
                 i += i_c + len(tag_c)
         elif i_o is not None and i_c is None:
-            _sub = str(escape(value[i:i + i_o])) + tag_o
+            _sub = str(escape(value[i : i + i_o])) + tag_o
             i += i_o + len(tag_o)
         elif i_c is not None and i_o is None:
-            _sub = str(escape(value[i:i + i_c])) + tag_c
+            _sub = str(escape(value[i : i + i_c])) + tag_c
             i += i_c + len(tag_c)
         _new += _sub
     return _new
 
 
-def _start_safely(value: str, start: int, end: int, fragment_size: int,
-                  tolerance: int = 0, start_tag: str = HIGHLIGHT_TAG_OPEN,
-                  end_tag: str = HIGHLIGHT_TAG_CLOSE) -> int:
+def _start_safely(
+    value: str,
+    start: int,
+    end: int,
+    fragment_size: int,
+    tolerance: int = 0,
+    start_tag: str = HIGHLIGHT_TAG_OPEN,
+    end_tag: str = HIGHLIGHT_TAG_CLOSE,
+) -> int:
     # Try to maximize the length of the fragment up to the fragment_size, but
     # avoid starting in the middle of a tag or a TeXism.
     space_remaining = (fragment_size + tolerance) - (end - start)
 
-    remainder = value[start - fragment_size:start]
-    acceptable = value[start - fragment_size - tolerance:start]
+    remainder = value[start - fragment_size : start]
+    acceptable = value[start - fragment_size - tolerance : start]
     if end_tag in remainder:
         # Relative index of the first end tag.
-        first_end_tag = value[start - space_remaining:start].index(end_tag)
-        if start_tag in value[start - space_remaining:first_end_tag]:
-            target_area = value[start - space_remaining:first_end_tag]
+        first_end_tag = value[start - space_remaining : start].index(end_tag)
+        if start_tag in value[start - space_remaining : first_end_tag]:
+            target_area = value[start - space_remaining : first_end_tag]
             first_start_tag = target_area.index(start_tag)
             return (start - space_remaining) + first_start_tag
-    elif '$' in remainder:
+    elif "$" in remainder:
         m = TEXISM.search(acceptable)
-        if m is None:   # Can't get to opening
-            return start - remainder[::-1].index('$') + 1
+        if m is None:  # Can't get to opening
+            return start - remainder[::-1].index("$") + 1
         return (start - fragment_size - tolerance) + m.start()
 
     # Ideally, we hit the fragment size without entering a tag or TeXism.
     return start - fragment_size
 
 
-def _end_safely(value: str, remaining: int,
-                start_tag: str = HIGHLIGHT_TAG_OPEN,
-                end_tag: str = HIGHLIGHT_TAG_CLOSE) -> int:
+def _end_safely(
+    value: str,
+    remaining: int,
+    start_tag: str = HIGHLIGHT_TAG_OPEN,
+    end_tag: str = HIGHLIGHT_TAG_CLOSE,
+) -> int:
     """Find a fragment end that doesn't break TeXisms or HTML."""
     # Should match on either a TeXism or a TeXism enclosed in highlight tags.
     # TeXisms may be enclosed in pairs of $$ or $.
-    ptn = r'|'.join([
-        r'([\$]{2}[^\$]+[\$]{2})',
-        r'([\$]{1}[^\$]+[\$]{1})',
-        r'(%s[\$]{2}[^\$]+[\$]{2}%s)' % (start_tag, end_tag),
-        r'(%s[\$]{1}[^\$]+[\$]{1}%s)' % (start_tag, end_tag),
-        r'(%s[^\$]+%s)' % (start_tag, end_tag)
-    ])
+    ptn = r"|".join(
+        [
+            r"([\$]{2}[^\$]+[\$]{2})",
+            r"([\$]{1}[^\$]+[\$]{1})",
+            r"(%s[\$]{2}[^\$]+[\$]{2}%s)" % (start_tag, end_tag),
+            r"(%s[\$]{1}[^\$]+[\$]{1}%s)" % (start_tag, end_tag),
+            r"(%s[^\$]+%s)" % (start_tag, end_tag),
+        ]
+    )
     m = re.search(ptn, value)
-    if m is None:   # Nothing to worry about; the coast is clear.
+    if m is None:  # Nothing to worry about; the coast is clear.
         return remaining
     ptn_start = m.start()
     ptn_end = m.end()
     if remaining <= ptn_start:  # The ideal end falls before the next TeX/tag.
         return remaining
-    elif ptn_end < remaining:   # The ideal end falls after the next TeX/tag.
-        return ptn_end + _end_safely(value[ptn_end:], remaining - ptn_end,
-                                     start_tag, end_tag)
+    elif ptn_end < remaining:  # The ideal end falls after the next TeX/tag.
+        return ptn_end + _end_safely(
+            value[ptn_end:], remaining - ptn_end, start_tag, end_tag
+        )
 
     # We can't make it past the end of the next TeX/tag without exceeding the
     # target fragment size, so we will end at the beginning of the match.
