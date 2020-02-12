@@ -1,4 +1,4 @@
-"""Feedgen extensions to implement serialization of the arXiv legacy API atom feed.
+"""FeedGen extensions to implement serialization of the arXiv legacy API.
 
 Throughout module, pylint: disable=arguments-differ due to inconsistencies in
 feedgen library.
@@ -165,7 +165,7 @@ class ArXivExtension(BaseExtension):
 
 
 class ArXivEntryExtension(BaseEntryExtension):
-    """Extension of the Feedgen base class to allow us to add elements to the Atom output."""
+    """Extension of the Feedgen base class to allow us to add elements."""
 
     def __init__(self: BaseEntryExtension):
         """Initialize the member values to all be empty."""

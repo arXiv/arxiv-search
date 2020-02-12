@@ -1,7 +1,13 @@
 """Exceptions raised by the search index service."""
 
-__all__ = ('MappingError', 'IndexConnectionError', 'IndexingError',
-           'QueryError', 'DocumentNotFound', 'OutsideAllowedRange')
+__all__ = (
+    "MappingError",
+    "IndexConnectionError",
+    "IndexingError",
+    "QueryError",
+    "DocumentNotFound",
+    "OutsideAllowedRange",
+)
 
 
 class MappingError(ValueError):

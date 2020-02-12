@@ -15,5 +15,5 @@ def create_index():
     index.SearchSession.create_index()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     create_index()

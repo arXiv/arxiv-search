@@ -32,20 +32,27 @@ def exists(chunk: List[str]) -> List[Tuple[str, bool]]:
     """
     with app.app_context():
         from search.services import index
+
         status = []
         for ident in chunk:
-            time.sleep(0.05)    # TODO: make this configurable?
+            time.sleep(0.05)  # TODO: make this configurable?
             status.append((ident, index.SearchSession.exists(ident)))
         return status
 
 
 @app.cli.command()
-@click.option('--id_list', '-l',
-              help="Index paper IDs in a file (one ID per line)")
-@click.option('--batch-size', '-b', type=int, default=1_600,
-              help="Number of records to process each iteration")
-@click.option('--n-workers', '-n', type=int, default=8, help="Num of workers")
-@click.option('--output', '-o', help="File in which missing IDs are stored")
+@click.option(
+    "--id_list", "-l", help="Index paper IDs in a file (one ID per line)"
+)
+@click.option(
+    "--batch-size",
+    "-b",
+    type=int,
+    default=1_600,
+    help="Number of records to process each iteration",
+)
+@click.option("--n-workers", "-n", type=int, default=8, help="Num of workers")
+@click.option("--output", "-o", help="File in which missing IDs are stored")
 def audit(id_list: str, batch_size: int, n_workers: int, output: str):
     """
     Check the index for missing papers.
@@ -74,7 +81,7 @@ def audit(id_list: str, batch_size: int, n_workers: int, output: str):
         raise click.ClickException(
             "batch size must be divisible by the number of workers"
         )
-    chunk_size = int(round(batch_size/n_workers))
+    chunk_size = int(round(batch_size / n_workers))
 
     if not os.path.exists(id_list):
         raise click.ClickException("no such file")
@@ -84,32 +91,34 @@ def audit(id_list: str, batch_size: int, n_workers: int, output: str):
         data = [row[0] for row in csv.reader(f)]
 
     # Create the output file.
-    with open(output, 'w') as f:
-        f.write('')
+    with open(output, "w") as f:
+        f.write("")
 
     N_results = 0
     N_total = len(data)
 
-    with click.progressbar(length=N_total, label='Papers checked') as bar:
+    with click.progressbar(length=N_total, label="Papers checked") as bar:
         # We do this in batches, so that we can track and save as we go.
         for i in range(0, len(data), batch_size):
-            batch = data[i:i + batch_size]
-            chunks = [batch[c:c + chunk_size]
-                      for c in range(0, batch_size, chunk_size)]
+            batch = data[i : i + batch_size]
+            chunks = [
+                batch[c : c + chunk_size]
+                for c in range(0, batch_size, chunk_size)
+            ]
 
             with Pool(n_workers) as p:
                 results = reduce(concat, p.map(exists, chunks))
 
             # Write one missing paper ID per line.
-            with open(output, 'a') as f:       # Append to output file.
+            with open(output, "a") as f:  # Append to output file.
                 for ident, status in results:
                     if status:
                         continue
-                    f.write(f'{ident}\n')
+                    f.write(f"{ident}\n")
 
             N_results += len(results)
             bar.update(N_results)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     audit()

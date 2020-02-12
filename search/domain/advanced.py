@@ -1,9 +1,9 @@
 """Represents fielded search terms, with multiple operators."""
 
-from .base import DateRange, Query, ClassificationList
-
+from typing import Optional
 from dataclasses import dataclass, field
-from typing import NamedTuple, Optional
+
+from search.domain.base import DateRange, Query, ClassificationList
 
 
 @dataclass
@@ -16,7 +16,7 @@ class FieldedSearchTerm:
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        return f'{self.operator} {self.field}={self.term}'
+        return f"{self.operator} {self.field}={self.term}"
 
 
 class FieldedSearchList(list):
@@ -24,7 +24,7 @@ class FieldedSearchList(list):
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        return '; '.join([str(item) for item in self])
+        return "; ".join([str(item) for item in self])
 
 
 @dataclass
@@ -36,20 +36,20 @@ class AdvancedQuery(Query):
     """
 
     SUPPORTED_FIELDS = [
-        ('title', 'Title'),
-        ('author', 'Author(s)'),
-        ('abstract', 'Abstract'),
-        ('comments', 'Comments'),
-        ('journal_ref', 'Journal reference'),
-        ('acm_class', 'ACM classification'),
-        ('msc_class', 'MSC classification'),
-        ('report_num', 'Report number'),
-        ('paper_id', 'arXiv identifier'),
-        ('cross_list_category', 'Cross-list category'),
-        ('doi', 'DOI'),
-        ('orcid', 'ORCID'),
-        ('author_id', 'arXiv author ID'),
-        ('all', 'All fields')
+        ("title", "Title"),
+        ("author", "Author(s)"),
+        ("abstract", "Abstract"),
+        ("comments", "Comments"),
+        ("journal_ref", "Journal reference"),
+        ("acm_class", "ACM classification"),
+        ("msc_class", "MSC classification"),
+        ("report_num", "Report number"),
+        ("paper_id", "arXiv identifier"),
+        ("cross_list_category", "Cross-list category"),
+        ("doi", "DOI"),
+        ("orcid", "ORCID"),
+        ("author_id", "arXiv author ID"),
+        ("all", "All fields"),
     ]
 
     date_range: Optional[DateRange] = None
