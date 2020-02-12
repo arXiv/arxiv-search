@@ -234,7 +234,7 @@ class SortBy(str, Enum):
     def to_es(self) -> str:
         return {
             SortBy.relevance: "_score",
-            SortBy.last_updated_date: "update_date",
+            SortBy.last_updated_date: "updated_date",
             SortBy.submitted_date: "submitted_date",
         }[self]
 

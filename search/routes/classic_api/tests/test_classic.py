@@ -7,6 +7,7 @@ from unittest import TestCase, mock
 
 from arxiv.users import helpers, auth
 from arxiv.users.domain import Scope
+from search import consts
 from search import factory
 from search import domain
 from search.tests import mocks
@@ -181,8 +182,8 @@ class TestClassicAPISearchRequests(TestCase):
             "https://arxiv.org/help/api/user-manual#sort",
         )
 
-    def test_sort_order(self):
-        for value in domain.SortOrder:
+    def test_sort_direction(self):
+        for value in domain.SortDirection:
             response = self.client.get(
                 f"/classic_api/query?search_query=au:copernicus&"
                 f"sortOrder={value}",
@@ -197,8 +198,48 @@ class TestClassicAPISearchRequests(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.check_validation_error(
             response,
-            f"sortOrder must be in: {', '.join(domain.SortOrder)}",
+            f"sortOrder must be in: {', '.join(domain.SortDirection)}",
             "https://arxiv.org/help/api/user-manual#sort",
+        )
+
+    def test_sort_order(self):
+        # Default
+        sort_order = domain.SortOrder(by=None)
+        self.assertEqual(sort_order.to_es(), consts.DEFAULT_SORT_ORDER)
+
+        # Relevance/Score
+        sort_order = domain.SortOrder(by=domain.SortBy.relevance)
+        self.assertEqual(sort_order.to_es(), [{"_score": {"order": "desc"}}])
+        sort_order = domain.SortOrder(
+            by=domain.SortBy.relevance,
+            direction=domain.SortDirection.ascending,
+        )
+        self.assertEqual(sort_order.to_es(), [{"_score": {"order": "asc"}}])
+
+        # Submitted date/Publication date
+        sort_order = domain.SortOrder(by=domain.SortBy.submitted_date)
+        self.assertEqual(
+            sort_order.to_es(), [{"submitted_date": {"order": "desc"}}]
+        )
+        sort_order = domain.SortOrder(
+            by=domain.SortBy.submitted_date,
+            direction=domain.SortDirection.ascending,
+        )
+        self.assertEqual(
+            sort_order.to_es(), [{"submitted_date": {"order": "asc"}}]
+        )
+
+        # Last update date/Update date
+        sort_order = domain.SortOrder(by=domain.SortBy.last_updated_date)
+        self.assertEqual(
+            sort_order.to_es(), [{"updated_date": {"order": "desc"}}]
+        )
+        sort_order = domain.SortOrder(
+            by=domain.SortBy.last_updated_date,
+            direction=domain.SortDirection.ascending,
+        )
+        self.assertEqual(
+            sort_order.to_es(), [{"updated_date": {"order": "asc"}}]
         )
 
     def test_invalid_arxiv_id(self):

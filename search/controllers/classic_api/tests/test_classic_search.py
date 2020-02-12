@@ -96,14 +96,14 @@ class TestClassicAPISearch(TestCase):
         # Default value
         params = MultiDict({"search_query": "au:Copernicus"})
         data, _, _ = classic_api.query(params)
-        self.assertEqual(data.query.sort_by, domain.SortBy.relevance)
+        self.assertEqual(data.query.order.by, domain.SortBy.relevance)
         # Valid value
         for value in domain.SortBy:
             params = MultiDict(
                 {"search_query": "au:Copernicus", "sortBy": f"{value}"}
             )
             data, _, _ = classic_api.query(params)
-            self.assertEqual(data.query.sort_by, value)
+            self.assertEqual(data.query.order.by, value)
 
         # Invalid value
         params = MultiDict({"search_query": "au:Copernicus", "sortBy": "foo"})
@@ -115,14 +115,16 @@ class TestClassicAPISearch(TestCase):
         # Default value
         params = MultiDict({"search_query": "au:Copernicus"})
         data, _, _ = classic_api.query(params)
-        self.assertEqual(data.query.sort_order, domain.SortOrder.descending)
+        self.assertEqual(
+            data.query.order.direction, domain.SortDirection.descending
+        )
         # Valid value
-        for value in domain.SortOrder:
+        for value in domain.SortDirection:
             params = MultiDict(
                 {"search_query": "au:Copernicus", "sortOrder": f"{value}"}
             )
             data, _, _ = classic_api.query(params)
-            self.assertEqual(data.query.sort_order, value)
+            self.assertEqual(data.query.order.direction, value)
 
         # Invalid value
         params = MultiDict(
