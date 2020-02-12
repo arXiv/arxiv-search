@@ -32,6 +32,20 @@ class TestClassicAPISearchRequests(TestCase):
             )
         }
 
+    @staticmethod
+    def mock_classic_controller(controller, method="query", **kwargs):
+        docs: domain.DocumentSet = {
+            "results": [mocks.document()],
+            "metadata": {"start": 0, "end": 1, "size": 50, "total": 1},
+        }
+        r_data = domain.ClassicSearchResponseData(
+            results=docs,
+            query=domain.ClassicAPIQuery(
+                **(kwargs or {"search_query": "all:electron"})
+            ),
+        )
+        getattr(controller, method).return_value = r_data, HTTPStatus.OK, {}
+
     def test_request_without_token(self):
         """No auth token is provided on the request."""
         response = self.client.get(
@@ -56,15 +70,7 @@ class TestClassicAPISearchRequests(TestCase):
     @mock.patch(f"{factory.__name__}.classic_api.classic_api")
     def test_with_valid_token(self, mock_controller):
         """Client auth token has required public read scope."""
-        document = mocks.document()
-        docs = {
-            "results": [document],
-            "metadata": {"start": 0, "end": 1, "size": 50, "total": 1},
-        }
-        r_data = domain.ClassicSearchResponseData(
-            results=docs, query=domain.ClassicAPIQuery(id_list=["1234.5678"])
-        )
-        mock_controller.query.return_value = r_data, HTTPStatus.OK, {}
+        self.mock_classic_controller(mock_controller, id_list=["1234.5678"])
         response = self.client.get(
             "/classic_api/query?search_query=au:copernicus",
             headers=self.auth_header,
@@ -74,15 +80,7 @@ class TestClassicAPISearchRequests(TestCase):
     @mock.patch(f"{factory.__name__}.classic_api.classic_api")
     def test_paper_retrieval(self, mock_controller):
         """Test single-paper retrieval."""
-        document = mocks.document()
-        docs = {
-            "results": [document],
-            "metadata": {"start": 0, "end": 1, "size": 50, "total": 1},
-        }
-        r_data = domain.ClassicSearchResponseData(
-            results=docs, query=domain.APIQuery()
-        )
-        mock_controller.paper.return_value = r_data, HTTPStatus.OK, {}
+        self.mock_classic_controller(mock_controller, method="paper")
         response = self.client.get(
             "/classic_api/1234.56789v6", headers=self.auth_header
         )
@@ -162,7 +160,10 @@ class TestClassicAPISearchRequests(TestCase):
             "http://arxiv.org/api/errors#max_results_must_be_non-negative",
         )
 
-    def test_sort_by(self):
+    @mock.patch(f"{factory.__name__}.classic_api.classic_api")
+    def test_sort_by_valid_values(self, mock_controller):
+        self.mock_classic_controller(mock_controller)
+
         for value in domain.SortBy:
             response = self.client.get(
                 f"/classic_api/query?search_query=au:copernicus&"
@@ -171,6 +172,7 @@ class TestClassicAPISearchRequests(TestCase):
             )
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
+    def test_sort_by_invalid_values(self):
         response = self.client.get(
             "/classic_api/query?search_query=au:copernicus&sortBy=foo",
             headers=self.auth_header,
@@ -182,7 +184,10 @@ class TestClassicAPISearchRequests(TestCase):
             "https://arxiv.org/help/api/user-manual#sort",
         )
 
-    def test_sort_direction(self):
+    @mock.patch(f"{factory.__name__}.classic_api.classic_api")
+    def test_sort_direction_valid_values(self, mock_controller):
+        self.mock_classic_controller(mock_controller)
+
         for value in domain.SortDirection:
             response = self.client.get(
                 f"/classic_api/query?search_query=au:copernicus&"
@@ -191,6 +196,7 @@ class TestClassicAPISearchRequests(TestCase):
             )
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
+    def test_sort_direction_invalid_values(self):
         response = self.client.get(
             "/classic_api/query?search_query=au:copernicus&sortOrder=foo",
             headers=self.auth_header,
