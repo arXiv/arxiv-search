@@ -8,6 +8,9 @@ from dataclasses import dataclass, field, asdict as _asdict
 
 from mypy_extensions import TypedDict
 
+from search import consts
+
+
 EASTERN = timezone("US/Eastern")
 
 
@@ -215,9 +218,12 @@ Examples
 """
 
 
-class SortOrder(str, Enum):
+class SortDirection(str, Enum):
     ascending = "ascending"
     descending = "descending"
+
+    def to_es(self) -> Dict[str, str]:
+        return {"order": "asc" if self == SortDirection.ascending else "desc"}
 
 
 class SortBy(str, Enum):
@@ -225,19 +231,24 @@ class SortBy(str, Enum):
     last_updated_date = "lastUpdatedDate"
     submitted_date = "submittedDate"
 
-    def to_es(self, order: SortOrder) -> Dict[str, Dict[str, str]]:
+    def to_es(self) -> str:
         return {
-            self._table[self]: {
-                "order": "asc" if order == SortOrder.ascending else "desc"
-            }
-        }
+            SortBy.relevance: "_score",
+            SortBy.last_updated_date: "update_date",
+            SortBy.submitted_date: "submitted_date",
+        }[self]
 
 
-SortBy._table = {
-    SortBy.relevance: "_score",
-    SortBy.last_updated_date: "update_date",
-    SortBy.submitted_date: "submitted_date",
-}
+@dataclass
+class SortOrder:
+    by: Optional[SortBy] = None
+    direction: SortDirection = SortDirection.descending
+
+    def to_es(self):
+        if self.by is None:
+            return consts.DEFAULT_SORT_ORDER
+        else:
+            return [{self.by.to_es(): self.direction.to_es()}]
 
 
 @dataclass
@@ -266,7 +277,7 @@ class Query:
         ("full_text", "Full text"),
     ]
 
-    order: Optional[str] = field(default=None)
+    order: Union[SortOrder, Optional[str]] = field(default=None)
     size: int = field(default=50)
     page_start: int = field(default=0)
     include_older_versions: bool = field(default=False)

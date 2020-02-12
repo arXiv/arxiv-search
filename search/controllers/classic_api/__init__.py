@@ -13,6 +13,9 @@ from arxiv.identifier import parse_arxiv_id
 from search.services import index
 from search.errors import ValidationError
 from search.domain import (
+    SortDirection,
+    SortBy,
+    SortOrder,
     DocumentSet,
     ClassicAPIQuery,
     ClassicSearchResponseData,
@@ -115,33 +118,30 @@ def query(
         )
 
     # sort by and sort order
-    value = params.get("sortBy", ClassicAPIQuery.SortBy.relevance)
+    value = params.get("sortBy", SortBy.relevance)
     try:
-        sort_by = ClassicAPIQuery.SortBy(value)
+        sort_by = SortBy(value)
     except ValueError:
         raise ValidationError(
-            message=f"sortBy must be in: {', '.join(ClassicAPIQuery.SortBy)}",
+            message=f"sortBy must be in: {', '.join(SortBy)}",
             link="https://arxiv.org/help/api/user-manual#sort",
         )
-    value = params.get("sortOrder", ClassicAPIQuery.SortOrder.descending)
+    value = params.get("sortOrder", SortDirection.descending)
     try:
-        sort_order = ClassicAPIQuery.SortOrder(value)
+        sort_direction = SortDirection(value)
     except ValueError:
         raise ValidationError(
-            message=(
-                f"sortOrder must be in: {', '.join(ClassicAPIQuery.SortOrder)}"
-            ),
+            message=f"sortOrder must be in: {', '.join(SortDirection)}",
             link="https://arxiv.org/help/api/user-manual#sort",
         )
 
     try:
         classic_query = ClassicAPIQuery(
+            order=SortOrder(by=sort_by, direction=sort_direction),
             search_query=search_query,
             id_list=id_list,
             size=max_results,
             page_start=start,
-            sort_by=sort_by,
-            sort_order=sort_order,
         )
     except ValueError:
         raise BadRequest(
