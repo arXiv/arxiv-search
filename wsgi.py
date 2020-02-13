@@ -13,7 +13,7 @@ __flask_app__ = None
 def application(environ, start_response):
     """WSGI application factory."""
     for key, value in environ.items():
-        # Copy string WSGI envrion to os.environ. This is to get apache
+        # Copy string WSGI environ to os.environ. This is to get apache
         # SetEnv vars.  It needs to be done before the call to
         # create_web_app() due to how config is setup from os in
         # search/config.py.
