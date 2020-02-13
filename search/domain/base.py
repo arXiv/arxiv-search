@@ -123,7 +123,7 @@ class ClassificationList(list):
         return ", ".join([str(item) for item in self])
 
 
-class Operator(Enum):
+class Operator(str, Enum):
     """Supported boolean operators."""
 
     AND = "AND"
@@ -151,7 +151,7 @@ class Operator(Enum):
         return True
 
 
-class Field(Enum):
+class Field(str, Enum):
     """Supported fields in the classic API."""
 
     Title = "ti"

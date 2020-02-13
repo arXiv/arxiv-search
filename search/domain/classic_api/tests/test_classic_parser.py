@@ -1,5 +1,8 @@
 # type: ignore
 """Test cases for the classic parser."""
+from typing import List
+from dataclasses import dataclass
+
 from search.domain import Phrase, Field, Operator
 from search.domain.classic_api.query_parser import (
     parse_classic_query,
@@ -10,60 +13,65 @@ from werkzeug.exceptions import BadRequest
 from unittest import TestCase
 
 
-class TestParsing(TestCase):
-    """Testing the classic parser."""
+@dataclass
+class Case:
+    message: str
+    query: str
+    phrase: Phrase = None
 
-    def test_simple_query_without_nesting(self):
-        """Simple query without grouping/nesting."""
-        querystring = "au:copernicus"
-        phrase: Phrase = (Field.Author, "copernicus")
-        self.assertEqual(parse_classic_query(querystring), phrase)
 
-    def test_simple_query_with_quotes(self):
-        """Simple query with quotations."""
-        querystring = 'ti:"dark matter"'
-        phrase: Phrase = (Field.Title, "dark matter")
-        self.assertEqual(parse_classic_query(querystring), phrase)
-
-    def test_simple_query_with_unary_and_without_nesting(self):
-        """Simple query with a unary operator without grouping/nesting."""
-        querystring = "ANDNOT au:copernicus"
-        phrase: Phrase = (Operator.ANDNOT, (Field.Author, "copernicus"))
-        self.assertEqual(parse_classic_query(querystring), phrase)
-
-    def test_simple_conjunct_query(self):
-        """Simple conjunct query."""
-        querystring = "au:del_maestro AND ti:checkerboard"
-        phrase: Phrase = (
+TEST_PARSE_OK_CASES: List[Case] = [
+    Case(
+        message="Simple query without grouping/nesting.",
+        query="au:copernicus",
+        phrase=(Field.Author, "copernicus"),
+    ),
+    Case(
+        message="Simple query with quotations.",
+        query='ti:"dark matter"',
+        phrase=(Field.Title, "dark matter"),
+    ),
+    Case(
+        message="Simple query with quotations and extra spacing.",
+        query='ti:"  dark matter    "',
+        phrase=(Field.Title, "dark matter"),
+    ),
+    Case(
+        message="Simple conjunct query.",
+        query="au:del_maestro AND ti:checkerboard",
+        phrase=(
             (Field.Author, "del_maestro"),
             (Operator.AND, (Field.Title, "checkerboard")),
-        )
-        self.assertEqual(parse_classic_query(querystring), phrase)
-
-    def test_simple_conjunct_query_with_quotes(self):
-        """Simple conjunct query with quoted field."""
-        querystring = 'au:del_maestro AND ti:"dark matter"'
-        phrase: Phrase = (
+        ),
+    ),
+    Case(
+        message="Simple conjunct query with quoted field.",
+        query='au:del_maestro AND ti:"dark matter"',
+        phrase=(
             (Field.Author, "del_maestro"),
             (Operator.AND, (Field.Title, "dark matter")),
-        )
-        self.assertEqual(parse_classic_query(querystring), phrase)
-
-    def test_simple_conjunct_query_with_unary(self):
-        """Disjunct query with an unary not."""
-        querystring = "au:del_maestro OR (ANDNOT ti:checkerboard)"
-        phrase = (
+        ),
+    ),
+    Case(
+        message="Simple conjunct query with quoted field and spacing.",
+        query='au:del_maestro AND ti:"   dark matter   "',
+        phrase=(
+            (Field.Author, "del_maestro"),
+            (Operator.AND, (Field.Title, "dark matter")),
+        ),
+    ),
+    Case(
+        message="Disjunct query with an unary not.",
+        query="au:del_maestro OR (ANDNOT ti:checkerboard)",
+        phrase=(
             (Field.Author, "del_maestro"),
             (Operator.OR, (Operator.ANDNOT, (Field.Title, "checkerboard"))),
-        )
-        self.assertEqual(parse_classic_query(querystring), phrase)
-
-    def test_conjunct_with_nested_disjunct(self):
-        """Conjunct query with nested disjunct query."""
-        querystring = (
-            "au:del_maestro ANDNOT (ti:checkerboard OR ti:Pyrochlore)"
-        )
-        phrase = (
+        ),
+    ),
+    Case(
+        message="Conjunct query with nested disjunct query.",
+        query="au:del_maestro ANDNOT (ti:checkerboard OR ti:Pyrochlore)",
+        phrase=(
             (Field.Author, "del_maestro"),
             (
                 Operator.ANDNOT,
@@ -72,16 +80,15 @@ class TestParsing(TestCase):
                     (Operator.OR, (Field.Title, "Pyrochlore")),
                 ),
             ),
-        )
-        self.assertEqual(parse_classic_query(querystring), phrase)
-
-    def test_conjunct_with_extra_nested_disjunct(self):
-        """Conjunct query with nested disjunct query."""
-        querystring = (
-            "((au:del_maestro OR au:bob)"
-            " ANDNOT (ti:checkerboard OR ti:Pyrochlore))"
-        )
-        phrase = (
+        ),
+    ),
+    Case(
+        message="Conjunct query with nested disjunct query.",
+        query=(
+            "((au:del_maestro OR au:bob) "
+            "ANDNOT (ti:checkerboard OR ti:Pyrochlore))"
+        ),
+        phrase=(
             (
                 (Field.Author, "del_maestro"),
                 (Operator.OR, (Field.Author, "bob")),
@@ -93,30 +100,26 @@ class TestParsing(TestCase):
                     (Operator.OR, (Field.Title, "Pyrochlore")),
                 ),
             ),
-        )
-        self.assertEqual(parse_classic_query(querystring), phrase)
-
-    def test_conjunct_with_nested_disjunct_first(self):
-        """Conjunct query with nested disjunct query."""
-        querystring = (
-            "(ti:checkerboard OR ti:Pyrochlore) ANDNOT au:del_maestro"
-        )
-        phrase = (
+        ),
+    ),
+    Case(
+        message="Conjunct ANDNOT query with nested disjunct query.",
+        query="(ti:checkerboard OR ti:Pyrochlore) ANDNOT au:del_maestro",
+        phrase=(
             (
                 (Field.Title, "checkerboard"),
                 (Operator.OR, (Field.Title, "Pyrochlore")),
             ),
             (Operator.ANDNOT, (Field.Author, "del_maestro")),
-        )
-        self.assertEqual(parse_classic_query(querystring), phrase)
-
-    def test_conjunct_with_nested_phrases(self):
-        """Conjunct query with nested disjunct query."""
-        querystring = (
+        ),
+    ),
+    Case(
+        message="Conjunct AND query with nested disjunct query.",
+        query=(
             "(ti:checkerboard OR ti:Pyrochlore) AND "
             "(au:del_maestro OR au:hawking)"
-        )
-        phrase = (
+        ),
+        phrase=(
             (
                 (Field.Title, "checkerboard"),
                 (Operator.OR, (Field.Title, "Pyrochlore")),
@@ -128,73 +131,59 @@ class TestParsing(TestCase):
                     (Operator.OR, (Field.Author, "hawking")),
                 ),
             ),
-        )
-        self.assertEqual(parse_classic_query(querystring), phrase)
+        ),
+    ),
+]
 
-    def test_error_double_conjunct(self):
-        """Error case with two consecutive operators."""
-        querystring = "ti:a or and ti:b"
-        with self.assertRaises(BadRequest):
-            parse_classic_query(querystring)
+TEST_PARSE_ERROR_CASES: List[Case] = [
+    Case(
+        message="Error case with two consecutive operators.",
+        query="ti:a or and ti:b",
+    ),
+    Case(
+        message="Error case with two consecutive terms.",
+        query="ti:a and ti:b ti:c",
+    ),
+    Case(
+        message="Error case with a trailing operator.",
+        query="ti:a and ti:b and",
+    ),
+    Case(
+        message="Error case with a leading operator.", query="or ti:a and ti:b"
+    ),
+    Case(message="Testing unclosed quote.", query='ti:a and ti:"b'),
+    Case(
+        message="Testing query string with many problems.",
+        query='or ti:a and and ti:"b',
+    ),
+]
 
-    def test_error_double_operand(self):
-        """Error case with two consecutive terms."""
-        querystring = "ti:a and ti:b ti:c"
-        with self.assertRaises(BadRequest):
-            parse_classic_query(querystring)
-
-    def test_error_trailing_operator(self):
-        """Error case with a trailing operator."""
-        querystring = "ti:a and ti:b and"
-        with self.assertRaises(BadRequest):
-            parse_classic_query(querystring)
-
-    def test_error_leading_operator(self):
-        """Error case with a leading operator."""
-        querystring = "or ti:a and ti:b"
-        with self.assertRaises(BadRequest):
-            parse_classic_query(querystring)
-
-    def test_bad_quote(self):
-        """Testing unclosed quote."""
-        querystring = 'ti:a and ti:"b'
-        with self.assertRaises(BadRequest):
-            parse_classic_query(querystring)
-
-    def test_multiple_errors(self):
-        """Testing query string with many problems."""
-        querystring = 'or ti:a and and ti:"b'
-        with self.assertRaises(BadRequest):
-            parse_classic_query(querystring)
-
-    def test_serialize_query(self):
-        """Simple query serialization."""
-        querystring = "au:copernicus"
-        phrase: Phrase = (Field.Author, "copernicus")
-        self.assertEqual(phrase_to_query_string(phrase), querystring)
-
-    def test_serialize_simple_query_with_quotes(self):
-        """Simple query with quotations."""
-        querystring = 'ti:"dark matter"'
-        phrase: Phrase = (Field.Title, "dark matter")
-        self.assertEqual(phrase_to_query_string(phrase), querystring)
-
-    def test_serialize_simple_conjunct_query(self):
-        """Simple conjunct query."""
-        querystring = "au:del_maestro AND ti:checkerboard"
-        phrase: Phrase = (
+TEST_SERIALIZE_CASES: List[Case] = [
+    Case(
+        message="Simple query serialization.",
+        query="au:copernicus",
+        phrase=(Field.Author, "copernicus"),
+    ),
+    Case(
+        message="Simple query with quotations.",
+        query='ti:"dark matter"',
+        phrase=(Field.Title, "dark matter"),
+    ),
+    Case(
+        message="Simple conjunct query.",
+        query="au:del_maestro AND ti:checkerboard",
+        phrase=(
             (Field.Author, "del_maestro"),
             (Operator.AND, (Field.Title, "checkerboard")),
-        )
-        self.assertEqual(phrase_to_query_string(phrase), querystring)
-
-    def test_serialize_conjunct_with_nested_phrases(self):
-        """Conjunct query with nested disjunct query."""
-        querystring = (
+        ),
+    ),
+    Case(
+        message="Conjunct query with nested disjunct query.",
+        query=(
             "(ti:checkerboard OR ti:Pyrochlore) AND "
             "(au:del_maestro OR au:hawking)"
-        )
-        phrase = (
+        ),
+        phrase=(
             (
                 (Field.Title, "checkerboard"),
                 (Operator.OR, (Field.Title, "Pyrochlore")),
@@ -206,5 +195,34 @@ class TestParsing(TestCase):
                     (Operator.OR, (Field.Author, "hawking")),
                 ),
             ),
-        )
-        self.assertEqual(phrase_to_query_string(phrase), querystring)
+        ),
+    ),
+]
+
+
+class TestParsing(TestCase):
+    """Testing the classic parser."""
+
+    def test_all_valid_field_values(self):
+        for field in Field:
+            result = parse_classic_query(f"{field}:some_text")
+            self.assertEqual(result, (field, "some_text"))
+
+    def test_parse_ok_test_cases(self):
+        for case in TEST_PARSE_OK_CASES:
+            self.assertEqual(
+                parse_classic_query(case.query), case.phrase, msg=case.message
+            )
+
+    def test_parse_error_test_cases(self):
+        for case in TEST_PARSE_ERROR_CASES:
+            with self.assertRaises(BadRequest, msg=case.message):
+                parse_classic_query(case.query)
+
+    def test_serialize_cases(self):
+        for case in TEST_SERIALIZE_CASES:
+            self.assertEqual(
+                phrase_to_query_string(case.phrase),
+                case.query,
+                msg=case.message,
+            )

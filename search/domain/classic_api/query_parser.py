@@ -19,7 +19,6 @@ set of Tuples::
 See :module:`tests.test_query_parser` for more examples.
 """
 
-
 from typing import List, Optional, Union
 
 from werkzeug.exceptions import BadRequest
@@ -173,6 +172,7 @@ def _parse_field_query(field_part: str) -> Term:
     value = value.strip()
     if value.startswith('"') and value.endswith('"'):
         value = value[1:-1]
+        value = value.strip()
 
     return field, value
 
