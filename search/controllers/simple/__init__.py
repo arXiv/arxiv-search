@@ -11,7 +11,7 @@ from typing import Tuple, Dict, Any, Optional, List
 
 from flask import url_for
 from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
-from werkzeug import MultiDict, ImmutableMultiDict
+from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
 from arxiv.base import logging
 from arxiv import status, identifier

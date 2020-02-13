@@ -1,8 +1,7 @@
 """Tests for simple search controller, :mod:`search.controllers.simple`."""
 
 from unittest import TestCase, mock
-
-from werkzeug import MultiDict
+from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
 
 from arxiv import status

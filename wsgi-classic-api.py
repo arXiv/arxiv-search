@@ -1,6 +1,6 @@
-"""Web Server Gateway Interface entry-point for API."""
+"""Web Server Gateway Interface entry-point for classic API."""
 
-from search.factory import create_api_web_app
+from search.factory import create_classic_api_web_app
 import os
 
 
@@ -21,6 +21,6 @@ def application(environ, start_response):
             os.environ[key] = value
     global __flask_app__
     if __flask_app__ is None:
-        __flask_app__ = create_api_web_app()
+        __flask_app__ = create_classic_api_web_app()
 
     return __flask_app__(environ, start_response)

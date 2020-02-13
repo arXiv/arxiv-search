@@ -2,7 +2,7 @@
 
 from http import HTTPStatus
 from unittest import TestCase, mock
-from werkzeug import MultiDict
+from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest
 
 from search.controllers import api

@@ -9,6 +9,7 @@ omit =
     *test*
     wsgi.py
     wsgi-api.py
+    wsgi-classic-api.py
     wsgi-app.py
     populate_test_metadata.py
     upload_static_assets.py
