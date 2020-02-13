@@ -1,6 +1,5 @@
 """Tests for :mod:`search.services.index`."""
 
-from pytz import timezone
 from unittest import TestCase, mock
 from datetime import datetime, timedelta
 
@@ -8,6 +7,8 @@ from search.services import index
 from search.services.index import advanced
 from search.services.index.util import wildcard_escape, Q_
 from search.domain import (
+    SortBy,
+    SortOrder,
     FieldedSearchTerm,
     DateRange,
     Classification,
@@ -19,8 +20,6 @@ from search.domain import (
     ClassicAPIQuery,
     Operator,
 )
-
-EASTERN = timezone("US/Eastern")
 
 
 class TestClassicApiQuery(TestCase):
@@ -249,7 +248,9 @@ class TestSearch(TestCase):
         mock_Search.__getitem__.return_value = mock_Search
 
         query = ClassicAPIQuery(
-            phrase=(Field.Author, "copernicus"), order="relevance", size=10
+            phrase=(Field.Author, "copernicus"),
+            order=SortOrder(by=SortBy.relevance),
+            size=10,
         )
 
         document_set = index.SearchSession.search(query)
@@ -288,7 +289,7 @@ class TestSearch(TestCase):
                 Operator.OR,
                 (Operator.ANDNOT, (Field.Title, "dark matter")),
             ),
-            order="relevance",
+            order=SortOrder(by=SortBy.relevance),
             size=10,
         )
 
@@ -323,7 +324,9 @@ class TestSearch(TestCase):
         mock_Search.__getitem__.return_value = mock_Search
 
         query = ClassicAPIQuery(
-            id_list=["1234.56789"], order="relevance", size=10
+            id_list=["1234.56789"],
+            order=SortOrder(by=SortBy.relevance),
+            size=10,
         )
 
         document_set = index.SearchSession.search(query)
@@ -362,7 +365,7 @@ class TestSearch(TestCase):
                 Operator.AND,
                 (Field.Title, "philosophy"),
             ),
-            order="relevance",
+            order=SortOrder(by=SortBy.relevance),
             size=10,
         )
 

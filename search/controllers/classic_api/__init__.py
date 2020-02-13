@@ -1,9 +1,7 @@
 """Controller for classic arXiv API requests."""
 
-from pytz import timezone
 from http import HTTPStatus
-from typing import Tuple, Dict, Any, Union
-from mypy_extensions import TypedDict
+from typing import Tuple, Dict, Any
 
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest, NotFound
@@ -13,20 +11,21 @@ from arxiv.identifier import parse_arxiv_id
 
 from search.services import index
 from search.errors import ValidationError
-from search.domain import Query, DocumentSet, ClassicAPIQuery
+from search.domain import (
+    SortDirection,
+    SortBy,
+    SortOrder,
+    DocumentSet,
+    ClassicAPIQuery,
+    ClassicSearchResponseData,
+)
 
 logger = logging.getLogger(__name__)
-EASTERN = timezone("US/Eastern")
-
-SearchResponseData = TypedDict(
-    "SearchResponseData",
-    {"results": DocumentSet, "query": Union[Query, ClassicAPIQuery]},
-)
 
 
 def query(
     params: MultiDict,
-) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
+) -> Tuple[ClassicSearchResponseData, HTTPStatus, Dict[str, Any]]:
     """
     Handle a search request from the Clasic API.
 
@@ -51,7 +50,7 @@ def query(
 
     Returns
     -------
-    dict
+    SearchResponseData
         Response data (to serialize).
     int
         HTTP status code.
@@ -116,8 +115,27 @@ def query(
             link="http://arxiv.org/api/errors#start_must_be_non-negative",
         )
 
+    # sort by and sort order
+    value = params.get("sortBy", SortBy.relevance)
     try:
-        query = ClassicAPIQuery(
+        sort_by = SortBy(value)
+    except ValueError:
+        raise ValidationError(
+            message=f"sortBy must be in: {', '.join(SortBy)}",
+            link="https://arxiv.org/help/api/user-manual#sort",
+        )
+    value = params.get("sortOrder", SortDirection.descending)
+    try:
+        sort_direction = SortDirection(value)
+    except ValueError:
+        raise ValidationError(
+            message=f"sortOrder must be in: {', '.join(SortDirection)}",
+            link="https://arxiv.org/help/api/user-manual#sort",
+        )
+
+    try:
+        classic_query = ClassicAPIQuery(
+            order=SortOrder(by=sort_by, direction=sort_direction),
             search_query=search_query,
             id_list=id_list,
             size=max_results,
@@ -131,18 +149,22 @@ def query(
 
     # pass to search indexer, which will handle parsing
     document_set: DocumentSet = index.SearchSession.current_session().search(
-        query
+        classic_query
     )
-    data: SearchResponseData = {"results": document_set, "query": query}
     logger.debug(
         "Got document set with %i results", len(document_set["results"])
     )
 
-    # bad mypy inference on TypedDict and the status code
-    return data, HTTPStatus.OK, {}  # type:ignore
+    return (
+        ClassicSearchResponseData(results=document_set, query=classic_query),
+        HTTPStatus.OK,
+        {},
+    )
 
 
-def paper(paper_id: str) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
+def paper(
+    paper_id: str,
+) -> Tuple[ClassicSearchResponseData, HTTPStatus, Dict[str, Any]]:
     """
     Handle a request for paper metadata from the API.
 
@@ -173,4 +195,4 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], HTTPStatus, Dict[str, Any]]:
     except index.DocumentNotFound as ex:
         logger.error("Document not found")
         raise NotFound("No such document") from ex
-    return {"results": document}, HTTPStatus.OK, {}
+    return ClassicSearchResponseData(results=document), HTTPStatus.OK, {}

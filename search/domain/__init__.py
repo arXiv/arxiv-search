@@ -10,6 +10,7 @@ intelligibility of the codebase.
 
 __all__ = [
     # base
+    "asdict",
     "DocMeta",
     "Fulltext",
     "DateRange",
@@ -19,6 +20,10 @@ __all__ = [
     "Field",
     "Term",
     "Phrase",
+    "Phrase",
+    "SortDirection",
+    "SortBy",
+    "SortOrder",
     "Query",
     "SimpleQuery",
     # advanced
@@ -29,6 +34,7 @@ __all__ = [
     "APIQuery",
     # classic api
     "ClassicAPIQuery",
+    "ClassicSearchResponseData",
     # documenhts
     "Error",
     "Document",
@@ -38,6 +44,7 @@ __all__ = [
 
 # pylint: disable=wildcard-import
 from search.domain.base import (
+    asdict,
     DocMeta,
     Fulltext,
     DateRange,
@@ -47,6 +54,9 @@ from search.domain.base import (
     Field,
     Term,
     Phrase,
+    SortDirection,
+    SortBy,
+    SortOrder,
     Query,
     SimpleQuery,
 )
@@ -56,7 +66,10 @@ from search.domain.advanced import (
     AdvancedQuery,
 )
 from search.domain.api import APIQuery
-from search.domain.classic_api import ClassicAPIQuery
+from search.domain.classic_api import (
+    ClassicAPIQuery,
+    ClassicSearchResponseData,
+)
 from search.domain.documents import (
     Error,
     Document,

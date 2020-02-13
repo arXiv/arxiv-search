@@ -1,14 +1,13 @@
 """Tests for advanced search controller, :mod:`search.controllers.advanced`."""
 
+from http import HTTPStatus
 from unittest import TestCase, mock
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest
 
-from arxiv import status
-
-from search.domain import DateRange, Classification
 from search.controllers import api
 from search.domain import api as api_domain
+from search.domain import DateRange, Classification
 
 
 class TestAPISearch(TestCase):
@@ -20,7 +19,7 @@ class TestAPISearch(TestCase):
         params = MultiDict({})
         data, code, headers = api.search(params)
 
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertEqual(code, HTTPStatus.OK, "Returns 200 OK")
         self.assertIn("results", data, "Results are returned")
         self.assertIn("query", data, "Query object is returned")
         expected_fields = (
@@ -39,7 +38,7 @@ class TestAPISearch(TestCase):
         params = MultiDict({"query": 'au:copernicus AND ti:"dark matter"'})
         data, code, headers = api.search(params)
 
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertEqual(code, HTTPStatus.OK, "Returns 200 OK")
         self.assertIn("results", data, "Results are returned")
         self.assertIn("query", data, "Query object is returned")
         expected_fields = (
@@ -59,7 +58,7 @@ class TestAPISearch(TestCase):
         params = MultiDict({"include": extra_fields})
         data, code, headers = api.search(params)
 
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertEqual(code, HTTPStatus.OK, "Returns 200 OK")
         self.assertIn("results", data, "Results are returned")
         self.assertIn("query", data, "Query object is returned")
         expected_fields = api_domain.get_required_fields() + extra_fields
@@ -76,7 +75,7 @@ class TestAPISearch(TestCase):
         params = MultiDict({"primary_classification": group})
         data, code, headers = api.search(params)
 
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertEqual(code, HTTPStatus.OK, "Returns 200 OK")
         query = mock_index.search.call_args[0][0]
         self.assertEqual(len(query.primary_classification), 1)
         self.assertEqual(
@@ -91,7 +90,7 @@ class TestAPISearch(TestCase):
         params = MultiDict({"primary_classification": archive})
         data, code, headers = api.search(params)
 
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertEqual(code, HTTPStatus.OK, "Returns 200 OK")
         query = mock_index.search.call_args[0][0]
         self.assertEqual(len(query.primary_classification), 1)
         self.assertEqual(
@@ -106,7 +105,7 @@ class TestAPISearch(TestCase):
         params = MultiDict({"primary_classification": archive})
         data, code, headers = api.search(params)
 
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertEqual(code, HTTPStatus.OK, "Returns 200 OK")
         query = mock_index.search.call_args[0][0]
         self.assertEqual(len(query.primary_classification), 2)
         self.assertEqual(
@@ -126,7 +125,7 @@ class TestAPISearch(TestCase):
         params = MultiDict({"primary_classification": category})
         data, code, headers = api.search(params)
 
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertEqual(code, HTTPStatus.OK, "Returns 200 OK")
         query = mock_index.search.call_args[0][0]
         self.assertEqual(len(query.primary_classification), 1)
         self.assertEqual(
@@ -147,7 +146,7 @@ class TestAPISearch(TestCase):
         params = MultiDict({"start_date": "1999-01-02"})
         data, code, headers = api.search(params)
 
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertEqual(code, HTTPStatus.OK, "Returns 200 OK")
         query = mock_index.search.call_args[0][0]
         self.assertIsNotNone(query.date_range)
         self.assertEqual(query.date_range.start_date.year, 1999)
@@ -167,7 +166,7 @@ class TestAPISearch(TestCase):
         )
         data, code, headers = api.search(params)
 
-        self.assertEqual(code, status.HTTP_200_OK, "Returns 200 OK")
+        self.assertEqual(code, HTTPStatus.OK, "Returns 200 OK")
         query = mock_index.search.call_args[0][0]
         self.assertIsNotNone(query.date_range)
         self.assertEqual(query.date_range.end_date.year, 1999)

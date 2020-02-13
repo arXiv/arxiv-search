@@ -7,6 +7,7 @@ from unittest import TestCase, mock
 
 from arxiv.users import helpers, auth
 from arxiv.users.domain import Scope
+from search import consts
 from search import factory
 from search import domain
 from search.tests import mocks
@@ -30,6 +31,20 @@ class TestClassicAPISearchRequests(TestCase):
                 scope=[auth.scopes.READ_PUBLIC],
             )
         }
+
+    @staticmethod
+    def mock_classic_controller(controller, method="query", **kwargs):
+        docs: domain.DocumentSet = {
+            "results": [mocks.document()],
+            "metadata": {"start": 0, "end": 1, "size": 50, "total": 1},
+        }
+        r_data = domain.ClassicSearchResponseData(
+            results=docs,
+            query=domain.ClassicAPIQuery(
+                **(kwargs or {"search_query": "all:electron"})
+            ),
+        )
+        getattr(controller, method).return_value = r_data, HTTPStatus.OK, {}
 
     def test_request_without_token(self):
         """No auth token is provided on the request."""
@@ -55,16 +70,7 @@ class TestClassicAPISearchRequests(TestCase):
     @mock.patch(f"{factory.__name__}.classic_api.classic_api")
     def test_with_valid_token(self, mock_controller):
         """Client auth token has required public read scope."""
-        document = mocks.document()
-        docs = {
-            "results": [document],
-            "metadata": {"start": 0, "end": 1, "size": 50, "total": 1},
-        }
-        r_data = {
-            "results": docs,
-            "query": domain.ClassicAPIQuery(id_list=["1234.5678"]),
-        }
-        mock_controller.query.return_value = r_data, HTTPStatus.OK, {}
+        self.mock_classic_controller(mock_controller, id_list=["1234.5678"])
         response = self.client.get(
             "/classic_api/query?search_query=au:copernicus",
             headers=self.auth_header,
@@ -74,13 +80,7 @@ class TestClassicAPISearchRequests(TestCase):
     @mock.patch(f"{factory.__name__}.classic_api.classic_api")
     def test_paper_retrieval(self, mock_controller):
         """Test single-paper retrieval."""
-        document = mocks.document()
-        docs = {
-            "results": [document],
-            "metadata": {"start": 0, "end": 1, "size": 50, "total": 1},
-        }
-        r_data = {"results": docs, "query": domain.APIQuery()}
-        mock_controller.paper.return_value = r_data, HTTPStatus.OK, {}
+        self.mock_classic_controller(mock_controller, method="paper")
         response = self.client.get(
             "/classic_api/1234.56789v6", headers=self.auth_header
         )
@@ -100,7 +100,7 @@ class TestClassicAPISearchRequests(TestCase):
         return et.find(self._fix_path(path))
 
     def _text(self, et: ElementTree, path: str):
-        """Return the text content of the node"""
+        """Return the text content of the node."""
         return et.findtext(self._fix_path(path))
 
     def check_validation_error(self, response, error, link):
@@ -158,6 +158,94 @@ class TestClassicAPISearchRequests(TestCase):
             response,
             "max_results must be non-negative",
             "http://arxiv.org/api/errors#max_results_must_be_non-negative",
+        )
+
+    @mock.patch(f"{factory.__name__}.classic_api.classic_api")
+    def test_sort_by_valid_values(self, mock_controller):
+        self.mock_classic_controller(mock_controller)
+
+        for value in domain.SortBy:
+            response = self.client.get(
+                f"/classic_api/query?search_query=au:copernicus&"
+                f"sortBy={value}",
+                headers=self.auth_header,
+            )
+            self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_sort_by_invalid_values(self):
+        response = self.client.get(
+            "/classic_api/query?search_query=au:copernicus&sortBy=foo",
+            headers=self.auth_header,
+        )
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.check_validation_error(
+            response,
+            f"sortBy must be in: {', '.join(domain.SortBy)}",
+            "https://arxiv.org/help/api/user-manual#sort",
+        )
+
+    @mock.patch(f"{factory.__name__}.classic_api.classic_api")
+    def test_sort_direction_valid_values(self, mock_controller):
+        self.mock_classic_controller(mock_controller)
+
+        for value in domain.SortDirection:
+            response = self.client.get(
+                f"/classic_api/query?search_query=au:copernicus&"
+                f"sortOrder={value}",
+                headers=self.auth_header,
+            )
+            self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_sort_direction_invalid_values(self):
+        response = self.client.get(
+            "/classic_api/query?search_query=au:copernicus&sortOrder=foo",
+            headers=self.auth_header,
+        )
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.check_validation_error(
+            response,
+            f"sortOrder must be in: {', '.join(domain.SortDirection)}",
+            "https://arxiv.org/help/api/user-manual#sort",
+        )
+
+    def test_sort_order(self):
+        # Default
+        sort_order = domain.SortOrder(by=None)
+        self.assertEqual(sort_order.to_es(), consts.DEFAULT_SORT_ORDER)
+
+        # Relevance/Score
+        sort_order = domain.SortOrder(by=domain.SortBy.relevance)
+        self.assertEqual(sort_order.to_es(), [{"_score": {"order": "desc"}}])
+        sort_order = domain.SortOrder(
+            by=domain.SortBy.relevance,
+            direction=domain.SortDirection.ascending,
+        )
+        self.assertEqual(sort_order.to_es(), [{"_score": {"order": "asc"}}])
+
+        # Submitted date/Publication date
+        sort_order = domain.SortOrder(by=domain.SortBy.submitted_date)
+        self.assertEqual(
+            sort_order.to_es(), [{"submitted_date": {"order": "desc"}}]
+        )
+        sort_order = domain.SortOrder(
+            by=domain.SortBy.submitted_date,
+            direction=domain.SortDirection.ascending,
+        )
+        self.assertEqual(
+            sort_order.to_es(), [{"submitted_date": {"order": "asc"}}]
+        )
+
+        # Last update date/Update date
+        sort_order = domain.SortOrder(by=domain.SortBy.last_updated_date)
+        self.assertEqual(
+            sort_order.to_es(), [{"updated_date": {"order": "desc"}}]
+        )
+        sort_order = domain.SortOrder(
+            by=domain.SortBy.last_updated_date,
+            direction=domain.SortDirection.ascending,
+        )
+        self.assertEqual(
+            sort_order.to_es(), [{"updated_date": {"order": "asc"}}]
         )
 
     def test_invalid_arxiv_id(self):
