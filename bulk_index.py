@@ -1,21 +1,19 @@
 """Use this to populate a search index for testing."""
 
-import json
 import os
+import json
 import tempfile
-import click
-from itertools import islice, groupby
+import operator
 from typing import List
-import re
-from search.factory import create_ui_web_app
-from search.agent import (
-    MetadataRecordProcessor,
-    DocumentFailed,
-    IndexingFailed,
-)
-from search.domain import asdict, DocMeta, Document
-from search.services import metadata, index
+from itertools import groupby
+
+import click
+
 from search.process import transform
+from search.domain import asdict, DocMeta
+from search.services import metadata, index
+from search.factory import create_ui_web_app
+
 
 app = create_ui_web_app()
 
@@ -87,7 +85,7 @@ def populate(
                     except metadata.ConnectionFailed:  # Try again.
                         new_meta = metadata.bulk_retrieve(chunk)
                     # Add metadata to the cache.
-                    key = lambda dm: dm.paper_id
+                    key = operator.attrgetter("paper_id")
                     new_meta_srt = sorted(new_meta, key=key)
                     for paper_id, grp in groupby(new_meta_srt, key):
                         to_cache(cache_dir, paper_id, [dm for dm in grp])

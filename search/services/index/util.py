@@ -7,6 +7,7 @@ from typing import Optional, Tuple
 
 from elasticsearch_dsl import Search, Q
 
+from search import consts
 from search.domain import Query
 from search.services.index.exceptions import QueryError
 
@@ -42,7 +43,6 @@ SPECIAL_CHARACTERS = [
     "/",
     "-",
 ]
-DEFAULT_SORT = ["-announced_date_first", "_doc"]
 
 DATE_PARTIAL = r"(?:^|[\s])(\d{2})((?:0[1-9]{1})|(?:1[0-2]{1}))(?:$|[\s])"
 """Used to match parts of paper IDs that encode the announcement date."""
@@ -159,7 +159,7 @@ def remove_single_characters(term: str) -> str:
 def sort(query: Query, search: Search) -> Search:
     """Apply sorting to a :class:`.Search`."""
     if not query.order:
-        sort_params = DEFAULT_SORT
+        sort_params = consts.DEFAULT_SORT_ORDER
     else:
         direction = "-" if query.order.startswith("-") else ""
         sort_params = [query.order, f"{direction}paper_id_v"]

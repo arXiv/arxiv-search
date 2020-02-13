@@ -1,14 +1,13 @@
 """Base domain classes for search service."""
 
 from enum import Enum
-from pytz import timezone
 from datetime import datetime
 from typing import Any, Optional, List, Dict, Union, Tuple
 from dataclasses import dataclass, field, asdict as _asdict
 
 from mypy_extensions import TypedDict
 
-EASTERN = timezone("US/Eastern")
+from search import consts
 
 
 # FIXME: Return type.
@@ -75,10 +74,10 @@ class Fulltext:
 class DateRange:
     """Represents an open or closed date range, for use in :class:`.Query`."""
 
-    start_date: datetime = datetime(1990, 1, 1, tzinfo=EASTERN)
+    start_date: datetime = datetime(1990, 1, 1, tzinfo=consts.EASTERN)
     """The day/time on which the range begins."""
 
-    end_date: datetime = datetime.now(tz=EASTERN)
+    end_date: datetime = datetime.now(tz=consts.EASTERN)
     """The day/time at (just before) which the range ends."""
 
     SUBMITTED_ORIGINAL = "submitted_date_first"
@@ -215,6 +214,39 @@ Examples
 """
 
 
+class SortDirection(str, Enum):
+    ascending = "ascending"
+    descending = "descending"
+
+    def to_es(self) -> Dict[str, str]:
+        return {"order": "asc" if self == SortDirection.ascending else "desc"}
+
+
+class SortBy(str, Enum):
+    relevance = "relevance"
+    last_updated_date = "lastUpdatedDate"
+    submitted_date = "submittedDate"
+
+    def to_es(self) -> str:
+        return {
+            SortBy.relevance: "_score",
+            SortBy.last_updated_date: "updated_date",
+            SortBy.submitted_date: "submitted_date",
+        }[self]
+
+
+@dataclass
+class SortOrder:
+    by: Optional[SortBy] = None
+    direction: SortDirection = SortDirection.descending
+
+    def to_es(self):
+        if self.by is None:
+            return consts.DEFAULT_SORT_ORDER
+        else:
+            return [{self.by.to_es(): self.direction.to_es()}]
+
+
 @dataclass
 class Query:
     """Represents a search query originating from the UI or API."""
@@ -241,7 +273,7 @@ class Query:
         ("full_text", "Full text"),
     ]
 
-    order: Optional[str] = field(default=None)
+    order: Union[SortOrder, Optional[str]] = field(default=None)
     size: int = field(default=50)
     page_start: int = field(default=0)
     include_older_versions: bool = field(default=False)

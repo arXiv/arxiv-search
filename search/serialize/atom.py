@@ -195,7 +195,7 @@ class AtomXMLSerializer(BaseSerializer):
         fg.opensearch.itemsPerPage(document_set["metadata"].get("size"))
         fg.opensearch.startIndex(document_set["metadata"].get("start"))
 
-        for doc in document_set["results"]:
+        for doc in reversed(document_set["results"]):
             cls.transform_document(fg, doc, query=query)
 
         return fg.atom_str(pretty=True)  # type: ignore
