@@ -1,7 +1,6 @@
 """Base domain classes for search service."""
 
 from enum import Enum
-from pytz import timezone
 from datetime import datetime
 from typing import Any, Optional, List, Dict, Union, Tuple
 from dataclasses import dataclass, field, asdict as _asdict
@@ -9,9 +8,6 @@ from dataclasses import dataclass, field, asdict as _asdict
 from mypy_extensions import TypedDict
 
 from search import consts
-
-
-EASTERN = timezone("US/Eastern")
 
 
 # FIXME: Return type.
@@ -78,10 +74,10 @@ class Fulltext:
 class DateRange:
     """Represents an open or closed date range, for use in :class:`.Query`."""
 
-    start_date: datetime = datetime(1990, 1, 1, tzinfo=EASTERN)
+    start_date: datetime = datetime(1990, 1, 1, tzinfo=consts.EASTERN)
     """The day/time on which the range begins."""
 
-    end_date: datetime = datetime.now(tz=EASTERN)
+    end_date: datetime = datetime.now(tz=consts.EASTERN)
     """The day/time at (just before) which the range ends."""
 
     SUBMITTED_ORIGINAL = "submitted_date_first"

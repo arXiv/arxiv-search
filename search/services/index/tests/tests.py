@@ -1,6 +1,5 @@
 """Tests for :mod:`search.services.index`."""
 
-from pytz import timezone
 from unittest import TestCase, mock
 from datetime import datetime, timedelta
 
@@ -21,8 +20,6 @@ from search.domain import (
     ClassicAPIQuery,
     Operator,
 )
-
-EASTERN = timezone("US/Eastern")
 
 
 class TestClassicApiQuery(TestCase):

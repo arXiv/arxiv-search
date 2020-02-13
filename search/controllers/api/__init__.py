@@ -1,18 +1,18 @@
 """Controller for search API requests."""
 
+import pytz
 from collections import defaultdict
 from typing import Tuple, Dict, Any, Optional, List, Union
-from mypy_extensions import TypedDict
 
 import dateutil.parser
-import pytz
-from pytz import timezone
+from mypy_extensions import TypedDict
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest, NotFound
 
 from arxiv import status, taxonomy
 from arxiv.base import logging
 
+from search import consts
 from search.services import index
 from search.controllers.util import paginate
 from search.domain import (
@@ -28,7 +28,7 @@ from search.domain import (
 
 
 logger = logging.getLogger(__name__)
-EASTERN = timezone("US/Eastern")
+
 
 SearchResponseData = TypedDict(
     "SearchResponseData",
@@ -191,7 +191,7 @@ def _get_date_params(
             dt = dateutil.parser.parse(value[0])
             if not dt.tzinfo:
                 dt = pytz.utc.localize(dt)
-            dt = dt.replace(tzinfo=EASTERN)
+            dt = dt.replace(tzinfo=consts.EASTERN)
         except ValueError:
             raise BadRequest(f"Invalid datetime in {field}")
         date_params[field] = dt

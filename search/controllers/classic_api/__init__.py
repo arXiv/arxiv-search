@@ -1,6 +1,5 @@
 """Controller for classic arXiv API requests."""
 
-from pytz import timezone
 from http import HTTPStatus
 from typing import Tuple, Dict, Any
 
@@ -22,7 +21,6 @@ from search.domain import (
 )
 
 logger = logging.getLogger(__name__)
-EASTERN = timezone("US/Eastern")
 
 
 def query(

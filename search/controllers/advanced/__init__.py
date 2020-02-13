@@ -8,7 +8,6 @@ parameters, and produce informative error messages for the user.
 """
 
 import re
-from pytz import timezone
 from typing import Tuple, List, Dict, Any, Optional
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
@@ -30,6 +29,7 @@ from search.domain import (
     ClassificationList,
     Query,
 )
+from search import consts
 from search.controllers.advanced import forms
 from search.controllers.util import paginate, catch_underscore_syntax
 
@@ -40,7 +40,6 @@ logger = logging.getLogger(__name__)
 Response = Tuple[Dict[str, Any], int, Dict[str, Any]]
 
 
-EASTERN = timezone("US/Eastern")
 TERM_FIELD_PTN = re.compile(r"terms-([0-9])+-term")
 
 
@@ -272,7 +271,7 @@ def _update_query_with_dates(
                 hour=0,
                 minute=0,
                 second=0,
-                tzinfo=EASTERN,
+                tzinfo=consts.EASTERN,
             )
         )
     elif filter_by == "specific_year":
@@ -284,7 +283,7 @@ def _update_query_with_dates(
                 hour=0,
                 minute=0,
                 second=0,
-                tzinfo=EASTERN,
+                tzinfo=consts.EASTERN,
             ),
             end_date=datetime(
                 year=date_data["year"].year + 1,
@@ -293,17 +292,21 @@ def _update_query_with_dates(
                 hour=0,
                 minute=0,
                 second=0,
-                tzinfo=EASTERN,
+                tzinfo=consts.EASTERN,
             ),
         )
     elif filter_by == "date_range":
         if date_data["from_date"]:
             date_data["from_date"] = datetime.combine(  # type: ignore
-                date_data["from_date"], datetime.min.time(), tzinfo=EASTERN
+                date_data["from_date"],
+                datetime.min.time(),
+                tzinfo=consts.EASTERN,
             )
         if date_data["to_date"]:
             date_data["to_date"] = datetime.combine(  # type: ignore
-                date_data["to_date"], datetime.min.time(), tzinfo=EASTERN
+                date_data["to_date"],
+                datetime.min.time(),
+                tzinfo=consts.EASTERN,
             )
 
         q.date_range = DateRange(  # type: ignore
