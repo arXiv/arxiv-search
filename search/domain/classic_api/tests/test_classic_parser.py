@@ -3,7 +3,7 @@
 from typing import List
 from dataclasses import dataclass
 
-from search.domain import Phrase, Field, Operator
+from search.domain import Phrase, Field, Operator, Term
 from search.domain.classic_api.query_parser import (
     parse_classic_query,
     phrase_to_query_string,
@@ -24,61 +24,64 @@ TEST_PARSE_OK_CASES: List[Case] = [
     Case(
         message="Simple query without grouping/nesting.",
         query="au:copernicus",
-        phrase=(Field.Author, "copernicus"),
+        phrase=Term(Field.Author, "copernicus"),
     ),
     Case(
         message="Simple query with quotations.",
         query='ti:"dark matter"',
-        phrase=(Field.Title, "dark matter"),
+        phrase=Term(Field.Title, "dark matter"),
     ),
     Case(
         message="Simple query with quotations and extra spacing.",
         query='ti:"  dark matter    "',
-        phrase=(Field.Title, "dark matter"),
+        phrase=Term(Field.Title, "dark matter"),
     ),
     Case(
         message="Simple conjunct query.",
         query="au:del_maestro AND ti:checkerboard",
         phrase=(
-            (Field.Author, "del_maestro"),
-            (Operator.AND, (Field.Title, "checkerboard")),
+            Operator.AND,
+            Term(Field.Author, "del_maestro"),
+            Term(Field.Title, "checkerboard"),
         ),
     ),
     Case(
         message="Simple conjunct query with quoted field.",
         query='au:del_maestro AND ti:"dark matter"',
         phrase=(
-            (Field.Author, "del_maestro"),
-            (Operator.AND, (Field.Title, "dark matter")),
+            Operator.AND,
+            Term(Field.Author, "del_maestro"),
+            Term(Field.Title, "dark matter"),
         ),
     ),
     Case(
         message="Simple conjunct query with quoted field and spacing.",
         query='au:del_maestro AND ti:"   dark matter   "',
         phrase=(
-            (Field.Author, "del_maestro"),
-            (Operator.AND, (Field.Title, "dark matter")),
+            Operator.AND,
+            Term(Field.Author, "del_maestro"),
+            Term(Field.Title, "dark matter"),
         ),
     ),
     Case(
         message="Disjunct query with an unary not.",
         query="au:del_maestro OR (ANDNOT ti:checkerboard)",
         phrase=(
-            (Field.Author, "del_maestro"),
-            (Operator.OR, (Operator.ANDNOT, (Field.Title, "checkerboard"))),
+            Operator.OR,
+            Term(Field.Author, "del_maestro"),
+            (Operator.ANDNOT, Term(Field.Title, "checkerboard")),
         ),
     ),
     Case(
         message="Conjunct query with nested disjunct query.",
         query="au:del_maestro ANDNOT (ti:checkerboard OR ti:Pyrochlore)",
         phrase=(
-            (Field.Author, "del_maestro"),
+            Operator.ANDNOT,
+            Term(Field.Author, "del_maestro"),
             (
-                Operator.ANDNOT,
-                (
-                    (Field.Title, "checkerboard"),
-                    (Operator.OR, (Field.Title, "Pyrochlore")),
-                ),
+                Operator.OR,
+                Term(Field.Title, "checkerboard"),
+                Term(Field.Title, "Pyrochlore"),
             ),
         ),
     ),
@@ -89,16 +92,16 @@ TEST_PARSE_OK_CASES: List[Case] = [
             "ANDNOT (ti:checkerboard OR ti:Pyrochlore))"
         ),
         phrase=(
+            Operator.ANDNOT,
             (
-                (Field.Author, "del_maestro"),
-                (Operator.OR, (Field.Author, "bob")),
+                Operator.OR,
+                Term(Field.Author, "del_maestro"),
+                Term(Field.Author, "bob"),
             ),
             (
-                Operator.ANDNOT,
-                (
-                    (Field.Title, "checkerboard"),
-                    (Operator.OR, (Field.Title, "Pyrochlore")),
-                ),
+                Operator.OR,
+                Term(Field.Title, "checkerboard"),
+                Term(Field.Title, "Pyrochlore"),
             ),
         ),
     ),
@@ -106,11 +109,13 @@ TEST_PARSE_OK_CASES: List[Case] = [
         message="Conjunct ANDNOT query with nested disjunct query.",
         query="(ti:checkerboard OR ti:Pyrochlore) ANDNOT au:del_maestro",
         phrase=(
+            Operator.ANDNOT,
             (
-                (Field.Title, "checkerboard"),
-                (Operator.OR, (Field.Title, "Pyrochlore")),
+                Operator.OR,
+                Term(Field.Title, "checkerboard"),
+                Term(Field.Title, "Pyrochlore"),
             ),
-            (Operator.ANDNOT, (Field.Author, "del_maestro")),
+            Term(Field.Author, "del_maestro"),
         ),
     ),
     Case(
@@ -120,16 +125,16 @@ TEST_PARSE_OK_CASES: List[Case] = [
             "(au:del_maestro OR au:hawking)"
         ),
         phrase=(
+            Operator.AND,
             (
-                (Field.Title, "checkerboard"),
-                (Operator.OR, (Field.Title, "Pyrochlore")),
+                Operator.OR,
+                Term(Field.Title, "checkerboard"),
+                Term(Field.Title, "Pyrochlore"),
             ),
             (
-                Operator.AND,
-                (
-                    (Field.Author, "del_maestro"),
-                    (Operator.OR, (Field.Author, "hawking")),
-                ),
+                Operator.OR,
+                Term(Field.Author, "del_maestro"),
+                Term(Field.Author, "hawking"),
             ),
         ),
     ),
@@ -162,19 +167,20 @@ TEST_SERIALIZE_CASES: List[Case] = [
     Case(
         message="Simple query serialization.",
         query="au:copernicus",
-        phrase=(Field.Author, "copernicus"),
+        phrase=Term(Field.Author, "copernicus"),
     ),
     Case(
         message="Simple query with quotations.",
         query='ti:"dark matter"',
-        phrase=(Field.Title, "dark matter"),
+        phrase=Term(Field.Title, "dark matter"),
     ),
     Case(
         message="Simple conjunct query.",
         query="au:del_maestro AND ti:checkerboard",
         phrase=(
-            (Field.Author, "del_maestro"),
-            (Operator.AND, (Field.Title, "checkerboard")),
+            Operator.AND,
+            Term(Field.Author, "del_maestro"),
+            Term(Field.Title, "checkerboard"),
         ),
     ),
     Case(
@@ -184,16 +190,16 @@ TEST_SERIALIZE_CASES: List[Case] = [
             "(au:del_maestro OR au:hawking)"
         ),
         phrase=(
+            Operator.AND,
             (
-                (Field.Title, "checkerboard"),
-                (Operator.OR, (Field.Title, "Pyrochlore")),
+                Operator.OR,
+                Term(Field.Title, "checkerboard"),
+                Term(Field.Title, "Pyrochlore"),
             ),
             (
-                Operator.AND,
-                (
-                    (Field.Author, "del_maestro"),
-                    (Operator.OR, (Field.Author, "hawking")),
-                ),
+                Operator.OR,
+                Term(Field.Author, "del_maestro"),
+                Term(Field.Author, "hawking"),
             ),
         ),
     ),
@@ -206,7 +212,7 @@ class TestParsing(TestCase):
     def test_all_valid_field_values(self):
         for field in Field:
             result = parse_classic_query(f"{field}:some_text")
-            self.assertEqual(result, (field, "some_text"))
+            self.assertEqual(result, Term(field, "some_text"))
 
     def test_parse_ok_test_cases(self):
         for case in TEST_PARSE_OK_CASES:

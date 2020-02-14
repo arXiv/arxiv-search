@@ -56,7 +56,7 @@ from search.services.index.util import MAX_RESULTS
 from search.services.index.advanced import advanced_search
 from search.services.index.simple import simple_search
 from search.services.index.api import api_search
-from search.services.index.classic import classic_search
+from search.services.index.api_classic import classic_search
 from search.services.index import highlighting
 from search.services.index import results
 
