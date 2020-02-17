@@ -19,6 +19,21 @@ class Case:
 
 
 TEST_CASES: List[Case] = [
+    Case(message="Empty query", phrase=Term(Field.All, ""), query=Q()),
+    Case(
+        message="Empty query in conjunction.",
+        phrase=(
+            Operator.AND,
+            Term(Field.All, ""),
+            Term(Field.All, "electron"),
+        ),
+        query=FTM[Field.All]("electron"),
+    ),
+    Case(
+        message="Double empty query in conjunction.",
+        phrase=(Operator.AND, Term(Field.All, ""), Term(Field.All, ""),),
+        query=Q(),
+    ),
     Case(
         message="Simple query without grouping/nesting.",
         phrase=Term(Field.Author, "copernicus"),

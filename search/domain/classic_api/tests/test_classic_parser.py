@@ -21,6 +21,21 @@ class Case:
 
 
 TEST_PARSE_OK_CASES: List[Case] = [
+    Case(message="Empty query.", query="", phrase=Term(Field.All, ""),),
+    Case(
+        message="Empty query full of spaces.",
+        query='au:"     "',
+        phrase=Term(Field.Author, ""),
+    ),
+    Case(
+        message="Empty query in conjunct.",
+        query='all:electron AND au:""',
+        phrase=(
+            Operator.AND,
+            Term(Field.All, "electron"),
+            Term(Field.Author, ""),
+        ),
+    ),
     Case(
         message="Simple query without grouping/nesting.",
         query="au:copernicus",

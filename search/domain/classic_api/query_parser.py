@@ -18,8 +18,9 @@ set of Tuples::
 See :module:`tests.test_query_parser` for more examples.
 """
 import re
+from typing import Tuple, List
 
-from lark import Lark, Transformer
+from lark import Lark, Transformer, Token
 from werkzeug.exceptions import BadRequest
 
 from search.domain.base import Operator, Field, Term, Phrase
@@ -48,12 +49,13 @@ class QueryTransformer(Transformer):
 
     """
 
-    def field(self, tokens):
+    def field(self, tokens: List[Token]) -> Field:
         """Transform `all`, `au`...field identifiers to `Field` enum values."""
+        print(tokens)
         (f,) = tokens
         return Field(str(f))
 
-    def search_string(self, tokens):
+    def search_string(self, tokens: List[Token]) -> str:
         """Un-quote a search string and strips it of whitespace.
 
         This is the actual search string entered after the Field qualifier.
@@ -63,37 +65,39 @@ class QueryTransformer(Transformer):
             s = s[1:-1]
         return s.strip()
 
-    def term(self, tokens):
+    def term(self, tokens: List[Token]) -> Term:
         """Construct a Term combining a field and search string."""
         return Term(*tokens)
 
-    def unary_operator(self, tokens):
+    def unary_operator(self, tokens: List[Token]) -> Operator:
         """Transform unary operator string to Operator enum value."""
         (u,) = tokens
         return Operator(str(u))
 
-    def unary_expression(self, tokens):
+    def unary_expression(self, tokens: List[Token]) -> Tuple[Operator, Phrase]:
         """Create a unary operation tuple."""
         return tokens[0], tokens[1]
 
-    def binary_operator(self, tokens):
+    def binary_operator(self, tokens: List[Token]) -> Operator:
         """Transform binary operator string to Operator enum value."""
         (b,) = tokens
         return Operator(str(b))
 
-    def binary_expression(self, tokens):
+    def binary_expression(
+        self, tokens: List[Token]
+    ) -> Tuple[Operator, Phrase, Phrase]:
         """Create a binary operation tuple."""
         return tokens[1], tokens[0], tokens[2]
 
-    def expression(self, tokens):
+    def expression(self, tokens: List[Token]) -> Phrase:
         """Do nothing, expression is already a singular value."""
         return tokens[0]
 
-    def empty(self, tokens):
-        """Returns None for an empty string."""
-        return None
+    def empty(self, tokens: List[Token]) -> Term:
+        """Returns empty term for an empty string."""
+        return Term(Field.All)
 
-    def query(self, tokens):
+    def query(self, tokens: List[Token]) -> Phrase:
         """Query is just an expression which is a singular value."""
         return tokens[0]
 
@@ -135,13 +139,10 @@ def parse_classic_query(query: str) -> Phrase:
     try:
         return QUERY_PARSER.parse(query)
     except Exception:
-        raise BadRequest()
+        raise BadRequest(f"Invalid query string: '{query}'")
 
 
-def phrase_to_query_string(phrase: Phrase, depth=0):
-    if phrase is None:
-        return ""
-
+def phrase_to_query_string(phrase: Phrase, depth=0) -> str:
     if isinstance(phrase, Term):
         return (
             f"{phrase.field}:{phrase.value}"

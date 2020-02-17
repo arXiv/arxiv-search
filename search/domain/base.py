@@ -180,17 +180,19 @@ class Term:
     field: Field
     value: str = ""
 
+    @property
+    def is_empty(self) -> bool:
+        return self.value.strip() == ""
+
 
 # mypy doesn't yet support recursive type definitions. These ignores suppress
 # the cyclic definition error, and forward-references to ``Phrase`` are
 # are replaced with ``Any``.
-Phrase = Optional[
-    Union[
-        Term,  # type: ignore
-        Tuple[Operator, "Phrase"],  # type: ignore
-        Tuple[Operator, "Phrase", "Phrase"],
-    ]  # type: ignore
-]
+Phrase = Union[
+    Term,  # type: ignore
+    Tuple[Operator, "Phrase"],  # type: ignore
+    Tuple[Operator, "Phrase", "Phrase"],
+]  # type: ignore
 """
 Recursive representation of a search query.
 
@@ -261,7 +263,7 @@ class SortOrder:
     by: Optional[SortBy] = None
     direction: SortDirection = SortDirection.descending
 
-    def to_es(self):
+    def to_es(self) -> List[Dict[str, Dict[str, str]]]:
         if self.by is None:
             return consts.DEFAULT_SORT_ORDER
         else:

@@ -29,14 +29,12 @@ def term_to_query(term: Term) -> Q:
     --------
     :module:`.api`
     """
-    return FIELD_TERM_MAPPING[term.field](term.value)
+
+    return Q() if term.is_empty else FIELD_TERM_MAPPING[term.field](term.value)
 
 
 def query_builder(phrase: Phrase) -> Q:
     """Parses a Phrase of a Classic API request into an ES Q object."""
-    if phrase is None:
-        return Q()
-
     if isinstance(phrase, Term):
         return term_to_query(phrase)
     elif len(phrase) == 2:

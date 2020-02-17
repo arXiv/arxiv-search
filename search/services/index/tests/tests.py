@@ -26,6 +26,9 @@ from search.domain import (
 class TestClassicApiQuery(TestCase):
     def test_classis_query_creation(self):
         self.assertRaises(ValueError, lambda: ClassicAPIQuery())
+        # There is no assert not raises
+        self.assertIsNotNone(ClassicAPIQuery(search_query=""))
+        self.assertIsNotNone(ClassicAPIQuery(id_list=[]))
 
     def test_to_query_string(self):
         self.assertEqual(
