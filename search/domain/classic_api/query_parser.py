@@ -1,7 +1,8 @@
 """
 Utility module for Classic API Query parsing.
 
-Uses lark-parser (EBNF parser).
+Uses lark-parser (EBNF parser) [1].
+[1]: https://github.com/lark-parser/lark/blob/master/README.md
 
 
 The final, parsed query is a :class:`domain.api.Phrase`, which is a nested
