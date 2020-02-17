@@ -1,9 +1,14 @@
 """Translate classic API `Phrase` objects to Elasticsearch DSL."""
+import re
 
 from elasticsearch_dsl import Q, Search
 
 from search.domain import ClassicAPIQuery
 from search.services.index.api_classic.query_builder import query_builder
+
+# FIXME: Use arxiv identifier parsing from arxiv.base when it's ready.
+#        Also this allows version to start with 0 to mimic the old API.
+ENDS_WITH_VERSION = re.compile(r".*v\d+$")
 
 
 def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
@@ -33,8 +38,14 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
     # Filter id_list if necessary.
     if query.id_list:
         # Separate versioned and unversioned papers.
-        paper_ids = [id for id in query.id_list if "v" not in id]
-        paper_ids_vs = [id for id in query.id_list if "v" in id]
+
+        paper_ids = []
+        paper_ids_vs = []
+        for paper_id in query.id_list:
+            if ENDS_WITH_VERSION.match(paper_id):
+                paper_ids_vs.append(paper_id)
+            else:
+                paper_ids.append(paper_id)
 
         # Filter by most recent unversioned paper or any versioned paper.
         id_query = (

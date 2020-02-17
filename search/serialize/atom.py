@@ -129,7 +129,7 @@ class AtomXMLSerializer(BaseSerializer):
     @staticmethod
     def _get_feed(query: Optional[ClassicAPIQuery] = None) -> FeedGenerator:
         fg = FeedGenerator()
-        fg.generator('')
+        fg.generator("")
         fg.register_extension("opensearch", OpenSearchExtension)
         fg.register_extension(
             "arxiv", ArXivExtension, ArXivEntryExtension, rss=False
