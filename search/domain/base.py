@@ -178,7 +178,7 @@ class Term:
     """
 
     field: Field
-    value: str
+    value: str = ""
 
 
 # mypy doesn't yet support recursive type definitions. These ignores suppress
