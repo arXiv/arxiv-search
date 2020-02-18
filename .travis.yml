@@ -11,14 +11,12 @@ python:
   - "3.6"
 script:
   - pip install pipenv
-  - pipenv install
-  - pipenv install --dev --skip-lock
+  - pipenv sync --dev 
   - pipenv run nose2 -vvv tests.base_app_tests
   - pipenv run nose2 -vvv --with-coverage
+  - "./lintstats.sh"
 after_success:
   - coveralls
-  - pipenv install pylint pydocstyle mypy
-  - ./lintstats.sh
   - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
   - docker build . -t arxiv/search:${TRAVIS_COMMIT};
     docker push arxiv/search:${TRAVIS_COMMIT}
