@@ -10,7 +10,7 @@ from search.domain.base import DateRange, Query, ClassificationList
 class FieldedSearchTerm:
     """Represents a fielded search term."""
 
-    operator: str
+    operator: Optional[str]
     field: str
     term: str
 
