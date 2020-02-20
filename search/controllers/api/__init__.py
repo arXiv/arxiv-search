@@ -223,18 +223,18 @@ def _to_classification(value: str) -> Tuple[Classification, ...]:
     clsns.append(Classification(**{field: {"id": value}}))  # type: ignore
     if cast_value.unalias() != cast_value:
         clsns.append(
-            Classification(
+            Classification(  # type: ignore # noqa: E501 # fmt: off
                 **{field: {"id": cast_value.unalias()}}
-            )  # type: ignore # noqa: E501
+            )
         )
     if (
         cast_value.canonical != cast_value
         and cast_value.canonical != cast_value.unalias()
     ):
         clsns.append(
-            Classification(
+            Classification(  # type: ignore # noqa: E501 # fmt: off
                 **{field: {"id": cast_value.canonical}}
-            )  # type: ignore # noqa: E501
+            )
         )
     return tuple(clsns)
 
