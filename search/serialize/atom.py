@@ -3,6 +3,7 @@
 import base64
 import hashlib
 from datetime import datetime, timezone
+import dateutil
 from typing import Union, Optional, Dict, Any
 
 from flask import url_for
@@ -42,10 +43,16 @@ class DateTime(datetime):
         return timezone.utc
 
 
-def to_utc(dt: Optional[datetime]) -> Optional[DateTime]:
+def to_utc(dt: Union[datetime, str]) -> Optional[datetime]:
     """Localize datetime objects to UTC timezone."""
     if dt is None:
         return None
+    if isinstance(dt, str):
+        try:
+            parsed_dt = dateutil.parser.parse(dt)
+            return DateTime.fromtimestamp(parsed_dt.timestamp())
+        except Exception:
+            return None
     return DateTime.fromtimestamp(dt.astimezone(timezone.utc).timestamp())
 
 
@@ -249,9 +256,9 @@ def as_atom(
         )  # type: ignore
         # type: ignore
     elif "paper_id" in document_or_set:
-        return AtomXMLSerializer.serialize_document(
+        return AtomXMLSerializer.serialize_document(  # type: ignore
             document_or_set, query=query
-        )  # type: ignore
-    return AtomXMLSerializer.serialize(
+        )
+    return AtomXMLSerializer.serialize(  # type: ignore
         document_or_set, query=query
     )  # type: ignore

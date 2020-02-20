@@ -28,7 +28,7 @@ class ClassicAPIQuery(Query):
             )
 
     def to_query_string(self) -> str:
-        """Returns a string representation of the API query."""
+        """Return a string representation of the API query."""
         return (
             f"search_query={self.search_query or ''}&"
             f"id_list={','.join(self.id_list) if self.id_list else ''}&"
@@ -39,5 +39,7 @@ class ClassicAPIQuery(Query):
 
 @dataclass
 class ClassicSearchResponseData:
-    results: DocumentSet = None
-    query: ClassicAPIQuery = None
+    """Classic API search response data."""
+
+    results: Optional[DocumentSet] = None
+    query: Optional[ClassicAPIQuery] = None

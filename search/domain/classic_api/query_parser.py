@@ -18,7 +18,7 @@ set of Tuples::
 See :module:`tests.test_query_parser` for more examples.
 """
 import re
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 from lark import Lark, Transformer, Token
 from werkzeug.exceptions import BadRequest
@@ -63,7 +63,7 @@ class QueryTransformer(Transformer):
         (s,) = tokens
         if s.startswith('"') and s.endswith('"'):
             s = s[1:-1]
-        return s.strip()
+        return s.strip() or ""
 
     def term(self, tokens: List[Token]) -> Term:
         """Construct a Term combining a field and search string."""
@@ -91,15 +91,15 @@ class QueryTransformer(Transformer):
 
     def expression(self, tokens: List[Token]) -> Phrase:
         """Do nothing, expression is already a singular value."""
-        return tokens[0]
+        return tokens[0]  # type:ignore
 
     def empty(self, tokens: List[Token]) -> Term:
-        """Returns empty term for an empty string."""
+        """Return empty term for an empty string."""
         return Term(Field.All)
 
     def query(self, tokens: List[Token]) -> Phrase:
         """Query is just an expression which is a singular value."""
-        return tokens[0]
+        return tokens[0]  # type:ignore
 
 
 QUERY_PARSER = Lark(
@@ -135,14 +135,17 @@ QUERY_PARSER = Lark(
 )
 
 
-def parse_classic_query(query: str) -> Phrase:
+def parse_classic_query(query: str) -> Optional[Phrase]:
+    """Parse the classic query."""
     try:
-        return QUERY_PARSER.parse(query)
+        return QUERY_PARSER.parse(query)  # type:ignore
     except Exception:
         raise BadRequest(f"Invalid query string: '{query}'")
+    return
 
 
-def phrase_to_query_string(phrase: Phrase, depth=0) -> str:
+def phrase_to_query_string(phrase: Phrase, depth: int = 0) -> Optional[str]:
+    """Convert a Phrase to a query string."""
     if isinstance(phrase, Term):
         return (
             f"{phrase.field}:{phrase.value}"
@@ -150,14 +153,15 @@ def phrase_to_query_string(phrase: Phrase, depth=0) -> str:
             else f'{phrase.field}:"{phrase.value}"'
         )
     elif len(phrase) == 2:
-        unary_op, exp = phrase
+        unary_op, exp = phrase[:2]
         value = f"{unary_op.value} {phrase_to_query_string(exp, depth+1)}"
         return f"({value})" if depth != 0 else value
     elif len(phrase) == 3:
-        binary_op, exp1, exp2 = phrase
+        binary_op, exp1, exp2 = phrase[:3]  # type:ignore
         value = (
             f"{phrase_to_query_string(exp1, depth+1)} "
             f"{binary_op.value} "
             f"{phrase_to_query_string(exp2, depth+1)}"
         )
         return f"({value})" if depth != 0 else value
+    return None

@@ -161,8 +161,12 @@ def sort(query: Query, search: Search) -> Search:
     if not query.order:
         sort_params = consts.DEFAULT_SORT_ORDER
     else:
-        direction = "-" if query.order.startswith("-") else ""
-        sort_params = [query.order, f"{direction}paper_id_v"]
+        direction = (
+            "-"
+            if isinstance(query.order, str) and query.order.startswith("-")
+            else ""
+        )
+        sort_params = [query.order, f"{direction}paper_id_v"]  # type:ignore
     if sort_params is not None:
         search = search.sort(*sort_params)
     return search

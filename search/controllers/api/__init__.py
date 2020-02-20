@@ -104,9 +104,9 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         q.include_fields += include_fields
 
     q = paginate(q, params)  # type: ignore
-    document_set = index.SearchSession.search(
+    document_set = index.SearchSession.search(  # type: ignore
         q, highlight=False
-    )  # type: ignore
+    )
     document_set["metadata"]["query"] = query_terms
     logger.debug(
         "Got document set with %i results", len(document_set["results"])
@@ -223,15 +223,19 @@ def _to_classification(value: str) -> Tuple[Classification, ...]:
     clsns.append(Classification(**{field: {"id": value}}))  # type: ignore
     if cast_value.unalias() != cast_value:
         clsns.append(
-            Classification(**{field: {"id": cast_value.unalias()}})
-        )  # type: ignore
+            Classification(
+                **{field: {"id": cast_value.unalias()}}
+            )  # type: ignore # noqa: E501
+        )
     if (
         cast_value.canonical != cast_value
         and cast_value.canonical != cast_value.unalias()
     ):
         clsns.append(
-            Classification(**{field: {"id": cast_value.canonical}})
-        )  # type: ignore
+            Classification(
+                **{field: {"id": cast_value.canonical}}
+            )  # type: ignore # noqa: E501
+        )
     return tuple(clsns)
 
 

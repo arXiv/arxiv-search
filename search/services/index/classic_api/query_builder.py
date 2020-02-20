@@ -41,7 +41,7 @@ def query_builder(phrase: Phrase) -> Q:
         # This is unary ANDNOT which is just NOT
         return ~term_to_query(phrase[1])
     elif len(phrase) == 3:
-        binary_op, exp1, exp2 = phrase
+        binary_op, exp1, exp2 = phrase[:3]  # type:ignore
         q1 = query_builder(exp1)
         q2 = query_builder(exp2)
         if binary_op is Operator.AND:

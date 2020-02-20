@@ -3,8 +3,8 @@ import re
 
 from elasticsearch_dsl import Q, Search
 
-from search.domain import ClassicAPIQuery
-from search.services.index.api_classic.query_builder import query_builder
+from search.domain import ClassicAPIQuery, SortOrder
+from search.services.index.classic_api.query_builder import query_builder
 
 # FIXME: Use arxiv identifier parsing from arxiv.base when it's ready.
 #        Also this allows version to start with 0 to mimic the old API.
@@ -57,4 +57,6 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
         # If no id_list, only display current results.
         search = search.filter("term", is_current=True)
 
-    return search.query(dsl_query).sort(*query.order.to_es())
+    if not isinstance(query, SortOrder):
+        return search.query(dsl_query)
+    return search.query(dsl_query).sort(*query.order.to_es())  # type: ignore
