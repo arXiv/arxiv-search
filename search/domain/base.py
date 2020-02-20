@@ -123,7 +123,7 @@ class ClassificationList(list):
         return ", ".join([str(item) for item in self])
 
 
-class Operator(Enum):
+class Operator(str, Enum):
     """Supported boolean operators."""
 
     AND = "AND"
@@ -151,7 +151,7 @@ class Operator(Enum):
         return True
 
 
-class Field(Enum):
+class Field(str, Enum):
     """Supported fields in the classic API."""
 
     Title = "ti"
@@ -165,18 +165,25 @@ class Field(Enum):
     All = "all"
 
 
-Term = Tuple[Field, str]
-"""
-Tuple representing a Field and search term.
+@dataclass
+class Term:
+    """Class representing a Field and search term.
 
-Examples
---------
+    Examples
+    --------
+    .. code-block:: python
 
-.. code-block:: python
+       term = Term(Field.Title, 'dark matter')
 
-   term: Term = (Field.Title : 'dark matter')
+    """
 
-"""
+    field: Field
+    value: str = ""
+
+    @property
+    def is_empty(self) -> bool:
+        return self.value.strip() == ""
+
 
 # mypy doesn't yet support recursive type definitions. These ignores suppress
 # the cyclic definition error, and forward-references to ``Phrase`` are
@@ -184,7 +191,7 @@ Examples
 Phrase = Union[
     Term,  # type: ignore
     Tuple[Operator, "Phrase"],  # type: ignore
-    Tuple["Phrase", ...],
+    Tuple[Operator, "Phrase", "Phrase"],
 ]  # type: ignore
 """
 Recursive representation of a search query.
@@ -195,22 +202,38 @@ Examples
 .. code-block:: python
 
    # Simple query without grouping/nesting.
-   phrase: Phrase = ('au', 'copernicus')
+   phrase: Phrase = Term(Field.Author, 'copernicus')
 
    # Simple query with a unary operator without grouping/nesting.
-   phrase: Phrase = ('ANDNOT', ('au', 'copernicus'))
+   phrase: Phrase = (Operator.ANDNOT, Term(Field.Author, 'copernicus'))
 
    # Simple conjunct query.
-   phrase: Phrase = (('au', 'del_maestro'), 'AND', ('ti', 'checkerboard'))
+   phrase: Phrase = (
+       Operator.AND,
+       Term(Field.Author, "del_maestro"),
+       Term(Field.Title, "checkerboard")
+    )
 
    # Disjunct query with an unary not.
-   phrase = (('au', 'del_maestro'), 'OR', ('ANDNOT', ('ti', 'checkerboard')))
+   phrase = (
+       Operator.OR,
+       Term(Field.Author, "del_maestro"),
+       (
+           Operator.ANDNOT,
+           Term(Field.Title, "checkerboard")
+        )
+    )
 
    # Conjunct query with nested disjunct query.
-   phrase = (('au', 'del_maestro'), 'ANDNOT',
-             (('ti', 'checkerboard'), 'OR', ('ti', 'Pyrochlore')))
-
-
+   phrase = (
+       Operator.ANDNOT,
+       Term(Field.Author, "del_maestro"),
+       (
+           Operator.OR,
+           Term(Field.Title, "checkerboard"),
+           Term(Field.Title, "Pyrochlore")
+        )
+    )
 """
 
 
@@ -240,7 +263,7 @@ class SortOrder:
     by: Optional[SortBy] = None
     direction: SortDirection = SortDirection.descending
 
-    def to_es(self):
+    def to_es(self) -> List[Dict[str, Dict[str, str]]]:
         if self.by is None:
             return consts.DEFAULT_SORT_ORDER
         else:

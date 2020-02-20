@@ -17,6 +17,7 @@ from search.domain import (
     ClassificationList,
     SimpleQuery,
     Field,
+    Term,
     ClassicAPIQuery,
     Operator,
 )
@@ -25,16 +26,11 @@ from search.domain import (
 class TestClassicApiQuery(TestCase):
     def test_classis_query_creation(self):
         self.assertRaises(ValueError, lambda: ClassicAPIQuery())
-
         # There is no assert not raises
         self.assertIsNotNone(ClassicAPIQuery(search_query=""))
         self.assertIsNotNone(ClassicAPIQuery(id_list=[]))
 
     def test_to_query_string(self):
-        self.assertEqual(
-            ClassicAPIQuery(search_query="").to_query_string(),
-            "search_query=&id_list=&start=0&max_results=10",
-        )
         self.assertEqual(
             ClassicAPIQuery(id_list=[]).to_query_string(),
             "search_query=&id_list=&start=0&max_results=10",
@@ -248,7 +244,7 @@ class TestSearch(TestCase):
         mock_Search.__getitem__.return_value = mock_Search
 
         query = ClassicAPIQuery(
-            phrase=(Field.Author, "copernicus"),
+            phrase=Term(Field.Author, "copernicus"),
             order=SortOrder(by=SortBy.relevance),
             size=10,
         )
@@ -285,9 +281,9 @@ class TestSearch(TestCase):
 
         query = ClassicAPIQuery(
             phrase=(
-                (Field.Author, "copernicus"),
                 Operator.OR,
-                (Operator.ANDNOT, (Field.Title, "dark matter")),
+                Term(Field.Author, "copernicus"),
+                (Operator.ANDNOT, Term(Field.Title, "dark matter")),
             ),
             order=SortOrder(by=SortBy.relevance),
             size=10,
@@ -361,9 +357,9 @@ class TestSearch(TestCase):
 
         query = ClassicAPIQuery(
             phrase=(
-                (Field.Author, "copernicus"),
                 Operator.AND,
-                (Field.Title, "philosophy"),
+                Term(Field.Author, "copernicus"),
+                Term(Field.Title, "philosophy"),
             ),
             order=SortOrder(by=SortBy.relevance),
             size=10,
