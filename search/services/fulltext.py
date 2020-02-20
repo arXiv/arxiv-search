@@ -1,12 +1,12 @@
 """Provides access to fulltext content for arXiv papers."""
 
 import json
+from http import HTTPStatus
 from functools import wraps
 from urllib.parse import urljoin
 
 import requests
 
-from arxiv import status
 from search.domain import Fulltext
 from search.context import get_application_config, get_application_global
 
@@ -56,7 +56,7 @@ class FulltextSession(object):
         except requests.exceptions.SSLError as ex:
             raise IOError("SSL failed: %s" % ex)
 
-        if response.status_code != status.HTTP_200_OK:
+        if response.status_code != HTTPStatus.OK:
             raise IOError(
                 "%s: could not retrieve fulltext: %i"
                 % (document_id, response.status_code)

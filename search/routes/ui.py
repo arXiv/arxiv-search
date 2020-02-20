@@ -1,6 +1,7 @@
 """Provides the main search user interfaces."""
 
 import json
+from http import HTTPStatus
 from typing import Union, Optional, List
 
 from flask import (
@@ -15,7 +16,6 @@ from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-from arxiv import status
 from arxiv.base import logging
 from search.routes import context_processors
 from search.controllers import simple, advanced, health_check
@@ -59,7 +59,7 @@ def get_parameters_from_cookie() -> None:
 @blueprint.after_request
 def set_parameters_in_cookie(response: Response) -> Response:
     """Set request parameters in the cookie, to use as future defaults."""
-    if response.status_code == status.HTTP_200_OK:
+    if response.status_code == HTTPStatus.OK:
         data = {
             param: request.args[param]
             for param in PARAMS_TO_PERSIST
@@ -84,7 +84,7 @@ def search(archives: Optional[List[str]] = None) -> _Response:
     """Simple search interface."""
     data, code, hdrs = simple.search(request.args, archives)
     logger.debug(f"controller returned code: {code}")
-    if code == status.HTTP_200_OK:
+    if code == HTTPStatus.OK:
         content = render_template(
             "search/search.html", pagetitle="Search", archives=archives, **data
         )
@@ -92,10 +92,7 @@ def search(archives: Optional[List[str]] = None) -> _Response:
         for key, value in hdrs.items():
             response.headers[key] = value
         return response
-    elif (
-        code == status.HTTP_301_MOVED_PERMANENTLY
-        or code == status.HTTP_303_SEE_OTHER
-    ):
+    elif code == HTTPStatus.MOVED_PERMANENTLY or code == HTTPStatus.SEE_OTHER:
         return redirect(hdrs["Location"], code=code)
     raise InternalServerError("Unexpected error")
 

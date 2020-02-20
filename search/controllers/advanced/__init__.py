@@ -8,6 +8,7 @@ parameters, and produce informative error messages for the user.
 """
 
 import re
+from http import HTTPStatus
 from typing import Tuple, List, Dict, Any, Optional
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
@@ -17,7 +18,7 @@ from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from werkzeug.exceptions import InternalServerError, BadRequest, NotFound
 
 
-from arxiv import status, taxonomy
+from arxiv import taxonomy
 from arxiv.base import logging
 from search.services import index, SearchSession
 from search.domain import (
@@ -170,7 +171,7 @@ def search(request_params: MultiDict) -> Response:
     #  example, we can generate new form-friendly requests to update sort
     #  order and page size by embedding the form (hidden).
     response_data["form"] = form
-    return response_data, status.HTTP_200_OK, {}
+    return response_data, HTTPStatus.OK, {}
 
 
 def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
