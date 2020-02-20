@@ -1,12 +1,13 @@
 """Tests for advanced search controller, :mod:`search.controllers.advanced`."""
 
+from http import HTTPStatus
 from unittest import TestCase, mock
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
+
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError, BadRequest
 
-from arxiv import status
 
 from search.domain import Query, DateRange, FieldedSearchTerm, AdvancedQuery
 from search.controllers import advanced
@@ -76,7 +77,7 @@ class TestSearchController(TestCase):
         """No form data has been submitted."""
         request_data = MultiDict()
         response_data, code, headers = advanced.search(request_data)
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
+        self.assertEqual(code, HTTPStatus.OK, "Response should be OK.")
 
         self.assertIn("form", response_data, "Response should include form.")
 
@@ -107,7 +108,7 @@ class TestSearchController(TestCase):
             AdvancedQuery,
             "An AdvancedQuery is passed to the search index",
         )
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
+        self.assertEqual(code, HTTPStatus.OK, "Response should be OK.")
 
     @mock.patch("search.controllers.advanced.SearchSession")
     def test_invalid_data(self, mock_index):
@@ -121,7 +122,7 @@ class TestSearchController(TestCase):
             }
         )
         response_data, code, headers = advanced.search(request_data)
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
+        self.assertEqual(code, HTTPStatus.OK, "Response should be OK.")
 
         self.assertIn("form", response_data, "Response should include form.")
 

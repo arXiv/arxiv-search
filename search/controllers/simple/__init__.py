@@ -7,14 +7,15 @@ to generate form HTML, validate request parameters, and produce informative
 error messages for the user.
 """
 
+from http import HTTPStatus
 from typing import Tuple, Dict, Any, Optional, List
 
 from flask import url_for
 from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
+from arxiv import identifier
 from arxiv.base import logging
-from arxiv import status, identifier
 from search.services import index, SearchSession
 from search.controllers.simple.forms import SimpleSearchForm
 from search.controllers.util import paginate, catch_underscore_syntax
@@ -93,7 +94,7 @@ def search(
 
     if arxiv_id:
         headers = {"Location": url_for("abs_by_id", paper_id=arxiv_id)}
-        return {}, status.HTTP_301_MOVED_PERMANENTLY, headers
+        return {}, HTTPStatus.MOVED_PERMANENTLY, headers
 
     # Here we intervene on the user's query to look for holdouts from the
     # classic search system's author indexing syntax (surname_f). We
@@ -114,7 +115,7 @@ def search(
         if form.searchtype.data == "help":
             return (
                 {},
-                status.HTTP_301_MOVED_PERMANENTLY,
+                HTTPStatus.MOVED_PERMANENTLY,
                 {"Location": f"/help/search?q={form.query.data}"},
             )
 
@@ -122,7 +123,7 @@ def search(
         elif form.searchtype.data == "full_text":
             return (
                 {},
-                status.HTTP_301_MOVED_PERMANENTLY,
+                HTTPStatus.MOVED_PERMANENTLY,
                 {
                     "Location": "http://search.arxiv.org:8081/"
                     f"?in=&query={form.query.data}"
@@ -188,7 +189,7 @@ def search(
         q = None
     response_data["query"] = q
     response_data["form"] = form
-    return response_data, status.HTTP_200_OK, {}
+    return response_data, HTTPStatus.OK, {}
 
 
 def retrieve_document(document_id: str) -> Response:
@@ -241,7 +242,7 @@ def retrieve_document(document_id: str) -> Response:
     except index.DocumentNotFound as ex:
         logger.error("DocumentNotFound: %s", ex)
         raise NotFound(f"Could not find a paper with id {document_id}") from ex
-    return {"document": result}, status.HTTP_200_OK, {}
+    return {"document": result}, HTTPStatus.OK, {}
 
 
 def _update_with_archives(q: SimpleQuery, archives: List[str]) -> SimpleQuery:

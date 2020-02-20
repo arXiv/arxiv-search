@@ -13,6 +13,7 @@ depending on the context of the request.
 import ast
 import json
 from typing import List
+from http import HTTPStatus
 from itertools import cycle
 from functools import wraps
 from urllib.parse import urljoin
@@ -20,7 +21,6 @@ from urllib.parse import urljoin
 import requests
 from requests.packages.urllib3.util.retry import Retry
 
-from arxiv import status
 from arxiv.base import logging
 from search.domain import DocMeta
 from search.context import get_application_config, get_application_global
@@ -124,8 +124,8 @@ class DocMetaSession(object):
             ) from ex
 
         if response.status_code not in [
-            status.HTTP_200_OK,
-            status.HTTP_206_PARTIAL_CONTENT,
+            HTTPStatus.OK,
+            HTTPStatus.PARTIAL_CONTENT,
         ]:
             logger.error("Request failed: %s", response.content)
             raise RequestFailed(
@@ -185,8 +185,8 @@ class DocMetaSession(object):
             ) from ex
 
         if response.status_code not in [
-            status.HTTP_200_OK,
-            status.HTTP_206_PARTIAL_CONTENT,
+            HTTPStatus.OK,
+            HTTPStatus.PARTIAL_CONTENT,
         ]:
             logger.error("Request failed: %s", response.content)
             raise RequestFailed(

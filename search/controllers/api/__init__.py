@@ -1,6 +1,7 @@
 """Controller for search API requests."""
 
 import pytz
+from http import HTTPStatus
 from collections import defaultdict
 from typing import Tuple, Dict, Any, Optional, List, Union
 
@@ -9,7 +10,7 @@ from mypy_extensions import TypedDict
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest, NotFound
 
-from arxiv import status, taxonomy
+from arxiv import taxonomy
 from arxiv.base import logging
 
 from search import consts
@@ -111,7 +112,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     logger.debug(
         "Got document set with %i results", len(document_set["results"])
     )
-    return {"results": document_set, "query": q}, status.HTTP_200_OK, {}
+    return {"results": document_set, "query": q}, HTTPStatus.OK, {}
 
 
 def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
@@ -145,7 +146,7 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
     except index.DocumentNotFound as ex:
         logger.error("Document not found")
         raise NotFound("No such document") from ex
-    return {"results": document}, status.HTTP_200_OK, {}
+    return {"results": document}, HTTPStatus.OK, {}
 
 
 def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
