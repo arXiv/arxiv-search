@@ -288,7 +288,7 @@ pipenv install --dev
 After that you'll need to install the pre commit hooks:
 
 ```bash
-pre-commit install
+pipenv run pre-commit install
 ```
 
 Git will run all the pre-commit hooks on all changed files before you are
@@ -297,5 +297,5 @@ allowed to commit. You will be allowed to commit only if all checks pass.
 You can also run the pre commit hooks manually with:
 
 ```bash
-pre-commit run
+pipenv run pre-commit run
 ```
