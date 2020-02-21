@@ -87,13 +87,18 @@ manually restart to see those changes take effect.
 
 If all goes well... http://127.0.0.1:5000/ should render the basic search page.
 
-You can run the API in dev mode by changing `FLASK_APP` to point to ``api.py``,
+You can run the new metadata API in dev mode by changing `FLASK_APP` to point to ``wsgi-api.py``,
 i.e.:
 
 ```bash
-JWT_SECRET=foosecret FLASK_APP=api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
+JWT_SECRET=foosecret FLASK_APP=wsgi-api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
 ```
 
+To run the classic API in dev mode, use ``wsgi-classic-api.py``:
+
+```bash
+FLASK_APP=wsgi-classic-api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
+```
 
 
 ## Running the indexing agent.
