@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from elasticsearch_dsl import Q
 
 from search.domain import Field, Operator, Phrase, Term
-from search.services.index.api_classic.query_builder import (
+from search.services.index.classic_api.query_builder import (
     query_builder,
     FIELD_TERM_MAPPING as FTM,
 )

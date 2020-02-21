@@ -126,5 +126,5 @@ def _fielded_terms_to_q(query: AdvancedQuery) -> Match:
     if len(query.terms) == 1:
         return SEARCH_FIELDS[query.terms[0].field](query.terms[0].term)
     elif len(query.terms) > 1:
-        return _grouped_terms_to_q(_group_terms(query))
+        return _grouped_terms_to_q(_group_terms(query))  # type:ignore
     return Q("match_all")

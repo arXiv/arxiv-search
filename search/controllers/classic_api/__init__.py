@@ -61,6 +61,7 @@ def query(
     ------
     :class:`BadRequest`
         Raised when the search_query and id_list are not specified.
+
     """
     params = params.copy()
 
@@ -195,4 +196,8 @@ def paper(
     except index.DocumentNotFound as ex:
         logger.error("Document not found")
         raise NotFound("No such document") from ex
-    return ClassicSearchResponseData(results=document), HTTPStatus.OK, {}
+    return (
+        ClassicSearchResponseData(results=document),  # type: ignore
+        HTTPStatus.OK,
+        {},
+    )  # type: ignore

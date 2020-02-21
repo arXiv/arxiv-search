@@ -1,7 +1,6 @@
 """Use this to initialize the search index for testing."""
 
-import json
-import click
+
 from search.factory import create_ui_web_app
 from search.services import index
 

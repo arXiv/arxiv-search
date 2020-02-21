@@ -129,7 +129,7 @@ class JSONSerializer(BaseSerializer):
 
     @classmethod
     def serialize_document(
-        cls, document: Document, query: Optional[APIQuery] = None
+        cls, document: Document, query: Optional[APIQuery] = None,
     ) -> Response:
         """Generate JSON for a single :class:`Document`."""
         serialized: Response = jsonify(
@@ -144,9 +144,9 @@ def as_json(
 ) -> Response:
     """Serialize a :class:`DocumentSet` as JSON."""
     if "paper_id" in document_or_set:
-        return JSONSerializer.serialize_document(
+        return JSONSerializer.serialize_document(  # type:ignore
             document_or_set, query=query
         )  # type: ignore
-    return JSONSerializer.serialize(
+    return JSONSerializer.serialize(  # type:ignore
         document_or_set, query=query
-    )  # type: ignore
+    )

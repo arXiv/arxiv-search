@@ -188,11 +188,11 @@ class Term:
 # mypy doesn't yet support recursive type definitions. These ignores suppress
 # the cyclic definition error, and forward-references to ``Phrase`` are
 # are replaced with ``Any``.
-Phrase = Union[
+Phrase = Union[  # type: ignore
     Term,  # type: ignore
     Tuple[Operator, "Phrase"],  # type: ignore
-    Tuple[Operator, "Phrase", "Phrase"],
-]  # type: ignore
+    Tuple[Operator, "Phrase", "Phrase"],  # type: ignore
+]
 """
 Recursive representation of a search query.
 
