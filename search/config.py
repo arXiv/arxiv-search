@@ -6,7 +6,7 @@ Docstrings are from the `Flask configuration documentation
 """
 import os
 
-APP_VERSION = "0.5.5"
+APP_VERSION = "0.5.6"
 """The application version """
 
 ON = "yes"
@@ -233,8 +233,8 @@ FLASKS3_FORCE_MIMETYPE = os.environ.get("FLASKS3_FORCE_MIMETYPE", 1)
 FLASKS3_ACTIVE = os.environ.get("FLASKS3_ACTIVE", 0)
 
 # Settings for display of release information
-RELEASE_NOTES_URL = "https://confluence.cornell.edu/x/giazFQ"
-RELEASE_NOTES_TEXT = "Search v0.5 released 2018-12-20"
+RELEASE_NOTES_URL = "https://github.com/arXiv/arxiv-search/releases"
+RELEASE_NOTES_TEXT = "Search v0.5.6 released 2020-02-24"
 
 
 EXTERNAL_URL_SCHEME = os.environ.get("EXTERNAL_URL_SCHEME", "https")
