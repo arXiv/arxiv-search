@@ -1,7 +1,5 @@
 """Helper script to reindex all arXiv papers."""
 
-import os
-import tempfile
 import click
 import time
 

@@ -32,3 +32,4 @@
       args:
         - search
         - tests
+        - --add-ignore=D401,D202

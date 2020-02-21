@@ -1,3 +1,4 @@
+"""Constants."""
 from pytz import timezone
 
 # Sorting
