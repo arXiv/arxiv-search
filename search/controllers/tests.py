@@ -1,8 +1,8 @@
 """Tests for :mod:`search.controllers`."""
 
+from http import HTTPStatus
 from unittest import TestCase, mock
 
-from arxiv import status
 from search.controllers import health_check
 from search.controllers.util import catch_underscore_syntax
 
@@ -18,7 +18,7 @@ class TestHealthCheck(TestCase):
         self.assertEqual(response, "DOWN", "Response content should be DOWN")
         self.assertEqual(
             status_code,
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            HTTPStatus.INTERNAL_SERVER_ERROR,
             "Should return 500 status code.",
         )
 
@@ -30,7 +30,7 @@ class TestHealthCheck(TestCase):
         self.assertEqual(response, "DOWN", "Response content should be DOWN")
         self.assertEqual(
             status_code,
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            HTTPStatus.INTERNAL_SERVER_ERROR,
             "Should return 500 status code.",
         )
 
@@ -41,7 +41,7 @@ class TestHealthCheck(TestCase):
         response, status_code, _ = health_check()
         self.assertEqual(response, "OK", "Response content should be OK")
         self.assertEqual(
-            status_code, status.HTTP_200_OK, "Should return 200 status code."
+            status_code, HTTPStatus.OK, "Should return 200 status code."
         )
 
 

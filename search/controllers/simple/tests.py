@@ -1,10 +1,11 @@
 """Tests for simple search controller, :mod:`search.controllers.simple`."""
 
+from http import HTTPStatus
 from unittest import TestCase, mock
+
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
 
-from arxiv import status
 from search.domain import SimpleQuery
 from search.controllers import simple
 from search.controllers.simple.forms import SimpleSearchForm
@@ -94,7 +95,7 @@ class TestSearchController(TestCase):
         response_data, code, headers = simple.search(request_data)
         self.assertEqual(
             code,
-            status.HTTP_301_MOVED_PERMANENTLY,
+            HTTPStatus.MOVED_PERMANENTLY,
             "Response should be a 301 redirect.",
         )
         self.assertIn("Location", headers, "Location header should be set")
@@ -108,7 +109,7 @@ class TestSearchController(TestCase):
         """No form data has been submitted."""
         request_data = MultiDict()
         response_data, code, headers = simple.search(request_data)
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
+        self.assertEqual(code, HTTPStatus.OK, "Response should be OK.")
 
         self.assertIn("form", response_data, "Response should include form.")
 
@@ -131,14 +132,14 @@ class TestSearchController(TestCase):
             SimpleQuery,
             "An SimpleQuery is passed to the search index",
         )
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
+        self.assertEqual(code, HTTPStatus.OK, "Response should be OK.")
 
     @mock.patch("search.controllers.simple.SearchSession")
     def test_invalid_data(self, mock_index):
         """Form data are invalid."""
         request_data = MultiDict({"searchtype": "title"})
         response_data, code, headers = simple.search(request_data)
-        self.assertEqual(code, status.HTTP_200_OK, "Response should be OK.")
+        self.assertEqual(code, HTTPStatus.OK, "Response should be OK.")
 
         self.assertIn("form", response_data, "Response should include form.")
 
@@ -157,7 +158,7 @@ class TestSearchController(TestCase):
 
         request_data = MultiDict({"searchtype": "title", "query": "foo title"})
         with self.assertRaises(InternalServerError):
-            response_data, code, headers = simple.search(request_data)
+            _, _, _ = simple.search(request_data)
 
         self.assertEqual(
             mock_index.search.call_count, 1, "A search should be attempted"
