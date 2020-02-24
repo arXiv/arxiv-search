@@ -7,8 +7,9 @@ accepts a set of request parameters (``dict``-like) and returns a 3-tuple
 of response data (``dict``), status code (``int``), and extra response headers
 (``dict``).
 """
+from http import HTTPStatus
 from typing import Tuple, Dict, Any
-from arxiv import status
+
 from search.services import index
 from search.domain import SimpleQuery
 
@@ -29,10 +30,10 @@ def health_check() -> Tuple[str, int, Dict[str, Any]]:
     """
     try:
         document_set = index.SearchSession.search(  # type: ignore
-            SimpleQuery(search_field='all', value='theory')
+            SimpleQuery(search_field="all", value="theory")
         )
     except Exception:
-        return 'DOWN', status.HTTP_500_INTERNAL_SERVER_ERROR, {}
-    if document_set['results']:
-        return 'OK', status.HTTP_200_OK, {}
-    return 'DOWN', status.HTTP_500_INTERNAL_SERVER_ERROR, {}
+        return "DOWN", HTTPStatus.INTERNAL_SERVER_ERROR, {}
+    if document_set["results"]:
+        return "OK", HTTPStatus.OK, {}
+    return "DOWN", HTTPStatus.INTERNAL_SERVER_ERROR, {}

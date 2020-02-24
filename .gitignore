@@ -101,6 +101,9 @@ ENV/
 .vscode
 settings.json
 
+# PyCharm
+.idea
+
 # mypy
 .mypy_cache/
 
@@ -110,3 +113,4 @@ temp/
 
 to_index/
 
+.pytest_cache/

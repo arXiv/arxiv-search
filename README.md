@@ -46,8 +46,8 @@ is only accessible from the CUL network.
 
 ```bash
 pipenv install
-FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run python create_index.py
-FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run python bulk_index.py
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python create_index.py
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python bulk_index.py
 ```
 
 ``bulk_index.py`` without parameters populate the index with the
@@ -58,7 +58,7 @@ parameter.
 To check for missing records, use ``audit.py``:
 
 ```bash
-ELASTICSEARCH_HOST=127.0.0.1 ELASTICSEARCH_INDEX=arxiv pipenv run python audit.py -l list_of_papers.txt -o missing.txt
+ELASTICSEARCH_SERVICE_HOST=127.0.0.1 ELASTICSEARCH_INDEX=arxiv pipenv run python audit.py -l list_of_papers.txt -o missing.txt
 ```
 
 ### Reindexing
@@ -70,7 +70,7 @@ processed. If the destination index does not already exist, it will be created
 using the current configured mapping.
 
 ```bash
-FLASK_APP=app.py ELASTICSEARCH_HOST=127.0.0.1 pipenv run python reindex.py OLD_INDEX NEW_INDEX
+FLASK_APP=app.py ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python reindex.py OLD_INDEX NEW_INDEX
 ```
 
 
@@ -79,7 +79,7 @@ FLASK_APP=app.py ELASTICSEARCH_HOST=127.0.0.1 pipenv run python reindex.py OLD_I
 You can spin up the search app directly.
 
 ```bash
-FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run flask run
+FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
 ```
 This will monitor any of the Python bits for changes and restart the server.
 Unfortunately static files and templates are not monitored, so you'll have to
@@ -87,13 +87,18 @@ manually restart to see those changes take effect.
 
 If all goes well... http://127.0.0.1:5000/ should render the basic search page.
 
-You can run the API in dev mode by changing `FLASK_APP` to point to ``api.py``,
+You can run the new metadata API in dev mode by changing `FLASK_APP` to point to ``wsgi-api.py``,
 i.e.:
 
 ```bash
-FLASK_APP=api.py FLASK_DEBUG=1 ELASTICSEARCH_HOST=127.0.0.1 pipenv run flask run
+JWT_SECRET=foosecret FLASK_APP=wsgi-api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
 ```
 
+To run the classic API in dev mode, use ``wsgi-classic-api.py``:
+
+```bash
+FLASK_APP=wsgi-classic-api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
+```
 
 
 ## Running the indexing agent.
@@ -275,3 +280,27 @@ make [format]
 
 where [format] can be ``html``, ``latexpdf``. See the ``Sphinx documentation
 <http://www.sphinx-doc.org/en/master/>`_.
+
+
+## Pre commit hooks
+
+To run pre commit hooks install the dev dependencies:
+
+```bash
+pipenv install --dev
+```
+
+After that you'll need to install the pre commit hooks:
+
+```bash
+pipenv run pre-commit install
+```
+
+Git will run all the pre-commit hooks on all changed files before you are
+allowed to commit. You will be allowed to commit only if all checks pass.
+
+You can also run the pre commit hooks manually with:
+
+```bash
+pipenv run pre-commit run
+```

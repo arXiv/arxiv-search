@@ -1,7 +1,5 @@
 """Helper script to reindex all arXiv papers."""
 
-import os
-import tempfile
 import click
 import time
 
@@ -12,8 +10,8 @@ app = create_ui_web_app()
 
 
 @app.cli.command()
-@click.argument('old_index', nargs=1)
-@click.argument('new_index', nargs=1)
+@click.argument("old_index", nargs=1)
+@click.argument("new_index", nargs=1)
 def reindex(old_index: str, new_index: str):
     """
     Reindex the documents in `old_index` to `new_index`.
@@ -30,24 +28,24 @@ def reindex(old_index: str, new_index: str):
         raise click.ClickException("Failed to get or create new index")
 
     click.echo(f"Started reindexing task")
-    task_id = r['task']
-    with click.progressbar(length=100, label='percent complete') as progress:
+    task_id = r["task"]
+    with click.progressbar(length=100, label="percent complete") as progress:
         while True:
             status = index.SearchSession.get_task_status(task_id)
-            total = float(status['task']['status']['total'])
-            if status['completed'] or total == 0:
+            total = float(status["task"]["status"]["total"])
+            if status["completed"] or total == 0:
                 progress.update(100)
                 break
 
-            updated = status['task']['status']['updated']
-            created = status['task']['status']['created']
-            deleted = status['task']['status']['deleted']
-            complete = (updated + created + deleted)/total
+            updated = status["task"]["status"]["updated"]
+            created = status["task"]["status"]["created"]
+            deleted = status["task"]["status"]["deleted"]
+            complete = (updated + created + deleted) / total
             progress.update(complete * 100)
             if complete == 1:
                 break
             time.sleep(2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     reindex()

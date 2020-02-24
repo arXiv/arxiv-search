@@ -1,20 +1,20 @@
 """API-specific domain classes."""
 
-from .base import DateRange, Query, ClassificationList, Classification, List
-from .advanced import FieldedSearchList, FieldedSearchTerm
-
 from dataclasses import dataclass, field
-from typing import NamedTuple, Optional, Tuple
+from typing import Optional, Tuple
+
+from search.domain.advanced import FieldedSearchList
+from search.domain.base import DateRange, Query, Classification, List
 
 
 def get_default_extra_fields() -> List[str]:
     """These are the default extra fields."""
-    return ['title']
+    return ["title"]
 
 
 def get_required_fields() -> List[str]:
     """These fields should always be included."""
-    return ['paper_id', 'paper_id_v', 'version', 'href', 'canonical']
+    return ["paper_id", "paper_id_v", "version", "href", "canonical"]
 
 
 @dataclass
@@ -26,8 +26,9 @@ class APIQuery(Query):
     """
 
     date_range: Optional[DateRange] = None
-    primary_classification: Tuple[Classification, ...] = \
-        field(default_factory=tuple)
+    primary_classification: Tuple[Classification, ...] = field(
+        default_factory=tuple
+    )
     """Limit results to a specific primary classification."""
     secondary_classification: List[Tuple[Classification, ...]] = field(
         default_factory=list

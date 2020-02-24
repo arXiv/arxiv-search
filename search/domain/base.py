@@ -1,21 +1,17 @@
 """Base domain classes for search service."""
 
-from typing import Any, Optional, List, Dict
-from datetime import datetime, date
-from operator import attrgetter
-from pytz import timezone
-import re
+from enum import Enum
+from datetime import datetime
+from typing import Any, Optional, List, Dict, Union, Tuple
+from dataclasses import dataclass, field, asdict as _asdict
+
 from mypy_extensions import TypedDict
 
-from arxiv import taxonomy
-
-from dataclasses import dataclass, field
-from dataclasses import asdict as _asdict
-
-EASTERN = timezone('US/Eastern')
+from search import consts
 
 
-def asdict(obj: Any) -> dict:
+# FIXME: Return type.
+def asdict(obj: Any) -> Dict[Any, Any]:
     """Coerce a dataclass object to a dict."""
     return {key: value for key, value in _asdict(obj).items()}
 
@@ -40,8 +36,9 @@ class DocMeta:
     is_withdrawn: bool = field(default=False)
     license: Dict[str, str] = field(default_factory=dict)
     primary_classification: Dict[str, str] = field(default_factory=dict)
-    secondary_classification: List[Dict[str, str]] = \
-        field(default_factory=list)
+    secondary_classification: List[Dict[str, str]] = field(
+        default_factory=list
+    )
     title: str = field(default_factory=str)
     title_utf8: str = field(default_factory=str)
     source: Dict[str, Any] = field(default_factory=dict)
@@ -77,27 +74,27 @@ class Fulltext:
 class DateRange:
     """Represents an open or closed date range, for use in :class:`.Query`."""
 
-    start_date: datetime = datetime(1990, 1, 1, tzinfo=EASTERN)
+    start_date: datetime = datetime(1990, 1, 1, tzinfo=consts.EASTERN)
     """The day/time on which the range begins."""
 
-    end_date: datetime = datetime.now(tz=EASTERN)
+    end_date: datetime = datetime.now(tz=consts.EASTERN)
     """The day/time at (just before) which the range ends."""
 
-    SUBMITTED_ORIGINAL = 'submitted_date_first'
-    SUBMITTED_CURRENT = 'submitted_date'
-    ANNOUNCED = 'announced_date_first'
+    SUBMITTED_ORIGINAL = "submitted_date_first"
+    SUBMITTED_CURRENT = "submitted_date"
+    ANNOUNCED = "announced_date_first"
     date_type: str = field(default=SUBMITTED_CURRENT)
     """The date associated with the paper that should be queried."""
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        _str = ''
+        _str = ""
         if self.start_date:
-            start_date = self.start_date.strftime('%Y-%m-%d')
-            _str += f'from {start_date} '
+            start_date = self.start_date.strftime("%Y-%m-%d")
+            _str += f"from {start_date} "
         if self.end_date:
-            end_date = self.end_date.strftime('%Y-%m-%d')
-            _str += f'to {end_date}'
+            end_date = self.end_date.strftime("%Y-%m-%d")
+            _str += f"to {end_date}"
         return _str
 
 
@@ -123,7 +120,154 @@ class ClassificationList(list):
 
     def __str__(self) -> str:
         """Build a string representation, for use in rendering."""
-        return ', '.join([str(item) for item in self])
+        return ", ".join([str(item) for item in self])
+
+
+class Operator(str, Enum):
+    """Supported boolean operators."""
+
+    AND = "AND"
+    OR = "OR"
+    ANDNOT = "ANDNOT"
+
+    @classmethod
+    def is_valid_value(cls, value: str) -> bool:
+        """
+        Determine whether or not ``value`` is a valid value of a member.
+
+        Parameters
+        ----------
+        value : str
+
+        Returns
+        -------
+        bool
+
+        """
+        try:
+            cls(value)
+        except ValueError:
+            return False
+        return True
+
+
+class Field(str, Enum):
+    """Supported fields in the classic API."""
+
+    Title = "ti"
+    Author = "au"
+    Abstract = "abs"
+    Comment = "co"
+    JournalReference = "jr"
+    SubjectCategory = "cat"
+    ReportNumber = "rn"
+    Identifier = "id"
+    All = "all"
+
+
+@dataclass
+class Term:
+    """Class representing a Field and search term.
+
+    Examples
+    --------
+    .. code-block:: python
+
+       term = Term(Field.Title, 'dark matter')
+
+    """
+
+    field: Field
+    value: str = ""
+
+    @property
+    def is_empty(self) -> bool:
+        return self.value.strip() == ""
+
+
+# mypy doesn't yet support recursive type definitions. These ignores suppress
+# the cyclic definition error, and forward-references to ``Phrase`` are
+# are replaced with ``Any``.
+Phrase = Union[  # type: ignore
+    Term,  # type: ignore
+    Tuple[Operator, "Phrase"],  # type: ignore
+    Tuple[Operator, "Phrase", "Phrase"],  # type: ignore
+]
+"""
+Recursive representation of a search query.
+
+Examples
+--------
+
+.. code-block:: python
+
+   # Simple query without grouping/nesting.
+   phrase: Phrase = Term(Field.Author, 'copernicus')
+
+   # Simple query with a unary operator without grouping/nesting.
+   phrase: Phrase = (Operator.ANDNOT, Term(Field.Author, 'copernicus'))
+
+   # Simple conjunct query.
+   phrase: Phrase = (
+       Operator.AND,
+       Term(Field.Author, "del_maestro"),
+       Term(Field.Title, "checkerboard")
+    )
+
+   # Disjunct query with an unary not.
+   phrase = (
+       Operator.OR,
+       Term(Field.Author, "del_maestro"),
+       (
+           Operator.ANDNOT,
+           Term(Field.Title, "checkerboard")
+        )
+    )
+
+   # Conjunct query with nested disjunct query.
+   phrase = (
+       Operator.ANDNOT,
+       Term(Field.Author, "del_maestro"),
+       (
+           Operator.OR,
+           Term(Field.Title, "checkerboard"),
+           Term(Field.Title, "Pyrochlore")
+        )
+    )
+"""
+
+
+class SortDirection(str, Enum):
+    ascending = "ascending"
+    descending = "descending"
+
+    def to_es(self) -> Dict[str, str]:
+        return {"order": "asc" if self == SortDirection.ascending else "desc"}
+
+
+class SortBy(str, Enum):
+    relevance = "relevance"
+    last_updated_date = "lastUpdatedDate"
+    submitted_date = "submittedDate"
+
+    def to_es(self) -> str:
+        return {
+            SortBy.relevance: "_score",
+            SortBy.last_updated_date: "updated_date",
+            SortBy.submitted_date: "submitted_date",
+        }[self]
+
+
+@dataclass
+class SortOrder:
+    by: Optional[SortBy] = None
+    direction: SortDirection = SortDirection.descending
+
+    def to_es(self) -> List[Dict[str, Dict[str, str]]]:
+        if self.by is None:
+            return consts.DEFAULT_SORT_ORDER
+        else:
+            return [{self.by.to_es(): self.direction.to_es()}]
 
 
 @dataclass
@@ -134,25 +278,25 @@ class Query:
     """The maximum number of records that can be retrieved."""
 
     SUPPORTED_FIELDS = [
-        ('all', 'All fields'),
-        ('title', 'Title'),
-        ('author', 'Author(s)'),
-        ('abstract', 'Abstract'),
-        ('comments', 'Comments'),
-        ('journal_ref', 'Journal reference'),
-        ('acm_class', 'ACM classification'),
-        ('msc_class', 'MSC classification'),
-        ('report_num', 'Report number'),
-        ('paper_id', 'arXiv identifier'),
-        ('doi', 'DOI'),
-        ('orcid', 'ORCID'),
-        ('license', 'License (URI)'),
-        ('author_id', 'arXiv author ID'),
-        ('help', 'Help pages'),
-        ('full_text', 'Full text')
+        ("all", "All fields"),
+        ("title", "Title"),
+        ("author", "Author(s)"),
+        ("abstract", "Abstract"),
+        ("comments", "Comments"),
+        ("journal_ref", "Journal reference"),
+        ("acm_class", "ACM classification"),
+        ("msc_class", "MSC classification"),
+        ("report_num", "Report number"),
+        ("paper_id", "arXiv identifier"),
+        ("doi", "DOI"),
+        ("orcid", "ORCID"),
+        ("license", "License (URI)"),
+        ("author_id", "arXiv author ID"),
+        ("help", "Help pages"),
+        ("full_text", "Full text"),
     ]
 
-    order: Optional[str] = field(default=None)
+    order: Union[SortOrder, Optional[str]] = field(default=None)
     size: int = field(default=50)
     page_start: int = field(default=0)
     include_older_versions: bool = field(default=False)
@@ -166,7 +310,7 @@ class Query:
     @property
     def page(self) -> int:
         """Get the approximate page number."""
-        return 1 + int(round(self.page_start/self.size))
+        return 1 + int(round(self.page_start / self.size))
 
 
 @dataclass

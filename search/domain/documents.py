@@ -1,11 +1,36 @@
 """Data structs for search documents."""
 
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Optional, List, Dict, Any
+
+from dataclasses import dataclass, field
 from mypy_extensions import TypedDict
 
+from search.domain.base import Classification, ClassificationList
 
-class Person(TypedDict):
+
+# The class keyword ``total=False`` allows instances that do not contain all of
+# the typed keys. See https://github.com/python/mypy/issues/2632 for
+# background.
+
+
+def utcnow() -> datetime:
+    """Return timezone aware current timestamp."""
+    return datetime.utcnow().astimezone(timezone.utc)
+
+
+@dataclass
+class Error:
+    """Represents an error that happened in the system."""
+
+    id: str
+    error: str
+    link: str
+    author: str = "arXiv api core"
+    created: datetime = field(default_factory=utcnow)
+
+
+class Person(TypedDict, total=False):
     """Represents an author, owner, or other person in metadata."""
 
     full_name: str
@@ -23,7 +48,7 @@ class Person(TypedDict):
     """Legacy arXiv author identifier."""
 
 
-class Document(TypedDict):
+class Document(TypedDict, total=False):
     """A search document, representing an arXiv paper."""
 
     submitted_date: datetime
@@ -61,26 +86,68 @@ class Document(TypedDict):
     comments: str
     abs_categories: str
     formats: List[str]
-    primary_classification: Dict[str, str]
-    secondary_classification: List[Dict[str, str]]
+    primary_classification: Classification
+    secondary_classification: ClassificationList
 
     score: float
 
-    highlight: dict
+    # FIXME: Type.
+    highlight: Dict[Any, Any]
     """Contains highlighted versions of field values."""
 
-    preview: dict
+    # FIXME: Type.
+    preview: Dict[Any, Any]
     """Contains truncations of field values for preview/snippet display."""
 
-    match: dict
+    # FIXME: Type.
+    match: Dict[Any, Any]
     """Contains fields that matched but lack highlighting."""
 
-    truncated: dict
+    # FIXME: Type.
+    truncated: Dict[Any, Any]
     """Contains fields for which the preview is truncated."""
+
+
+class DocumentSetMetadata(TypedDict, total=False):
+    """Metadata for search results."""
+
+    current_page: int
+    end: int
+    max_pages: int
+    size: int
+    start: int
+    total_results: int
+    total_pages: int
+    query: List[Dict[str, Any]]
 
 
 class DocumentSet(TypedDict):
     """A set of search results retrieved from the search index."""
 
-    metadata: Dict[str, Any]
+    metadata: DocumentSetMetadata
     results: List[Document]
+
+
+def document_set_from_documents(documents: List[Document]) -> DocumentSet:
+    """Generate a DocumentSet with only a list of Documents.
+
+    Generates the metadata automatically, which is an advantage over calling
+    DocumentSet(results=documents, metadata=dict()).
+    """
+    return DocumentSet(
+        results=documents, metadata=metadata_from_documents(documents)
+    )
+
+
+def metadata_from_documents(documents: List[Document]) -> DocumentSetMetadata:
+    """Generate DocumentSet metadata from a list of documents."""
+    metadata: DocumentSetMetadata = {}
+    metadata["size"] = len(documents)
+    metadata["end"] = len(documents)
+    metadata["total_results"] = len(documents)
+    metadata["start"] = 0
+    metadata["max_pages"] = 1
+    metadata["current_page"] = 1
+    metadata["total_pages"] = 1
+
+    return metadata

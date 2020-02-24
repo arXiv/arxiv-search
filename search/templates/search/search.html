@@ -4,7 +4,7 @@
 
 {% block title %}
     {% if results %}
-        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.end }} of {{ '{0:,}'.format(metadata.total) }} results for {{ query.search_field }}: <span class="mathjax">{{ query.value }}</span>
+        Showing {{ metadata.start + 1 }}&ndash;{{ metadata.end }} of {{ '{0:,}'.format(metadata.total_results) }} results for {{ query.search_field }}: <span class="mathjax">{{ query.value }}</span>
     {% else %}
         Search
     {% endif %}

@@ -1,0 +1,35 @@
+- repo: https://github.com/ambv/black
+  rev: stable
+  hooks:
+    - id: black
+      name: Format Python Code
+      language: python
+      entry: black
+      args:
+        - --safe
+        - --line-length=79
+        - --target-version=py37
+        - .
+
+- repo: https://github.com/PyCQA/flake8
+  rev: 3.7.9
+  hooks:
+    - id: flake8
+      name: Flake8 Check
+      language: python
+      entry: flake8
+      args:
+        - search
+        - tests
+
+- repo: https://github.com/pycqa/pydocstyle
+  rev: master
+  hooks:
+    - id: pydocstyle
+      name: Python Documentation Style Check
+      language: python
+      entry: pydocstyle
+      args:
+        - search
+        - tests
+        - --add-ignore=D401,D202

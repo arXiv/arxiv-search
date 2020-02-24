@@ -31,8 +31,9 @@ def simple_search(search: Search, query: SimpleQuery) -> Search:
     if query.classification:
         _q = limit_by_classification(query.classification)
         if query.include_cross_list:
-            _q |= limit_by_classification(query.classification,
-                                          "secondary_classification")
+            _q |= limit_by_classification(
+                query.classification, "secondary_classification"
+            )
         q &= _q
     search = search.query(q)
     search = sort(query, search)
