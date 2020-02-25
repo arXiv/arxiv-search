@@ -8,6 +8,7 @@ import jsonschema
 
 from search import encode
 from search import serialize
+from search.serialize.atom import safe_str
 from search.tests import mocks
 
 
@@ -71,6 +72,12 @@ class TestSerializeJSONDocumentSet(TestCase):
 
 class TestSerializeAtomDocument(TestCase):
     """Serialize a single :class:`domain.Document` as Atom."""
+
+    def test_safe_str(self):
+        self.assertEqual(safe_str("foo"), "foo")
+        self.assertEqual(safe_str(b"foo"), "foo")
+        self.assertEqual(safe_str("Schröder"), "Schröder")
+        self.assertEqual(safe_str("Schröder".encode("utf-8")), "Schröder")
 
     @mock.patch(
         f"search.serialize.atom.url_for", lambda *a, **k: "http://f/12"
