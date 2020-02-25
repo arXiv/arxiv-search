@@ -26,6 +26,13 @@ from search.domain.classic_api.query_parser import phrase_to_query_string
 from search.serialize.base import BaseSerializer
 
 
+def safe_str(s: Union[str, bytes]) -> str:
+    """Return a UTF decoded string from bytes or the original string."""
+    if isinstance(s, bytes):
+        return s.decode("utf-8")
+    return s
+
+
 class DateTime(datetime):
     """DateTime is a hack wrapper around datetime.
 
@@ -206,7 +213,7 @@ class AtomXMLSerializer(BaseSerializer):
         for doc in reversed(document_set["results"]):
             cls.transform_document(fg, doc, query=query)
 
-        return fg.atom_str(pretty=True)  # type: ignore
+        return safe_str(fg.atom_str(pretty=True))  # type: ignore
 
     @classmethod
     def serialize_error(
@@ -232,7 +239,7 @@ class AtomXMLSerializer(BaseSerializer):
         )
         entry.arxiv.author({"name": error.author})
 
-        return fg.atom_str(pretty=True)  # type: ignore
+        return safe_str(fg.atom_str(pretty=True))  # type: ignore
 
     @classmethod
     def serialize_document(
