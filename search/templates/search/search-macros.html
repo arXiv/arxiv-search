@@ -239,7 +239,6 @@
 {%- endmacro -%}
 
 {% macro help_tips() %}
-  <div class="box">
     <article class="message is-link">
       <div class="message-header">
         <h4 class="has-text-white is-marginless is-bold">Searching by Author Name</h4>
@@ -252,6 +251,17 @@
           <li>Author names enclosed in quotes will return only <strong>exact matches</strong>. For example, "Stephen Hawking" will not return matches for Stephen W. Hawking.</li>
           <li>Diacritic character variants are automatically searched in the Author(s) field.</li>
           <li>Queries with no punctuation will treat each term independently.</li>
+        </ul>
+      </div>
+    </article>
+    <article class="message is-link">
+      <div class="message-header">
+        <h4 class="has-text-white is-marginless is-bold">Searching by subcategory</h4>
+      </div>
+      <div class="message-body">
+        <ul>
+          <li>To search within a subcategory select <strong>All fields</strong>.</li>
+          <li>A subcategory search can be combined with an author or keyword search by clicking on <strong>add another term</strong> in advanced search.</li>
         </ul>
       </div>
     </article>
@@ -280,7 +290,6 @@
         <li>If a journal reference search does <strong>not</strong> contain a wildcard, only exact phrases entered will be matched. For example, <strong>math</strong> would match <em>math</em> or <em>math and science</em> but not <em>maths</em> or <em>mathematics</em>.</li>
         <li>All journal reference searches that do not contain a wildcard are literal searches: a search for <strong>Physica A</strong> will match all papers with journal references containing <em>Physica A</em>, but a search for <strong>Physica A, 245 (1997) 181</strong> will only return the paper with journal reference <em>Physica A, 245 (1997) 181</em>.</li>
       </ul>
-  </div>
 {% endmacro %}
 
 {% macro show_classic_author_search() -%}

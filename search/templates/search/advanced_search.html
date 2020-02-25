@@ -23,7 +23,7 @@
 {% macro advanced_query(form) %}
 
 <div class="columns is-desktop">
-  <div class="column is-three-fifths-desktop">
+  <div class="column is-one-half-desktop">
     {% if form.errors %}
     <div class="notification is-warning">
       Whoops! Something went wrong. Please correct errors in the form below.
@@ -34,57 +34,61 @@
         {{ form.advanced|safe }}
         {# Field-specific search term fieldset. #}
         <section data-toggle="fieldset" id="terms-fieldset">
-          {% for entry in form.terms.entries %}
-            <div class="field has-addons-tablet" data-toggle="fieldset-entry">
-              <div class="control fieldset-hidden-on-first-row" {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}>
-                <span class="select">
-                  <label for="terms-{{loop.index0}}-operator" class="hidden-label">Boolean operator</label>
-                  {{ entry.operator(default='AND')|safe }}
-                </span>
-              </div>
-              <div class="control is-expanded">
-                <label for="terms-{{loop.index0}}-term" class="hidden-label">Search term</label>
-                {% if entry.term.errors %}
-                  {{ entry.term(class='input is-warning', placeholder="Search term...")|safe }}
-                {% else %}
-                  {{ entry.term(class='input', placeholder="Search term...")|safe }}
-                {% endif %}
-                {% if entry.term.errors %}
-                  <div class="help is-warning">
-                    {% for error in entry.term.errors %}
-                        {{ error }}
-                    {% endfor %}
-                  </div>
-                {% endif %}
+          <fieldset class="fieldset ">
+            <legend class="legend">Search term(s)</legend>
+            {% for entry in form.terms.entries %}
+              <div class="field has-addons-tablet" data-toggle="fieldset-entry">
+                <div class="control fieldset-hidden-on-first-row"
+                  {% if loop.index0 == 0 %}style="visibility:hidden;width:0;"{% endif %}>
+                  <span class="select">
+                    <label for="terms-{{loop.index0}}-operator" class="hidden-label">Boolean operator</label>
+                    {{ entry.operator(default='AND')|safe }}
+                  </span>
+                </div>
+                <div class="control is-expanded">
+                  <label for="terms-{{loop.index0}}-term" class="hidden-label">Search term</label>
+                  {% if entry.term.errors %}
+                    {{ entry.term(class='input is-warning', placeholder="Search term...")|safe }}
+                  {% else %}
+                    {{ entry.term(class='input', placeholder="Search term...")|safe }}
+                  {% endif %}
+                  {% if entry.term.errors %}
+                    <div class="help is-warning">
+                      {% for error in entry.term.errors %}
+                          {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
 
+                </div>
+                <div class="control">
+                  <label for="terms-{{loop.index0}}-field" class="hidden-label">Field to search</label>
+                  <span class="select">
+                    {{ entry.field(default='title')|safe }}
+                  </span>
+                </div>
+                <div class="control">
+                  <button type="button"
+                    data-toggle="fieldset-remove-row"
+                    id="term-{{loop.index0}}-remove"
+                    class="button is-monospace fieldset-hidden-on-first-row"
+                    aria-label="Remove this search term"
+                    {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}
+                    >–
+                  </button>
+                </div>
               </div>
-              <div class="control">
-                <label for="terms-{{loop.index0}}-field" class="hidden-label">Field to search</label>
-                <span class="select">
-                  {{ entry.field(default='title')|safe }}
-                </span>
-              </div>
-              <div class="control">
-                <button type="button"
-                  data-toggle="fieldset-remove-row"
-                  id="term-{{loop.index0}}-remove"
-                  class="button is-monospace fieldset-hidden-on-first-row"
-                  aria-label="Remove this search term"
-                  {% if loop.index0 == 0 %}style="visibility:hidden;"{% endif %}
-                  >–
+            {% endfor %}
+            <div class="field is-clearfix">
+              <div class="control is-pulled-right">
+                <button type="button" class="button is-medium"
+                  data-toggle="fieldset-add-row"
+                  data-target="#terms-fieldset"><span style="font-family:'open-sans',helvetica,sans-serif;">Add another term </span> +
                 </button>
+                <button class="button is-link is-medium">Search</button>
               </div>
             </div>
-          {% endfor %}
-          <div class="field is-clearfix">
-            <div class="control is-pulled-right">
-              <span style="line-height: 2em; padding-right: 0.25em;">Add another term</span>
-              <button type="button" class="button is-monospace"
-                data-toggle="fieldset-add-row"
-                data-target="#terms-fieldset">+
-              </button>
-            </div>
-          </div>
+          </fieldset>
         </section>
 
         <section>
@@ -304,11 +308,9 @@
                   </div>
                 </div>
               </div>
-          </div>
-            <div class="level-right">
-              <button class="button is-link is-medium">Search</button>
             </div>
           </div>
+          <button class="button is-link is-medium">Search</button>
         </section>
         <input type="hidden" name="order" value="{{ form.order.data }}">
         </form>
