@@ -18,6 +18,7 @@ $(function() {
           // Make any elements hidden in the first row visible.
           new_item.find(".fieldset-hidden-on-first-row").each(function() {
             $(this).css("visibility", "visible");
+            $(this).css("width", "auto");
           });
 
           // Generate a new id number for the new item.
