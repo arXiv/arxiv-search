@@ -16,7 +16,7 @@
 #
 # See also ELASTICSEARCH_* and METADATA_ENDPOINT parameters, below.
 
-FROM arxiv/search:0.5.1
+FROM arxiv/search:0.5.5
 
 ENV PATH "/opt/arxiv:${PATH}"
 ADD bulk_index.py /opt/arxiv/
@@ -39,4 +39,4 @@ ENV METADATA_VERIFY_CERT True
 
 VOLUME /to_index
 
-ENTRYPOINT ["python3.6", "bulk_index.py", "-l"]
+ENTRYPOINT ["pipenv", "run", "python3.6", "bulk_index.py", "-l"]
