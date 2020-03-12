@@ -1,13 +1,14 @@
 kind: Service
 metadata:
-  annotations:
-    prometheus.io/scrape: 'true'
-  name: "{{ default "classic-api" .Values.serviceName }}"
+  # annotations:
+  #   prometheus.io/scrape: 'true'
+  name: "{{ default "classic-api" .Values.name }}"
   labels:
     subsystem: "{{ .Values.labels.subsystem }}"
-    container: "{{ default "classic-api" .Values.deploymentName }}"
+    container: "{{ default "classic-api" .Values.name }}"
     service-group: api
     log-style: uwsgi
+    env: "{{ .Values.namespace }}"
 spec:
   type: NodePort
   ports:
@@ -15,4 +16,4 @@ spec:
     targetPort: 8000
   selector:
     subsystem: "{{ .Values.labels.subsystem }}"
-    container: "{{ default "classic-api" .Values.deploymentName }}"
+    container: "{{ default "classic-api" .Values.name }}"
