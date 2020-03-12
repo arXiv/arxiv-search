@@ -1,4 +1,4 @@
-# arxiv/classic-search-api
+# arxiv/classic-api
 #
 # Defines the runtime for the arXiv classic API, which provides a metadata
 # query API backed by Elasticsearch.
@@ -8,7 +8,7 @@ FROM arxiv/base:0.16.6
 WORKDIR /opt/arxiv
 
 # Install MySQL.
-RUN yum install -y which mysql mysql-devel
+# RUN yum install -y which mysql mysql-devel
 
 # Add Python application and configuration.
 ADD classic-api.py /opt/arxiv/
