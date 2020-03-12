@@ -1,0 +1,53 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: "{{ default "classic-api" .Values.name }}"
+  namespace: "{{ .Values.namespace }}"
+  labels:
+    subsystem: "{{ .Values.labels.subsystem }}"
+    container: "{{ default "classic-api" .Values.deploymentName }}"
+    service-group: api
+    log-style: uwsgi
+    env: "{{ .Values.namespace }}"
+spec:
+  replicas: {{ default 1 .Values.scaling.replicas }}
+  template:
+    metadata:
+      labels:
+        subsystem: "{{ .Values.labels.subsystem }}"
+        container: "{{ default "classic-api" .Values.deploymentName }}"
+        service-group: api
+        log-style: uwsgi
+    spec:
+      containers:
+      - name: "{{ default "search-api" .Values.deploymentName }}"
+        image: arxiv/search-api:{{ .Values.image.tag }}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        - name: ELASTICSEARCH_SERVICE_HOST
+          value: "{{ default "elasticsearch" .Values.elasticsearch.host }}"
+        - name: ELASTICSEARCH_SERVICE_PORT
+          value: "{{ default "9200" .Values.elasticsearch.port }}"
+        - name: ELASTICSEARCH_PORT_{{ default "9200" .Values.elasticsearch.port }}_PROTO
+          value: "{{ default "http" .Values.elasticsearch.proto }}"
+        - name: ELASTICSEARCH_INDEX
+          value: "{{ default "arxiv" .Values.elasticsearch.index }}"
+        - name: ELASTICSEARCH_USER
+          value: "{{ default "" .Values.elasticsearch.user }}"
+        - name: ELASTICSEARCH_PASSWORD
+          value: "{{ default "" .Values.elasticsearch.password }}"
+        - name: ELASTICSEARCH_VERIFY
+          value: "{{ default "false" .Values.elasticsearch.verify }}"
+        - name: LOGLEVEL
+          value: "{{ default "40" .Values.loglevel }}"
+        - name: BASE_SERVER
+          value: "{{ .Values.base_server }}"
+        resources:
+          limits:
+            cpu: 300m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
