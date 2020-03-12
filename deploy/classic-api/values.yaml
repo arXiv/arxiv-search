@@ -16,7 +16,7 @@ elasticsearch:
   user: ""
   password: ""
   verify: "true"
-  index: "arxiv0.3"
+  index: "arxiv0.3" # currently used for development
 
 labels:
   subsystem: api-gateway

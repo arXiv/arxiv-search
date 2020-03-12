@@ -26,11 +26,19 @@ spec:
         ports:
         - containerPort: 8000
         env:
+        - name: APPLICATION_ROOT
+          value: "{{ .Values.ingress.path }}"
+        - name: BASE_SERVER
+          value: "{{ .Values.base_server }}"
+        - name: NAMESPACE
+          value: "{{ .Values.namespace }}"
+        - name: LOGLEVEL
+          value: "{{ default "40" .Values.loglevel }}"
         - name: ELASTICSEARCH_SERVICE_HOST
           value: "{{ default "elasticsearch" .Values.elasticsearch.host }}"
         - name: ELASTICSEARCH_SERVICE_PORT
           value: "{{ default "9200" .Values.elasticsearch.port }}"
-        - name: ELASTICSEARCH_PORT_{{ default "9200" .Values.elasticsearch.port }}_PROTO
+        - name: ELASTICSEARCH_SERVICE_PORT_{{ default "9200" .Values.elasticsearch.port }}_PROTO
           value: "{{ default "http" .Values.elasticsearch.proto }}"
         - name: ELASTICSEARCH_INDEX
           value: "{{ default "arxiv" .Values.elasticsearch.index }}"
@@ -40,10 +48,6 @@ spec:
           value: "{{ default "" .Values.elasticsearch.password }}"
         - name: ELASTICSEARCH_VERIFY
           value: "{{ default "false" .Values.elasticsearch.verify }}"
-        - name: LOGLEVEL
-          value: "{{ default "40" .Values.loglevel }}"
-        - name: BASE_SERVER
-          value: "{{ .Values.base_server }}"
         resources:
           limits:
             cpu: 300m
