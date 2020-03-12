@@ -18,7 +18,7 @@ metadata:
 spec:
   tls:  # This will use the default certificate for the ingress controller.
   - hosts:
-    - "{{ .Values.host }}"
+    - "{{ .Values.ingress.host }}"
   rules:
   - host: "{{ .Values.host }}"
     http:
