@@ -48,9 +48,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_request_without_token(self):
         """No auth token is provided on the request."""
-        response = self.client.get(
-            "/classic_api/query?search_query=au:copernicus"
-        )
+        response = self.client.get("/query?search_query=au:copernicus")
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
     def test_with_token_lacking_scope(self):
@@ -62,7 +60,7 @@ class TestClassicAPISearchRequests(TestCase):
             scope=[Scope("something", "read")],
         )
         response = self.client.get(
-            "/classic_api/query?search_query=au:copernicus",
+            "/query?search_query=au:copernicus",
             headers={"Authorization": token},
         )
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
@@ -72,8 +70,7 @@ class TestClassicAPISearchRequests(TestCase):
         """Client auth token has required public read scope."""
         self.mock_classic_controller(mock_controller, id_list=["1234.5678"])
         response = self.client.get(
-            "/classic_api/query?search_query=au:copernicus",
-            headers=self.auth_header,
+            "/query?search_query=au:copernicus", headers=self.auth_header,
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
@@ -81,9 +78,7 @@ class TestClassicAPISearchRequests(TestCase):
     def test_paper_retrieval(self, mock_controller):
         """Test single-paper retrieval."""
         self.mock_classic_controller(mock_controller, method="paper")
-        response = self.client.get(
-            "/classic_api/1234.56789v6", headers=self.auth_header
-        )
+        response = self.client.get("/1234.56789v6", headers=self.auth_header)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     # Validation errors
@@ -113,7 +108,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_start_not_a_number(self):
         response = self.client.get(
-            "/classic_api/query?search_query=au:copernicus&start=non_number",
+            "/query?search_query=au:copernicus&start=non_number",
             headers=self.auth_header,
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -125,7 +120,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_start_negative(self):
         response = self.client.get(
-            "/classic_api/query?search_query=au:copernicus&start=-1",
+            "/query?search_query=au:copernicus&start=-1",
             headers=self.auth_header,
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -137,8 +132,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_max_results_not_a_number(self):
         response = self.client.get(
-            "/classic_api/query?search_query=au:copernicus&"
-            "max_results=non_number",
+            "/query?search_query=au:copernicus&" "max_results=non_number",
             headers=self.auth_header,
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -150,7 +144,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_max_results_negative(self):
         response = self.client.get(
-            "/classic_api/query?search_query=au:copernicus&max_results=-1",
+            "/query?search_query=au:copernicus&max_results=-1",
             headers=self.auth_header,
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -166,15 +160,14 @@ class TestClassicAPISearchRequests(TestCase):
 
         for value in domain.SortBy:
             response = self.client.get(
-                f"/classic_api/query?search_query=au:copernicus&"
-                f"sortBy={value}",
+                f"/query?search_query=au:copernicus&" f"sortBy={value}",
                 headers=self.auth_header,
             )
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_sort_by_invalid_values(self):
         response = self.client.get(
-            "/classic_api/query?search_query=au:copernicus&sortBy=foo",
+            "/query?search_query=au:copernicus&sortBy=foo",
             headers=self.auth_header,
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -190,15 +183,14 @@ class TestClassicAPISearchRequests(TestCase):
 
         for value in domain.SortDirection:
             response = self.client.get(
-                f"/classic_api/query?search_query=au:copernicus&"
-                f"sortOrder={value}",
+                f"/query?search_query=au:copernicus&" f"sortOrder={value}",
                 headers=self.auth_header,
             )
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_sort_direction_invalid_values(self):
         response = self.client.get(
-            "/classic_api/query?search_query=au:copernicus&sortOrder=foo",
+            "/query?search_query=au:copernicus&sortOrder=foo",
             headers=self.auth_header,
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -250,8 +242,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_invalid_arxiv_id(self):
         response = self.client.get(
-            "/classic_api/query?id_list=cond—mat/0709123",
-            headers=self.auth_header,
+            "/query?id_list=cond—mat/0709123", headers=self.auth_header,
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.check_validation_error(
