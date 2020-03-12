@@ -20,8 +20,8 @@ spec:
         log-style: uwsgi
     spec:
       containers:
-      - name: "{{ default "search-api" .Values.deploymentName }}"
-        image: arxiv/search-api:{{ .Values.image.tag }}
+      - name: "{{ default "classic-api" .Values.deploymentName }}"
+        image: arxiv/classic-api:{{ .Values.image.tag }}
         imagePullPolicy: Always
         ports:
         - containerPort: 8000

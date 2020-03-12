@@ -2,10 +2,10 @@ kind: Service
 metadata:
   annotations:
     prometheus.io/scrape: 'true'
-  name: "{{ default "search-api" .Values.serviceName }}"
+  name: "{{ default "classic-api" .Values.serviceName }}"
   labels:
     subsystem: "{{ .Values.labels.subsystem }}"
-    container: "{{ default "search-api" .Values.deploymentName }}"
+    container: "{{ default "classic-api" .Values.deploymentName }}"
     service-group: api
     log-style: uwsgi
 spec:
