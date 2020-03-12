@@ -15,13 +15,13 @@ from search.routes.classic_api import exceptions
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint("classic_api", __name__, url_prefix="/classic_api")
+blueprint = Blueprint("classic_api", __name__, url_prefix="/")
 
 
 @blueprint.route("/query", methods=["GET"])
 # @scoped(required=scopes.READ_PUBLIC)
 def query() -> Response:
-    """Main query endpoint."""
+    """Provide the main query endpoint."""
     logger.debug("Got query: %s", request.args)
     data, status_code, headers = classic_api.query(request.args)
     response_data = serialize.as_atom(  # type: ignore
