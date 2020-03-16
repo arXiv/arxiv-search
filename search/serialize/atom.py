@@ -1,11 +1,12 @@
 """Atom serialization for classic arXiv API."""
 
+import re
 import base64
 import hashlib
 from datetime import datetime
 from typing import Union, Optional, Dict, Any
 
-from flask import url_for
+from flask import url_for, current_app
 from feedgen.feed import FeedGenerator
 
 from search.utils import to_utc
@@ -37,6 +38,11 @@ class AtomXMLSerializer(BaseSerializer):
     """Atom XML serializer for paper metadata."""
 
     @classmethod
+    def _fix_url(cls, url: str) -> str:
+        root = current_app.config["APPLICATION_ROOT"].strip("/")
+        return re.sub(fr"^{root}/(.*$)", r"https://arxiv.org/\1", url, 1)
+
+    @classmethod
     def transform_document(
         cls,
         fg: FeedGenerator,
@@ -46,11 +52,13 @@ class AtomXMLSerializer(BaseSerializer):
         """Select a subset of :class:`Document` properties for public API."""
         entry = fg.add_entry()
         entry.id(
-            url_for(
-                "abs",
-                paper_id=doc["paper_id"],
-                version=doc["version"],
-                _external=True,
+            cls._fix_url(
+                url_for(
+                    "abs",
+                    paper_id=doc["paper_id"],
+                    version=doc["version"],
+                    _external=True,
+                )
             )
         )
         entry.title(doc["title"])
@@ -59,11 +67,13 @@ class AtomXMLSerializer(BaseSerializer):
         entry.updated(to_utc(doc["updated_date"]))
         entry.link(
             {
-                "href": url_for(
-                    "abs",
-                    paper_id=doc["paper_id"],
-                    version=doc["version"],
-                    _external=True,
+                "href": cls._fix_url(
+                    url_for(
+                        "abs",
+                        paper_id=doc["paper_id"],
+                        version=doc["version"],
+                        _external=True,
+                    )
                 ),
                 "type": "text/html",
             }
@@ -71,11 +81,13 @@ class AtomXMLSerializer(BaseSerializer):
 
         entry.link(
             {
-                "href": url_for(
-                    "pdf",
-                    paper_id=doc["paper_id"],
-                    version=doc["version"],
-                    _external=True,
+                "href": cls._fix_url(
+                    url_for(
+                        "pdf",
+                        paper_id=doc["paper_id"],
+                        version=doc["version"],
+                        _external=True,
+                    )
                 ),
                 "type": "application/pdf",
                 "rel": "related",
