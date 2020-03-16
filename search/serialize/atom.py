@@ -2,13 +2,13 @@
 
 import base64
 import hashlib
-from datetime import datetime, timezone
-import dateutil
+from datetime import datetime
 from typing import Union, Optional, Dict, Any
 
 from flask import url_for
 from feedgen.feed import FeedGenerator
 
+from search.utils import to_utc
 from search.domain import (
     Error,
     DocumentSet,
@@ -31,36 +31,6 @@ def safe_str(s: Union[str, bytes]) -> str:
     if isinstance(s, bytes):
         return s.decode("utf-8")
     return s
-
-
-class DateTime(datetime):
-    """DateTime is a hack wrapper around datetime.
-
-    Feedgen doesn't have custom timestamp formatting. It uses isoformat, so
-    we use a custom class that overrides the isoformat class.
-    """
-
-    def isoformat(self, sep: str = "T", timespec: str = "auto") -> str:
-        """Return formatted datetime."""
-        return self.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    @property
-    def tzinfo(self) -> timezone:
-        """Return the objects timezone."""
-        return timezone.utc
-
-
-def to_utc(dt: Union[datetime, str]) -> Optional[datetime]:
-    """Localize datetime objects to UTC timezone."""
-    if dt is None:
-        return None
-    if isinstance(dt, str):
-        try:
-            parsed_dt = dateutil.parser.parse(dt)
-            return DateTime.fromtimestamp(parsed_dt.timestamp())
-        except Exception:
-            return None
-    return DateTime.fromtimestamp(dt.astimezone(timezone.utc).timestamp())
 
 
 class AtomXMLSerializer(BaseSerializer):
