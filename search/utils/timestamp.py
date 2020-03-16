@@ -1,9 +1,8 @@
+"""Timestamps utilities."""
 from typing import Optional, Union
 from datetime import datetime, timezone
 
 from dateutil import parser
-
-# Timestamps
 
 
 class DateTime(datetime):
