@@ -63,8 +63,16 @@ class AtomXMLSerializer(BaseSerializer):
         )
         entry.title(doc["title"])
         entry.summary(doc["abstract"])
-        entry.published(to_utc(doc["submitted_date"]))
-        entry.updated(to_utc(doc["updated_date"]))
+        entry.published(
+            to_utc(doc["submitted_date_first"] or doc["submitted_date"])
+        )
+        entry.updated(
+            to_utc(
+                doc["updated_date"]
+                or doc["modified_date"]
+                or doc["submitted_date"]
+            )
+        )
         entry.link(
             {
                 "href": cls._fix_url(
