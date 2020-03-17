@@ -3,7 +3,7 @@
 import os
 from http import HTTPStatus
 from xml.etree import ElementTree
-from unittest import TestCase, mock
+from unittest import TestCase, mock, skip
 
 from arxiv.users import helpers, auth
 from arxiv.users.domain import Scope
@@ -46,11 +46,13 @@ class TestClassicAPISearchRequests(TestCase):
         )
         getattr(controller, method).return_value = r_data, HTTPStatus.OK, {}
 
+    @skip("auth scope currently disabled for classic API")
     def test_request_without_token(self):
         """No auth token is provided on the request."""
         response = self.client.get("/query?search_query=au:copernicus")
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
+    @skip("auth scope currently disabled for classic API")
     def test_with_token_lacking_scope(self):
         """Client auth token lacks required public read scope."""
         token = helpers.generate_token(
