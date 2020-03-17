@@ -1,8 +1,11 @@
 """Web Server Gateway Interface entry-point for classic API."""
 
-from search.factory import create_classic_api_web_app
 import os
+from arxiv.base import logging
 
+from search.factory import create_classic_api_web_app
+
+logger = logging.getLogger(__name__)
 
 __flask_app__ = None
 

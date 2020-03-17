@@ -1,0 +1,7 @@
+name: classic-api
+version: 0.1
+appVersion: 0.1
+description: ES-backed classic API.
+sources:
+  - https://github.com/arxiv/arxiv-search
+engine: gotpl
