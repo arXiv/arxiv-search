@@ -3,6 +3,10 @@
 # Defines the runtime for the arXiv classic API, which provides a metadata
 # query API backed by Elasticsearch.
 
+FROM arxiv/base:0.16.6
+
+WORKDIR /opt/arxiv
+
 ENV LC_ALL en_US.utf8
 ENV LANG en_US.utf8
 ENV LOGLEVEL 40
@@ -17,9 +21,6 @@ ENV ELASTICSEARCH_USER elastic
 ENV ELASTICSEARCH_PASSWORD changeme
 ENV METADATA_ENDPOINT https://arxiv.org/docmeta_bulk/
 
-FROM arxiv/base:0.16.6
-
-WORKDIR /opt/arxiv
 
 # Add Python application and configuration.
 ADD Pipfile /opt/arxiv/
