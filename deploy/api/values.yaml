@@ -1,0 +1,21 @@
+subPath: /metadata
+elasticsearch:
+  esClusterName: arxiv
+  host: ""
+  port: "443"
+  proto: "https"
+  user: ""
+  password: ""
+  verify: "true"
+  index: "arxiv0.3"
+loglevel: "40"
+imageTag: "0.1"
+labels:
+  subsystem: api-gateway
+
+host: changeme
+serviceName: changeme
+deploymentName: changeme
+ingressName: changeme
+replicas: 1
+authenticatorService: authenticator
