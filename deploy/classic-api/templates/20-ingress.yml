@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: "{{ default "classic-api-ingress" .Values.ingress.name }}"
+  namespace: "{{ .Values.namespace }}"
+  labels:
+    subsystem: "{{ .Values.labels.subsystem }}"
+    container: "{{ default "classic-api" .Values.name }}"
+    service-group: api
+    env: "{{ .Values.namespace }}"
+  # annotations:
+    # ingress.kubernetes.io/configuration-snippet: |
+      # more_set_headers "Request-Id: $req_id";
+    # ingress.kubernetes.io/auth-url: http://{{ .Values.authenticatorService }}.{{ .Values.namespace }}.svc.cluster.local/auth
+    # ingress.kubernetes.io/auth-response-headers: Authorization
+    # ingress.kubernetes.io/limit-connections: "4"
+    # ingress.kubernetes.io/limit-rps: "16"
+    # ingress.kubernetes.io/rewrite-target: /
+spec:
+  tls:  # This will use the default certificate for the ingress controller.
+  - hosts:
+    - "{{ .Values.ingress.host }}"
+  rules:
+  - host: "{{ .Values.ingress.host }}"
+    http:
+      paths:
+      - path: "{{ default "/classic_api" .Values.ingress.path }}"
+        backend:
+          serviceName: "{{ default "classic-api" .Values.name }}"
+          servicePort: 80

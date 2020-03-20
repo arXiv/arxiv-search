@@ -1,0 +1,7 @@
+name: search-api
+version: 0.1.3
+appVersion: 0.1.1
+description: ES-backed search API for arXiv-NG.
+sources:
+  - https://github.com/arxiv/arxiv-search
+engine: gotpl

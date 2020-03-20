@@ -1,0 +1,29 @@
+name: classic-api
+namespace: development
+loglevel: 40
+
+image:
+  tag: "latest"
+
+scaling:
+  replicas: 1
+
+elasticsearch:
+  es_cluster_name: arxiv
+  host: changeme
+  port: "443"
+  proto: "https"
+  user: ""
+  password: ""
+  verify: "true"
+  index: "arxiv0.3" # currently used for development
+
+labels:
+  subsystem: api-gateway
+
+ingress:
+  name: classic-api
+  host: changeme
+  path: /classic_api
+
+base_server: "development.arxiv.org"
