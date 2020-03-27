@@ -1,12 +1,12 @@
 """Atom serialization for classic arXiv API."""
 
-import re
 import base64
 import hashlib
+from urllib import parse
 from datetime import datetime
 from typing import Union, Optional, Dict, Any
 
-from flask import url_for, current_app
+from flask import url_for
 from feedgen.feed import FeedGenerator
 
 from search.utils import to_utc, safe_str
@@ -32,8 +32,12 @@ class AtomXMLSerializer(BaseSerializer):
 
     @staticmethod
     def _fix_url(url: str) -> str:
-        root = current_app.config["APPLICATION_ROOT"].strip("/")
-        return re.sub(fr"^{root}/(.*$)", r"https://arxiv.org/\1", url, 1)
+        return (
+            parse.urlparse(url)
+            ._replace(scheme="https")
+            ._replace(netloc="arxiv.org")
+            .geturl()
+        )
 
     def transform_document(
         self,
@@ -122,8 +126,10 @@ class AtomXMLSerializer(BaseSerializer):
                 author_data["affiliation"] = author["affiliation"]
             entry.arxiv.author(author_data)
 
-    @staticmethod
-    def _get_feed(query: Optional[ClassicAPIQuery] = None) -> FeedGenerator:
+    @classmethod
+    def _get_feed(
+        cls, query: Optional[ClassicAPIQuery] = None
+    ) -> FeedGenerator:
         fg = FeedGenerator()
         fg.generator("")
         fg.register_extension("opensearch", OpenSearchExtension)
@@ -153,17 +159,23 @@ class AtomXMLSerializer(BaseSerializer):
                 hashlib.sha1(query.to_query_string().encode("utf-8")).digest()
             ).decode("utf-8")[:-1]
             fg.id(
-                url_for("classic_api.query").replace("/query", f"/{search_id}")
+                cls._fix_url(
+                    url_for("classic_api.query").replace(
+                        "/query", f"/{search_id}"
+                    )
+                )
             )
 
             fg.link(
                 {
-                    "href": url_for(
-                        "classic_api.query",
-                        search_query=query_string,
-                        start=query.page_start,
-                        max_results=query.size,
-                        id_list=id_list,
+                    "href": cls._fix_url(
+                        url_for(
+                            "classic_api.query",
+                            search_query=query_string,
+                            start=query.page_start,
+                            max_results=query.size,
+                            id_list=id_list,
+                        )
                     ),
                     "type": "application/atom+xml",
                 }
@@ -217,7 +229,11 @@ class AtomXMLSerializer(BaseSerializer):
         entry.summary(error.error)
         entry.updated(to_utc(error.created))
         entry.link(
-            {"href": error.link, "rel": "alternate", "type": "text/html"}
+            {
+                "href": self._fix_url(error.link),
+                "rel": "alternate",
+                "type": "text/html",
+            }
         )
         entry.arxiv.author({"name": error.author})
 
