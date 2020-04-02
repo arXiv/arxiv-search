@@ -22,14 +22,16 @@ class DateTime(datetime):
         return timezone.utc
 
 
-def utc_now() -> DateTime:
+def utc_now() -> Union[DateTime, datetime]:
     """Return timezone aware current timestamp."""
     return DateTime.fromtimestamp(
         datetime.utcnow().astimezone(timezone.utc).timestamp()
     )
 
 
-def to_utc(dt: Optional[Union[DateTime, datetime, str]]) -> DateTime:
+def to_utc(
+    dt: Optional[Union[DateTime, datetime, str]]
+) -> Union[DateTime, datetime]:
     """Localize datetime objects to UTC timezone.
 
     If the datetime object is None return current timestamp.

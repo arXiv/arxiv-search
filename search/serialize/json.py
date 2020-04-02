@@ -17,7 +17,7 @@ class JSONSerializer(BaseSerializer):
         category = clsn.get("category")
         if category is None:
             return None
-        return {
+        return {  # type:ignore
             "group": clsn.get("group"),
             "archive": clsn.get("archive"),
             "category": category,
@@ -37,7 +37,7 @@ class JSONSerializer(BaseSerializer):
         latest = document.get("latest")
         if latest is None:
             return None
-        return {
+        return {  # type:ignore
             "paper_id": latest,
             "href": url_for(
                 "api.paper",
