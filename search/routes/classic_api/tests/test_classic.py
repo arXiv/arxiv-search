@@ -117,7 +117,7 @@ class TestClassicAPISearchRequests(TestCase):
         self.check_validation_error(
             response,
             "start must be an integer",
-            "http://arxiv.org/api/errors#start_must_be_an_integer",
+            "https://arxiv.org/api/errors#start_must_be_an_integer",
         )
 
     def test_start_negative(self):
@@ -129,7 +129,7 @@ class TestClassicAPISearchRequests(TestCase):
         self.check_validation_error(
             response,
             "start must be non-negative",
-            "http://arxiv.org/api/errors#start_must_be_non-negative",
+            "https://arxiv.org/api/errors#start_must_be_non-negative",
         )
 
     def test_max_results_not_a_number(self):
@@ -141,7 +141,7 @@ class TestClassicAPISearchRequests(TestCase):
         self.check_validation_error(
             response,
             "max_results must be an integer",
-            "http://arxiv.org/api/errors#max_results_must_be_an_integer",
+            "https://arxiv.org/api/errors#max_results_must_be_an_integer",
         )
 
     def test_max_results_negative(self):
@@ -153,7 +153,7 @@ class TestClassicAPISearchRequests(TestCase):
         self.check_validation_error(
             response,
             "max_results must be non-negative",
-            "http://arxiv.org/api/errors#max_results_must_be_non-negative",
+            "https://arxiv.org/api/errors#max_results_must_be_non-negative",
         )
 
     @mock.patch(f"{factory.__name__}.classic_api.classic_api")
@@ -250,6 +250,6 @@ class TestClassicAPISearchRequests(TestCase):
         self.check_validation_error(
             response,
             "incorrect id format for cond—mat/0709123",
-            "http://arxiv.org/api/errors#"
+            "https://arxiv.org/api/errors#"
             "incorrect_id_format_for_cond—mat/0709123",
         )
