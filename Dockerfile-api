@@ -3,7 +3,7 @@
 # Defines the runtime for the arXiv search API, which provides a metadata
 # query API backed by Elasticsearch.
 
-FROM arxiv/base:0.14.3
+FROM arxiv/base:0.16.6
 
 WORKDIR /opt/arxiv
 
