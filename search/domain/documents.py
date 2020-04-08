@@ -1,22 +1,18 @@
 """Data structs for search documents."""
 
-from datetime import datetime, date, timezone
+from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 
 from dataclasses import dataclass, field
 from mypy_extensions import TypedDict
 
+from search.utils import utc_now
 from search.domain.base import Classification, ClassificationList
 
 
 # The class keyword ``total=False`` allows instances that do not contain all of
 # the typed keys. See https://github.com/python/mypy/issues/2632 for
 # background.
-
-
-def utcnow() -> datetime:
-    """Return timezone aware current timestamp."""
-    return datetime.utcnow().astimezone(timezone.utc)
 
 
 @dataclass
@@ -27,7 +23,7 @@ class Error:
     error: str
     link: str
     author: str = "arXiv api core"
-    created: datetime = field(default_factory=utcnow)
+    created: datetime = field(default_factory=utc_now)
 
 
 class Person(TypedDict, total=False):
