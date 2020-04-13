@@ -1,21 +1,38 @@
-subPath: /metadata
+name: search-api
+namespace: development
+loglevel: 40
+
+image:
+  tag: "0.1-noauth"
+
+scaling:
+  replicas: 1
+
 elasticsearch:
-  esClusterName: arxiv
-  host: ""
+  es_cluster_name: arxiv
+  host: changeme
   port: "443"
   proto: "https"
   user: ""
   password: ""
   verify: "true"
-  index: "arxiv0.3"
-loglevel: "40"
-imageTag: "0.1"
+  index: "arxiv0.3" # currently used for development
+
 labels:
   subsystem: api-gateway
 
 host: changeme
 serviceName: changeme
 deploymentName: changeme
-ingressName: changeme
-replicas: 1
+
 authenticatorService: authenticator
+
+deployment:
+  name: search-api
+
+ingress:
+  name: search-api
+  host: changeme
+  path: /metadata
+
+base_server: "development.arxiv.org"

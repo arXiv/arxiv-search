@@ -5,7 +5,7 @@ metadata:
   namespace: "{{ .Values.namespace }}"
   labels:
     subsystem: "{{ .Values.labels.subsystem }}"
-    container: "{{ default "classic-api" .Values.deploymentName }}"
+    container: "{{ default "classic-api" .Values.deployment.name }}"
     service-group: api
     log-style: uwsgi
     env: "{{ .Values.namespace }}"
@@ -15,12 +15,12 @@ spec:
     metadata:
       labels:
         subsystem: "{{ .Values.labels.subsystem }}"
-        container: "{{ default "classic-api" .Values.deploymentName }}"
+        container: "{{ default "classic-api" .Values.deployment.name }}"
         service-group: api
         log-style: uwsgi
     spec:
       containers:
-      - name: "{{ default "classic-api" .Values.deploymentName }}"
+      - name: "{{ default "classic-api" .Values.deployment.name }}"
         image: arxiv/classic-api:{{ .Values.image.tag }}
         imagePullPolicy: Always
         ports:
