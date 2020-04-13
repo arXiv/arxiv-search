@@ -7,8 +7,9 @@ metadata:
     container: "{{ default "search-api" .Values.deployment.name }}"
     service-group: api
     log-style: uwsgi
+    env: "{{ .Values.namespace }}"
 spec:
-  replicas: {{ default 1 .Values.replicas }}
+  replicas: {{ default 1 .Values.scaling.replicas }}
   template:
     metadata:
       labels:

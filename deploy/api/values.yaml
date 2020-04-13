@@ -21,10 +21,6 @@ elasticsearch:
 labels:
   subsystem: api-gateway
 
-host: changeme
-serviceName: changeme
-deploymentName: changeme
-
 authenticatorService: authenticator
 
 deployment:
@@ -32,7 +28,7 @@ deployment:
 
 ingress:
   name: search-api
-  host: changeme
+  host: "development.arxiv.org"
   path: /metadata
 
 base_server: "development.arxiv.org"
