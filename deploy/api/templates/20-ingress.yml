@@ -2,6 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: "{{ default "search-api-ingress" .Values.ingress.name }}"
+  namespace: "{{ .Values.namespace }}"
   labels:
     subsystem: "{{ .Values.labels.subsystem }}"
     container: "{{ default "search-api" .Values.deployment.name }}"
