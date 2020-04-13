@@ -16,4 +16,4 @@ spec:
     targetPort: 8000
   selector:
     subsystem: "{{ .Values.labels.subsystem }}"
-    container: "{{ default "search-api" .Values.deployment.name }}"
+    container: "{{ default "search-api" .Values.name }}"
