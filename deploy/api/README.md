@@ -13,6 +13,6 @@ helm install ./ --set=image.tag=some_tag \
 
 
 Notes:
-- `image.tag`: this refers to the tag in [dockerhub](https://hub.docker.com/repository/docker/arxiv/compiler-api)
+- `image.tag`: this refers to the tag in [dockerhub](https://hub.docker.com/repository/docker/arxiv/search-api)
 - `elasticsearch.host`: this is the hostname of our Elasticsearch endpoint. We have provisioned it in AWS.
 - `elasticsearch.index`: this is the index identifier. As of this writing, `arxiv0.3` is the index associated with development.
