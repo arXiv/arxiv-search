@@ -3,7 +3,7 @@
 import os
 import json
 from http import HTTPStatus
-from unittest import TestCase, mock
+from unittest import TestCase, mock, skip
 
 import jsonschema
 
@@ -31,11 +31,13 @@ class TestAPISearchRequests(TestCase):
         with open(self.SCHEMA_PATH) as f:
             self.schema = json.load(f)
 
+    @skip("auth scope currently disabled for API")
     def test_request_without_token(self):
         """No auth token is provided on the request."""
         response = self.client.get("/")
         self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
 
+    @skip("auth scope currently disabled for API")
     def test_with_token_lacking_scope(self):
         """Client auth token lacks required public read scope."""
         token = helpers.generate_token(
