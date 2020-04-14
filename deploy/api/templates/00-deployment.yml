@@ -36,8 +36,6 @@ spec:
           value: "{{ .Values.namespace }}"
         - name: LOGLEVEL
           value: "{{ default "40" .Values.loglevel }}"
-        - name: BASE_SERVER
-          value: "{{ .Values.host }}"
         - name: ELASTICSEARCH_SERVICE_HOST
           value: "{{ default "elasticsearch" .Values.elasticsearch.host }}"
         - name: ELASTICSEARCH_SERVICE_PORT

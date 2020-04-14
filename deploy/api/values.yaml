@@ -31,4 +31,4 @@ ingress:
   host: "development.arxiv.org"
   path: /metadata
 
-base_server: "development.arxiv.org"
+base_server: "arxiv.org"
