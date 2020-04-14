@@ -1,3 +1,4 @@
+"""Query builder for classic API."""
 from typing import Dict, Callable
 
 from elasticsearch_dsl import Q

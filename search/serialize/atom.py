@@ -2,13 +2,14 @@
 
 import base64
 import hashlib
-from datetime import datetime, timezone
-import dateutil
+from urllib import parse
+from datetime import datetime
 from typing import Union, Optional, Dict, Any
 
 from flask import url_for
 from feedgen.feed import FeedGenerator
 
+from search.utils import to_utc, safe_str
 from search.domain import (
     Error,
     DocumentSet,
@@ -26,49 +27,20 @@ from search.domain.classic_api.query_parser import phrase_to_query_string
 from search.serialize.base import BaseSerializer
 
 
-def safe_str(s: Union[str, bytes]) -> str:
-    """Return a UTF decoded string from bytes or the original string."""
-    if isinstance(s, bytes):
-        return s.decode("utf-8")
-    return s
-
-
-class DateTime(datetime):
-    """DateTime is a hack wrapper around datetime.
-
-    Feedgen doesn't have custom timestamp formatting. It uses isoformat, so
-    we use a custom class that overrides the isoformat class.
-    """
-
-    def isoformat(self, sep: str = "T", timespec: str = "auto") -> str:
-        """Return formatted datetime."""
-        return self.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    @property
-    def tzinfo(self) -> timezone:
-        """Return the objects timezone."""
-        return timezone.utc
-
-
-def to_utc(dt: Union[datetime, str]) -> Optional[datetime]:
-    """Localize datetime objects to UTC timezone."""
-    if dt is None:
-        return None
-    if isinstance(dt, str):
-        try:
-            parsed_dt = dateutil.parser.parse(dt)
-            return DateTime.fromtimestamp(parsed_dt.timestamp())
-        except Exception:
-            return None
-    return DateTime.fromtimestamp(dt.astimezone(timezone.utc).timestamp())
-
-
 class AtomXMLSerializer(BaseSerializer):
     """Atom XML serializer for paper metadata."""
 
-    @classmethod
+    @staticmethod
+    def _fix_url(url: str) -> str:
+        return (
+            parse.urlparse(url)
+            ._replace(scheme="https")
+            ._replace(netloc="arxiv.org")
+            .geturl()
+        )
+
     def transform_document(
-        cls,
+        self,
         fg: FeedGenerator,
         doc: Document,
         query: Optional[ClassicAPIQuery] = None,
@@ -76,24 +48,36 @@ class AtomXMLSerializer(BaseSerializer):
         """Select a subset of :class:`Document` properties for public API."""
         entry = fg.add_entry()
         entry.id(
-            url_for(
-                "abs",
-                paper_id=doc["paper_id"],
-                version=doc["version"],
-                _external=True,
-            )
-        )
-        entry.title(doc["title"])
-        entry.summary(doc["abstract"])
-        entry.published(to_utc(doc["submitted_date"]))
-        entry.updated(to_utc(doc["updated_date"]))
-        entry.link(
-            {
-                "href": url_for(
+            self._fix_url(
+                url_for(
                     "abs",
                     paper_id=doc["paper_id"],
                     version=doc["version"],
                     _external=True,
+                )
+            )
+        )
+        entry.title(doc["title"])
+        entry.summary(doc["abstract"])
+        entry.published(
+            to_utc(doc["submitted_date_first"] or doc["submitted_date"])
+        )
+        entry.updated(
+            to_utc(
+                doc["updated_date"]
+                or doc["modified_date"]
+                or doc["submitted_date"]
+            )
+        )
+        entry.link(
+            {
+                "href": self._fix_url(
+                    url_for(
+                        "abs",
+                        paper_id=doc["paper_id"],
+                        version=doc["version"],
+                        _external=True,
+                    )
                 ),
                 "type": "text/html",
             }
@@ -101,11 +85,13 @@ class AtomXMLSerializer(BaseSerializer):
 
         entry.link(
             {
-                "href": url_for(
-                    "pdf",
-                    paper_id=doc["paper_id"],
-                    version=doc["version"],
-                    _external=True,
+                "href": self._fix_url(
+                    url_for(
+                        "pdf",
+                        paper_id=doc["paper_id"],
+                        version=doc["version"],
+                        _external=True,
+                    )
                 ),
                 "type": "application/pdf",
                 "rel": "related",
@@ -140,8 +126,10 @@ class AtomXMLSerializer(BaseSerializer):
                 author_data["affiliation"] = author["affiliation"]
             entry.arxiv.author(author_data)
 
-    @staticmethod
-    def _get_feed(query: Optional[ClassicAPIQuery] = None) -> FeedGenerator:
+    @classmethod
+    def _get_feed(
+        cls, query: Optional[ClassicAPIQuery] = None
+    ) -> FeedGenerator:
         fg = FeedGenerator()
         fg.generator("")
         fg.register_extension("opensearch", OpenSearchExtension)
@@ -171,17 +159,23 @@ class AtomXMLSerializer(BaseSerializer):
                 hashlib.sha1(query.to_query_string().encode("utf-8")).digest()
             ).decode("utf-8")[:-1]
             fg.id(
-                url_for("classic_api.query").replace("/query", f"/{search_id}")
+                cls._fix_url(
+                    url_for("classic_api.query").replace(
+                        "/query", f"/{search_id}"
+                    )
+                )
             )
 
             fg.link(
                 {
-                    "href": url_for(
-                        "classic_api.query",
-                        search_query=query_string,
-                        start=query.page_start,
-                        max_results=query.size,
-                        id_list=id_list,
+                    "href": cls._fix_url(
+                        url_for(
+                            "classic_api.query",
+                            search_query=query_string,
+                            start=query.page_start,
+                            max_results=query.size,
+                            id_list=id_list,
+                        )
                     ),
                     "type": "application/atom+xml",
                 }
@@ -194,12 +188,13 @@ class AtomXMLSerializer(BaseSerializer):
         fg.updated(to_utc(datetime.utcnow()))
         return fg
 
-    @classmethod
     def serialize(
-        cls, document_set: DocumentSet, query: Optional[ClassicAPIQuery] = None
+        self,
+        document_set: DocumentSet,
+        query: Optional[ClassicAPIQuery] = None,
     ) -> str:
         """Generate Atom response for a :class:`DocumentSet`."""
-        fg = cls._get_feed(query)
+        fg = self._get_feed(query)
 
         # pylint struggles with the opensearch extensions, so we ignore
         # no-member here.
@@ -211,16 +206,15 @@ class AtomXMLSerializer(BaseSerializer):
         fg.opensearch.startIndex(document_set["metadata"].get("start"))
 
         for doc in reversed(document_set["results"]):
-            cls.transform_document(fg, doc, query=query)
+            self.transform_document(fg, doc, query=query)
 
         return safe_str(fg.atom_str(pretty=True))  # type: ignore
 
-    @classmethod
     def serialize_error(
-        cls, error: Error, query: Optional[ClassicAPIQuery] = None
+        self, error: Error, query: Optional[ClassicAPIQuery] = None
     ) -> str:
         """Generate Atom error response."""
-        fg = cls._get_feed(query)
+        fg = self._get_feed(query)
 
         # pylint struggles with the opensearch extensions, so we ignore
         # no-member here.
@@ -235,21 +229,24 @@ class AtomXMLSerializer(BaseSerializer):
         entry.summary(error.error)
         entry.updated(to_utc(error.created))
         entry.link(
-            {"href": error.link, "rel": "alternate", "type": "text/html"}
+            {
+                "href": self._fix_url(error.link),
+                "rel": "alternate",
+                "type": "text/html",
+            }
         )
         entry.arxiv.author({"name": error.author})
 
         return safe_str(fg.atom_str(pretty=True))  # type: ignore
 
-    @classmethod
     def serialize_document(
-        cls, document: Document, query: Optional[ClassicAPIQuery] = None
+        self, document: Document, query: Optional[ClassicAPIQuery] = None
     ) -> str:
         """Generate Atom feed for a single :class:`Document`."""
         # Wrap the single document in a DocumentSet wrapper.
         document_set = document_set_from_documents([document])
 
-        return cls.serialize(document_set, query=query)
+        return self.serialize(document_set, query=query)
 
 
 def as_atom(
@@ -258,14 +255,14 @@ def as_atom(
 ) -> str:
     """Serialize a :class:`DocumentSet` as Atom."""
     if isinstance(document_or_set, Error):
-        return AtomXMLSerializer.serialize_error(
+        return AtomXMLSerializer().serialize_error(
             document_or_set, query=query
         )  # type: ignore
         # type: ignore
     elif "paper_id" in document_or_set:
-        return AtomXMLSerializer.serialize_document(  # type: ignore
+        return AtomXMLSerializer().serialize_document(  # type: ignore
             document_or_set, query=query
         )
-    return AtomXMLSerializer.serialize(  # type: ignore
+    return AtomXMLSerializer().serialize(  # type: ignore
         document_or_set, query=query
     )  # type: ignore

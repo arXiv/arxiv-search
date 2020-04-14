@@ -10,37 +10,34 @@ from search.domain import DocumentSet, Document, Classification, APIQuery
 class JSONSerializer(BaseSerializer):
     """Serializes a :class:`DocumentSet` as JSON."""
 
-    # FIXME: Return type.
-    @classmethod
+    @staticmethod
     def _transform_classification(
-        cls, clsn: Classification
-    ) -> Optional[Dict[Any, Any]]:
+        clsn: Classification,
+    ) -> Optional[Dict[str, Optional[str]]]:
         category = clsn.get("category")
         if category is None:
             return None
-        return {
+        return {  # type:ignore
             "group": clsn.get("group"),
             "archive": clsn.get("archive"),
             "category": category,
         }
 
-    # FIXME: Return type.
-    @classmethod
+    @staticmethod
     def _transform_format(
-        cls, fmt: str, paper_id: str, version: int
-    ) -> Dict[Any, Any]:
+        fmt: str, paper_id: str, version: int
+    ) -> Dict[str, str]:
         return {
             "format": fmt,
             "href": url_for(fmt, paper_id=paper_id, version=version),
         }
 
-    # FIXME: Return type.
-    @classmethod
-    def _transform_latest(cls, document: Document) -> Optional[Dict[Any, Any]]:
+    @staticmethod
+    def _transform_latest(document: Document) -> Optional[Dict[str, str]]:
         latest = document.get("latest")
         if latest is None:
             return None
-        return {
+        return {  # type:ignore
             "paper_id": latest,
             "href": url_for(
                 "api.paper",
@@ -56,21 +53,18 @@ class JSONSerializer(BaseSerializer):
             "version": document.get("latest_version"),
         }
 
-    # FIXME: Types.
-    @classmethod
+    @staticmethod
     def _transform_license(
-        cls, license: Dict[Any, Any]
+        license: Dict[str, str]
     ) -> Optional[Dict[Any, Any]]:
         uri = license.get("uri")
         if uri is None:
             return None
         return {"label": license.get("label", ""), "href": uri}
 
-    # FIXME: Return type.
-    @classmethod
     def transform_document(
-        cls, doc: Document, query: Optional[APIQuery] = None
-    ) -> Dict[Any, Any]:
+        self, doc: Document, query: Optional[APIQuery] = None
+    ) -> Dict[str, Any]:
         """Select a subset of :class:`Document` properties for public API."""
         # Only return fields that have been explicitly requested.
         data = {
@@ -90,13 +84,13 @@ class JSONSerializer(BaseSerializer):
             ].isoformat()
         if "formats" in data:
             data["formats"] = [
-                cls._transform_format(fmt, paper_id, version)
+                self._transform_format(fmt, paper_id, version)
                 for fmt in doc["formats"]
             ]
         if "license" in data:
-            data["license"] = cls._transform_license(doc["license"])
+            data["license"] = self._transform_license(doc["license"])
         if "latest" in data:
-            data["latest"] = cls._transform_latest(doc)
+            data["latest"] = self._transform_latest(doc)
 
         data["href"] = url_for(
             "api.paper", paper_id=paper_id, version=version, _external=True
@@ -104,16 +98,15 @@ class JSONSerializer(BaseSerializer):
         data["canonical"] = url_for("abs", paper_id=paper_id, version=version)
         return data
 
-    @classmethod
     def serialize(
-        cls, document_set: DocumentSet, query: Optional[APIQuery] = None
+        self, document_set: DocumentSet, query: Optional[APIQuery] = None
     ) -> Response:
         """Generate JSON for a :class:`DocumentSet`."""
         total_results = int(document_set["metadata"].get("total_results", 0))
         serialized: Response = jsonify(
             {
                 "results": [
-                    cls.transform_document(doc, query=query)
+                    self.transform_document(doc, query=query)
                     for doc in document_set["results"]
                 ],
                 "metadata": {
@@ -127,13 +120,12 @@ class JSONSerializer(BaseSerializer):
         )
         return serialized
 
-    @classmethod
     def serialize_document(
-        cls, document: Document, query: Optional[APIQuery] = None,
+        self, document: Document, query: Optional[APIQuery] = None,
     ) -> Response:
         """Generate JSON for a single :class:`Document`."""
         serialized: Response = jsonify(
-            cls.transform_document(document, query=query)
+            self.transform_document(document, query=query)
         )
         return serialized
 
@@ -144,9 +136,9 @@ def as_json(
 ) -> Response:
     """Serialize a :class:`DocumentSet` as JSON."""
     if "paper_id" in document_or_set:
-        return JSONSerializer.serialize_document(  # type:ignore
+        return JSONSerializer().serialize_document(  # type:ignore
             document_or_set, query=query
         )  # type: ignore
-    return JSONSerializer.serialize(  # type:ignore
+    return JSONSerializer().serialize(  # type:ignore
         document_or_set, query=query
     )

@@ -1,3 +1,4 @@
+"""Provide function to return a mock document."""
 from datetime import datetime
 
 

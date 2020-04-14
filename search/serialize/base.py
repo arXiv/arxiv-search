@@ -1,5 +1,5 @@
 """Base class for API serializers."""
 
 
-class BaseSerializer(object):
+class BaseSerializer:
     """Base class for API serializers."""
