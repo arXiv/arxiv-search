@@ -24,13 +24,17 @@ from search.domain import (
 
 
 class TestClassicApiQuery(TestCase):
-    def test_classis_query_creation(self):
+    """Test classic API queries."""
+
+    def test_classic_query_creation(self):
+        """Test classic API query creation."""
         self.assertRaises(ValueError, lambda: ClassicAPIQuery())
         # There is no assert not raises
         self.assertIsNotNone(ClassicAPIQuery(search_query=""))
         self.assertIsNotNone(ClassicAPIQuery(id_list=[]))
 
     def test_to_query_string(self):
+        """Test classic API query string creation."""
         self.assertEqual(
             ClassicAPIQuery(id_list=[]).to_query_string(),
             "search_query=&id_list=&start=0&max_results=10",
@@ -90,6 +94,7 @@ class TestClassicApiQuery(TestCase):
 
 
 def mock_rdata():
+    """Provides mock result data."""
     return {
         "authors": [{"full_name": "N. Ame"}],
         "owners": [{"full_name": "N. Ame"}],

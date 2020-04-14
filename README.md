@@ -265,7 +265,7 @@ pipenv run pylint search
 ## Documentation
 
 The latest version of the documentation is available at
-https://cul-it.github.com/arxiv-search.
+https://arxiv.github.io/arxiv-search.
 
 The source files for the arXiv search service documentation is located in
 [``docs/``](docs/).

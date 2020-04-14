@@ -91,12 +91,15 @@ def create_classic_api_web_app() -> Flask:
     index.SearchSession.init_app(app)
 
     Base(app)
-    auth.Auth(app)
+    # auth.Auth(app)
     app.register_blueprint(classic_api.blueprint)
 
+    # wrap(
+    #     app,
+    #     [request_logs.ClassicLogsMiddleware, auth.middleware.AuthMiddleware],
+    # )
     wrap(
-        app,
-        [request_logs.ClassicLogsMiddleware, auth.middleware.AuthMiddleware],
+        app, [request_logs.ClassicLogsMiddleware],
     )
 
     for error, handler in classic_api.exceptions.get_handlers():
