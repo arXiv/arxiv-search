@@ -3,10 +3,10 @@
 To install `classic-api` to the development namespace in the kubernetes cluster:
 
 ```bash
-helm install ./ --name=classic-api --set=image.tag=latest \
+helm install ./ --name=classic-api --set=image.tag=some_tag \
   --tiller-namespace=development --namespace=development  \
   --set=ingress.host=development.arxiv.org \
-  --set=elasticsearch.host=vpc-arxiv-es-ouzkxhljg5enjwygjjtxmtqymq.us-east-1.es.amazonaws.com \
+  --set=elasticsearch.host=foo.es.amazonaws.com \
   --set=elasticsearch.index=arxiv0.3
 ```
 
