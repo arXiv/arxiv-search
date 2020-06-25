@@ -5,7 +5,7 @@ metadata:
   namespace: "{{ .Values.namespace }}"
   labels:
     subsystem: "{{ .Values.labels.subsystem }}"
-    container: "{{ default "classic-api" .Values.name }}"
+    container: "{{ default "classic-api" .Values.deployment.name }}"
     service-group: api
     env: "{{ .Values.namespace }}"
   # annotations:

@@ -182,6 +182,7 @@ class Term:
 
     @property
     def is_empty(self) -> bool:
+        """Return whether term is empty."""
         return self.value.strip() == ""
 
 
@@ -238,19 +239,25 @@ Examples
 
 
 class SortDirection(str, Enum):
+    """Provides function to convert sort direction string to ES DSL."""
+
     ascending = "ascending"
     descending = "descending"
 
     def to_es(self) -> Dict[str, str]:
+        """Convert to ElasticSearch DSL."""
         return {"order": "asc" if self == SortDirection.ascending else "desc"}
 
 
 class SortBy(str, Enum):
+    """Provides function to convert sort-by string to ES DSL."""
+
     relevance = "relevance"
     last_updated_date = "lastUpdatedDate"
     submitted_date = "submittedDate"
 
     def to_es(self) -> str:
+        """Convert to ElasticSearch DSL."""
         return {
             SortBy.relevance: "_score",
             SortBy.last_updated_date: "updated_date",
@@ -260,10 +267,13 @@ class SortBy(str, Enum):
 
 @dataclass
 class SortOrder:
+    """Provides function to convert sort order to ES DSL."""
+
     by: Optional[SortBy] = None
     direction: SortDirection = SortDirection.descending
 
     def to_es(self) -> List[Dict[str, Dict[str, str]]]:
+        """Convert to ElasticSearch DSL."""
         if self.by is None:
             return consts.DEFAULT_SORT_ORDER
         else:

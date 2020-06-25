@@ -80,7 +80,7 @@ def query(
                 raise ValidationError(
                     message="incorrect id format for {}".format(arxiv_id),
                     link=(
-                        "http://arxiv.org/api/errors#"
+                        "https://arxiv.org/api/errors#"
                         "incorrect_id_format_for_{}"
                     ).format(arxiv_id),
                 )
@@ -93,12 +93,12 @@ def query(
     except ValueError:
         raise ValidationError(
             message="max_results must be an integer",
-            link="http://arxiv.org/api/errors#max_results_must_be_an_integer",
+            link="https://arxiv.org/api/errors#max_results_must_be_an_integer",
         )
     if max_results < 0:
         raise ValidationError(
             message="max_results must be non-negative",
-            link="http://arxiv.org/api/errors#max_results_must_be_"
+            link="https://arxiv.org/api/errors#max_results_must_be_"
             "non-negative",
         )
 
@@ -108,12 +108,12 @@ def query(
     except ValueError:
         raise ValidationError(
             message="start must be an integer",
-            link="http://arxiv.org/api/errors#start_must_be_an_integer",
+            link="https://arxiv.org/api/errors#start_must_be_an_integer",
         )
     if start < 0:
         raise ValidationError(
             message="start must be non-negative",
-            link="http://arxiv.org/api/errors#start_must_be_non-negative",
+            link="https://arxiv.org/api/errors#start_must_be_non-negative",
         )
 
     # sort by and sort order

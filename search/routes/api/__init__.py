@@ -5,8 +5,9 @@ __all__ = ["blueprint", "exceptions"]
 from flask import Blueprint, make_response, request, Response
 
 from arxiv.base import logging
-from arxiv.users.auth import scopes
-from arxiv.users.auth.decorators import scoped
+
+# from arxiv.users.auth import scopes
+# from arxiv.users.auth.decorators import scoped
 from search import serialize
 from search.controllers import api
 from search.routes.consts import JSON
@@ -18,7 +19,7 @@ blueprint = Blueprint("api", __name__, url_prefix="/")
 
 
 @blueprint.route("/", methods=["GET"])
-@scoped(required=scopes.READ_PUBLIC)
+# @scoped(required=scopes.READ_PUBLIC)
 def search() -> Response:
     """Main query endpoint."""
     logger.debug("Got query: %s", request.args)
@@ -34,7 +35,7 @@ def search() -> Response:
 
 
 @blueprint.route("/<arxiv:paper_id>v<string:version>", methods=["GET"])
-@scoped(required=scopes.READ_PUBLIC)
+# @scoped(required=scopes.READ_PUBLIC)
 def paper(paper_id: str, version: str) -> Response:
     """Document metadata endpoint."""
     data, status_code, headers = api.paper(f"{paper_id}v{version}")

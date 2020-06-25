@@ -2,12 +2,13 @@ kind: Service
 metadata:
   annotations:
     prometheus.io/scrape: 'true'
-  name: "{{ default "search-api" .Values.serviceName }}"
+  name: "{{ default "search-api" .Values.name }}"
   labels:
     subsystem: "{{ .Values.labels.subsystem }}"
-    container: "{{ default "search-api" .Values.deploymentName }}"
+    container: "{{ default "search-api" .Values.deployment.name }}"
     service-group: api
     log-style: uwsgi
+    env: "{{ .Values.namespace }}"
 spec:
   type: NodePort
   ports:
@@ -15,4 +16,4 @@ spec:
     targetPort: 8000
   selector:
     subsystem: "{{ .Values.labels.subsystem }}"
-    container: "{{ default "search-api" .Values.deploymentName }}"
+    container: "{{ default "search-api" .Values.name }}"

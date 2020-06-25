@@ -164,7 +164,7 @@ def _get_fielded_terms(
     operators: Optional[Dict[str, Any]] = None,
 ) -> Optional[FieldedSearchList]:
     if operators is None:
-        operators = defaultdict(default_factory=lambda: "AND")
+        operators = defaultdict(lambda: "AND")
     terms = FieldedSearchList()
     for field, _ in Query.SUPPORTED_FIELDS:
         values = params.getlist(field)
@@ -267,9 +267,7 @@ SEARCH_QUERY_FIELDS = {
 def _parse_search_query(query: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Parses a query into tuple of operators and parameters."""
     new_query_params = {}
-    new_query_operators: Dict[str, str] = defaultdict(
-        default_factory=lambda: "AND"
-    )
+    new_query_operators: Dict[str, str] = defaultdict(lambda: "AND")
     terms = query.split()
 
     expect_new = True  # expect_new handles quotation state.

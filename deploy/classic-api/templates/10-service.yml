@@ -5,7 +5,7 @@ metadata:
   name: "{{ default "classic-api" .Values.name }}"
   labels:
     subsystem: "{{ .Values.labels.subsystem }}"
-    container: "{{ default "classic-api" .Values.name }}"
+    container: "{{ default "classic-api" .Values.deployment.name }}"
     service-group: api
     log-style: uwsgi
     env: "{{ .Values.namespace }}"

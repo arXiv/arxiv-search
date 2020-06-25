@@ -1,28 +1,29 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: "{{ default "search-api-ingress" .Values.ingressName }}"
+  name: "{{ default "search-api-ingress" .Values.ingress.name }}"
+  namespace: "{{ .Values.namespace }}"
   labels:
     subsystem: "{{ .Values.labels.subsystem }}"
-    container: "{{ default "search-api" .Values.deploymentName }}"
+    container: "{{ default "search-api" .Values.deployment.name }}"
     service-group: api
-  annotations:
-    ingress.kubernetes.io/configuration-snippet: |
-      more_set_headers "Request-Id: $req_id";
-    ingress.kubernetes.io/auth-url: http://{{ .Values.authenticatorService }}.{{ .Values.namespace }}.svc.cluster.local/auth
-    ingress.kubernetes.io/auth-response-headers: Authorization
-    ingress.kubernetes.io/limit-connections: "4"
-    ingress.kubernetes.io/limit-rps: "16"
-    ingress.kubernetes.io/rewrite-target: /
+  # annotations:
+  #   ingress.kubernetes.io/configuration-snippet: |
+  #     more_set_headers "Request-Id: $req_id";
+  #   ingress.kubernetes.io/auth-url: http://{{ .Values.authenticatorService }}.{{ .Values.namespace }}.svc.cluster.local/auth
+  #   ingress.kubernetes.io/auth-response-headers: Authorization
+  #   ingress.kubernetes.io/limit-connections: "4"
+  #   ingress.kubernetes.io/limit-rps: "16"
+  #   ingress.kubernetes.io/rewrite-target: /
 spec:
   tls:  # This will use the default certificate for the ingress controller.
   - hosts:
-    - "{{ .Values.host }}"
+    - "{{ .Values.ingress.host }}"
   rules:
-  - host: "{{ .Values.host }}"
+  - host: "{{ .Values.ingress.host }}"
     http:
       paths:
-      - path: "{{ default "/metadata" .Values.subPath }}"
+      - path: "{{ default "/metadata" .Values.ingress.path }}"
         backend:
-          serviceName: "{{ default "search-api" .Values.serviceName }}"
+          serviceName: "{{ default "search-api" .Values.name }}"
           servicePort: 80

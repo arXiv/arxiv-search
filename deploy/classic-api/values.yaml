@@ -21,6 +21,9 @@ elasticsearch:
 labels:
   subsystem: api-gateway
 
+deployment:
+  name: classic-api
+
 ingress:
   name: classic-api
   host: changeme

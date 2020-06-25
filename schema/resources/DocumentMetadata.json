@@ -100,7 +100,7 @@
             },
             "minItems": 0
         },
-        "announced_first": {
+        "announced_date_first": {
           "description": "Date (year and month) the paper was originally announced",
           "type": "string"
         },
