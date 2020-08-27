@@ -3,7 +3,6 @@
 {% block addl_head %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-tooltip.min.css')}}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css')}}" />
-
   <script
     src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
     integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g="
@@ -34,13 +33,13 @@
     };
     </script>
 
-    <!-- Pendo trial -->
+    <!-- Pendo -->
     <script>
      (function(apiKey){
          (function(p,e,n,d,o){var v,w,x,y,z;o=p[d]=p[d]||{};o._q=[];
              v=['initialize','identify','updateOptions','pageLoad'];for(w=0,x=v.length;w<x;++w)(function(m){
                  o[m]=o[m]||function(){o._q[m===v[0]?'unshift':'push']([m].concat([].slice.call(arguments,0)));};})(v[w]);
-             y=e.createElement(n);y.async=!0;y.src='https://cdn.pendo.io/agent/static/'+apiKey+'/pendo.js';
+             y=e.createElement(n);y.async=!0;y.src='https://content.analytics.arxiv.org/agent/static/'+apiKey+'/pendo.js';
              z=e.getElementsByTagName(n)[0];z.parentNode.insertBefore(y,z);})(window,document,'script','pendo');
 
          // Call this whenever information about your visitors becomes available
