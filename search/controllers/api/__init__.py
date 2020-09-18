@@ -151,9 +151,13 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
 
 def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
     include_fields: List[str] = params.getlist("include")
+
     if include_fields:
         for field in include_fields:
-            query_terms.append({"parameter": "include", "value": field})
+            if field == 'submitter':
+                include_fields.remove('submitter')
+            else:
+                query_terms.append({"parameter": "include", "value": field})
         return include_fields
     return []
 
