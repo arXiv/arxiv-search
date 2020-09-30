@@ -7,6 +7,9 @@ FROM arxiv/base:0.16.7
 
 WORKDIR /opt/arxiv
 
+# remove conflicting mariadb-libs from arxiv/base
+RUN yum remove -y mariadb-libs
+
 # Install MySQL.
 RUN yum install -y which mysql mysql-devel
 RUN pip install uwsgi
