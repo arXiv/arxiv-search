@@ -92,7 +92,6 @@ class TestResultsEndSafely(TestCase):
         end = highlighting._end_safely(
             self.value, 215, start_tag=self.start_tag, end_tag=self.end_tag
         )
-        # print(self.value[:end])
         self.assertEqual(end, 213, "Should end before the start of the tag.")
 
     def test_end_safely_after_html_with_tolerance(self):
@@ -101,3 +100,18 @@ class TestResultsEndSafely(TestCase):
             self.value, 275, start_tag=self.start_tag, end_tag=self.end_tag
         )
         self.assertEqual(end, 275, "Should end after the closing tag.")
+
+
+class Collapse(TestCase):
+    def collapse_hl_tags(self):
+        hopen,hclose = highlighting.HIGHLIGHT_TAG_OPEN, highlighting.HIGHLIGHT_TAG_CLOSE
+        self.assertEqual(0, highlighting.collapse_hl_tags(''))
+        self.assertEqual(0, highlighting.collapse_hl_tags('something or other <tag> </closetag> but not important'))
+        self.assertEqual(3, highlighting.collapse_hl_tags( highlighting.HIGHLIGHT_TAG_OPEN * 3))
+        self.assertEqual(-3, highlighting.collapse_hl_tags( highlighting.HIGHLIGHT_TAG_CLOSE * 3))
+        self.assertEqual(1, highlighting.collapse_hl_tags( hopen+hopen+hclose))
+        self.assertEqual(-1, highlighting.collapse_hl_tags( hopen+ hclose+ hclose))
+        self.assertEqual(0, highlighting.collapse_hl_tags( hopen+hopen+hclose+hclose))
+        self.assertEqual(0, highlighting.collapse_hl_tags( hopen+ hclose+ hopen+ hclose))
+
+        

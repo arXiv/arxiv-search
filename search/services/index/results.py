@@ -39,14 +39,14 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
         if key not in result:
             continue
         try:
-            result[key] = datetime.strptime(raw[key], "%Y-%m-%dT%H:%M:%S%z")
+            result[key] = datetime.strptime(raw[key], "%Y-%m-%dT%H:%M:%S%z")  # type: ignore
         except (ValueError, TypeError):
             logger.warning(f"Could not parse {key} as datetime")
             pass
 
     for key in ["acm_class", "msc_class"]:
-        if key in result and result[key]:
-            result[key] = "; ".join(result[key])
+        if key in result and result[key]:  # type: ignore
+            result[key] = "; ".join(result[key])  # type: ignore
 
     try:
         result["score"] = raw.meta.score  # type: ignore
