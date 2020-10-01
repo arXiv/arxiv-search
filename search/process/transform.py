@@ -23,7 +23,7 @@ def _strip_punctuation(s: str) -> str:
     return "".join([c for c in s if c not in punctuation])
 
 
-def _constructPaperVersion(meta: DocMeta) -> str:
+def constructPaperVersion(meta: DocMeta) -> str:
     """Generate a version-qualified paper ID."""
     return "%sv%i" % (meta.paper_id, meta.version)
 
@@ -97,7 +97,7 @@ def _constructDOI(meta: DocMeta) -> List[str]:
 
 TransformType = Union[str, Callable]
 _transformations: List[Tuple[str, TransformType, bool]] = [
-    ("id", _constructPaperVersion, True),
+    ("id", constructPaperVersion, True),
     ("abstract", "abstract_utf8", False),
     ("authors", _constructAuthors, True),
     ("authors_freeform", "authors_utf8", False),
@@ -117,7 +117,7 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("is_withdrawn", "is_withdrawn", False),
     ("license", _constructLicense, True),
     ("paper_id", "paper_id", True),
-    ("paper_id_v", _constructPaperVersion, True),
+    ("paper_id_v", constructPaperVersion, True),
     ("primary_classification", "primary_classification", True),
     ("secondary_classification", "secondary_classification", True),
     ("title", "title_utf8", True),
@@ -173,6 +173,6 @@ def to_search_document(
         if value is None and not is_required:
             continue
         data[key] = value
-    # if fulltext:
-    #     data['fulltext'] = fulltext.content
+    if fulltext is not None:
+        data['fulltext'] = fulltext.content
     return data

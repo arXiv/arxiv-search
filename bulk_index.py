@@ -4,13 +4,15 @@ import os
 import json
 import tempfile
 import operator
-from typing import List
+
+from datetime import datetime
+from typing import List, Optional
 from itertools import groupby
 
 import click
 
 from search.process import transform
-from search.domain import asdict, DocMeta
+from search.domain import asdict, DocMeta, Fulltext
 from search.services import metadata, index
 from search.factory import create_ui_web_app
 
@@ -19,6 +21,17 @@ app = create_ui_web_app()
 
 get_paper_id = operator.attrgetter("paper_id")
 
+# TODO: replace with real code
+def get_full_text(file_name: str) -> Optional[Fulltext]:
+    file_path = f'tests/data/articleTextOut/{file_name}.txt'
+    if not os.path.exists(file_path):
+        print(f'Full text not found: {file_name}')
+        return None
+    else:
+        print(f'Found: {file_name}')
+        with open(file_path , 'r') as file:
+            data = file.read()
+            return Fulltext(content=data, version="0.0.1-pre0", created=datetime.now())
 
 @app.cli.command()
 @click.option(
@@ -102,7 +115,10 @@ def populate(
                 # Index papers on a different chunk cycle, and at the very end.
                 if len(meta) >= index_chunk_size or i == last:
                     # Transform to Document.
-                    docs = [transform.to_search_document(dm) for dm in meta]
+                    docs = [
+                        transform.to_search_document(dm, get_full_text(transform.constructPaperVersion(dm))) \
+                        for dm in meta
+                    ]
                     # Add to index.
                     index.SearchSession.bulk_add_documents(docs)
 

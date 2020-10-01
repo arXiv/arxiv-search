@@ -60,7 +60,6 @@ class DocMeta:
     latest_version: int = field(default=1)
     latest: str = field(default_factory=str)
 
-
 @dataclass
 class Fulltext:
     """Fulltext content for an arXiv paper, including extraction metadata.

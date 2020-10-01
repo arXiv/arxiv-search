@@ -61,6 +61,12 @@ To check for missing records, use ``audit.py``:
 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 ELASTICSEARCH_INDEX=arxiv pipenv run python audit.py -l list_of_papers.txt -o missing.txt
 ```
 
+All ElasticSearch documents can be retrieved by doing e.g.:
+
+```
+curl http://127.0.0.1:9200/arxiv/_search?pretty=true > docs.json
+```
+
 ### Reindexing
 
 ElasticSearch can perform reindexing by copying documents from one index to

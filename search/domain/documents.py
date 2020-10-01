@@ -103,6 +103,10 @@ class Document(TypedDict, total=False):
     truncated: Dict[Any, Any]
     """Contains fields for which the preview is truncated."""
 
+    fulltext: Optional[str]
+
+    # fulltext_vector: Optional[??]
+
 
 class DocumentSetMetadata(TypedDict, total=False):
     """Metadata for search results."""

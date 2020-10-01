@@ -114,3 +114,10 @@ temp/
 to_index/
 
 .pytest_cache/
+
+# full-text output
+tests/data/articleTextOut
+
+# scratch
+paper_list_with_versions.txt
+*~
