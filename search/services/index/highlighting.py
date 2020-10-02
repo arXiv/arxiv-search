@@ -104,8 +104,6 @@ def preview(
         A preview that is approximately ``fragment_size`` long.
 
     """
-    # value = re.sub('')
-    # value = value.replace('$$', '$')
     if start_tag in value and end_tag in value:
         start = value.index(start_tag)
         end = value.index(end_tag) + len(end_tag)
@@ -137,17 +135,14 @@ def preview(
         value[end:], remaining, start_tag=start_tag, end_tag=end_tag
     )
     snippet = value[start:end].strip()
-    last_open = snippet.rfind(HIGHLIGHT_TAG_OPEN)
-    last_close = snippet.rfind(HIGHLIGHT_TAG_CLOSE)
+    last_open = snippet.rfind(start_tag)
+    last_close = snippet.rfind(end_tag)
 
     if last_open > last_close and last_open >= 0:
-        snippet += HIGHLIGHT_TAG_CLOSE
-    snippet = (
-        ("&hellip;" if start > 0 else "")
-        + snippet
-        + ("&hellip;" if end < len(value) else "")
-    )
-    return snippet
+        snippet += end_tag
+    return ((Markup("&hellip;") if start > 0 else "")
+            + snippet
+            + (Markup("&hellip;") if end < len(value) else ""))
 
 
 def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
@@ -186,8 +181,8 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
         if field.startswith("_"):
             continue
         value = getattr(highlighted_fields, field)
-        if hasattr(value, "__iter__"):
-            value = "&hellip;".join(value)
+        if not hasattr(value, "__iter__"):
+            value = [str(value)]  #str() due to things happening during mocked tests
 
         # Non-TeX searches may hit inside of TeXisms. Highlighting those
         # fragments (i.e. inserting HTML) will break MathJax rendering.
@@ -195,7 +190,9 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
         # any highlighting tags from within TeXisms to encapsulate the
         # entire TeXism.
         if field in ["title", "title.english", "abstract", "abstract.english"]:
-            value = _highlight_whole_texism(value)
+            value = Markup("&hellip;").join([_highlight_whole_texism(item) for item in value])
+        else:
+            value = Markup("&hellip;".join(value))
 
         # A hit on authors may originate in several different fields, most
         # of which are not displayed. And in any case, author names may be
@@ -238,9 +235,7 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
     for field in ["abstract.tex", "abstract.english", "abstract"]:
         if field in result["highlight"]:
             value = result["highlight"][field]
-            logger.error(f'WORKING ON FIELD {field}')
-            abstract_snippet = preview(f'from field {field} ' + value)
-            result["preview"]["abstract"] = abstract_snippet
+            result["preview"]["abstract"] = preview(value)
             result["highlight"]["abstract"] = value
             break
     for field in ["title.english", "title"]:
@@ -305,19 +300,22 @@ def _escape(value: str) -> str:
 def _escape_nontex(value: str) -> str:
     """Escape non-tex that might have highlight spans."""
     _new = ''
-    pos =  _highlight_positions(value)
-    last = len(pos)-1
-    for ii in range(0, len(pos)):
-        start,end = pos[ii]
+    tag_pos =  _highlight_positions(value)
+    if not tag_pos: 
+        return escape(value)
+    last = len(tag_pos)-1
+    for ii in range(0, len(tag_pos)):
+        start,end = tag_pos[ii]
         if ii == 0 and start !=0 : #anything before first tag            
             _new = escape(value[0:start])
             
-        _new = _new + Markup(value[start:end])  # append tag
+        _new = _new + Markup(value[start:end])
         
         if ii != last:
-            _new = _new + escape(value[end:pos[ii+1][0]])
+            start_of_next_tag = tag_pos[ii+1][0]
+            _new = _new + escape(value[end:start_of_next_tag])
         else:
-            _new = _new + escape(value[end:len(pos)])
+            _new = _new + escape(value[end:])
         
     return Markup(_new)
 

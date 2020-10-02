@@ -1,11 +1,14 @@
 """Tests for :mod:`search.services.index`."""
 
 from unittest import TestCase, mock
+from unittest.mock import MagicMock
 from datetime import datetime, timedelta
 
 from search.services import index
 from search.services.index import advanced
 from search.services.index.util import wildcard_escape, Q_
+from search.services.index import highlighting
+
 from search.domain import (
     SortBy,
     SortOrder,
@@ -93,13 +96,22 @@ class TestClassicApiQuery(TestCase):
         )
 
 
+class Hi:
+    def __init__(self):
+        self.abstract = "An " + highlighting.HIGHLIGHT_TAG_OPEN + "abstract"\
+            + highlighting.HIGHLIGHT_TAG_CLOSE + " with math $/alpha * /alpha$ for you."
+        self.autor = 'Smith B'
+        self.title = 'some title'
+
 def mock_rdata():
-    """Provides mock result data."""
+    """Provides mock result data."""            
     return {
         "authors": [{"full_name": "N. Ame"}],
         "owners": [{"full_name": "N. Ame"}],
         "submitter": {"full_name": "N. Ame"},
         "paper_id": "1234.56789",
+        "title": "some title",
+        "abstract": "An abstract with math $/alpha * /alpha$ for you.",
     }
 
 
@@ -110,15 +122,16 @@ class TestSearch(TestCase):
     @mock.patch("search.services.index.Elasticsearch")
     def test_advanced_query(self, mock_Elasticsearch, mock_Search):
         """:class:`.index.search` supports :class:`AdvancedQuery`."""
-        mock_results = mock.MagicMock()
-        mock_results.__getitem__.return_value = {"total": 53}
+        mock_results = mock.MagicMock()        
         rdata = mock_rdata()
         mock_result = mock.MagicMock(_d_=rdata, **rdata)
         mock_result.meta.score = 1
+        mock_results.__getitem__.return_value = {"total": 53}
         mock_results.__iter__.return_value = [mock_result]
+        mock_result.meta.highlight = Hi()
         mock_Search.execute.return_value = mock_results
 
-        # Support the chaining API for py-ES.
+        # Support the chaining API for py-ES.        
         mock_Search.return_value = mock_Search
         mock_Search.filter.return_value = mock_Search
         mock_Search.highlight.return_value = mock_Search
@@ -185,11 +198,11 @@ class TestSearch(TestCase):
                 ]
             ),
         )
-        document_set = index.SearchSession.search(query)
-        # self.assertIsInstance(document_set, DocumentSet)
+
+        document_set = index.SearchSession.search(query, highlight=True)
         self.assertEqual(document_set["metadata"]["start"], 0)
-        self.assertEqual(document_set["metadata"]["total_results"], 53)
-        self.assertEqual(document_set["metadata"]["current_page"], 1)
+        self.assertEqual(int(document_set["metadata"]["total_results"]), 53)
+        self.assertEqual(int(document_set["metadata"]["current_page"]), 1)
         self.assertEqual(document_set["metadata"]["total_pages"], 6)
         self.assertEqual(document_set["metadata"]["size"], 10)
         self.assertEqual(len(document_set["results"]), 1)
@@ -218,7 +231,7 @@ class TestSearch(TestCase):
         query = SimpleQuery(
             order="relevance", size=10, search_field="title", value="foo title"
         )
-        document_set = index.SearchSession.search(query)
+        document_set = index.SearchSession.search(query, highlight=True)
         # self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(document_set["metadata"]["total_results"], 53)
@@ -254,7 +267,7 @@ class TestSearch(TestCase):
             size=10,
         )
 
-        document_set = index.SearchSession.search(query)
+        document_set = index.SearchSession.search(query, highlight=True)
         # self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(document_set["metadata"]["total_results"], 53)
@@ -294,7 +307,7 @@ class TestSearch(TestCase):
             size=10,
         )
 
-        document_set = index.SearchSession.search(query)
+        document_set = index.SearchSession.search(query, highlight=True)
         # self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(document_set["metadata"]["total_results"], 53)
@@ -330,7 +343,7 @@ class TestSearch(TestCase):
             size=10,
         )
 
-        document_set = index.SearchSession.search(query)
+        document_set = index.SearchSession.search(query, highlight=True)
         # self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(document_set["metadata"]["total_results"], 53)
@@ -370,7 +383,7 @@ class TestSearch(TestCase):
             size=10,
         )
 
-        document_set = index.SearchSession.search(query)
+        document_set = index.SearchSession.search(query, highlight=True)
         # self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(document_set["metadata"]["total_results"], 53)

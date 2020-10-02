@@ -92,13 +92,13 @@ def to_documentset(
     """
     max_pages = int(MAX_RESULTS / query.size)
     n_pages_raw = response["hits"]["total"] / query.size
-    n_pages = int(floor(n_pages_raw)) + int(n_pages_raw % query.size > 0)
-    logger.debug("got %i results", response["hits"]["total"])
+    n_pages = int(floor(n_pages_raw)) + int(int(n_pages_raw) % int(query.size) > 0)
+
     return {
         "metadata": {
             "start": query.page_start,
             "end": min(
-                query.page_start + query.size, response["hits"]["total"]
+                int(query.page_start + query.size), int(response["hits"]["total"])
             ),
             "total_results": response["hits"]["total"],
             "current_page": query.page,
