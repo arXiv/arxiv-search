@@ -27,7 +27,7 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
     result["match"] = {}  # Hit on field, but no highlighting.
     result["truncated"] = {}  # Preview is truncated.
 
-    result.update(raw.to_dict()) # raw is an AttrDict
+    result.update(raw.to_dict()) # typing: ignore
 
     _add_announced_date_first(result, raw)
 
@@ -97,13 +97,13 @@ def to_documentset(
 
 
 
-def _add_announced_date_first(result:Document, raw) -> None:
+def _add_announced_date_first(result:Document, raw:  Union[Hit, dict]) -> None:
     if "announced_date_first" in result:
         result["announced_date_first"] = datetime.strptime(
             raw["announced_date_first"], "%Y-%m"
         ).date()
 
-def _add_date(result:Document, raw, key:str) -> None:
+def _add_date(result:Document, raw: Union[Hit, dict], key:str) -> None:
     """Update result with parsed date for key."""
     if key not in result:
         return    
@@ -113,7 +113,7 @@ def _add_date(result:Document, raw, key:str) -> None:
         logger.warning(f"Could not parse {key} as datetime")
         pass
 
-def _add_amc_msc(result:Document) -> None:
+def _add_amc_msc(result: Document) -> None:
     for key in ["acm_class", "msc_class"]:
         if key in result and result[key]:  # type: ignore
             result[key] = "; ".join(result[key])  # type: ignore

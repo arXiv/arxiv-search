@@ -97,6 +97,8 @@ class TestClassicApiQuery(TestCase):
 
 
 class Hi:
+    """Test of highlighting."""
+
     def __init__(self):
         self.abstract = "An " + highlighting.HIGHLIGHT_TAG_OPEN + "abstract"\
             + highlighting.HIGHLIGHT_TAG_CLOSE + " with math $/alpha * /alpha$ for you."

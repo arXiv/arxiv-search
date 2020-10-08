@@ -1,21 +1,19 @@
-"""
-Tools for dealing with tex from Elasticsearch in abstracts and titles.
-"""
+"""Tools for dealing with tex from Elasticsearch in abstracts and titles."""
 
 import re
 from typing import List, Tuple, Union, Dict, Callable, Pattern, Any
 
 
 class Math(str):
-    '''Marker class for tex strings'''
+    """Marker class for tex strings."""
 
-    def __math__(self):  #type: ignore
-        '''Similar to markupsafe'''
+    def __math__(self):  # type: ignore
+        """Similar to markupsafe."""
         return self
 
 
 def isMath(checkme: Any) -> bool:
-    """Checks if an object is Math"""
+    """Checks if an object is Math."""
     if checkme is None:
         return False
     return hasattr(checkme, "__math__")
@@ -63,7 +61,6 @@ math_positions = position_f(tex_delims)
 """Gets list of positions of tex in a string"""
 
 
-
 def split_for_maths(positions: List[Tuple[int, int]], txt: str) -> List[str]:
     """Splits the txt based on positions."""
     if not positions or not txt:
@@ -78,6 +75,6 @@ def split_for_maths(positions: List[Tuple[int, int]], txt: str) -> List[str]:
             pos = end
 
     # add on anything left at the end
-    out.append(txt[positions[-1][1]: ])
+    out.append(txt[positions[-1][1]:])
 
     return out

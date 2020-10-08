@@ -81,8 +81,7 @@ def preview(
     end_tag: str = HIGHLIGHT_TAG_CLOSE,
 ) -> Tuple[str,bool]:
     """
-    Generate a escaped preview snippet as Markup that doesn't
-    break TeXisms or highlighting.
+    Generate a escaped preview snippet as Markup that doesn't break TeXisms or highlighting.
 
     Parameters
     ----------
@@ -253,9 +252,10 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
 
 
 def _de_highlight_math(math: Union[str, Math]) -> List[Union[str,Math]]:
-    """Moves highlight spans to outside of math. 
+    """Moves highlight spans to outside of math.
 
-    Tries to keep multiple opens and closes in math balanced."""    
+    Tries to keep multiple opens and closes in math balanced.
+    """
     has_open, has_close = HIGHLIGHT_TAG_OPEN in math, HIGHLIGHT_TAG_CLOSE in math
     if not has_open and not has_close:
         return [math]
@@ -270,7 +270,8 @@ def _de_highlight_math(math: Union[str, Math]) -> List[Union[str,Math]]:
     return [HIGHLIGHT_TAG_OPEN, math, HIGHLIGHT_TAG_CLOSE] # may need to rewrap with Math?
 
 def _highlight_whole_texism(value: str) -> str:
-    """Move highlighting from within TeXism to encapsulate whole statement.
+    """
+    Move highlighting from within TeXism to encapsulate whole statement.
 
     The overview is 
     1. The TeX positions are located
@@ -409,7 +410,7 @@ _tagpattern = re.compile('(' + re.escape( HIGHLIGHT_TAG_OPEN) +
 
 def _highlight_positions(value:str) -> List[Tuple[int,int]]:
     """
-    Gets list of highlight tag positions. 
+    Gets list of highlight tag positions.
     
     This is the start and end of each tag, not start tag to end of end tag
     """
@@ -418,9 +419,10 @@ def _highlight_positions(value:str) -> List[Tuple[int,int]]:
 
 
 def collapse_hl_tags_score( value: str ) -> int:
-    '''Returns a score that represents the balance of tags in value.
+    """Returns a score that represents the balance of tags in value.
 
-    0 means tags are balanced, -n means n extra closes, +N means N extra open tags'''
+    0 means tags are balanced, -n means n extra closes, +N means N extra open tags.
+    """
     pos = _highlight_positions(value)
     tags = [value[start:end] for start, end in pos]
     return sum([ 1 if tag == HIGHLIGHT_TAG_OPEN else -1 for tag in tags])
