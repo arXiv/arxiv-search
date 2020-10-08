@@ -32,7 +32,7 @@ class TestResultsHighlightAbstract(TestCase):
             end_tag=self.end_tag,
         )
         self.assertGreaterEqual(338, len(preview))
-        self.assertFalse( trunc )
+        self.assertTrue( trunc )
 
 
     def test_preview_with_close_highlights(self):
