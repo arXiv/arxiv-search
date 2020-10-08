@@ -79,9 +79,10 @@ def preview(
     fragment_size: int = 400,
     start_tag: str = HIGHLIGHT_TAG_OPEN,
     end_tag: str = HIGHLIGHT_TAG_CLOSE,
-) -> str:
+) -> Tuple[str,bool]:
     """
-    Generate a preview snippet that doesn't break TeXisms or highlighting.
+    Generate a escaped preview snippet as Markup that doesn't
+    break TeXisms or highlighting.
 
     Parameters
     ----------
@@ -101,6 +102,8 @@ def preview(
     -------
     str
         A preview that is approximately ``fragment_size`` long.
+    bool
+        If it was truncated.
 
     """
     if start_tag in value and end_tag in value:
@@ -133,15 +136,19 @@ def preview(
     end += _end_safely(
         value[end:], remaining, start_tag=start_tag, end_tag=end_tag
     )
+
+    start_trunc = start > 0
+    end_trunc = end < len(value) 
     snippet = value[start:end].strip()
     last_open = snippet.rfind(start_tag)
     last_close = snippet.rfind(end_tag)
 
     if last_open > last_close and last_open >= 0:
         snippet += end_tag
-    return ((Markup("&hellip;") if start > 0 else "")
-            + snippet
-            + (Markup("&hellip;") if end < len(value) else ""))
+    preview = ((Markup("&hellip;") if start_trunc else "")
+               + escape(snippet)
+               + (Markup("&hellip;") if end_trunc else ""))
+    return preview, start_trunc or end_trunc
 
 
 def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
@@ -168,10 +175,6 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
     # ``meta.matched_queries`` contains a list of query ``_name``s that
     # matched. This is nice for non-string fields.
     matched_fields = getattr(raw.meta, "matched_queries", [])
-
-    # These are from hits within child documents, e.g.
-    # secondary_classification.
-    inner_hits = getattr(raw.meta, "inner_hits", None)
 
     # The values here will (almost) always be list-like. So we need to stitch
     # them together. Note that dir(None) won't return anything, so this block
@@ -212,6 +215,9 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
         if field not in result["highlight"]:
             result["match"][field] = True
 
+    # These are from hits within child documents, e.g.
+    # secondary_classification.
+    inner_hits = getattr(raw.meta, "inner_hits", None)
     # We're using inner_hits to see which category in particular responded to
     # the query.
     if hasattr(inner_hits, "secondary_classification"):
@@ -234,13 +240,15 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
     for field in ["abstract.tex", "abstract.english", "abstract"]:
         if field in result["highlight"]:
             value = result["highlight"][field]
-            result["preview"]["abstract"] = preview(value)
+            result["preview"]["abstract"], result["truncated"]["abstract"] \
+                = preview(value)
             result["highlight"]["abstract"] = value
             break
     for field in ["title.english", "title"]:
         if field in result["highlight"]:
             result["highlight"]["title"] = result["highlight"][field]
             break
+
     return result
 
 
