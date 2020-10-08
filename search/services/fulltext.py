@@ -1,4 +1,9 @@
-"""Provides access to fulltext content for arXiv papers."""
+"""Provides access to fulltext content for arXiv papers.
+
+**This is currently not in use. Currently arxiv-search does not
+index the full text of articles.**
+
+"""
 
 import json
 from http import HTTPStatus

@@ -11,7 +11,6 @@ abridged display in the search results.
 import re
 from typing import Any, Union, List, Tuple
 
-from flask import escape
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.response import Response, Hit
 from jinja2 import Markup, escape
@@ -274,7 +273,11 @@ def _highlight_whole_texism(value: str) -> str:
     6. The list of strings joined.
     """
     pos = math_positions(value)
-    splits = split_for_maths(pos, value)
+    if pos:
+        splits = split_for_maths(pos, value)
+    else:
+        splits = [value] #no math found so use whole value
+
     corrected: List[Union[str,Math]] = []
     for txt in splits:
         if not isMath(txt):

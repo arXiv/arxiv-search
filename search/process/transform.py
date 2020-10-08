@@ -149,7 +149,10 @@ def to_search_document(
     Parameters
     ----------
     metadata : :class:`.DocMeta`
-    fulltext : :class:`.Fulltext`
+
+
+    fulltext : :class:`.Fulltext` **This is currently not in use.**
+    Currently arxiv-search does not index the full text of articles.
 
     Returns
     -------

@@ -2,7 +2,8 @@
 
 from unittest import TestCase
 from search.services.index import highlighting
-
+from jinja2 import Markup
+from search.domain import Document
 
 class TestResultsHighlightAbstract(TestCase):
     """Given a highlighted abstract, generate a safe preview."""
@@ -51,7 +52,8 @@ class TestResultsHighlightAbstract(TestCase):
             '<span class="has-text-success has-text-weight-bold mathjax">'
         )
         end_tag = "</span>"
-        _ = highlighting.preview(value, start_tag=start_tag, end_tag=end_tag)
+        preview = highlighting.preview(value, start_tag=start_tag, end_tag=end_tag)
+        self.assertGreater(len(preview), 100)
 
 
 class TestResultsEndSafely(TestCase):
@@ -103,6 +105,7 @@ class TestResultsEndSafely(TestCase):
 
 
 class Collapse(TestCase):
+    """Tests function that collapses unbalanced tags inside a string."""
     def collapse_hl_tags(self):
         hopen,hclose = highlighting.HIGHLIGHT_TAG_OPEN, highlighting.HIGHLIGHT_TAG_CLOSE
         self.assertEqual(0, highlighting.collapse_hl_tags(''))
@@ -116,6 +119,7 @@ class Collapse(TestCase):
 
         
 class Texism(TestCase):
+    """Tests highligh of TeX."""
     def test_highlight_whole_texism(self):
         value = 'the ' + highlighting.HIGHLIGHT_TAG_OPEN + 'subsets'+highlighting.HIGHLIGHT_TAG_CLOSE+\
             ''' of triples $\{1, e, π\}$, $\{1, e, π^{-1}\}$, and $\{1, π^r, π^s\}$, where $1\leq r<s $ are fixed integers.'''
@@ -128,3 +132,12 @@ class Texism(TestCase):
     def test_escape_nontex(self):
         tt = "this is non-tex no problem"
         self.assertEqual(tt, highlighting._escape_nontex(tt)  )
+
+
+class Highlight(TestCase):
+    def test_hi1(self):
+        value = 'due in <span class="search-hit mathjax">large</span> part of xyz'
+        hl = highlighting._highlight_whole_texism(value)
+        self.assertGreater(len(hl), 0)
+        self.assertIn("<span", hl)
+        self.assertNotIn('&lt', hl)
