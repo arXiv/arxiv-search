@@ -277,9 +277,9 @@ def _highlight_whole_texism(value: str) -> str:
     The overview is 
     1. The TeX positions are located
     2. The string is split into a list of strings on these boundaries
-    3. Each TeX string has it's tags moved out of it in a balanced way
-    4. Each non-tex string is split into span tags and non-span tags
-    5. The list mapped so that non-tex and tex get escaped and span tags become Markup
+    3. Each TeX string has its tags moved out of it in a balanced way
+    4. Each non-TeX string is split into span tags and non-span tags
+    5. The list mapped so that non-TeX and TeX get escaped and span tags become Markup
     6. The list of strings joined.
     """
     pos = math_positions(value)
