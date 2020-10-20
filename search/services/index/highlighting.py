@@ -81,7 +81,7 @@ def preview(
     end_tag: str = HIGHLIGHT_TAG_CLOSE,
 ) -> Tuple[str,bool]:
     """
-    Generate a escaped preview snippet as Markup that doesn't break TeXisms or highlighting.
+    Generate an escaped preview snippet as Markup that doesn't break TeXisms or highlighting.
 
     Parameters
     ----------
@@ -426,4 +426,3 @@ def collapse_hl_tags_score( value: str ) -> int:
     pos = _highlight_positions(value)
     tags = [value[start:end] for start, end in pos]
     return sum([ 1 if tag == HIGHLIGHT_TAG_OPEN else -1 for tag in tags])
-
