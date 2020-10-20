@@ -252,7 +252,8 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
 
 
 def _de_highlight_math(math: Union[str, Math]) -> List[Union[str,Math]]:
-    """Moves highlight spans to outside of math.
+    """
+    Moves highlight spans to outside of math.
 
     Tries to keep multiple opens and closes in math balanced.
     """
