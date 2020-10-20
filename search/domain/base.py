@@ -66,7 +66,7 @@ class Fulltext:
     """Fulltext content for an arXiv paper, including extraction metadata.
 
     **This is currently not in use. Currently arxiv-search does not
-    indexing the full text of articles.**
+    index the full text of articles.**
     """
 
     content: str
