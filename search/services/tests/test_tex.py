@@ -38,16 +38,16 @@ class TestTeX(unittest.TestCase):
             self.assertEqual('$',  txt[end-1], "should end with $ or $$ delimiter")
 
     def test_inline_pren(self):
-        txt = 'critical density \\(p_{c}(Ng)\\) which is in the intermidiate'
+        txt = 'critical density \\(p_{c}(Ng)\\) which is in the intermediate'
         pos = tex.math_positions(txt)
         self.assertEqual([(17,30)], pos)
 
     def test_display2(self):
-        txt = "critical density \\[p_{c}\n(Ng)[something] or other \\] which is in the intermidiate"
+        txt = "critical density \\[p_{c}\n(Ng)[something] or other \\] which is in the intermeidiate"
         pos = tex.math_positions(txt)
         self.assertEqual([(17,52)], pos)
 
-        txt = "\\[p_{c}\n(Ng)[something] or other \\] which is in the intermidiate"
+        txt = "\\[p_{c}\n(Ng)[something] or other \\] which is in the intermediate"
         pos = tex.math_positions(txt)
         self.assertEqual([(0,35)], pos)
 
@@ -66,4 +66,3 @@ class TestTeX(unittest.TestCase):
         txtf = tex.split_for_maths( tex.math_positions(dispaly_txt),dispaly_txt)
         self.assertEqual(''.join(txtf), dispaly_txt)
         self.assertTrue( any( [ tex.isMath(chunk) for chunk in txtf] ) )
-
