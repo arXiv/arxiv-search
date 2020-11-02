@@ -2,7 +2,8 @@
 
 from unittest import TestCase
 from search.services.index import highlighting
-
+from jinja2 import Markup
+from search.domain import Document
 
 class TestResultsHighlightAbstract(TestCase):
     """Given a highlighted abstract, generate a safe preview."""
@@ -24,13 +25,15 @@ class TestResultsHighlightAbstract(TestCase):
 
     def test_preview(self):
         """Generate a preview that is smaller than/equal to fragment size."""
-        preview = highlighting.preview(
+        preview,trunc = highlighting.preview(
             self.value,
             fragment_size=350,
             start_tag=self.start_tag,
             end_tag=self.end_tag,
         )
         self.assertGreaterEqual(338, len(preview))
+        self.assertTrue( trunc )
+
 
     def test_preview_with_close_highlights(self):
         """Two highlights in the abstract are close together."""
@@ -51,7 +54,9 @@ class TestResultsHighlightAbstract(TestCase):
             '<span class="has-text-success has-text-weight-bold mathjax">'
         )
         end_tag = "</span>"
-        _ = highlighting.preview(value, start_tag=start_tag, end_tag=end_tag)
+        preview,trunc = highlighting.preview(value, start_tag=start_tag, end_tag=end_tag)
+        self.assertGreater(len(preview), 100)
+        self.assertTrue(trunc)
 
 
 class TestResultsEndSafely(TestCase):
@@ -92,7 +97,6 @@ class TestResultsEndSafely(TestCase):
         end = highlighting._end_safely(
             self.value, 215, start_tag=self.start_tag, end_tag=self.end_tag
         )
-        # print(self.value[:end])
         self.assertEqual(end, 213, "Should end before the start of the tag.")
 
     def test_end_safely_after_html_with_tolerance(self):
@@ -101,3 +105,42 @@ class TestResultsEndSafely(TestCase):
             self.value, 275, start_tag=self.start_tag, end_tag=self.end_tag
         )
         self.assertEqual(end, 275, "Should end after the closing tag.")
+
+
+class Collapse(TestCase):
+    """Tests function that collapses unbalanced tags inside a string."""
+    def collapse_hl_tags(self):
+        hopen,hclose = highlighting.HIGHLIGHT_TAG_OPEN, highlighting.HIGHLIGHT_TAG_CLOSE
+        self.assertEqual(0, highlighting.collapse_hl_tags(''))
+        self.assertEqual(0, highlighting.collapse_hl_tags('something or other <tag> </closetag> but not important'))
+        self.assertEqual(3, highlighting.collapse_hl_tags( highlighting.HIGHLIGHT_TAG_OPEN * 3))
+        self.assertEqual(-3, highlighting.collapse_hl_tags( highlighting.HIGHLIGHT_TAG_CLOSE * 3))
+        self.assertEqual(1, highlighting.collapse_hl_tags( hopen+hopen+hclose))
+        self.assertEqual(-1, highlighting.collapse_hl_tags( hopen+ hclose+ hclose))
+        self.assertEqual(0, highlighting.collapse_hl_tags( hopen+hopen+hclose+hclose))
+        self.assertEqual(0, highlighting.collapse_hl_tags( hopen+ hclose+ hopen+ hclose))
+
+        
+class Texism(TestCase):
+    """Tests highligh of TeX."""
+    def test_highlight_whole_texism(self):
+        value = 'the ' + highlighting.HIGHLIGHT_TAG_OPEN + 'subsets'+highlighting.HIGHLIGHT_TAG_CLOSE+\
+            ''' of triples $\{1, e, π\}$, $\{1, e, π^{-1}\}$, and $\{1, π^r, π^s\}$, where $1\leq r<s $ are fixed integers.'''
+
+        hlwt = highlighting._highlight_whole_texism(value)
+        self.assertIn( 'are fixed integers' , hlwt, "should not chop off end")
+        self.assertTrue( hlwt.startswith("the "), "should not chop off front")
+        self.assertIn( 'subsets' , hlwt, "should not chop off front")
+
+    def test_escape_nontex(self):
+        tt = "this is non-tex no problem"
+        self.assertEqual(tt, highlighting._escape_nontex(tt)  )
+
+
+class Highlight(TestCase):
+    def test_hi1(self):
+        value = 'due in <span class="search-hit mathjax">large</span> part of xyz'
+        hl = highlighting._highlight_whole_texism(value)
+        self.assertGreater(len(hl), 0)
+        self.assertIn("<span", hl)
+        self.assertNotIn('&lt', hl)

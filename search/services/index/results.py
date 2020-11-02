@@ -27,44 +27,30 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
     result["match"] = {}  # Hit on field, but no highlighting.
     result["truncated"] = {}  # Preview is truncated.
 
-    result.update(raw.__dict__["_d_"])
+    result.update(raw.to_dict()) # typing: ignore
 
-    # Parse dates to date/datetime objects.
-    if "announced_date_first" in result:
-        result["announced_date_first"] = datetime.strptime(
-            raw["announced_date_first"], "%Y-%m"
-        ).date()
-    for key in ["", "_first", "_latest"]:
-        key = f"submitted_date{key}"
-        if key not in result:
-            continue
-        try:
-            result[key] = datetime.strptime(raw[key], "%Y-%m-%dT%H:%M:%S%z")
-        except (ValueError, TypeError):
-            logger.warning(f"Could not parse {key} as datetime")
-            pass
+    _add_announced_date_first(result, raw)
 
-    for key in ["acm_class", "msc_class"]:
-        if key in result and result[key]:
-            result[key] = "; ".join(result[key])
+    _add_date(result, raw, "submitted_date")
+    _add_date(result, raw, "submitted_date_first")
+    _add_date(result, raw, "submitted_date_latest")    
+
+    _add_amc_msc(result)
 
     try:
         result["score"] = raw.meta.score  # type: ignore
     except AttributeError:
         pass
 
-    if highlight:  # type(result.get('abstract')) is str and
+    if "preview" not in result:
+        result["preview"] = {}
+
+    if "abstract" in result:
+        result["preview"]["abstract"], result["truncated"]["abstract"] \
+            = preview(result["abstract"])
+
+    if highlight:
         result["highlight"] = {}
-        logger.debug("%s: add highlighting to result", result["paper_id"])
-
-        if "preview" not in result:
-            result["preview"] = {}
-
-        if "abstract" in result:
-            result["preview"]["abstract"] = preview(result["abstract"])
-            if result["preview"]["abstract"].endswith("&hellip;"):
-                result["truncated"]["abstract"] = True
-
         result = add_highlighting(result, raw)
 
     return result
@@ -92,13 +78,13 @@ def to_documentset(
     """
     max_pages = int(MAX_RESULTS / query.size)
     n_pages_raw = response["hits"]["total"] / query.size
-    n_pages = int(floor(n_pages_raw)) + int(n_pages_raw % query.size > 0)
-    logger.debug("got %i results", response["hits"]["total"])
+    n_pages = int(floor(n_pages_raw)) + int(int(n_pages_raw) % int(query.size) > 0)
+
     return {
         "metadata": {
             "start": query.page_start,
             "end": min(
-                query.page_start + query.size, response["hits"]["total"]
+                int(query.page_start + query.size), int(response["hits"]["total"])
             ),
             "total_results": response["hits"]["total"],
             "current_page": query.page,
@@ -108,3 +94,26 @@ def to_documentset(
         },
         "results": [to_document(raw, highlight=highlight) for raw in response],
     }
+
+
+
+def _add_announced_date_first(result:Document, raw:  Union[Hit, dict]) -> None:
+    if "announced_date_first" in result:
+        result["announced_date_first"] = datetime.strptime(
+            raw["announced_date_first"], "%Y-%m"
+        ).date()
+
+def _add_date(result:Document, raw: Union[Hit, dict], key:str) -> None:
+    """Update result with parsed date for key."""
+    if key not in result:
+        return    
+    try:
+        result[key] = datetime.strptime(raw[key], "%Y-%m-%dT%H:%M:%S%z")  # type: ignore
+    except (ValueError, TypeError):
+        logger.warning(f"Could not parse {key} as datetime")
+        pass
+
+def _add_amc_msc(result: Document) -> None:
+    for key in ["acm_class", "msc_class"]:
+        if key in result and result[key]:  # type: ignore
+            result[key] = "; ".join(result[key])  # type: ignore

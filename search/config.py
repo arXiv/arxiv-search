@@ -196,6 +196,7 @@ METADATA_CACHE_DIR = os.environ.get("METADATA_CACHE_DIR")
 METADATA_VERIFY_CERT = os.environ.get("METADATA_VERIFY_CERT", "True")
 """If ``False``, SSL certificate verification will be disabled."""
 
+#This is currently not in use. Currently arxiv-search does not index the full text of articles.
 FULLTEXT_ENDPOINT = os.environ.get(
     "FULLTEXT_ENDPOINT", "https://fulltext.arxiv.org/fulltext/"
 )

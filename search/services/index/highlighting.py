@@ -9,19 +9,20 @@ abridged display in the search results.
 """
 
 import re
-from typing import Any, Union
+from typing import Any, Union, List, Tuple
 
-from flask import escape
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.response import Response, Hit
+from jinja2 import Markup, escape
 
 from arxiv.base import logging
+
 from search.domain import Document
 from search.services.index.util import TEXISM
-
+from search.services.tex import math_positions, Math, isMath, \
+    split_for_maths, position_f
 
 logger = logging.getLogger(__name__)
-
 
 HIGHLIGHT_TAG_OPEN = '<span class="search-hit mathjax">'
 HIGHLIGHT_TAG_CLOSE = "</span>"
@@ -78,9 +79,9 @@ def preview(
     fragment_size: int = 400,
     start_tag: str = HIGHLIGHT_TAG_OPEN,
     end_tag: str = HIGHLIGHT_TAG_CLOSE,
-) -> str:
+) -> Tuple[str,bool]:
     """
-    Generate a snippet preview that doesn't breaking TeXisms or highlighting.
+    Generate an escaped preview snippet as Markup that doesn't break TeXisms or highlighting.
 
     Parameters
     ----------
@@ -100,10 +101,10 @@ def preview(
     -------
     str
         A preview that is approximately ``fragment_size`` long.
+    bool
+        If it was truncated.
 
     """
-    # value = re.sub('')
-    # value = value.replace('$$', '$')
     if start_tag in value and end_tag in value:
         start = value.index(start_tag)
         end = value.index(end_tag) + len(end_tag)
@@ -134,18 +135,19 @@ def preview(
     end += _end_safely(
         value[end:], remaining, start_tag=start_tag, end_tag=end_tag
     )
+
+    start_trunc = start > 0
+    end_trunc = end < len(value) 
     snippet = value[start:end].strip()
-    last_open = snippet.rfind(HIGHLIGHT_TAG_OPEN)
-    last_close = snippet.rfind(HIGHLIGHT_TAG_CLOSE)
+    last_open = snippet.rfind(start_tag)
+    last_close = snippet.rfind(end_tag)
 
     if last_open > last_close and last_open >= 0:
-        snippet += HIGHLIGHT_TAG_CLOSE
-    snippet = (
-        ("&hellip;" if start > 0 else "")
-        + snippet
-        + ("&hellip;" if end < len(value) else "")
-    )
-    return snippet
+        snippet += end_tag
+    preview = ((Markup("&hellip;") if start_trunc else "")
+               + escape(snippet)
+               + (Markup("&hellip;") if end_trunc else ""))
+    return preview, start_trunc or end_trunc
 
 
 def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
@@ -173,10 +175,6 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
     # matched. This is nice for non-string fields.
     matched_fields = getattr(raw.meta, "matched_queries", [])
 
-    # These are from hits within child documents, e.g.
-    # secondary_classification.
-    inner_hits = getattr(raw.meta, "inner_hits", None)
-
     # The values here will (almost) always be list-like. So we need to stitch
     # them together. Note that dir(None) won't return anything, so this block
     # is skipped if there are no highlights from ES.
@@ -184,8 +182,8 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
         if field.startswith("_"):
             continue
         value = getattr(highlighted_fields, field)
-        if hasattr(value, "__iter__"):
-            value = "&hellip;".join(value)
+        if not hasattr(value, "__iter__"):
+            value = [str(value)]  #str() due to things happening during mocked tests
 
         # Non-TeX searches may hit inside of TeXisms. Highlighting those
         # fragments (i.e. inserting HTML) will break MathJax rendering.
@@ -193,8 +191,9 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
         # any highlighting tags from within TeXisms to encapsulate the
         # entire TeXism.
         if field in ["title", "title.english", "abstract", "abstract.english"]:
-            value = _highlight_whole_texism(value)
-            value = _escape(value)
+            value = Markup("&hellip;").join([_highlight_whole_texism(item) for item in value])
+        else:
+            value = Markup("&hellip;".join(value))
 
         # A hit on authors may originate in several different fields, most
         # of which are not displayed. And in any case, author names may be
@@ -215,6 +214,9 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
         if field not in result["highlight"]:
             result["match"][field] = True
 
+    # These are from hits within child documents, e.g.
+    # secondary_classification.
+    inner_hits = getattr(raw.meta, "inner_hits", None)
     # We're using inner_hits to see which category in particular responded to
     # the query.
     if hasattr(inner_hits, "secondary_classification"):
@@ -237,33 +239,63 @@ def add_highlighting(result: Document, raw: Union[Response, Hit]) -> Document:
     for field in ["abstract.tex", "abstract.english", "abstract"]:
         if field in result["highlight"]:
             value = result["highlight"][field]
-            abstract_snippet = preview(value)
-            result["preview"]["abstract"] = abstract_snippet
+            result["preview"]["abstract"], result["truncated"]["abstract"] \
+                = preview(value)
             result["highlight"]["abstract"] = value
             break
     for field in ["title.english", "title"]:
         if field in result["highlight"]:
             result["highlight"]["title"] = result["highlight"][field]
             break
+
     return result
 
 
-def _strip_highlight_and_enclose(match: Any) -> str:
-    """Move any highlights within a TeXism to outside the TeXism."""
-    value: str = match.group(0)
-    if HIGHLIGHT_TAG_OPEN not in value and HIGHLIGHT_TAG_CLOSE not in value:
-        return value
-    value = value.replace(HIGHLIGHT_TAG_OPEN, "")
-    value = value.replace(HIGHLIGHT_TAG_CLOSE, "")
-    # If HTML was removed, we will assume that it was highlighting HTML.
-    # if len(new_value) < len(value):
-    value = f"{HIGHLIGHT_TAG_OPEN}{value}{HIGHLIGHT_TAG_CLOSE}"
-    return value
+def _de_highlight_math(math: Union[str, Math]) -> List[Union[str,Math]]:
+    """
+    Moves highlight spans to outside of math.
 
+    Tries to keep multiple opens and closes in math balanced.
+    """
+    has_open, has_close = HIGHLIGHT_TAG_OPEN in math, HIGHLIGHT_TAG_CLOSE in math
+    if not has_open and not has_close:
+        return [math]
+    score = collapse_hl_tags_score(math)
+    math = Math(math.replace(HIGHLIGHT_TAG_OPEN, "")
+                .replace(HIGHLIGHT_TAG_CLOSE, ""))
+    if score > 0:  # more opens than closes in math
+        return [ HIGHLIGHT_TAG_OPEN * score , math]  # Balance the extra opens
+    if score < 0: # more closes than opens in math
+        return [ math, HIGHLIGHT_TAG_CLOSE * score ]
+     # tags are balanced inside the math
+    return [HIGHLIGHT_TAG_OPEN, math, HIGHLIGHT_TAG_CLOSE] # may need to rewrap with Math?
 
 def _highlight_whole_texism(value: str) -> str:
-    """Move highlighting from within TeXism to encapsulate whole statement."""
-    return re.sub(TEXISM, _strip_highlight_and_enclose, value)
+    """
+    Move highlighting from within TeXism to encapsulate whole statement.
+
+    The overview is 
+    1. The TeX positions are located
+    2. The string is split into a list of strings on these boundaries
+    3. Each TeX string has its tags moved out of it in a balanced way
+    4. Each non-TeX string is split into span tags and non-span tags
+    5. The list mapped so that non-TeX and TeX get escaped and span tags become Markup
+    6. The list of strings joined.
+    """
+    pos = math_positions(value)
+    if pos:
+        splits = split_for_maths(pos, value)
+    else:
+        splits = [value] #no math found so use whole value
+
+    corrected: List[Union[str,Math]] = []
+    for txt in splits:
+        if not isMath(txt):
+            corrected.append(txt) # might want to escape non-tex here?
+        else:
+            corrected.extend(_de_highlight_math(txt)) # might want to escape tex here?
+
+    return Markup(''.join( [_escape(part) for part in corrected ]))
 
 
 def _escape(value: str) -> str:
@@ -278,30 +310,34 @@ def _escape(value: str) -> str:
     """
     tag_o = HIGHLIGHT_TAG_OPEN
     tag_c = HIGHLIGHT_TAG_CLOSE
-    _new = ""
-    i = 0
-    while True:
-        i_o = value[i:].index(tag_o) if tag_o in value[i:] else None
-        i_c = value[i:].index(tag_c) if tag_c in value[i:] else None
-        if i_o is None and i_c is None:
-            _new += str(escape(value[i:]))
-            break
-        if i_o is not None and i_c is not None:
-            if i_o < i_c:
-                _sub = str(escape(value[i : i + i_o])) + tag_o
-                i += i_o + len(tag_o)
-            elif i_c < i_o:
-                _sub = str(escape(value[i : i + i_c])) + tag_c
-                i += i_c + len(tag_c)
-        elif i_o is not None and i_c is None:
-            _sub = str(escape(value[i : i + i_o])) + tag_o
-            i += i_o + len(tag_o)
-        elif i_c is not None and i_o is None:
-            _sub = str(escape(value[i : i + i_c])) + tag_c
-            i += i_c + len(tag_c)
-        _new += _sub
-    return _new
+    if isinstance(value, Math):
+        return escape(value)
+    if value in (tag_o, tag_c):
+        return Markup(value)
 
+    return _escape_nontex(value)
+
+def _escape_nontex(value: str) -> str:
+    """Escape non-tex that might have highlight spans."""
+    _new = ''
+    tag_pos =  _highlight_positions(value)
+    if not tag_pos: 
+        return escape(value)
+    last = len(tag_pos)-1
+    for ii in range(0, len(tag_pos)):
+        start,end = tag_pos[ii]
+        if ii == 0 and start !=0 : #anything before first tag            
+            _new = escape(value[0:start])
+            
+        _new = _new + Markup(value[start:end])
+        
+        if ii != last:
+            start_of_next_tag = tag_pos[ii+1][0]
+            _new = _new + escape(value[end:start_of_next_tag])
+        else:
+            _new = _new + escape(value[end:])
+        
+    return Markup(_new)
 
 def _start_safely(
     value: str,
@@ -368,3 +404,26 @@ def _end_safely(
     # We can't make it past the end of the next TeX/tag without exceeding the
     # target fragment size, so we will end at the beginning of the match.
     return ptn_start
+
+
+_tagpattern = re.compile('(' + re.escape( HIGHLIGHT_TAG_OPEN) +
+                         '|' + re.escape(HIGHLIGHT_TAG_CLOSE)+')')
+
+def _highlight_positions(value:str) -> List[Tuple[int,int]]:
+    """
+    Gets list of highlight tag positions.
+    
+    This is the start and end of each tag, not start tag to end of end tag
+    """
+    matches = _tagpattern.finditer(value)
+    return [match.span() for match in matches ]
+
+
+def collapse_hl_tags_score( value: str ) -> int:
+    """Returns a score that represents the balance of tags in value.
+
+    0 means tags are balanced, -n means n extra closes, +N means N extra open tags.
+    """
+    pos = _highlight_positions(value)
+    tags = [value[start:end] for start, end in pos]
+    return sum([ 1 if tag == HIGHLIGHT_TAG_OPEN else -1 for tag in tags])

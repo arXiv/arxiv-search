@@ -3,9 +3,12 @@
 # Defines the runtime for the arXiv search service, which provides the main
 # UIs (and, eventually, APIs) for search.
 
-FROM arxiv/base:0.12.1
+FROM arxiv/base:0.16.7
 
 WORKDIR /opt/arxiv
+
+# remove conflicting mariadb-libs from arxiv/base
+RUN yum remove -y mariadb-libs
 
 # Install MySQL.
 RUN yum install -y which mysql mysql-devel
