@@ -1,15 +1,7 @@
 # File:     recent_docs_updated.sql
 # Desc:     Find papers with metadata/author updates during the previous hour.
 # Based on: arxiv-bin/notify_search.pl
-# Running:  see arxiv-bin/dotfiles/web1.crontab 
-#
-# Syntax notes:
-#   Use date_format to set the minute and second to 0:
-#     select                       '2020-04-27 20:07:01',
-#                      date_format('2020-04-27 20:07:01', "%Y-%m-%d %H:00:00"),
-#            date_sub( date_format('2020-04-27 20:07:01', "%Y-%m-%d %H:00:00"), 
-#                      INTERVAL 1 HOUR);
-#     2020-04-27 20:07:01   2020-04-27 20:00:00   2020-04-27 19:00:00
+# Running:  see arxiv-bin/dotfiles/nexus.crontab
 #
 
 SELECT am.paper_id
