@@ -30,15 +30,10 @@ paper_id = operator.attrgetter("paper_id")
 @click.option(
     "--id_list", "-l", help="Index paper IDs in a file (one ID per line)"
 )
-@click.option(
-    "--load-cache",
-    "-d",
-    is_flag=True,
-    help="Install papers from a cache on disk. Note: this will"
-    " preempt checking for new versions of papers that are"
-    " in the cache.",
-)
-@click.option("--cache-dir", "-c", help="Specify the cache directory.")
+@click.option("--cache-dir", "-c", help="Specify the cache directory."
+              " Install papers from a cache on disk. Note: this will"
+              " preempt checking for new versions of papers that are"
+              " in the cache.")
 @click.option("--no-cache", help="Disable the cache feature",
               is_flag=True, default=False)
 @click.option("--quiet", "-q", help="Only print on failure",
@@ -47,7 +42,6 @@ def populate(
     print_indexable: bool,
     paper_id: str,
     id_list: str,
-    load_cache: bool,
     cache_dir: str,
     no_cache: bool,
     quiet: bool,
@@ -55,11 +49,10 @@ def populate(
     """Populate the search index with some test data."""
     if cache_dir and no_cache:
         raise RuntimeError("Cannot set both no cache and cache dir")
-    if no_cache and load_cache:
-        raise RuntimeError("Cannot set both load cache and no cache")
 
     if not no_cache:
         cache_dir = init_cache(cache_dir)
+        print(f" cache_dir is {cache_dir}")  # wip
     else:
         cache_dir = None
 
@@ -84,7 +77,7 @@ def populate(
             last = len(TO_INDEX) - 1
             for i, paper_id in enumerate(TO_INDEX):
                 this_meta = []
-                if load_cache:
+                if cache_dir:
                     this_meta = from_cache(cache_dir, paper_id)
 
                 if this_meta:
