@@ -19,6 +19,7 @@ app = create_ui_web_app()
 
 get_paper_id = operator.attrgetter("paper_id")
 
+
 @app.cli.command()
 @click.option(
     "--print_indexable",
@@ -84,7 +85,7 @@ def populate(
                 else:
                     chunk.append(paper_id)
 
-                if len(chunk) == retrieve_chunk_size or i == last:
+                if len(chunk) == retrieve_chunk_size or (chunk and i == last):
                     try:
                         new_meta = metadata.bulk_retrieve(chunk)
                     except metadata.ConnectionFailed:  # Try again.
@@ -205,6 +206,8 @@ def load_id_sample() -> List[str]:
 
 
 class NoopContextManager(object):
+    """Context manager that does nothing to replace click progressbar in
+    quiet mode."""
     def __enter__(self):
         return self
 
