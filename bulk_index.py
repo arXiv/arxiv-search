@@ -17,7 +17,7 @@ from search.factory import create_ui_web_app
 
 app = create_ui_web_app()
 
-paper_id = operator.attrgetter("paper_id")
+get_paper_id = operator.attrgetter("paper_id")
 
 @app.cli.command()
 @click.option(
@@ -52,7 +52,6 @@ def populate(
 
     if not no_cache:
         cache_dir = init_cache(cache_dir)
-        print(f" cache_dir is {cache_dir}")  # wip
     else:
         cache_dir = None
 
@@ -95,8 +94,8 @@ def populate(
                     chunk = []
                     if not no_cache:
                         # Add metadata to the cache.
-                        new_meta_srt = sorted(new_meta, key=paper_id)
-                        for paper_id, grp in groupby(new_meta_srt, paper_id):
+                        new_meta_srt = sorted(new_meta, key=get_paper_id)
+                        for paper_id, grp in groupby(new_meta_srt, get_paper_id):
                             to_cache(cache_dir, paper_id, [dm for dm in grp])
 
                 # Index papers on a different chunk cycle, and at the very end.
