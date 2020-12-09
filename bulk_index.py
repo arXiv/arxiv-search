@@ -119,10 +119,6 @@ def populate(
                     index_count += len(docs)
                     meta = []
                     index_bar.update(i)
-
-    except Exception as ex:
-        raise RuntimeError("bulk_index failed: %s" % str(ex)) from ex
-
     finally:
         if not quiet:
             click.echo(f"Indexed {index_count} documents in total")
