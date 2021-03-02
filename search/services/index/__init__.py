@@ -13,6 +13,7 @@ for indexing (e.g. by the
 
 
 # Start monkeypatch of elasticsearch-py's search(), use POST not GET
+#   due to GCP load balancers rejecting any GET requests with a body
 
 import elasticsearch.client
 
