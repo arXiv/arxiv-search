@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "bcc2c897f4fcc724f39040523b4096958a08812715f7dde7a3b08f1df5a8422d"
+            "sha256": "d5be4ae6666104eb7a04048c32f1a7dd53de26fa26ea14fe6268d069306190e2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -445,10 +445,11 @@
         },
         "pyjwt": {
             "hashes": [
-                "sha256:a5c70a06e1f33d81ef25eecd50d50bd30e34de1ca8b2b9fa3fe0daaabcf69bf7",
-                "sha256:b70b15f89dc69b993d8a8d32c299032d5355c82f9b5b7e851d1a6d706dffe847"
+                "sha256:5c6eca3c2940464d106b99ba83b00c6add741c9becaec087fb7ccdefea71350e",
+                "sha256:8d59a976fb773f3e6a39c85636357c4f0e242707394cadadd9814f5cbaa20e96"
             ],
-            "version": "==2.0.1"
+            "index": "pypi",
+            "version": "==1.7.1"
         },
         "pylama": {
             "hashes": [
