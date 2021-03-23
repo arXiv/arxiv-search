@@ -1,75 +1,92 @@
-.fieldset-hidden-on-first-row:first-child {
-  width: 0px;
-  visibility: hidden;
-}
-
 .content .arxiv-result {
-  margin-bottom: 1.25em; }
-  .content .arxiv-result p {
-    margin-bottom: 0.25em; }
-  .content .arxiv-result .title {
-    line-height: 1.25em; }
-  .content .arxiv-result .tags {
-    margin-bottom: 0; }
-    .content .arxiv-result .tags:not(:last-child) {
-      margin-bottom: 0; }
-  .content .arxiv-result span.tag {
-    height: 1.25rem; }
-  .content .arxiv-result .list-title {
-    font-size: 1.05em;
-    line-height: 1.25em; }
+  margin-bottom: 1.25em;
+}
+.content .arxiv-result p {
+  margin-bottom: 0.25em;
+}
+.content .arxiv-result .title {
+  line-height: 1.25em;
+}
+.content .arxiv-result .tags {
+  margin-bottom: 0;
+}
+.content .arxiv-result .tags:not(:last-child) {
+  margin-bottom: 0;
+}
+.content .arxiv-result span.tag {
+  height: 1.25rem;
+}
+.content .arxiv-result .list-title {
+  font-size: 1.05em;
+  line-height: 1.25em;
+}
 
 .search-hit {
   color: #287916 !important;
   background-color: #EEFFE8 !important;
-  font-weight: bold; }
+  font-weight: bold;
+}
 
 /* may want to move this section up to baseui */
 .is-monospace {
-  font-family: monospace; }
+  font-family: monospace;
+}
 
 .pagination {
   margin-top: 3rem;
-  margin-bottom: 2rem; }
+  margin-bottom: 2rem;
+}
 
 .pagination-list {
-  margin: 0 !important; }
-  .pagination-list li {
-    list-style: none;
-    margin-bottom: 0; }
-  .pagination-list li + li {
-    margin: 0; }
+  margin: 0 !important;
+}
+.pagination-list li {
+  list-style: none;
+  margin-bottom: 0;
+}
+.pagination-list li + li {
+  margin: 0;
+}
 
 .breathe-vertical {
   margin-top: 4rem;
-  margin-bottom: 4rem; }
+  margin-bottom: 4rem;
+}
 
 @media screen and (min-width: 769px) {
   .breathe-horizontal {
     margin-left: 5rem !important;
-    margin-right: 5rem !important; } }
+    margin-right: 5rem !important;
+  }
+}
 @media screen and (min-width: 980px) {
   .breathe-horizontal {
     margin-left: 10rem !important;
-    margin-right: 10rem !important; } }
+    margin-right: 10rem !important;
+  }
+}
 
 .fieldset {
   border: 1px solid #DBDBDB;
   border-radius: 2px;
   padding: 0.5em 1em 1em 1em;
-  margin: 1em 0; }
+  margin: 1em 0;
+}
 
 .fieldset.is-warning {
-  border: 1px solid #d47500; }
+  border: 1px solid #d47500;
+}
 
 .legend {
   font-weight: 600;
   background-color: inherit;
   padding: 0 0.5em;
-  margin-left: -0.5em; }
+  margin-left: -0.5em;
+}
 
 .is-baseline {
-  align-items: baseline; }
+  align-items: baseline;
+}
 
 .hidden-label {
   border: 0;
@@ -79,69 +96,90 @@
   margin: -1px;
   overflow: hidden;
   padding: 0;
-  position: absolute; }
+  position: absolute;
+}
 
 .is-datefield {
-  max-width: 8rem; }
+  max-width: 8rem;
+}
+
+.fieldset-hidden-on-first-row:first-child {
+  width: 0px !important;
+  visibility: hidden;
+}
 
 /* TODO fold into base as an extension of bulma's default has-addons class */
 .field.has-addons-tablet .control:not(:last-child) {
-  margin-bottom: 0.5rem; }
+  margin-bottom: 0.5rem;
+}
 @media screen and (min-width: 769px) {
   .field.has-addons-tablet {
     display: flex;
-    justify-content: flex-start; }
-    .field.has-addons-tablet .control:not(:last-child) {
-      margin-right: -1px;
-      margin-bottom: 0; }
-    .field.has-addons-tablet .control:first-child .button,
-    .field.has-addons-tablet .control:first-child .input,
-    .field.has-addons-tablet .control:first-child .select select {
-      border-bottom-left-radius: 3px;
-      border-top-left-radius: 3px; }
-    .field.has-addons-tablet .control:last-child .button,
-    .field.has-addons-tablet .control:last-child .input,
-    .field.has-addons-tablet .control:last-child .select select {
-      border-bottom-right-radius: 3px;
-      border-top-right-radius: 3px; }
-    .field.has-addons-tablet .control .button,
-    .field.has-addons-tablet .control .input,
-    .field.has-addons-tablet .control .select select {
-      border-radius: 0; }
-      .field.has-addons-tablet .control .button:hover, .field.has-addons-tablet .control .button.is-hovered,
-      .field.has-addons-tablet .control .input:hover,
-      .field.has-addons-tablet .control .input.is-hovered,
-      .field.has-addons-tablet .control .select select:hover,
-      .field.has-addons-tablet .control .select select.is-hovered {
-        z-index: 2; }
-      .field.has-addons-tablet .control .button:focus, .field.has-addons-tablet .control .button.is-focused, .field.has-addons-tablet .control .button:active, .field.has-addons-tablet .control .button.is-active,
-      .field.has-addons-tablet .control .input:focus,
-      .field.has-addons-tablet .control .input.is-focused,
-      .field.has-addons-tablet .control .input:active,
-      .field.has-addons-tablet .control .input.is-active,
-      .field.has-addons-tablet .control .select select:focus,
-      .field.has-addons-tablet .control .select select.is-focused,
-      .field.has-addons-tablet .control .select select:active,
-      .field.has-addons-tablet .control .select select.is-active {
-        z-index: 3; }
-        .field.has-addons-tablet .control .button:focus:hover, .field.has-addons-tablet .control .button.is-focused:hover, .field.has-addons-tablet .control .button:active:hover, .field.has-addons-tablet .control .button.is-active:hover,
-        .field.has-addons-tablet .control .input:focus:hover,
-        .field.has-addons-tablet .control .input.is-focused:hover,
-        .field.has-addons-tablet .control .input:active:hover,
-        .field.has-addons-tablet .control .input.is-active:hover,
-        .field.has-addons-tablet .control .select select:focus:hover,
-        .field.has-addons-tablet .control .select select.is-focused:hover,
-        .field.has-addons-tablet .control .select select:active:hover,
-        .field.has-addons-tablet .control .select select.is-active:hover {
-          z-index: 4; }
-    .field.has-addons-tablet .control.is-expanded {
-      flex-grow: 1; }
-    .field.has-addons-tablet.has-addons-centered {
-      justify-content: center; }
-    .field.has-addons-tablet.has-addons-right {
-      justify-content: flex-end; }
-    .field.has-addons-tablet.has-addons-fullwidth .control {
-      flex-grow: 1;
-      flex-shrink: 0; } }
+    justify-content: flex-start;
+  }
+  .field.has-addons-tablet .control:not(:last-child) {
+    margin-right: -1px;
+    margin-bottom: 0;
+  }
+  .field.has-addons-tablet .control:first-child .button,
+.field.has-addons-tablet .control:first-child .input,
+.field.has-addons-tablet .control:first-child .select select {
+    border-bottom-left-radius: 3px;
+    border-top-left-radius: 3px;
+  }
+  .field.has-addons-tablet .control:last-child .button,
+.field.has-addons-tablet .control:last-child .input,
+.field.has-addons-tablet .control:last-child .select select {
+    border-bottom-right-radius: 3px;
+    border-top-right-radius: 3px;
+  }
+  .field.has-addons-tablet .control .button,
+.field.has-addons-tablet .control .input,
+.field.has-addons-tablet .control .select select {
+    border-radius: 0;
+  }
+  .field.has-addons-tablet .control .button:hover, .field.has-addons-tablet .control .button.is-hovered,
+.field.has-addons-tablet .control .input:hover,
+.field.has-addons-tablet .control .input.is-hovered,
+.field.has-addons-tablet .control .select select:hover,
+.field.has-addons-tablet .control .select select.is-hovered {
+    z-index: 2;
+  }
+  .field.has-addons-tablet .control .button:focus, .field.has-addons-tablet .control .button.is-focused, .field.has-addons-tablet .control .button:active, .field.has-addons-tablet .control .button.is-active,
+.field.has-addons-tablet .control .input:focus,
+.field.has-addons-tablet .control .input.is-focused,
+.field.has-addons-tablet .control .input:active,
+.field.has-addons-tablet .control .input.is-active,
+.field.has-addons-tablet .control .select select:focus,
+.field.has-addons-tablet .control .select select.is-focused,
+.field.has-addons-tablet .control .select select:active,
+.field.has-addons-tablet .control .select select.is-active {
+    z-index: 3;
+  }
+  .field.has-addons-tablet .control .button:focus:hover, .field.has-addons-tablet .control .button.is-focused:hover, .field.has-addons-tablet .control .button:active:hover, .field.has-addons-tablet .control .button.is-active:hover,
+.field.has-addons-tablet .control .input:focus:hover,
+.field.has-addons-tablet .control .input.is-focused:hover,
+.field.has-addons-tablet .control .input:active:hover,
+.field.has-addons-tablet .control .input.is-active:hover,
+.field.has-addons-tablet .control .select select:focus:hover,
+.field.has-addons-tablet .control .select select.is-focused:hover,
+.field.has-addons-tablet .control .select select:active:hover,
+.field.has-addons-tablet .control .select select.is-active:hover {
+    z-index: 4;
+  }
+  .field.has-addons-tablet .control.is-expanded {
+    flex-grow: 1;
+  }
+  .field.has-addons-tablet.has-addons-centered {
+    justify-content: center;
+  }
+  .field.has-addons-tablet.has-addons-right {
+    justify-content: flex-end;
+  }
+  .field.has-addons-tablet.has-addons-fullwidth .control {
+    flex-grow: 1;
+    flex-shrink: 0;
+  }
+}
 
 /*# sourceMappingURL=search.css.map */
