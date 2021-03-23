@@ -42,7 +42,7 @@ thrift-connector = "==0.23"
 werkzeug = "~=0.14"
 wtforms = "==2.1"
 bleach = "*"
-lxml = "==4.6.2"
+lxml = "==4.6.3"
 retry = "*"
 pyjwt = "==1.7.1"
 
