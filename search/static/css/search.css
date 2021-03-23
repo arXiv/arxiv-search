@@ -1,3 +1,8 @@
+.fieldset-hidden-on-first-row:first-child {
+  width: 0px;
+  visibility: hidden;
+}
+
 .content .arxiv-result {
   margin-bottom: 1.25em; }
   .content .arxiv-result p {

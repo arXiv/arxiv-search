@@ -38,8 +38,7 @@
             <legend class="legend">Search term(s)</legend>
             {% for entry in form.terms.entries %}
               <div class="field has-addons-tablet" data-toggle="fieldset-entry">
-                <div class="control fieldset-hidden-on-first-row"
-                  {% if loop.index0 == 0 %}style="visibility:hidden;width:0;"{% endif %}>
+                <div class="control fieldset-hidden-on-first-row">
                   <span class="select">
                     <label for="terms-{{loop.index0}}-operator" class="hidden-label">Boolean operator</label>
                     {{ entry.operator(default='AND')|safe }}
