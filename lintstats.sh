@@ -1,5 +1,5 @@
 # Check pylint status
-if [ -z ${MIN_SCORE} ]; then MIN_SCORE="9"; fi
+if [ -z ${MIN_SCORE} ]; then MIN_SCORE="8.5"; fi
 PYLINT_SCORE=$( pipenv run pylint search | tail -2 | grep -Eo '[0-9\.]+/10' | tail -1 | sed s/\\/10// )
 PYLINT_PASS=$(echo $PYLINT_SCORE">="$MIN_SCORE | bc -l)
 
