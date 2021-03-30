@@ -28,6 +28,7 @@ def search2(self: Any, index: Any=None, doc_type: Any=None, body: Any=None, para
 
 elasticsearch.client.Elasticsearch.search = search2
 
+#
 # End monkeypatch
 
 
