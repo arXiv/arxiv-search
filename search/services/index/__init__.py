@@ -17,7 +17,7 @@ for indexing (e.g. by the
 
 import elasticsearch.client
 
-def search2(self, index=None, doc_type=None, body=None, params=None):
+def search2(self: Any, index: Any=None, doc_type: Any=None, body: Any=None, params: Any=None) -> Any:
   if params and 'from_' in params:
     params['from'] = params.pop('from_')
   if doc_type and not index:
