@@ -16,6 +16,7 @@ for indexing (e.g. by the
 #   due to GCP load balancers rejecting any GET requests with a body
 
 import elasticsearch.client
+from typing import Any
 
 def search2(self: Any, index: Any=None, doc_type: Any=None, body: Any=None, params: Any=None) -> Any:
   if params and 'from_' in params:
