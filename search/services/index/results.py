@@ -27,7 +27,7 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
     result["match"] = {}  # Hit on field, but no highlighting.
     result["truncated"] = {}  # Preview is truncated.
 
-    result.update(raw.to_dict()) # typing: ignore
+    result.update(raw.to_dict()) # type: ignore
 
     _add_announced_date_first(result, raw)
 
