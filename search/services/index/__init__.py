@@ -11,6 +11,29 @@ for indexing (e.g. by the
 :mod:`search.agent.consumer.MetadataRecordProcessor`).
 """
 
+
+
+# Start monkeypatch of elasticsearch-py's search(), use POST not GET
+#   due to GCP load balancers rejecting any GET requests with a body
+
+import elasticsearch.client
+from typing import Any
+
+def search2(self: Any, index: Any=None, doc_type: Any=None, body: Any=None, params: Any=None) -> Any:
+  if params and 'from_' in params:
+    params['from'] = params.pop('from_')
+  if doc_type and not index:
+    index = '_all'
+  tmppath =  elasticsearch.client.utils._make_path(index, doc_type, '_search')
+  return self.transport.perform_request('POST', tmppath, params=params, body=body)
+
+elasticsearch.client.Elasticsearch.search = search2
+
+#
+# End monkeypatch
+
+
+
 __all__ = ["Q", "SearchSession"]
 
 import json
