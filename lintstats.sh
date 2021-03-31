@@ -6,7 +6,7 @@ PYLINT_PASS=$(echo $PYLINT_SCORE">="$MIN_SCORE | bc -l)
 if [ "$TRAVIS_PULL_REQUEST_SHA" = "" ];  then SHA=$TRAVIS_COMMIT; else SHA=$TRAVIS_PULL_REQUEST_SHA; fi
 if [ $PYLINT_PASS -eq 1 ]; then PYLINT_STATE="success" &&  echo "pylint passed with score "$PYLINT_SCORE" for sha "$SHA; else PYLINT_STATE="failure" &&  echo "pylint failed with score "$PYLINT_SCORE" for sha "$SHA; fi
 
-echo "U=$USERNAME, S=$PYLINT_STATE, T=$TRAVIS_REPO_SLUG, B=$TRAVIS_BUILD_ID, P=$PYLINT_SCORE, S=$SHA"
+echo "U=$USERNAME, U=$USER, S=$PYLINT_STATE, T=$TRAVIS_REPO_SLUG, B=$TRAVIS_BUILD_ID, P=$PYLINT_SCORE, S=$SHA, TRAVIS_PULL_REQUEST_SHA=$TRAVIS_PULL_REQUEST_SHA, TRAVIS_COMMIT=$TRAVIS_COMMIT"
 curl -u $USERNAME:$GITHUB_TOKEN \
     -d '{"state": "'$PYLINT_STATE'", "target_url": "https://travis-ci.com/'$TRAVIS_REPO_SLUG'/builds/'$TRAVIS_BUILD_ID'", "description": "'$PYLINT_SCORE'/10", "context": "code-quality/pylint"}' \
     -XPOST https://api.github.com/repos/$TRAVIS_REPO_SLUG/statuses/$SHA 
