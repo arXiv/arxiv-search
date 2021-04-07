@@ -7,9 +7,11 @@ FROM arxiv/base:0.16.6
 
 WORKDIR /opt/arxiv
 
+
 ENV LC_ALL en_US.utf8
 ENV LANG en_US.utf8
 ENV LOGLEVEL 40
+ENV PIPENV_VENV_IN_PROJECT 1
 ENV FLASK_DEBUG 1
 ENV FLASK_APP /opt/arxiv/classic-api.py
 ENV PATH "/opt/arxiv:${PATH}"
@@ -26,7 +28,7 @@ ENV METADATA_ENDPOINT https://arxiv.org/docmeta_bulk/
 ADD Pipfile /opt/arxiv/
 ADD Pipfile.lock /opt/arxiv/
 RUN pip install -U pip pipenv
-RUN pipenv install
+RUN pipenv sync --dev 
 ADD classic-api.py /opt/arxiv/
 ADD schema /opt/arxiv/schema
 ADD mappings /opt/arxiv/mappings

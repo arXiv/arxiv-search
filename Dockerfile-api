@@ -11,6 +11,7 @@ ENV PATH "/opt/arxiv:${PATH}"
 ENV LC_ALL en_US.utf8
 ENV LANG en_US.utf8
 ENV LOGLEVEL 40
+ENV PIPENV_VENV_IN_PROJECT 1
 ENV FLASK_DEBUG 1
 ENV FLASK_APP /opt/arxiv/api.py
 ENV ELASTICSEARCH_SERVICE_HOST 127.0.0.1
@@ -28,7 +29,7 @@ ENV METADATA_ENDPOINT https://arxiv.org/docmeta_bulk/
 ADD Pipfile /opt/arxiv/
 ADD Pipfile.lock /opt/arxiv/
 RUN pip install -U pip pipenv
-RUN pipenv install
+RUN pipenv sync --dev 
 ADD api.py /opt/arxiv/
 ADD schema /opt/arxiv/schema
 ADD mappings /opt/arxiv/mappings
