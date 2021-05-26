@@ -186,7 +186,7 @@
 
     <p class="is-size-7"><span class="has-text-black-bis has-text-weight-semibold">Submitted</span> {{ result.submitted_date.strftime('%-d %B, %Y') }}; {% if result.version > 1 %}<span class="has-text-black-bis has-text-weight-semibold">v1</span> submitted {{ result.submitted_date_first.strftime('%-d %B, %Y') }};{% endif %}
       <span class="{% if result.match.announced_date_first %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">originally announced</span> {{ result.announced_date_first.strftime('%B %Y') }}.
-      {% if not is_current(result) %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ url_for('abstract_by_id', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}
+      {% if not is_current(result) %}<span class="has-text-weight-bold">Latest version:</span> <a href="{{ url_for('abs_by_id', paper_id=result.latest) }}">{{ result.latest }}</a>.{% endif %}
     </p>
     {% if result.comments %}
     <p class="comments is-size-7">
