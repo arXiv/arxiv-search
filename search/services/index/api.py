@@ -34,10 +34,6 @@ def api_search(search: Search, query: APIQuery) -> Search:
         that implement the advanced query.
 
     """
-    # Classification and date are treated as filters; this foreshadows the
-    # behavior of faceted search.
-    if not query.include_older_versions:
-        search = search.filter("term", is_current=True)
 
     _q_clsn = Q()
     if query.primary_classification:

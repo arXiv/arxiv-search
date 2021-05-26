@@ -154,6 +154,7 @@ def _get_include_fields(params: MultiDict, query_terms: List) -> List[str]:
 
     if include_fields:
         for field in include_fields:
+            # hack to exclude submitter field from results
             if field == 'submitter':
                 include_fields.remove('submitter')
             else:
