@@ -14,6 +14,7 @@ script:
   - pipenv sync --dev 
   - pipenv run nose2 -vvv tests.base_app_tests
   - pipenv run nose2 -vvv --with-coverage
+  - WITH_INTEGRATION=True LAUNCH_INTEGRATION=True pipenv run nose2 -vvv --with-coverage tests.integration.test_integration
   - "./lintstats.sh"
 after_success:
   - coveralls

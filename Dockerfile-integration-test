@@ -1,0 +1,35 @@
+# Runtime for running integration tests
+#
+#    $ mkdir /tmp/to_index
+#    $ cp arxiv_id_dump.txt /tmp/to_index
+#    $ docker run -it --network=arxivsearch_es_stack \
+#    >   -v /tmp/to_index:/to_index \
+#    >   -e ELASTICSEARCH_SERVICE_HOST=elasticsearch \
+#    >   arxiv/search-index /to_index/arxiv_id_dump.txt
+#
+# See also ELASTICSEARCH_* and METADATA_ENDPOINT parameters, below.
+
+FROM arxiv/search:0.5.5
+
+ENV PATH "/opt/arxiv:${PATH}"
+ADD bulk_index.py /opt/arxiv/
+
+WORKDIR /opt/arxiv/
+
+ENV LC_ALL en_US.utf8
+ENV LANG en_US.utf8
+ENV LOGLEVEL 40
+ENV FLASK_DEBUG 1
+ENV FLASK_APP /opt/arxiv/app.py
+
+ENV ELASTICSEARCH_SERVICE_HOST 127.0.0.1
+ENV ELASTICSEARCH_SERVICE_PORT 9200
+ENV ELASTICSEARCH_SERVICE_PORT_9200_PROTO http
+ENV ELASTICSEARCH_USER elastic
+ENV ELASTICSEARCH_PASSWORD changeme
+ENV METADATA_ENDPOINT https://localhost:8080/docmeta_bulk/
+ENV METADATA_VERIFY_CERT True
+
+VOLUME /to_index
+
+CMD "./integration_test.sh"

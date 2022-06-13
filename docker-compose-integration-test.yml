@@ -1,0 +1,85 @@
+# Provides the Elasticsearch + Kibana stack for integration-test
+# See README.md for instructions on use.
+#
+# docker-compose v3 lack extend but if another extension mechanism is
+# found consider using that.
+---
+version:            '3.4'
+services:
+  elasticsearch:
+    build:
+      context: .
+      dockerfile: Dockerfile-elasticsearch
+    container_name: elasticsearch
+    # environment:  ['http.host=0.0.0.0', 'transport.host=127.0.0.1', 'ELASTIC_PASSWORD=${ELASTIC_PASSWORD}']
+    environment:    ['http.host=0.0.0.0', 'transport.host=127.0.0.1']
+    ports:          ['127.0.0.1:9200:9200', '127.0.0.1:9300:9300']
+    networks:       ['es_stack']
+
+#  kibana is not needed
+
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile-agent
+    container_name: agent
+    environment:
+      AWS_ACCESS_KEY_ID: "foo"
+      AWS_SECRET_ACCESS_KEY: "bar"
+      ELASTICSEARCH_SERVICE_HOST: "elasticsearch"
+      ELASTICSEARCH_SERVICE_PORT: "9200"
+      ELASTICSEARCH_SERVICE_PORT_9200_PROTO: "http"
+      ELASTICSEARCH_USER: "elastic"
+      ELASTICSEARCH_PASSWORD: "changeme"
+      ELASTICSEARCH_VERIFY: "false"
+      KINESIS_STREAM: "MetadataIsAvailable"
+      KINESIS_SHARD_ID: "0"
+      KINESIS_ENDPOINT: "https://localstack:4568"
+      KINESIS_VERIFY: "false"
+      KINESIS_START_TYPE: "TRIM_HORIZON"
+      LOGLEVEL: 20
+    networks:
+      - es_stack
+    depends_on:
+      - localstack
+      - elasticsearch
+ 
+  localstack:
+    image: atlassianlabs/localstack
+    container_name: localstack
+    networks:
+      - es_stack
+    ports:
+      - "5568:4568"
+    environment:
+      USE_SSL: 'true'
+      DEBUG: 'true'
+
+  integration-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: search_web_app_test
+    container_name: search-integration-test
+    environment:
+      AWS_ACCESS_KEY_ID: "foo"
+      AWS_SECRET_ACCESS_KEY: "bar"
+      ELASTICSEARCH_SERVICE_HOST: "elasticsearch"
+      ELASTICSEARCH_SERVICE_PORT: "9200"
+      ELASTICSEARCH_SERVICE_PORT_9200_PROTO: "http"
+      ELASTICSEARCH_USER: "elastic"
+      ELASTICSEARCH_PASSWORD: "changeme"
+      ELASTICSEARCH_VERIFY: "false"
+      KINESIS_STREAM: "MetadataIsAvailable"
+      KINESIS_SHARD_ID: "0"
+      KINESIS_ENDPOINT: "https://localstack:4568"
+      KINESIS_VERIFY: "false"
+      KINESIS_START_TYPE: "TRIM_HORIZON"
+      LOGLEVEL: 20
+    networks:
+      - es_stack
+    depends_on:
+      - elasticsearch
+      - agent
+ 
+networks: {es_stack: {}}
