@@ -27,7 +27,7 @@ class QueryError(ValueError):
     Elasticsearch could not handle the query.
 
     This is likely due either to a programming error that resulted in a bad
-    index, or to a mal-formed query.
+    index, or to a malformed query.
     """
 
 

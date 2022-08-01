@@ -28,7 +28,7 @@ class TestRetrieveDocument(TestCase):
 
         mock_index.get_document.side_effect = _raiseQueryError
 
-        with self.assertRaises(InternalServerError):
+        with self.assertRaises(BadRequest):
             try:
                 response_data, code, headers = simple.retrieve_document(1)
             except QueryError as ex:
@@ -180,7 +180,7 @@ class TestSearchController(TestCase):
         mock_index.search.side_effect = _raiseQueryError
 
         request_data = MultiDict({"searchtype": "title", "query": "foo title"})
-        with self.assertRaises(InternalServerError):
+        with self.assertRaises(BadRequest):
             try:
                 response_data, code, headers = simple.search(request_data)
             except QueryError as ex:
