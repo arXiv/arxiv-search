@@ -22,7 +22,7 @@ index. Note that you will need to have access to the /docmeta endpoint, which
 is only accessible from the CUL network.
 
 ```bash
-pipenv install
+pipenv install --dev
 FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python create_index.py
 FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python bulk_index.py
 ```

@@ -177,7 +177,7 @@ class TestSearchController(TestCase):
                 "terms-0-term": "foo",
             }
         )
-        with self.assertRaises(InternalServerError):
+        with self.assertRaises(BadRequest):
             try:
                 response_data, code, headers = advanced.search(request_data)
             except QueryError as ex:

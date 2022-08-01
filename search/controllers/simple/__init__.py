@@ -158,11 +158,9 @@ def search(
                 "help@arxiv.org."
             ) from ex
         except index.QueryError as ex:
-            # Base exception routers should pick this up and show bug page.
-            logger.error("QueryError: %s", ex)
-            raise InternalServerError(
-                "There was a problem executing your query. Please try your "
-                "search again.  If this problem persists, please report it to "
+            raise BadRequest(
+                "There was a problem executing your query. Please try a different query. "
+                "If this problem persists, please report it to "
                 "help@arxiv.org."
             ) from ex
         except index.OutsideAllowedRange as ex:
@@ -232,11 +230,9 @@ def retrieve_document(document_id: str) -> Response:
             "help@arxiv.org."
         ) from ex
     except index.QueryError as ex:
-        # Base exception routers should pick this up and show bug page.
-        logger.error("QueryError: %s", ex)
-        raise InternalServerError(
-            "There was a problem executing your query. Please try your "
-            "search again.  If this problem persists, please report it to "
+        raise BadRequest(
+            "There was a problem executing your query. Please try a "
+            "different query. If this problem persists, please report it to "
             "help@arxiv.org."
         ) from ex
     except index.DocumentNotFound as ex:
