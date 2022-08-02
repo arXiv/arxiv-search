@@ -6,7 +6,7 @@ from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 
 from werkzeug.datastructures import MultiDict
-from werkzeug.exceptions import InternalServerError, BadRequest
+from werkzeug.exceptions import BadGateway, BadRequest, InternalServerError
 
 
 from search.domain import Query, DateRange, FieldedSearchTerm, AdvancedQuery
@@ -147,8 +147,38 @@ class TestSearchController(TestCase):
                 "terms-0-term": "foo",
             }
         )
+        with self.assertRaises(BadGateway):
+            _, _, _ = advanced.search(request_data)
+
+        self.assertEqual(
+            mock_index.search.call_count, 1, "A search should be attempted"
+        )
+        call_args, call_kwargs = mock_index.search.call_args
+        self.assertIsInstance(
+            call_args[0],
+            AdvancedQuery,
+            "An AdvancedQuery is passed to the search index",
+        )
+
+    @mock.patch("search.controllers.advanced.SearchSession")
+    def test_index_raises_unexpected_exception(self, mock_index):
+        """Index service raises an unexpected Exception."""
+
+        def _raiseException(*args, **kwargs):
+            raise ValueError("What now")
+
+        mock_index.search.side_effect = _raiseException
+
+        request_data = MultiDict(
+            {
+                "advanced": True,
+                "terms-0-operator": "AND",
+                "terms-0-field": "title",
+                "terms-0-term": "foo",
+            }
+        )
         with self.assertRaises(InternalServerError):
-            response_data, code, headers = advanced.search(request_data)
+            _, _, _ = advanced.search(request_data)
 
         self.assertEqual(
             mock_index.search.call_count, 1, "A search should be attempted"
@@ -178,10 +208,7 @@ class TestSearchController(TestCase):
             }
         )
         with self.assertRaises(BadRequest):
-            try:
-                response_data, code, headers = advanced.search(request_data)
-            except QueryError as ex:
-                self.fail("QueryError should be handled (caught %s)" % ex)
+            _, _, _ = advanced.search(request_data)
 
         self.assertEqual(
             mock_index.search.call_count, 1, "A search should be attempted"

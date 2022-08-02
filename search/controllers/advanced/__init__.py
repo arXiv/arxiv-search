@@ -15,7 +15,7 @@ from dateutil.relativedelta import relativedelta
 
 from flask import url_for
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
-from werkzeug.exceptions import InternalServerError, BadRequest, NotFound
+from werkzeug.exceptions import BadGateway, InternalServerError, BadRequest, NotFound
 
 
 from arxiv import taxonomy
@@ -125,13 +125,9 @@ def search(request_params: MultiDict) -> Response:
                 #  response content. asdict(
                 response_data.update(SearchSession.search(q))  # type: ignore
             except index.IndexConnectionError as ex:
-                # There was a (hopefully transient) connection problem. Either
-                #  this will clear up relatively quickly (next request), or
-                #  there is a more serious outage.
-                logger.error("IndexConnectionError: %s", ex)
-                raise InternalServerError(
+                raise BadGateway(
                     "There was a problem connecting to the search index. This "
-                    "is quite likely a transient issue, so please try your "
+                    "is quite likely a transient issue, please try your "
                     "search again. If this problem persists, please report it "
                     "to help@arxiv.org."
                 ) from ex
@@ -143,8 +139,13 @@ def search(request_params: MultiDict) -> Response:
                 ) from ex
             except index.OutsideAllowedRange as ex:
                 raise BadRequest(
-                    "Hello clever friend. You can't get results in that range"
-                    " right now."
+                    "You can't get results in that range."
+                ) from ex
+            except Exception as ex:
+                logger.error("Unhandled exception: %s", str(ex))
+                raise InternalServerError(
+                    "There was a problem. If this problem persists, "
+                    "please report it to help@arxiv.org."
                 ) from ex
             response_data["query"] = q
         else:

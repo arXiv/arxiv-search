@@ -11,7 +11,7 @@ from http import HTTPStatus
 from typing import Tuple, Dict, Any, Optional, List
 
 from flask import url_for
-from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
+from werkzeug.exceptions import BadGateway, InternalServerError, NotFound, BadRequest
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
 from arxiv import identifier
@@ -147,11 +147,7 @@ def search(
             #  response content.asdict
             response_data.update(SearchSession.search(q))  # type: ignore
         except index.IndexConnectionError as ex:
-            # There was a (hopefully transient) connection problem. Either
-            #  this will clear up relatively quickly (next request), or
-            #  there is a more serious outage.
-            logger.error("IndexConnectionError: %s", ex)
-            raise InternalServerError(
+            raise BadGateway(
                 "There was a problem connecting to the search index. This is "
                 "quite likely a transient issue, so please try your search "
                 "again. If this problem persists, please report it to "
@@ -165,13 +161,14 @@ def search(
             ) from ex
         except index.OutsideAllowedRange as ex:
             raise BadRequest(
-                "Hello clever friend. You can't get results in that range"
-                " right now."
+                "You can't get results in that range."
             ) from ex
-
         except Exception as ex:
             logger.error("Unhandled exception: %s", str(ex))
-            raise
+            raise InternalServerError(
+                "There was a problem. If this problem persists, "
+                "please report it to help@arxiv.org."
+            ) from ex
     else:
         logger.debug("form is invalid: %s", str(form.errors))
         if "order" in form.errors or "size" in form.errors:
@@ -219,11 +216,7 @@ def retrieve_document(document_id: str) -> Response:
     try:
         result = SearchSession.get_document(document_id)  # type: ignore
     except index.IndexConnectionError as ex:
-        # There was a (hopefully transient) connection problem. Either
-        #  this will clear up relatively quickly (next request), or
-        #  there is a more serious outage.
-        logger.error("IndexConnectionError: %s", ex)
-        raise InternalServerError(
+        raise BadGateway(
             "There was a problem connecting to the search index. This is "
             "quite likely a transient issue, so please try your search "
             "again. If this problem persists, please report it to "
