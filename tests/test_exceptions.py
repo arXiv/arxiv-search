@@ -48,7 +48,7 @@ class TestExceptionHandling(TestCase):
         mock_search.side_effect = IndexConnectionError
         response = self.client.get("/?searchtype=title&query=foo")
         self.assertEqual(
-            response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR
+            response.status_code, HTTPStatus.BAD_GATEWAY
         )
         self.assertIn("text/html", response.content_type)
 
@@ -58,6 +58,6 @@ class TestExceptionHandling(TestCase):
         mock_search.side_effect = QueryError
         response = self.client.get("/?searchtype=title&query=foo")
         self.assertEqual(
-            response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR
+            response.status_code, HTTPStatus.BAD_REQUEST
         )
         self.assertIn("text/html", response.content_type)

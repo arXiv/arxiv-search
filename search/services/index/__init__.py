@@ -124,6 +124,9 @@ def handle_es_exceptions() -> Generator:
         elif ex.error == "parsing_exception":
             logger.error("ES parsing_exception: %s", ex.info)
             raise QueryError(ex.info) from ex
+        elif ex.error == "search_phase_execution_exception":
+            logger.error("ES execution_exception: %s", ex.info)
+            raise QueryError(ex.info) from ex
         elif ex.status_code == 404:
             logger.error("Caught NotFoundError: %s", ex)
             raise DocumentNotFound("No such document")
@@ -502,8 +505,6 @@ class SearchSession(metaclass=MetaIntegration):
                 current_search = classic_search(current_search, query)
         except TypeError as ex:
             raise ex
-            # logger.error('Malformed query: %s', str(e))
-            # raise QueryError('Malformed query') from e
 
         if highlight:
             # Highlighting is performed by Elasticsearch; here we include the

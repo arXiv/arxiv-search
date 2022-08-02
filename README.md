@@ -2,33 +2,10 @@
 
 ## Development quickstart
 
-### Running Elasticsearch + Kibana with docker-compose
+### Running Elasticsearch in Docker
 
-The easiest way to spin up ES and Kibana is using the included
-``docker-compose.yml`` file. This will start ES and Kibana on a custom network.
-The ES service ports 9200 and 9300, and Kibana service port 5601, will be
-mapped to localhost.
-
-```bash
-docker-compose up
-```
-Kibana will be available at http://127.0.0.1:5601/. The containers started by
-docker-compose can be stopped with ``docker-compose down`` from the same
-directory.
-
-Make sure that you have a recent version of ``docker-compose``; this is
-confirmed to work with version 1.18.
-
-Note that connection configuration variables for the search service are set in
-``search/config.py``, where they are read from the environment. The arXiv
-search service expects the ES service to be available at http://localhost:9200
-by default. Hence, you should be able to start ES using docker-compose as above
-and make no configuration changes to the arXiv search service.
-
-#### Running Elasticsearch without Kibana
-
-Alternatively, you can start up ES on its own. Be sure to map port 9200 to
-the host machine, so that arXiv search can find it.
+You can start up ES on its own. Be sure to map port 9200 to the host
+machine, so that arXiv search can find it.
 
 ```bash
 docker build -t "arxiv/elasticsearch" -f ./Dockerfile-elasticsearch .
@@ -45,7 +22,7 @@ index. Note that you will need to have access to the /docmeta endpoint, which
 is only accessible from the CUL network.
 
 ```bash
-pipenv install
+pipenv install --dev
 FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python create_index.py
 FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python bulk_index.py
 ```
@@ -54,25 +31,6 @@ FLASK_APP=app.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run p
 list of papers defined in ``tests/data/sample.json``. It take several minutes
 to run. Individual paper IDs may be specified with the ``--paper_id``
 parameter.
-
-To check for missing records, use ``audit.py``:
-
-```bash
-ELASTICSEARCH_SERVICE_HOST=127.0.0.1 ELASTICSEARCH_INDEX=arxiv pipenv run python audit.py -l list_of_papers.txt -o missing.txt
-```
-
-### Reindexing
-
-ElasticSearch can perform reindexing by copying documents from one index to
-another index with a different mapping. ``reindex.py`` will initiate the
-reindexing process, and poll for completion until all of the documents are
-processed. If the destination index does not already exist, it will be created
-using the current configured mapping.
-
-```bash
-FLASK_APP=app.py ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python reindex.py OLD_INDEX NEW_INDEX
-```
-
 
 ### Flask dev server
 
@@ -100,6 +58,28 @@ To run the classic API in dev mode, use ``wsgi-classic-api.py``:
 FLASK_APP=classic-api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
 ```
 
+## Running Elasticsearch + Kibana with docker-compose
+
+The easiest way to spin up ES and Kibana is using the included
+``docker-compose.yml`` file. This will start ES and Kibana on a custom network.
+The ES service ports 9200 and 9300, and Kibana service port 5601, will be
+mapped to localhost.
+
+```bash
+docker-compose up
+```
+Kibana will be available at http://127.0.0.1:5601/. The containers started by
+docker-compose can be stopped with ``docker-compose down`` from the same
+directory.
+
+Make sure that you have a recent version of ``docker-compose``; this is
+confirmed to work with version 1.18.
+
+Note that connection configuration variables for the search service are set in
+``search/config.py``, where they are read from the environment. The arXiv
+search service expects the ES service to be available at http://localhost:9200
+by default. Hence, you should be able to start ES using docker-compose as above
+and make no configuration changes to the arXiv search service.
 
 ## Running the indexing agent.
 
@@ -197,6 +177,26 @@ agent            | application 12/Apr/2018:15:49:24 +0000 - search.agent.consume
 agent            | application 12/Apr/2018:15:49:25 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447539393315437191546590461954"
 agent            | application 12/Apr/2018:15:49:25 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447540602241256806175765168130"
 agent            | application 12/Apr/2018:15:49:25 +0000 - search.agent.consumer - None - [arxiv:null] - INFO: "Processing record 49583482484923667520018808447541811167076420804939874306"
+```
+
+## Other Operations
+### Audit
+To check for missing records, put the IDs in a file like `list_of_papers.txt`, use ``audit.py``:
+
+```bash
+ELASTICSEARCH_SERVICE_HOST=127.0.0.1 ELASTICSEARCH_INDEX=arxiv pipenv run python audit.py -l list_of_papers.txt -o missing.txt
+```
+
+### Reindexing
+
+ElasticSearch can perform reindexing by copying documents from one index to
+another index with a different mapping. ``reindex.py`` will initiate the
+reindexing process, and poll for completion until all of the documents are
+processed. If the destination index does not already exist, it will be created
+using the current configured mapping.
+
+```bash
+FLASK_APP=app.py ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run python reindex.py OLD_INDEX NEW_INDEX
 ```
 
 ## Deploying static assets to S3

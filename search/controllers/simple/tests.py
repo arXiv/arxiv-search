@@ -4,7 +4,7 @@ from http import HTTPStatus
 from unittest import TestCase, mock
 
 from werkzeug.datastructures import MultiDict
-from werkzeug.exceptions import InternalServerError, NotFound, BadRequest
+from werkzeug.exceptions import BadGateway, InternalServerError, NotFound, BadRequest
 
 from search.domain import SimpleQuery
 from search.controllers import simple
@@ -28,7 +28,7 @@ class TestRetrieveDocument(TestCase):
 
         mock_index.get_document.side_effect = _raiseQueryError
 
-        with self.assertRaises(InternalServerError):
+        with self.assertRaises(BadRequest):
             try:
                 response_data, code, headers = simple.retrieve_document(1)
             except QueryError as ex:
@@ -44,9 +44,8 @@ class TestRetrieveDocument(TestCase):
     def test_index_raises_connection_exception(self, mock_index):
         """Index service raises a IndexConnectionError."""
         mock_index.get_document.side_effect = IndexConnectionError
-
-        with self.assertRaises(InternalServerError):
-            response_data, code, headers = simple.retrieve_document("124.5678")
+        with self.assertRaises(BadGateway):
+            _, _, _ = simple.retrieve_document("124.5678")
         self.assertEqual(
             mock_index.get_document.call_count,
             1,
@@ -55,7 +54,21 @@ class TestRetrieveDocument(TestCase):
         call_args, call_kwargs = mock_index.get_document.call_args
         self.assertIsInstance(call_args[0], str, "arXiv ID is passed")
 
-        # self.assertEqual(code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @mock.patch("search.controllers.simple.SearchSession")
+    def test_index_raises_unepected_exception(self, mock_index):
+        """Index service raises an exception."""
+        mock_index.get_document.side_effect = ValueError
+        with self.assertRaises(ValueError):
+            response_data, code, headers = simple.retrieve_document("124.5678")
+        self.assertEqual(
+            mock_index.get_document.call_count,
+            1,
+            "A search should be attempted",
+        )
+        call_args, call_kwargs = mock_index.get_document.call_args
+        self.assertIsInstance(call_args[0], str, "arXiv ID is passed"
+)
 
     @mock.patch("search.controllers.simple.SearchSession")
     def test_document_not_found(self, mock_index):
@@ -157,13 +170,36 @@ class TestSearchController(TestCase):
         mock_index.search.side_effect = _raiseIndexConnectionError
 
         request_data = MultiDict({"searchtype": "title", "query": "foo title"})
+        with self.assertRaises(BadGateway):
+            _, _, _ = simple.search(request_data)
+
+        self.assertEqual(
+            mock_index.search.call_count, 1, "A search should be attempted"
+        )
+        call_args, _ = mock_index.search.call_args
+        self.assertIsInstance(
+            call_args[0],
+            SimpleQuery,
+            "An SimpleQuery is passed to the search index",
+        )
+
+    @mock.patch("search.controllers.simple.SearchSession")
+    def test_index_raises_unexpected_exception(self, mock_index):
+        """Index service raises a IndexConnectionError."""
+
+        def raiseEx(*args, **kwargs):
+            raise ValueError(f"In {__file__}")
+
+        mock_index.search.side_effect = raiseEx
+
+        request_data = MultiDict({"searchtype": "title", "query": "foo title"})
         with self.assertRaises(InternalServerError):
             _, _, _ = simple.search(request_data)
 
         self.assertEqual(
             mock_index.search.call_count, 1, "A search should be attempted"
         )
-        call_args, call_kwargs = mock_index.search.call_args
+        call_args, _ = mock_index.search.call_args
         self.assertIsInstance(
             call_args[0],
             SimpleQuery,
@@ -180,7 +216,7 @@ class TestSearchController(TestCase):
         mock_index.search.side_effect = _raiseQueryError
 
         request_data = MultiDict({"searchtype": "title", "query": "foo title"})
-        with self.assertRaises(InternalServerError):
+        with self.assertRaises(BadRequest):
             try:
                 response_data, code, headers = simple.search(request_data)
             except QueryError as ex:
