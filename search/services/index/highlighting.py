@@ -13,7 +13,7 @@ from typing import Any, Union, List, Tuple
 
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.response import Response, Hit
-from jinja2 import Markup, escape
+from markupsafe import Markup, escape
 
 from arxiv.base import logging
 

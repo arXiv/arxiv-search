@@ -5,8 +5,6 @@ from http import HTTPStatus
 from xml.etree import ElementTree
 from unittest import TestCase, mock, skip
 
-from arxiv.users import helpers, auth
-from arxiv.users.domain import Scope
 from search import consts
 from search import factory
 from search import domain
@@ -18,19 +16,8 @@ class TestClassicAPISearchRequests(TestCase):
 
     def setUp(self):
         """Instantiate and configure an API app."""
-        jwt_secret = "foosecret"
-        os.environ["JWT_SECRET"] = jwt_secret
         self.app = factory.create_classic_api_web_app()
-        self.app.config["JWT_SECRET"] = jwt_secret
         self.client = self.app.test_client()
-        self.auth_header = {
-            "Authorization": helpers.generate_token(
-                "1234",
-                "foo@bar.com",
-                "foouser",
-                scope=[auth.scopes.READ_PUBLIC],
-            )
-        }
 
     @staticmethod
     def mock_classic_controller(controller, method="query", **kwargs):
@@ -46,33 +33,12 @@ class TestClassicAPISearchRequests(TestCase):
         )
         getattr(controller, method).return_value = r_data, HTTPStatus.OK, {}
 
-    @skip("auth scope currently disabled for classic API")
-    def test_request_without_token(self):
-        """No auth token is provided on the request."""
-        response = self.client.get("/query?search_query=au:copernicus")
-        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
-
-    @skip("auth scope currently disabled for classic API")
-    def test_with_token_lacking_scope(self):
-        """Client auth token lacks required public read scope."""
-        token = helpers.generate_token(
-            "1234",
-            "foo@bar.com",
-            "foouser",
-            scope=[Scope("something", "read")],
-        )
-        response = self.client.get(
-            "/query?search_query=au:copernicus",
-            headers={"Authorization": token},
-        )
-        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
-
     @mock.patch(f"{factory.__name__}.classic_api.classic_api")
     def test_with_valid_token(self, mock_controller):
         """Client auth token has required public read scope."""
         self.mock_classic_controller(mock_controller, id_list=["1234.5678"])
         response = self.client.get(
-            "/query?search_query=au:copernicus", headers=self.auth_header,
+            "/query?search_query=au:copernicus"
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
@@ -80,7 +46,7 @@ class TestClassicAPISearchRequests(TestCase):
     def test_paper_retrieval(self, mock_controller):
         """Test single-paper retrieval."""
         self.mock_classic_controller(mock_controller, method="paper")
-        response = self.client.get("/1234.56789v6", headers=self.auth_header)
+        response = self.client.get("/1234.56789v6")
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     # Validation errors
@@ -110,8 +76,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_start_not_a_number(self):
         response = self.client.get(
-            "/query?search_query=au:copernicus&start=non_number",
-            headers=self.auth_header,
+            "/query?search_query=au:copernicus&start=non_number"
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.check_validation_error(
@@ -122,8 +87,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_start_negative(self):
         response = self.client.get(
-            "/query?search_query=au:copernicus&start=-1",
-            headers=self.auth_header,
+            "/query?search_query=au:copernicus&start=-1"
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.check_validation_error(
@@ -134,8 +98,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_max_results_not_a_number(self):
         response = self.client.get(
-            "/query?search_query=au:copernicus&" "max_results=non_number",
-            headers=self.auth_header,
+            "/query?search_query=au:copernicus&" "max_results=non_number"
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.check_validation_error(
@@ -146,8 +109,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_max_results_negative(self):
         response = self.client.get(
-            "/query?search_query=au:copernicus&max_results=-1",
-            headers=self.auth_header,
+            "/query?search_query=au:copernicus&max_results=-1"
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.check_validation_error(
@@ -162,15 +124,13 @@ class TestClassicAPISearchRequests(TestCase):
 
         for value in domain.SortBy:
             response = self.client.get(
-                f"/query?search_query=au:copernicus&" f"sortBy={value}",
-                headers=self.auth_header,
+                f"/query?search_query=au:copernicus&" f"sortBy={value}"
             )
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_sort_by_invalid_values(self):
         response = self.client.get(
-            "/query?search_query=au:copernicus&sortBy=foo",
-            headers=self.auth_header,
+            "/query?search_query=au:copernicus&sortBy=foo"
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.check_validation_error(
@@ -185,15 +145,13 @@ class TestClassicAPISearchRequests(TestCase):
 
         for value in domain.SortDirection:
             response = self.client.get(
-                f"/query?search_query=au:copernicus&" f"sortOrder={value}",
-                headers=self.auth_header,
+                f"/query?search_query=au:copernicus&" f"sortOrder={value}"
             )
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_sort_direction_invalid_values(self):
         response = self.client.get(
-            "/query?search_query=au:copernicus&sortOrder=foo",
-            headers=self.auth_header,
+            "/query?search_query=au:copernicus&sortOrder=foo"
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.check_validation_error(
@@ -244,7 +202,7 @@ class TestClassicAPISearchRequests(TestCase):
 
     def test_invalid_arxiv_id(self):
         response = self.client.get(
-            "/query?id_list=cond—mat/0709123", headers=self.auth_header,
+            "/query?id_list=cond—mat/0709123"
         )
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.check_validation_error(

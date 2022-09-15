@@ -1,7 +1,7 @@
 """Tests for advanced search controller, :mod:`search.controllers.advanced`."""
 
 from http import HTTPStatus
-from unittest import TestCase, mock
+from unittest import TestCase, mock, skip
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 
@@ -20,12 +20,13 @@ from search.services.index import IndexConnectionError, QueryError
 class TestMultiFormatDateField(TestCase):
     """Tests the :class:`.MultiFormatDateField`."""
 
+    #@skip("bgm37")
     def test_value_with_one_format(self):
         """One date format is specified."""
         fmt = "%Y-%m-%d %H:%M:%S"
         value = datetime.now()
         field = MultiFormatDateField(
-            formats=[fmt], _form=mock.MagicMock(), _name="test"
+            formats=[fmt], _form=mock.MagicMock(), name="test"
         )
         field.data = value
         self.assertEqual(
@@ -38,7 +39,7 @@ class TestMultiFormatDateField(TestCase):
         """One date format is specified."""
         fmt = "%Y-%m-%d %H:%M:%S"
         field = MultiFormatDateField(
-            formats=[fmt], _form=mock.MagicMock(), _name="test"
+            formats=[fmt], _form=mock.MagicMock(), name="test"
         )
         field.process_formdata(["2012-01-02 05:55:02"])
         self.assertIsInstance(field.data, date, "Should parse successfully")
@@ -48,7 +49,7 @@ class TestMultiFormatDateField(TestCase):
         field = MultiFormatDateField(
             formats=["%Y-%m-%d", "%Y-%m", "%Y"],
             _form=mock.MagicMock(),
-            _name="test",
+            name="test",
         )
         field.process_formdata(["2012-03-02"])
         self.assertIsInstance(field.data, date, "Should parse successfully")

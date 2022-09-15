@@ -2,7 +2,7 @@
 
 from unittest import TestCase
 from search.services.index import highlighting
-from jinja2 import Markup
+from markupsafe import Markup
 from search.domain import Document
 
 class TestResultsHighlightAbstract(TestCase):

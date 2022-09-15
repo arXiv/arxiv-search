@@ -7,9 +7,6 @@ from unittest import TestCase, mock, skip
 
 import jsonschema
 
-from arxiv.users import helpers, auth
-from arxiv.users.domain import Scope
-
 from search import factory
 from search.tests import mocks
 from search.domain.api import APIQuery, get_required_fields
@@ -22,32 +19,11 @@ class TestAPISearchRequests(TestCase):
 
     def setUp(self):
         """Instantiate and configure an API app."""
-        jwt_secret = "foosecret"
-        os.environ["JWT_SECRET"] = jwt_secret
         self.app = factory.create_api_web_app()
-        self.app.config["JWT_SECRET"] = jwt_secret
         self.client = self.app.test_client()
 
         with open(self.SCHEMA_PATH) as f:
             self.schema = json.load(f)
-
-    @skip("auth scope currently disabled for API")
-    def test_request_without_token(self):
-        """No auth token is provided on the request."""
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, HTTPStatus.UNAUTHORIZED)
-
-    @skip("auth scope currently disabled for API")
-    def test_with_token_lacking_scope(self):
-        """Client auth token lacks required public read scope."""
-        token = helpers.generate_token(
-            "1234",
-            "foo@bar.com",
-            "foouser",
-            scope=[Scope("something", "read")],
-        )
-        response = self.client.get("/", headers={"Authorization": token})
-        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
 
     @mock.patch(f"{factory.__name__}.api.api")
     def test_with_valid_token(self, mock_controller):
@@ -59,10 +35,7 @@ class TestAPISearchRequests(TestCase):
         }
         r_data = {"results": docs, "query": APIQuery()}
         mock_controller.search.return_value = r_data, HTTPStatus.OK, {}
-        token = helpers.generate_token(
-            "1234", "foo@bar.com", "foouser", scope=[auth.scopes.READ_PUBLIC]
-        )
-        response = self.client.get("/", headers={"Authorization": token})
+        response = self.client.get("/")
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
         data = json.loads(response.data)
@@ -90,10 +63,7 @@ class TestAPISearchRequests(TestCase):
         query = APIQuery(include_fields=["abstract", "license"])
         r_data = {"results": docs, "query": query}
         mock_controller.search.return_value = r_data, HTTPStatus.OK, {}
-        token = helpers.generate_token(
-            "1234", "foo@bar.com", "foouser", scope=[auth.scopes.READ_PUBLIC]
-        )
-        response = self.client.get("/", headers={"Authorization": token})
+        response = self.client.get("/")
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
         data = json.loads(response.data)
@@ -121,12 +91,7 @@ class TestAPISearchRequests(TestCase):
         }
         r_data = {"results": docs, "query": APIQuery()}
         mock_controller.paper.return_value = r_data, HTTPStatus.OK, {}
-        token = helpers.generate_token(
-            "1234", "foo@bar.com", "foouser", scope=[auth.scopes.READ_PUBLIC]
-        )
-        response = self.client.get(
-            "/1234.56789v6", headers={"Authorization": token}
-        )
+        response = self.client.get("/1234.56789v6")
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
         data = json.loads(response.data)

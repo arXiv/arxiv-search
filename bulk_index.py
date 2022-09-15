@@ -16,6 +16,7 @@ from search.factory import create_ui_web_app
 
 
 app = create_ui_web_app()
+app.app_context().push()
 
 get_paper_id = operator.attrgetter("paper_id")
 

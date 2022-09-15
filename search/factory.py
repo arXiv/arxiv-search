@@ -7,7 +7,6 @@ from flask_s3 import FlaskS3
 
 from arxiv.base import Base
 from arxiv.base.middleware import wrap, request_logs
-from arxiv.users import auth
 from search.routes import ui, api, classic_api
 from search.services import index
 from search.converters import ArchiveConverter
@@ -61,13 +60,7 @@ def create_api_web_app() -> Flask:
     index.SearchSession.init_app(app)
 
     Base(app)
-    # auth.Auth(app)
     app.register_blueprint(api.blueprint)
-
-    # wrap(
-    #     app,
-    #     [request_logs.ClassicLogsMiddleware, auth.middleware.AuthMiddleware],
-    # )
     wrap(
         app, [request_logs.ClassicLogsMiddleware],
     )
@@ -91,13 +84,7 @@ def create_classic_api_web_app() -> Flask:
     index.SearchSession.init_app(app)
 
     Base(app)
-    # auth.Auth(app)
     app.register_blueprint(classic_api.blueprint)
-
-    # wrap(
-    #     app,
-    #     [request_logs.ClassicLogsMiddleware, auth.middleware.AuthMiddleware],
-    # )
     wrap(
         app, [request_logs.ClassicLogsMiddleware],
     )

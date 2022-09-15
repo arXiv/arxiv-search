@@ -13,6 +13,9 @@ docker run -it \
     -e "http.host=0.0.0.0" \
     -e "transport.host=127.0.0.1" \
     -p 9200:9200 -p 9300:9300 arxiv/elasticsearch
+
+echo $ES_BASE_URL; # http://127.0.0.1:9200
+curl "${ES_BASE_URL}/_cat/health?v";
 ```
 
 ### Create & populate the index
