@@ -49,7 +49,7 @@ thrift = "*" #"==0.11.0"
 thrift-connector = "*" #"==0.23"
 urllib3 = "*" #">=1.23"
 werkzeug = "*" #"~=0.14"
-wtforms = "*" #"==2.1"
+wtforms = "==2.1"
 
 
 [dev-packages]
