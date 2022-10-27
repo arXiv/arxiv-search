@@ -26,8 +26,7 @@ class TestAPISearchRequests(TestCase):
             self.schema = json.load(f)
 
     @mock.patch(f"{factory.__name__}.api.api")
-    def test_with_valid_token(self, mock_controller):
-        """Client auth token has required public read scope."""
+    def test_api_search(self, mock_controller):
         document = mocks.document()
         docs = {
             "results": [document],
@@ -52,8 +51,7 @@ class TestAPISearchRequests(TestCase):
             self.assertIn(field, data["results"][0])
 
     @mock.patch(f"{factory.__name__}.api.api")
-    def test_with_valid_token_limit_fields(self, mock_controller):
-        """Client auth token has required public read scope."""
+    def test_api_search_limit_fields(self, mock_controller):
         document = mocks.document()
         docs = {
             "results": [document],
