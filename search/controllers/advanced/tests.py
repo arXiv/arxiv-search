@@ -1,7 +1,7 @@
 """Tests for advanced search controller, :mod:`search.controllers.advanced`."""
 
 from http import HTTPStatus
-from unittest import TestCase, mock, skip
+from unittest import TestCase, mock
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 
