@@ -44,7 +44,7 @@ wtforms = "==2.1"
 bleach = "*"
 lxml = "==4.6.3"
 retry = "*"
-pyjwt = "==1.7.1"
+pyjwt = "==2.4.0"
 mypy-extensions = "*"
 
 [dev-packages]
