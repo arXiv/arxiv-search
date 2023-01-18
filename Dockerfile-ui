@@ -48,6 +48,6 @@ ENV ELASTICSEARCH_SERVICE_PORT_9200_PROTO http
 ENV ELASTICSEARCH_PASSWORD changeme
 ENV METADATA_ENDPOINT https://arxiv.org/docmeta_bulk/
 
-EXPOSE 8000
+EXPOSE 8080
 ENTRYPOINT ["pipenv", "run"]
 CMD ["uwsgi", "--ini", "/opt/arxiv/uwsgi.ini"]
