@@ -1,53 +1,48 @@
 # File: Dockerfile-ui
-# arxiv/search
-#
-# Defines the runtime for the arXiv search ui service
+# Desc: arxiv search ui
+# Use:
+#   docker build --build-arg GIT_COMMIT=$(git rev-parse HEAD) \
+#          -t "arxiv/arxiv-search" -f ./Dockerfile-ui .
+#   docker run -it --env-file=env -p 8000:8000 arxiv/arxiv-search
 
-#FROM arxiv/base:0.16.7
-# >=1.0.0a2
-#FROM arxiv/base:0.17.3
-FROM python:3.10.8-buster
+FROM python:3.10.9-buster
 
-WORKDIR /opt/arxiv
+ARG GIT_COMMIT
 
-# remove conflicting mariadb-libs from arxiv/base
-#RUN yum remove -y mariadb-libs
+ENV \
+    APP_HOME=/app \
+    ELASTICSEARCH_PASSWORD=changeme \
+    ELASTICSEARCH_SERVICE_HOST=127.0.0.1 \
+    ELASTICSEARCH_SERVICE_PORT=9200 \
+    ELASTICSEARCH_SERVICE_PORT_9200_PROTO=http \
+    GIT_COMMIT=$GIT_COMMIT \
+    METADATA_ENDPOINT=https://arxiv.org/docmeta_bulk/ \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_NO_CACHE_DIR=off \
+    POETRY_VERSION=1.2.2 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 \
+    TRACE=1
 
-# Install MySQL.
-RUN apt-get -y install default-libmysqlclient-dev
-#RUN yum install -y which mysql mysql-devel
-RUN pip install uwsgi
+WORKDIR $APP_HOME
+COPY poetry.lock pyproject.toml ./
+COPY app.py wsgi.py uwsgi.ini ./
+COPY schema ./schema
+COPY mappings ./mappings
+COPY search ./search
+RUN echo $GIT_COMMIT > ./git-commit.txt
 
-# Add Python application and configuration.
-ADD app.py /opt/arxiv/
-ADD Pipfile /opt/arxiv/
-ADD Pipfile.lock /opt/arxiv/
-RUN pip install -U pip pipenv
-RUN pipenv install
-
-ENV PATH "/opt/arxiv:${PATH}"
-
-ADD schema /opt/arxiv/schema
-ADD mappings /opt/arxiv/mappings
-ADD search /opt/arxiv/search
-ADD wsgi.py uwsgi.ini /opt/arxiv/
-
-
-ADD bin/start_search.sh /opt/arxiv/
-RUN chmod +x /opt/arxiv/start_search.sh
-
-ENV LC_ALL en_US.utf8
-ENV LANG en_US.utf8
-ENV LOGLEVEL 40
-ENV FLASK_DEBUG 1
-ENV FLASK_APP /opt/arxiv/app.py
-
-ENV ELASTICSEARCH_SERVICE_HOST 127.0.0.1
-ENV ELASTICSEARCH_SERVICE_PORT 9200
-ENV ELASTICSEARCH_SERVICE_PORT_9200_PROTO http
-ENV ELASTICSEARCH_PASSWORD changeme
-ENV METADATA_ENDPOINT https://arxiv.org/docmeta_bulk/
+RUN pip install "gunicorn==20.1.0" "poetry==$POETRY_VERSION"
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi
 
 EXPOSE 8000
-ENTRYPOINT ["pipenv", "run"]
-CMD ["uwsgi", "--ini", "/opt/arxiv/uwsgi.ini"]
+
+# See cicd/cloudbuild-master-pr.yaml for use in integration tests.
+ENV GUNICORN gunicorn --bind :8000 \
+    --workers 1 --threads 8 --timeout 0 wsgi
+
+CMD exec $GUNICORN
+
