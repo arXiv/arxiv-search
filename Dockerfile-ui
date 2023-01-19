@@ -1,4 +1,3 @@
-
 # File: Dockerfile-ui
 # arxiv/search
 #
@@ -15,6 +14,7 @@ WORKDIR /opt/arxiv
 #RUN yum remove -y mariadb-libs
 
 # Install MySQL.
+RUN apt-get -y install default-libmysqlclient-dev
 #RUN yum install -y which mysql mysql-devel
 RUN pip install uwsgi
 
@@ -48,6 +48,6 @@ ENV ELASTICSEARCH_SERVICE_PORT_9200_PROTO http
 ENV ELASTICSEARCH_PASSWORD changeme
 ENV METADATA_ENDPOINT https://arxiv.org/docmeta_bulk/
 
-EXPOSE 8080
+EXPOSE 8000
 ENTRYPOINT ["pipenv", "run"]
 CMD ["uwsgi", "--ini", "/opt/arxiv/uwsgi.ini"]
