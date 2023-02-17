@@ -18,14 +18,16 @@ from werkzeug.wrappers import Response as WerkzeugResponse
 
 from arxiv.base import logging
 from search.routes import context_processors
+from search.context import get_application_config
 from search.controllers import simple, advanced, health_check
-
 
 _Response = Union[Response, WerkzeugResponse]
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint("ui", __name__, url_prefix="/")
+config = get_application_config()
+url_prefix = config.get("URL_PREFIX", "/")
+blueprint = Blueprint("ui", __name__, url_prefix=url_prefix)
 
 PARAMS_TO_PERSIST = ["order", "size", "abstracts", "date-date_type"]
 """These parameters should be persisted in a cookie."""
