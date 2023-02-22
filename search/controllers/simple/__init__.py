@@ -125,7 +125,7 @@ def search(
                 {},
                 HTTPStatus.MOVED_PERMANENTLY,
                 {
-                    "Location": "http://search.arxiv.org:8081/"
+                    "Location": "http://search.arxiv.org/"
                     f"?in=&query={form.query.data}"
                 },
             )
