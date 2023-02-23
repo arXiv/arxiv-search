@@ -69,6 +69,15 @@ to the path where the application is configured to live. This is for session
 cookie as path value. If domains are used, this should be None.
 """
 
+URL_PREFIX = os.environ.get("URL_PREFIX", "/")
+"""
+Pass this to blueprint in ./search/routes/ui.py.
+
+The APPLICATION_ROOT above seems to be used in ./config/uwsgi*.ini
+Which is probably also different from the wsgiscript line in arxiv-httpd.
+"""
+
+
 MAX_CONTENT_LENGTH = os.environ.get("MAX_CONTENT_LENGTH", None)
 """
 If set to a value in bytes, Flask will reject incoming requests with a content

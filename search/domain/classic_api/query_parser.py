@@ -51,7 +51,6 @@ class QueryTransformer(Transformer):
 
     def field(self, tokens: List[Token]) -> Field:
         """Transform `all`, `au`...field identifiers to `Field` enum values."""
-        print(tokens)
         (f,) = tokens
         return Field(str(f))
 
