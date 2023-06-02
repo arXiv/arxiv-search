@@ -28,12 +28,10 @@ def health_check() -> Tuple[str, int, Dict[str, Any]]:
         Headers to add to the response.
 
     """
-    try:
-        document_set = index.SearchSession.search(  # type: ignore
-            SimpleQuery(search_field="all", value="theory")
-        )
-    except Exception:
-        return "DOWN", HTTPStatus.INTERNAL_SERVER_ERROR, {}
+    # We don't handle any exceptions here because we want the framework
+    # exception handling to take care of it and log them.
+    document_set = index.SearchSession.search(  # type: ignore
+        SimpleQuery(search_field="all", value="theory"))
     if document_set["results"]:
         return "OK", HTTPStatus.OK, {}
-    return "DOWN", HTTPStatus.INTERNAL_SERVER_ERROR, {}
+    return "DOWN no 'results' in document_set", HTTPStatus.INTERNAL_SERVER_ERROR, {}
