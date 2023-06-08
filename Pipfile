@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 #arxiv-auth = ">=1.0.0rc1" #"*" #"==0.2.7"
-arxiv-base = ">=1.0.0a3" #"*" #">1.0.0a2" #"==0.17.4.post2"
+arxiv-base = {editable = true, ref = "ed3feece", git = "https://github.com/arXiv/arxiv-base.git"} #"*" #">1.0.0a2" #"==0.17.4.post2"
 bleach = "*"
 boto = "*" #"==2.48.0"
 boto3 = "*" #">=1.0.0,<2.0.0" #"==1.6.6"
@@ -15,14 +15,10 @@ chardet = "*" #"==3.0.4"
 click = "*" #"==6.7"
 dataclasses = "*" #"==0.4"
 docutils = "*" #"==0.14"
-
 elasticsearch = "==6.3.0"
 elasticsearch-dsl = "==6.4.0"
-
 feedgen = "*" #"==0.9.0"
-
 flask = ">=2.2,<3.0" #"==1.0.4"
-
 flask-s3 = "*" #"==0.3.3"
 idna = "*" #"==2.6"
 ipaddress = "*" #"==1.0.19"
@@ -50,7 +46,6 @@ thrift-connector = "*" #"==0.23"
 urllib3 = "*" #">=1.23"
 werkzeug = "*" #"~=0.14"
 wtforms = "==2.1"
-
 
 [dev-packages]
 pycodestyle = "*"

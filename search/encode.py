@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 
-from flask.json import JSONEncoder
+from json import JSONEncoder
 
 from typing import Any, List, Union
 
