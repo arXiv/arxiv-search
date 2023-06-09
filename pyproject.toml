@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "3.10.9"
-arxiv-base = "==1.0.0a3"
+arxiv-base = {git = "https://github.com/arXiv/arxiv-base.git", rev = "1.0.0a5", extras = []}
 bleach = "*"
 boto = "*" 
 boto3 = "*" 
