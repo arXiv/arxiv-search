@@ -12,6 +12,8 @@ from search.services import index
 from search.converters import ArchiveConverter
 from search.encode import ISO8601JSONEncoder
 
+from search.domain.base import SimpleQuery
+
 from . import filters
 
 s3 = FlaskS3()
