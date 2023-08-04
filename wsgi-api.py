@@ -1,8 +1,6 @@
 """Web Server Gateway Interface entry-point for API."""
 
-from search.factory import create_api_web_app
 import os
-
 
 __flask_app__ = None
 
@@ -21,6 +19,7 @@ def application(environ, start_response):
             os.environ[key] = value
     global __flask_app__
     if __flask_app__ is None:
+        from search.factory import create_api_web_app
         __flask_app__ = create_api_web_app()
 
     return __flask_app__(environ, start_response)

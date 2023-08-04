@@ -1,14 +1,10 @@
 """Web Server Gateway Interface entry-point for UI."""
 
 import os
-from arxiv.base import logging
-
-from search.factory import create_ui_web_app
-
-logger = logging.getLogger(__name__)
+import logging
 
 __flask_app__ = None
-
+logger = logging.getLogger(__file__)
 
 def application(environ, start_response):
     """WSGI application factory."""
@@ -27,10 +23,14 @@ def application(environ, start_response):
             continue
         if type(value) is str:
             os.environ[key] = value
-    # 'global' actually means module scope, and that is exactly what
-    # we want here.
+
+    logger.error("in application()")
     global __flask_app__
     if __flask_app__ is None:
+        logger.error("about to import factory")
+        from search.factory import create_ui_web_app
+        logger.error("factory imported, about to create web app")
         __flask_app__ = create_ui_web_app()
+        logger.error("Done creating web app")
 
     return __flask_app__(environ, start_response)
