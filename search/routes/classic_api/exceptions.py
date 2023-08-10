@@ -18,7 +18,8 @@ from werkzeug.exceptions import (
 )
 from flask import make_response, Response
 
-from arxiv.base import logging
+import logging
+
 from search.serialize import as_atom
 from search.domain import Error
 from search.routes.consts import ATOM_XML

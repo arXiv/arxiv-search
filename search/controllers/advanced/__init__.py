@@ -19,7 +19,8 @@ from werkzeug.exceptions import BadGateway, InternalServerError, BadRequest, Not
 
 
 from arxiv import taxonomy
-from arxiv.base import logging
+import logging
+
 from search.services import index, SearchSession
 from search.domain import (
     AdvancedQuery,

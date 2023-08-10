@@ -15,7 +15,8 @@ from typing import List, Callable, Dict, Optional
 
 from elasticsearch_dsl import Q, SF
 
-from arxiv.base import logging
+import logging
+
 
 from search.domain import Classification, ClassificationList
 from search.services.index.util import (

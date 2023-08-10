@@ -11,7 +11,8 @@ from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest, NotFound
 
 from arxiv import taxonomy
-from arxiv.base import logging
+import logging
+
 
 from search import consts
 from search.services import index

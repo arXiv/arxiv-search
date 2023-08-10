@@ -6,7 +6,8 @@ from typing import Tuple, Dict, Any
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest, NotFound
 
-from arxiv.base import logging
+import logging
+
 from arxiv.identifier import parse_arxiv_id
 
 from search.services import index

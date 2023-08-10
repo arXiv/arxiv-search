@@ -16,7 +16,8 @@ from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import InternalServerError
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-from arxiv.base import logging
+import logging
+
 from search.routes import context_processors
 from search.context import get_application_config
 from search.controllers import simple, advanced, health_check

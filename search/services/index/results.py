@@ -10,7 +10,8 @@ from datetime import datetime
 
 from elasticsearch_dsl.response import Response, Hit
 
-from arxiv.base import logging
+import logging
+
 from search.domain import Document, Query, DocumentSet
 from search.services.index.util import MAX_RESULTS
 from search.services.index.highlighting import add_highlighting, preview

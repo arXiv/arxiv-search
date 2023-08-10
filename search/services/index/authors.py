@@ -6,7 +6,8 @@ from operator import ior, iand
 
 from elasticsearch_dsl import Q
 
-from arxiv.base import logging
+import logging
+
 from search.services.index.util import escape, STRING_LITERAL, has_wildcard
 
 logger = logging.getLogger(__name__)

@@ -15,7 +15,8 @@ from elasticsearch_dsl import Search
 from elasticsearch_dsl.response import Response, Hit
 from markupsafe import Markup, escape
 
-from arxiv.base import logging
+import logging
+
 
 from search.domain import Document
 from search.services.index.util import TEXISM

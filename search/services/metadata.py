@@ -21,7 +21,8 @@ from urllib.parse import urljoin
 import requests
 from requests.packages.urllib3.util.retry import Retry
 
-from arxiv.base import logging
+import logging
+
 from search.domain import DocMeta
 from search.context import get_application_config, get_application_global
 

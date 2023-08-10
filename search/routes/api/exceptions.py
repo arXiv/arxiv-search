@@ -20,7 +20,8 @@ from werkzeug.exceptions import (
 )
 from flask import make_response, Response, jsonify
 
-from arxiv.base import logging
+import logging
+
 from search.routes.consts import JSON
 
 logger = logging.getLogger(__name__)

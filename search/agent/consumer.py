@@ -6,7 +6,8 @@ from typing import List, Dict, Any
 
 from retry.api import retry_call
 
-from arxiv.base import logging
+import logging
+
 from arxiv.base.agent import BaseConsumer
 from search.services import metadata, index
 from search.process import transform

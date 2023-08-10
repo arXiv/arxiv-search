@@ -4,7 +4,8 @@ __all__ = ["blueprint", "exceptions"]
 
 from flask import Blueprint, make_response, request, Response
 
-from arxiv.base import logging
+import logging
+
 
 # from arxiv.users.auth import scopes
 # from arxiv.users.auth.decorators import scoped

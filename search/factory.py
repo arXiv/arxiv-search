@@ -3,6 +3,7 @@
 import logging
 
 from flask import Flask
+from flask.logging import default_handler
 from flask_s3 import FlaskS3
 
 from arxiv.base import Base
@@ -18,11 +19,11 @@ from . import filters
 
 s3 = FlaskS3()
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
 def create_ui_web_app() -> Flask:
     """Initialize an instance of the search frontend UI web application."""
+    root = logging.getLogger()
+    root.addHandler(default_handler)
+
     logging.getLogger("boto").setLevel(logging.ERROR)
     logging.getLogger("boto3").setLevel(logging.ERROR)
     logging.getLogger("botocore").setLevel(logging.ERROR)
@@ -54,6 +55,9 @@ def create_ui_web_app() -> Flask:
 
 def create_api_web_app() -> Flask:
     """Initialize an instance of the search frontend UI web application."""
+    root = logging.getLogger()
+    root.addHandler(default_handler)
+
     logging.getLogger("boto").setLevel(logging.ERROR)
     logging.getLogger("boto3").setLevel(logging.ERROR)
     logging.getLogger("botocore").setLevel(logging.ERROR)
@@ -78,6 +82,9 @@ def create_api_web_app() -> Flask:
 
 def create_classic_api_web_app() -> Flask:
     """Initialize an instance of the search frontend UI web application."""
+    root = logging.getLogger()
+    root.addHandler(default_handler)
+
     logging.getLogger("boto").setLevel(logging.ERROR)
     logging.getLogger("boto3").setLevel(logging.ERROR)
     logging.getLogger("botocore").setLevel(logging.ERROR)

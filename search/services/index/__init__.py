@@ -52,7 +52,8 @@ from elasticsearch.connection import Urllib3HttpConnection
 from elasticsearch.helpers import BulkIndexError
 from elasticsearch_dsl import Search, Q
 
-from arxiv.base import logging
+import logging
+
 from arxiv.integration.meta import MetaIntegration
 from search.context import get_application_config, get_application_global
 from search.domain import (

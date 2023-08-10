@@ -15,7 +15,8 @@ from werkzeug.exceptions import BadGateway, InternalServerError, NotFound, BadRe
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
 from arxiv import identifier
-from arxiv.base import logging
+import logging
+
 from search.services import index, SearchSession
 from search.controllers.simple.forms import SimpleSearchForm
 from search.controllers.util import paginate, catch_underscore_syntax
