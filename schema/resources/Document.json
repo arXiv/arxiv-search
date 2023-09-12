@@ -45,6 +45,10 @@
         "description": "Year and month (``%Y-%m``) the paper was originally announced.",
         "type": "string"
       },
+      "announced_date_with_day": {
+        "description": "Year and month and day the paper was announced via mailing (``%Y-%m-%d``).",
+        "type": "string"
+      },
       "paper_id": {
         "description": "arXiv paper identifier without version affix.",
         "type": "string"
@@ -115,7 +119,9 @@
       },
       "secondary_classification": {
         "type": "array",
-        "items": {"$ref": "./Classification.json"}
+        "items": {
+          "$ref": "./Classification.json"
+        }
       },
       "report_num": {
         "type": "string"
@@ -135,7 +141,9 @@
             "type": "integer"
           }
         },
-        "required": ["size_bytes"]
+        "required": [
+          "size_bytes"
+        ]
       },
       "submitter": {
         "description": "Submitter data. Name may not match those associated with user account, since user data is copied to submission data at the time of submission creation.",
