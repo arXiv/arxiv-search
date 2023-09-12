@@ -32,6 +32,7 @@ class DocMeta:
     modified_date: str = field(default_factory=str)
     updated_date: str = field(default_factory=str)
     announced_date_first: str = field(default_factory=str)
+    announced_date_with_day: str = field(default_factory=str)
     is_current: bool = field(default=True)
     is_withdrawn: bool = field(default=False)
     license: Dict[str, str] = field(default_factory=dict)

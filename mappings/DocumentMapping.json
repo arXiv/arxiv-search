@@ -134,7 +134,9 @@
         "abstract": {
           "type": "text",
           "analyzer": "standard",
-          "copy_to": ["combined"],
+          "copy_to": [
+            "combined"
+          ],
           "fields": {
             "english": {
               "type": "text",
@@ -149,7 +151,9 @@
         "acm_class": {
           "type": "keyword",
           "normalizer": "simple",
-          "copy_to": ["combined"]
+          "copy_to": [
+            "combined"
+          ]
         },
         "authors": {
           "type": "nested",
@@ -158,11 +162,13 @@
               "type": "text",
               "analyzer": "author_folding",
               "similarity": "classic",
-              "copy_to": ["combined"],
+              "copy_to": [
+                "combined"
+              ],
               "fields": {
                 "exact": {
-                    "type": "keyword",
-                    "normalizer": "author_folding"
+                  "type": "keyword",
+                  "normalizer": "author_folding"
                 }
               }
             },
@@ -170,7 +176,9 @@
               "type": "text",
               "analyzer": "author_folding",
               "similarity": "classic",
-              "copy_to": ["combined"],
+              "copy_to": [
+                "combined"
+              ],
               "fields": {
                 "folded": {
                   "type": "keyword",
@@ -192,11 +200,14 @@
               "type": "text",
               "analyzer": "author_folding",
               "similarity": "classic",
-              "copy_to": ["combined", "authors_combined"],
+              "copy_to": [
+                "combined",
+                "authors_combined"
+              ],
               "fields": {
                 "exact": {
-                    "type": "keyword",
-                    "normalizer": "author_folding"
+                  "type": "keyword",
+                  "normalizer": "author_folding"
                 }
               }
             },
@@ -204,11 +215,14 @@
               "type": "text",
               "analyzer": "author_folding",
               "similarity": "classic",
-              "copy_to": ["combined", "authors_combined"],
+              "copy_to": [
+                "combined",
+                "authors_combined"
+              ],
               "fields": {
                 "exact": {
-                    "type": "keyword",
-                    "normalizer": "author_folding"
+                  "type": "keyword",
+                  "normalizer": "author_folding"
                 }
               }
             },
@@ -216,22 +230,28 @@
               "type": "keyword"
             },
             "author_id": {
-              "copy_to": ["combined"],
+              "copy_to": [
+                "combined"
+              ],
               "type": "keyword"
             },
             "orcid": {
-              "copy_to": ["combined"],
+              "copy_to": [
+                "combined"
+              ],
               "type": "keyword"
             },
             "affiliation": {
               "type": "text",
               "analyzer": "author_folding",
               "similarity": "classic",
-              "copy_to": ["combined"],
+              "copy_to": [
+                "combined"
+              ],
               "fields": {
                 "exact": {
-                    "type": "keyword",
-                    "normalizer": "author_folding"
+                  "type": "keyword",
+                  "normalizer": "author_folding"
                 }
               }
             }
@@ -244,7 +264,9 @@
               "type": "text",
               "analyzer": "author_folding",
               "similarity": "classic",
-              "copy_to": ["combined"],
+              "copy_to": [
+                "combined"
+              ],
               "fields": {
                 "folded": {
                   "type": "keyword",
@@ -256,7 +278,9 @@
               "type": "text",
               "analyzer": "author_folding",
               "similarity": "classic",
-              "copy_to": ["combined"],
+              "copy_to": [
+                "combined"
+              ],
               "fields": {
                 "folded": {
                   "type": "keyword",
@@ -268,34 +292,48 @@
               "type": "text",
               "analyzer": "author_folding",
               "similarity": "classic",
-              "copy_to": ["combined", "authors_combined"]
+              "copy_to": [
+                "combined",
+                "authors_combined"
+              ]
             },
             "full_name_initialized": {
               "type": "text",
               "analyzer": "author_folding",
               "similarity": "classic",
-              "copy_to": ["combined", "authors_combined"]
+              "copy_to": [
+                "combined",
+                "authors_combined"
+              ]
             },
             "suffix": {
               "type": "keyword"
             },
             "author_id": {
-              "copy_to": ["combined"],
+              "copy_to": [
+                "combined"
+              ],
               "type": "keyword"
             },
             "orcid": {
-              "copy_to": ["combined"],
+              "copy_to": [
+                "combined"
+              ],
               "type": "keyword"
             },
             "affiliation": {
-              "copy_to": ["combined"],
+              "copy_to": [
+                "combined"
+              ],
               "type": "text"
             }
           }
         },
         "comments": {
           "type": "text",
-          "copy_to": ["combined"],
+          "copy_to": [
+            "combined"
+          ],
           "analyzer": "simple",
           "search_analyzer": "standard",
           "search_quote_analyzer": "simple"
@@ -328,9 +366,15 @@
           "type": "date",
           "format": "year_month"
         },
+        "announced_date_with_day": {
+          "type": "date",
+          "format": "year_month_day"
+        },
         "doi": {
           "type": "keyword",
-          "copy_to": ["combined"]
+          "copy_to": [
+            "combined"
+          ]
         },
         "formats": {
           "type": "keyword"
@@ -352,13 +396,17 @@
         },
         "journal_ref": {
           "type": "text",
-          "copy_to": ["combined"],
+          "copy_to": [
+            "combined"
+          ],
           "analyzer": "simple"
         },
         "report_num": {
           "type": "text",
           "analyzer": "simple",
-          "copy_to": ["combined"]
+          "copy_to": [
+            "combined"
+          ]
         },
         "license": {
           "properties": {
@@ -376,11 +424,15 @@
         "msc_class": {
           "type": "keyword",
           "normalizer": "simple",
-          "copy_to": ["combined"]
+          "copy_to": [
+            "combined"
+          ]
         },
         "paper_id": {
           "type": "keyword",
-          "copy_to": ["combined"]
+          "copy_to": [
+            "combined"
+          ]
         },
         "paper_id_v": {
           "type": "keyword"
@@ -409,12 +461,18 @@
                 "id": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined", "primary_classification.combined"]
+                  "copy_to": [
+                    "combined",
+                    "primary_classification.combined"
+                  ]
                 },
                 "name": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined", "primary_classification.combined"]
+                  "copy_to": [
+                    "combined",
+                    "primary_classification.combined"
+                  ]
                 }
               }
             },
@@ -424,12 +482,18 @@
                 "id": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined", "primary_classification.combined"]
+                  "copy_to": [
+                    "combined",
+                    "primary_classification.combined"
+                  ]
                 },
                 "name": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined", "primary_classification.combined"]
+                  "copy_to": [
+                    "combined",
+                    "primary_classification.combined"
+                  ]
                 }
               }
             }
@@ -459,12 +523,18 @@
                 "id": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined", "secondary_classification.combined"]
+                  "copy_to": [
+                    "combined",
+                    "secondary_classification.combined"
+                  ]
                 },
                 "name": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined", "secondary_classification.combined"]
+                  "copy_to": [
+                    "combined",
+                    "secondary_classification.combined"
+                  ]
                 }
               }
             },
@@ -474,12 +544,18 @@
                 "id": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined", "secondary_classification.combined"]
+                  "copy_to": [
+                    "combined",
+                    "secondary_classification.combined"
+                  ]
                 },
                 "name": {
                   "type": "keyword",
                   "normalizer": "simple",
-                  "copy_to": ["combined", "secondary_classification.combined"]
+                  "copy_to": [
+                    "combined",
+                    "secondary_classification.combined"
+                  ]
                 }
               }
             }
@@ -510,7 +586,10 @@
             "name": {
               "type": "text",
               "analyzer": "folding",
-              "copy_to": ["combined", "authors_combined"]
+              "copy_to": [
+                "combined",
+                "authors_combined"
+              ]
             },
             "submitter_id": {
               "type": "integer"
@@ -520,11 +599,15 @@
             },
             "author_id": {
               "type": "keyword",
-              "copy_to": ["combined"]
+              "copy_to": [
+                "combined"
+              ]
             },
             "orcid": {
               "type": "keyword",
-              "copy_to": ["combined"]
+              "copy_to": [
+                "combined"
+              ]
             }
           }
         },
@@ -533,7 +616,9 @@
           "analyzer": "standard",
           "search_analyzer": "standard",
           "search_quote_analyzer": "simple",
-          "copy_to": ["combined"],
+          "copy_to": [
+            "combined"
+          ],
           "fields": {
             "english": {
               "type": "text",
