@@ -49,6 +49,7 @@ class Document(TypedDict, total=False):
 
     submitted_date: datetime
     announced_date_first: date
+    announced_date_with_day: date
     submitted_date_first: datetime
     submitted_date_latest: datetime
     submitted_date_all: List[str]

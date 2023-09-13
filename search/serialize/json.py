@@ -82,6 +82,10 @@ class JSONSerializer(BaseSerializer):
             data["announced_date_first"] = doc[
                 "announced_date_first"
             ].isoformat()
+        if "announced_date_with_day" in data:
+            data["announced_date_with_day"] = doc[
+                "announced_date_with_day"
+            ].isoformat()
         if "formats" in data:
             data["formats"] = [
                 self._transform_format(fmt, paper_id, version)

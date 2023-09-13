@@ -88,6 +88,7 @@ class DateRange:
     SUBMITTED_ORIGINAL = "submitted_date_first"
     SUBMITTED_CURRENT = "submitted_date"
     ANNOUNCED = "announced_date_first"
+    ANNOUNCED_WITH_DAY = "announced_date_with_day"
     date_type: str = field(default=SUBMITTED_CURRENT)
     """The date associated with the paper that should be queried."""
 
