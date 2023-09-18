@@ -32,6 +32,7 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
 
     _add_announced_date_first(result, raw)
     _add_mailing_date(result, raw)
+    _add_arxiv_publish_date(result, raw)
 
     _add_date(result, raw, "submitted_date")
     _add_date(result, raw, "submitted_date_first")
@@ -110,6 +111,12 @@ def _add_mailing_date(result:Document, raw:  Union[Hit, dict]) -> None:
         result["mailing_date"] = datetime.strptime(
             raw["mailing_date"], "%Y-%m-%d"
         ).date()        
+
+def _add_arxiv_publish_date(result:Document, raw:  Union[Hit, dict]) -> None:
+    if "arxiv_publish_date" in result:
+        result["arxiv_publish_date"] = datetime.strptime(
+            raw["arxiv_publish_date"], "%Y-%m-%d"
+        ).date()  
 
 def _add_date(result:Document, raw: Union[Hit, dict], key:str) -> None:
     """Update result with parsed date for key."""

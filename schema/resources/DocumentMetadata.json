@@ -113,7 +113,11 @@
             "type": "string"
         },
         "mailing_date": {
-            "description": "Date (year and month and day) the paper was originally announced (maybe)",
+            "description": "Date (year and month and day) of the mailing this version was included in",
+            "type": "string"
+        },
+        "arxiv_publish_date": {
+            "description": "Date (year and month and day) this version was published on arxiv ",
             "type": "string"
         },
         "updated_date": {

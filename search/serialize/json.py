@@ -86,6 +86,10 @@ class JSONSerializer(BaseSerializer):
             data["mailing_date"] = doc[
                 "mailing_date"
             ].isoformat()
+        if "arxiv_publish_date" in data:
+            data["arxiv_publish_date"] = doc[
+                "arxiv_publish_date"
+            ].isoformat()
         if "formats" in data:
             data["formats"] = [
                 self._transform_format(fmt, paper_id, version)

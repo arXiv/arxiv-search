@@ -50,6 +50,7 @@ class Document(TypedDict, total=False):
     submitted_date: datetime
     announced_date_first: date
     mailing_date: Optional[date]
+    arxiv_publish_date: Optional[date]
     submitted_date_first: datetime
     submitted_date_latest: datetime
     submitted_date_all: List[str]

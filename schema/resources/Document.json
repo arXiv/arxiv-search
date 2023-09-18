@@ -46,7 +46,11 @@
         "type": "string"
       },
       "mailing_date": {
-        "description": "Year and month and day the paper was announced via mailing (``%Y-%m-%d``).",
+        "description": "Year and month and day the paper was announced via mailing, may not be present (``%Y-%m-%d``).",
+        "type": "string"
+      },
+      "arxiv_publish_date": {
+        "description": "Year and month and day the specific version of paper was published on arxiv (``%Y-%m-%d``).",
         "type": "string"
       },
       "paper_id": {

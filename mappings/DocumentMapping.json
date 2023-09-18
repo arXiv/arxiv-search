@@ -370,6 +370,10 @@
           "type": "date",
           "format": "year_month_day"
         },
+        "arxiv_publish_date": {
+          "type": "date",
+          "format": "year_month_day"
+        },
         "doi": {
           "type": "keyword",
           "copy_to": [

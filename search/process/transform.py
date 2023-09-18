@@ -114,6 +114,7 @@ _transformations: List[Tuple[str, TransformType, bool]] = [
     ("updated_date", "updated_date", True),
     ("announced_date_first", "announced_date_first", False),
     ("mailing_date", "mailing_date", False),
+    ("arxiv_publish_date", "arxiv_publish_date", False),
     ("is_current", "is_current", True),
     ("is_withdrawn", "is_withdrawn", False),
     ("license", _constructLicense, True),
