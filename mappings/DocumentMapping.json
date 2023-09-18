@@ -366,7 +366,7 @@
           "type": "date",
           "format": "year_month"
         },
-        "announced_date_with_day": {
+        "mailing_date": {
           "type": "date",
           "format": "year_month_day"
         },

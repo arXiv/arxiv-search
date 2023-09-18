@@ -31,7 +31,7 @@ def to_document(raw: Union[Hit, dict], highlight: bool = True) -> Document:
     result.update(raw.to_dict()) # type: ignore
 
     _add_announced_date_first(result, raw)
-    _add_announced_date_with_day(result, raw)
+    _add_mailing_date(result, raw)
 
     _add_date(result, raw, "submitted_date")
     _add_date(result, raw, "submitted_date_first")
@@ -105,10 +105,10 @@ def _add_announced_date_first(result:Document, raw:  Union[Hit, dict]) -> None:
             raw["announced_date_first"], "%Y-%m"
         ).date()
 
-def _add_announced_date_with_day(result:Document, raw:  Union[Hit, dict]) -> None:
-    if "announced_date_with_day" in result:
-        result["announced_date_with_day"] = datetime.strptime(
-            raw["announced_date_with_day"], "%Y-%m-%d"
+def _add_mailing_date(result:Document, raw:  Union[Hit, dict]) -> None:
+    if "mailing_date" in result:
+        result["mailing_date"] = datetime.strptime(
+            raw["mailing_date"], "%Y-%m-%d"
         ).date()        
 
 def _add_date(result:Document, raw: Union[Hit, dict], key:str) -> None:

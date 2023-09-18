@@ -32,7 +32,7 @@ class DocMeta:
     modified_date: str = field(default_factory=str)
     updated_date: str = field(default_factory=str)
     announced_date_first: str = field(default_factory=str)
-    announced_date_with_day: Optional[str] = field(default=None)
+    mailing_date: Optional[str] = field(default=None)
     is_current: bool = field(default=True)
     is_withdrawn: bool = field(default=False)
     license: Dict[str, str] = field(default_factory=dict)
@@ -88,7 +88,7 @@ class DateRange:
     SUBMITTED_ORIGINAL = "submitted_date_first"
     SUBMITTED_CURRENT = "submitted_date"
     ANNOUNCED = "announced_date_first"
-    ANNOUNCED_WITH_DAY = "announced_date_with_day"
+    MAILING = "mailing_date"
     date_type: str = field(default=SUBMITTED_CURRENT)
     """The date associated with the paper that should be queried."""
 

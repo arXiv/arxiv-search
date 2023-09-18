@@ -45,7 +45,7 @@
         "description": "Year and month (``%Y-%m``) the paper was originally announced.",
         "type": "string"
       },
-      "announced_date_with_day": {
+      "mailing_date": {
         "description": "Year and month and day the paper was announced via mailing (``%Y-%m-%d``).",
         "type": "string"
       },
