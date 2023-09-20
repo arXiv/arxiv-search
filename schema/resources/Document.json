@@ -53,6 +53,10 @@
         "description": "Year and month and day the specific version of paper was published on arxiv (``%Y-%m-%d``).",
         "type": "string"
       },
+      "arxiv_publish_date_resolution": {
+        "description": "Specifies whether arxiv_publish_date is accurate to the day or the month.",
+        "type": "string"
+      },
       "paper_id": {
         "description": "arXiv paper identifier without version affix.",
         "type": "string"

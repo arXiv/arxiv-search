@@ -51,6 +51,7 @@ class Document(TypedDict, total=False):
     announced_date_first: date
     mailing_date: Optional[date]
     arxiv_publish_date: Optional[date]
+    arxiv_publish_date_resolution: Optional[str]
     submitted_date_first: datetime
     submitted_date_latest: datetime
     submitted_date_all: List[str]
@@ -79,6 +80,7 @@ class Document(TypedDict, total=False):
     msc_class: List[str]
     acm_class: List[str]
     metadata_id: int
+    docmeta_version: Optional[str]
     journal_ref: str
     doi: str
     comments: str

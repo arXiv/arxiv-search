@@ -374,6 +374,9 @@
           "type": "date",
           "format": "year_month_day"
         },
+        "arxiv_publish_date_resolution": {
+          "type": "keyword"
+        },
         "doi": {
           "type": "keyword",
           "copy_to": [
@@ -423,6 +426,9 @@
           }
         },
         "metadata_id": {
+          "type": "keyword"
+        },
+        "docmeta_version": {
           "type": "keyword"
         },
         "msc_class": {
