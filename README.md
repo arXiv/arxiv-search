@@ -52,7 +52,7 @@ You can run the new metadata API in dev mode by changing `FLASK_APP` to point to
 i.e.:
 
 ```bash
-JWT_SECRET=foosecret FLASK_APP=api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
+FLASK_APP=api.py FLASK_DEBUG=1 ELASTICSEARCH_SERVICE_HOST=127.0.0.1 pipenv run flask run
 ```
 
 To run the classic API in dev mode, use ``wsgi-classic-api.py``:
