@@ -6,7 +6,7 @@ import time
 from search.factory import create_ui_web_app
 from search.services import index
 
-app = create_ui_web_app()
+app = create_ui_web_app(skip_startup_check=True)
 
 
 @app.cli.command()

@@ -12,7 +12,7 @@ import click
 
 from search.factory import create_ui_web_app
 
-app = create_ui_web_app()
+app = create_ui_web_app(skip_startup_check=True)
 
 
 def exists(chunk: List[str]) -> List[Tuple[str, bool]]:

@@ -8,6 +8,7 @@ You can start up ES on its own. Be sure to map port 9200 to the host
 machine, so that arXiv search can find it.
 
 ```bash
+sysctl -w vm.max_map_count=262144  # to avoid an error when running ES on linux
 docker build -t "arxiv/elasticsearch" -f ./Dockerfile-elasticsearch .
 docker run -it \
     -e "http.host=0.0.0.0" \

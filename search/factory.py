@@ -19,7 +19,7 @@ from . import filters
 
 s3 = FlaskS3()
 
-def create_ui_web_app() -> Flask:
+def create_ui_web_app(skip_startup_check=False) -> Flask:
     """Initialize an instance of the search frontend UI web application."""
     root = logging.getLogger()
     root.addHandler(default_handler)
@@ -49,7 +49,9 @@ def create_ui_web_app() -> Flask:
     for filter_name, template_filter in filters.filters:
         app.template_filter(filter_name)(template_filter)
 
-    index_startup_check(app)
+    if not skip_startup_check:
+        index_startup_check(app)
+
     return app
 
 
