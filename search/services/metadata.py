@@ -167,7 +167,7 @@ class DocMetaSession(object):
 
         query_string = "/docmeta_bulk?" + "&".join(
             f"id={document_id}" for document_id in document_ids
-        )
+        )+"&docmeta_version=2"
 
         try:
             target = urljoin(self.endpoint, query_string)
