@@ -48,3 +48,5 @@ EXPOSE 8080
 # See cicd/cloudbuild-master-pr.yaml for use in integration tests.
 ENV GUNICORN gunicorn --bind :8080 \
     --workers 1 --threads 8 --timeout 0 "search.factory:create_classic_api_web_app()"
+
+CMD exec $GUNICORN
