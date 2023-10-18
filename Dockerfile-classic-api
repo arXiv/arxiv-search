@@ -3,12 +3,12 @@
 # Defines the runtime for the arXiv classic API, which provides a metadata
 # query API backed by Elasticsearch.
 
-# File: Dockerfile-ui
-# Desc: arxiv search ui
+# File: Dockerfile-classic-api
+# Desc: arxiv search classic api
 # Use:
 #   docker build --build-arg GIT_COMMIT=$(git rev-parse HEAD) \
-#          -t "arxiv/arxiv-search" -f ./Dockerfile-ui .
-#   docker run -it --env-file=env -p 8000:8000 arxiv/arxiv-search
+#          -t "arxiv/arxiv-search-classic-api" -f ./Dockerfile-classic-api .
+#   docker run -it --env-file=env -p 8080:8080 arxiv/arxiv-search-classic-api
 
 FROM python:3.10.9-buster
 
@@ -43,8 +43,8 @@ RUN pip install "gunicorn==20.1.0" "poetry==$POETRY_VERSION"
 RUN poetry config virtualenvs.create false && \
     poetry install --no-interaction --no-ansi
 
-EXPOSE 8000
+EXPOSE 8080
 
 # See cicd/cloudbuild-master-pr.yaml for use in integration tests.
-ENV GUNICORN gunicorn --bind :8000 \
+ENV GUNICORN gunicorn --bind :8080 \
     --workers 1 --threads 8 --timeout 0 "search.factory:create_classic_api_web_app()"
