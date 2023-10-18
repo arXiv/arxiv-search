@@ -27,7 +27,7 @@ class TestHealthCheck(TestCase):
         """Test returns 'DOWN' + status 500 when index returns no results."""
         mock_index.search.return_value = {"metadata": {}, "results": []}
         response, status_code, _ = health_check()
-        self.assertEqual(response, "DOWN", "Response content should be DOWN")
+        self.assertEqual(response, "DOWN: document_set lacked results", "Response content should be DOWN: document_set lacked results")
         self.assertEqual(
             status_code,
             HTTPStatus.INTERNAL_SERVER_ERROR,
