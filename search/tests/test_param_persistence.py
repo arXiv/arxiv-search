@@ -41,7 +41,7 @@ class TestParameterPersistence(TestCase):
         self.assertIn("Set-Cookie", response.headers, "Should set a cookie")
         self.assertEqual(
             response.headers["Set-Cookie"],
-            'foo-cookie="{}"; Path=/',
+            'foo-cookie={}; Path=/',
             "Cookie should not contain request params",
         )
 
