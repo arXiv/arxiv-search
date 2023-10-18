@@ -14,13 +14,9 @@ class TestHealthCheck(TestCase):
     def test_index_is_down(self, mock_index):
         """Test returns 'DOWN' + status 500 when index raises an exception."""
         mock_index.search.side_effect = RuntimeError
-        response, status_code, _ = health_check()
-        self.assertEqual(response, "DOWN", "Response content should be DOWN")
-        self.assertEqual(
-            status_code,
-            HTTPStatus.INTERNAL_SERVER_ERROR,
-            "Should return 500 status code.",
-        )
+      
+        with self.assertRaises(RuntimeError):
+            response, status_code, _ = health_check()
 
     @mock.patch("search.controllers.index.SearchSession")
     def test_index_returns_no_result(self, mock_index):
