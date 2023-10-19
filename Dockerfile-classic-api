@@ -3,40 +3,50 @@
 # Defines the runtime for the arXiv classic API, which provides a metadata
 # query API backed by Elasticsearch.
 
-FROM arxiv/base:0.16.6
+# File: Dockerfile-classic-api
+# Desc: arxiv search classic api
+# Use:
+#   docker build --build-arg GIT_COMMIT=$(git rev-parse HEAD) \
+#          -t "arxiv/arxiv-search-classic-api" -f ./Dockerfile-classic-api .
+#   docker run -it --env-file=env -p 8080:8080 arxiv/arxiv-search-classic-api
 
-WORKDIR /opt/arxiv
+FROM python:3.10.9-buster
 
+ARG GIT_COMMIT
 
-ENV LC_ALL en_US.utf8
-ENV LANG en_US.utf8
-ENV LOGLEVEL 40
-ENV PIPENV_VENV_IN_PROJECT 1
-ENV FLASK_DEBUG 1
-ENV FLASK_APP /opt/arxiv/classic-api.py
-ENV PATH "/opt/arxiv:${PATH}"
-ENV ELASTICSEARCH_SERVICE_HOST 127.0.0.1
-ENV ELASTICSEARCH_SERVICE_PORT 9200
-ENV ELASTICSEARCH_SERVICE_PORT_9200_PROTO http
-ENV ELASTICSEARCH_INDEX arxiv
-ENV ELASTICSEARCH_USER elastic
-ENV ELASTICSEARCH_PASSWORD changeme
-ENV METADATA_ENDPOINT https://arxiv.org/docmeta_bulk/
+ENV \
+    APP_HOME=/app \
+    ELASTICSEARCH_PASSWORD=changeme \
+    ELASTICSEARCH_SERVICE_HOST=127.0.0.1 \
+    ELASTICSEARCH_SERVICE_PORT=9200 \
+    ELASTICSEARCH_SERVICE_PORT_9200_PROTO=http \
+    GIT_COMMIT=$GIT_COMMIT \
+    METADATA_ENDPOINT=https://arxiv.org/docmeta_bulk/ \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_NO_CACHE_DIR=off \
+    POETRY_VERSION=1.2.2 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 \
+    TRACE=1
 
+WORKDIR $APP_HOME
+COPY poetry.lock pyproject.toml ./
+COPY app.py wsgi.py uwsgi.ini ./
+COPY schema ./schema
+COPY mappings ./mappings
+COPY search ./search
+RUN echo $GIT_COMMIT > ./git-commit.txt
 
-# Add Python application and configuration.
-ADD Pipfile /opt/arxiv/
-ADD Pipfile.lock /opt/arxiv/
-RUN pip install -U pip pipenv
-RUN pipenv sync --dev 
-ADD classic-api.py /opt/arxiv/
-ADD schema /opt/arxiv/schema
-ADD mappings /opt/arxiv/mappings
-ADD search /opt/arxiv/search
-ADD wsgi-classic-api.py config/uwsgi-classic-api.ini /opt/arxiv/
+RUN pip install "gunicorn==20.1.0" "poetry==$POETRY_VERSION"
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi
 
+EXPOSE 8080
 
-EXPOSE 8000
+# See cicd/cloudbuild-master-pr.yaml for use in integration tests.
+ENV GUNICORN gunicorn --bind :8080 \
+    --workers 1 --threads 8 --timeout 0 "search.factory:create_classic_api_web_app()"
 
-ENTRYPOINT ["pipenv", "run"]
-CMD ["uwsgi", "--ini", "/opt/arxiv/uwsgi-classic-api.ini"]
+CMD exec $GUNICORN
