@@ -49,7 +49,7 @@ def create_ui_web_app() -> Flask:
     for filter_name, template_filter in filters.filters:
         app.template_filter(filter_name)(template_filter)
 
-    if app.config["TESTING"] =="ON":
+    if app.config["TESTING"]:
         index_startup_check(app)
     return app
 
