@@ -234,6 +234,11 @@ E.g.
 WITH_INTEGRATION=1 pipenv run nose2 --with-coverage
 ```
 
+You can also run to avoid all intentional error messages or kinesis print statements created during the tests
+```bash
+pytest --disable-warnings search
+```
+
 ### Static checking
 Goal: zero errors/warnings.
 
