@@ -54,7 +54,6 @@ from elasticsearch_dsl import Search, Q
 
 import logging
 
-from arxiv.integration.meta import MetaIntegration
 from search.context import get_application_config, get_application_global
 from search.domain import (
     Document,
@@ -146,7 +145,7 @@ def handle_es_exceptions() -> Generator:
         raise
 
 
-class SearchSession(metaclass=MetaIntegration):
+class SearchSession():
     """Encapsulates session with Elasticsearch host."""
 
     def __init__(

@@ -18,7 +18,7 @@ class TestReindexing(TestCase):
         """Reindex to an index that does not exist."""
         mock_es = mock.MagicMock()
         mock_Elasticsearch.return_value = mock_es
-        index.SearchSession.reindex("barindex", "bazindex")
+        index.SearchSession.current_session().reindex("barindex", "bazindex")
         self.assertEqual(
             mock_es.indices.create.call_count,
             1,
@@ -48,7 +48,7 @@ class TestReindexing(TestCase):
         mock_es = mock.MagicMock()
         mock_Elasticsearch.return_value = mock_es
         mock_es.indices.create.side_effect = raise_index_exists
-        index.SearchSession.reindex("barindex", "bazindex")
+        index.SearchSession.current_session().reindex("barindex", "bazindex")
         self.assertEqual(
             mock_es.indices.create.call_count,
             1,
@@ -83,7 +83,7 @@ class TestTaskStatus(TestCase):
         mock_Elasticsearch.return_value = mock_es
 
         task_id = "foonode:bartask"
-        index.SearchSession.get_task_status(task_id)
+        index.SearchSession.current_session().get_task_status(task_id)
         self.assertEqual(
             mock_es.tasks.get.call_count,
             1,

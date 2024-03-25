@@ -39,7 +39,7 @@ class TestAdvancedSearch(TestCase):
         def raiseEr(*args, **kwargs):
             raise ValueError(f"Raised by {__file__}")
 
-        mock_index.search.side_effect = raiseEr
+        mock_index.current_session.side_effect = raiseEr
         response = self.client.get("""/advanced?advanced=1&terms-0-operator=AND&"""
                                    """terms-0-term=onion&terms-0-field=title""")
         self.assertEqual(
@@ -56,7 +56,7 @@ class TestAdvancedSearch(TestCase):
         def raiseEr(*args, **kwargs):
             raise IndexConnectionError("Raised by {__file__}")
 
-        mock_index.search.side_effect = raiseEr
+        mock_index.current_session.side_effect = raiseEr
         response = self.client.get("""/advanced?advanced=1&terms-0-operator=AND&"""
                                    """terms-0-term=onion&terms-0-field=title""")
         self.assertEqual(

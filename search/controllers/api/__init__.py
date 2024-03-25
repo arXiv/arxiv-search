@@ -106,9 +106,7 @@ def search(params: MultiDict) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         q.include_fields += include_fields
 
     q = paginate(q, params)  # type: ignore
-    document_set = index.SearchSession.search(  # type: ignore
-        q, highlight=False
-    )
+    document_set = index.SearchSession.current_session().search(q, highlight=False)
     document_set["metadata"]["query"] = query_terms
     logger.debug(
         "Got document set with %i results", len(document_set["results"])
@@ -140,10 +138,9 @@ def paper(paper_id: str) -> Tuple[Dict[str, Any], int, Dict[str, Any]]:
         Raised when there is no document with the provided paper ID.
 
     """
+    document = index.SearchSession.current_session().get_document(paper_id)
     try:
-        document = index.SearchSession.current_session().get_document(
-            paper_id
-        )  # type: ignore
+        pass
     except index.DocumentNotFound as ex:
         logger.error("Document not found")
         raise NotFound("No such document") from ex
