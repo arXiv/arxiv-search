@@ -16,7 +16,7 @@ class TestSearchs(TestCase):
     @mock.patch("search.controllers.simple.SearchSession")
     def test_bad_query(self, mock_index):
         """Bad query should result in a 400 not a 500. query from ARXIVNG-2437"""
-        mock_index.search.side_effect = QueryError
+        mock_index.current_session().search.side_effect = QueryError
         response = self.client.get("/?query=%2F%3F&searchtype=all&source=header")
         self.assertEqual(
             response.status_code,
@@ -35,7 +35,7 @@ class TestSearchs(TestCase):
     def test_es_down(self, mock_index):
         """Failure to contact ES should result in a BAD_GATEWAY to distinguish it from
         more general 500 errors."""
-        mock_index.search.side_effect = IndexConnectionError
+        mock_index.current_session().search.side_effect = IndexConnectionError
 
         response = self.client.get("/?query=cheese&searchtype=all&source=header")
         self.assertEqual(
