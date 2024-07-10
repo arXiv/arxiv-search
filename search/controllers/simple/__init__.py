@@ -26,6 +26,7 @@ from search.domain import (
     Classification,
     ClassificationList,
 )
+from search.utils.expires import gen_search_expires
 
 
 logger = logging.getLogger(__name__)
@@ -185,7 +186,9 @@ def search(
         q = None
     response_data["query"] = q
     response_data["form"] = form
-    return response_data, HTTPStatus.OK, {}
+    headers={}
+    headers["Expires"]=gen_search_expires()
+    return response_data, HTTPStatus.OK, headers
 
 
 def retrieve_document(document_id: str) -> Response:

@@ -34,6 +34,7 @@ from search.domain import (
 from search import consts
 from search.controllers.advanced import forms
 from search.controllers.util import paginate, catch_underscore_syntax
+from search.utils.expires import gen_search_expires
 
 
 logger = logging.getLogger(__name__)
@@ -171,7 +172,9 @@ def search(request_params: MultiDict) -> Response:
     #  example, we can generate new form-friendly requests to update sort
     #  order and page size by embedding the form (hidden).
     response_data["form"] = form
-    return response_data, HTTPStatus.OK, {}
+    headers={}
+    headers["Expires"]=gen_search_expires()
+    return response_data, HTTPStatus.OK, headers
 
 
 def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
