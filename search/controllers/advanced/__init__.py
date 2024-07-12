@@ -34,7 +34,6 @@ from search.domain import (
 from search import consts
 from search.controllers.advanced import forms
 from search.controllers.util import paginate, catch_underscore_syntax
-from search.utils.expires import gen_search_expires
 
 
 logger = logging.getLogger(__name__)
@@ -173,7 +172,7 @@ def search(request_params: MultiDict) -> Response:
     #  order and page size by embedding the form (hidden).
     response_data["form"] = form
     headers={}
-    headers["Expires"]=gen_search_expires()
+    headers["Cache-Control"]="max-age=600"
     return response_data, HTTPStatus.OK, headers
 
 
