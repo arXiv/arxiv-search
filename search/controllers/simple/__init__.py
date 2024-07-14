@@ -185,9 +185,7 @@ def search(
         q = None
     response_data["query"] = q
     response_data["form"] = form
-    headers={}
-    headers["Cache-Control"]="max-age=600"
-    return response_data, HTTPStatus.OK, headers
+    return response_data, HTTPStatus.OK, {}
 
 
 def retrieve_document(document_id: str) -> Response:

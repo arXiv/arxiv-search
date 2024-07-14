@@ -171,9 +171,7 @@ def search(request_params: MultiDict) -> Response:
     #  example, we can generate new form-friendly requests to update sort
     #  order and page size by embedding the form (hidden).
     response_data["form"] = form
-    headers={}
-    headers["Cache-Control"]="max-age=600"
-    return response_data, HTTPStatus.OK, headers
+    return response_data, HTTPStatus.OK, {}
 
 
 def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:
