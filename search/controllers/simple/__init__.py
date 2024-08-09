@@ -185,7 +185,9 @@ def search(
         q = None
     response_data["query"] = q
     response_data["form"] = form
-    return response_data, HTTPStatus.OK, {}
+    headers={}
+    headers["Surrogate-Control"]="max-age=600"
+    return response_data, HTTPStatus.OK, headers
 
 
 def retrieve_document(document_id: str) -> Response:
