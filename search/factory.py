@@ -132,7 +132,7 @@ def index_startup_check(app):
         raise ex
 
     try:
-        document_set = index.SearchSession.search(  # type: ignore
+        document_set = index.SearchSession.current_session().search(  # type: ignore
             SimpleQuery(search_field="all", value="theory")
         )
         if document_set["results"]:

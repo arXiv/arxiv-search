@@ -30,7 +30,7 @@ def health_check() -> Tuple[str, int, Dict[str, Any]]:
     """
     # We don't handle any exceptions here because we want the framework
     # exception handling to take care of it and log them.
-    document_set = index.SearchSession.search(  # type: ignore
+    document_set = index.SearchSession.current_session().search(  # type: ignore
         SimpleQuery(search_field="all", value="theory")
     )
     if document_set["results"]:

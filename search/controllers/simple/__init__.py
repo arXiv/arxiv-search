@@ -146,7 +146,7 @@ def search(
             # Execute the search. We'll use the results directly in
             #  template rendering, so they get added directly to the
             #  response content.asdict
-            response_data.update(SearchSession.search(q))  # type: ignore
+            response_data.update(SearchSession.current_session().search(q))
         except index.IndexConnectionError as ex:
             raise BadGateway(
                 "There was a problem connecting to the search index. This is "
@@ -217,7 +217,7 @@ def retrieve_document(document_id: str) -> Response:
 
     """
     try:
-        result = SearchSession.get_document(document_id)  # type: ignore
+        result = SearchSession.current_session().get_document(document_id)
     except index.IndexConnectionError as ex:
         raise BadGateway(
             "There was a problem connecting to the search index. This is "
