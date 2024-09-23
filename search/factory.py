@@ -49,7 +49,8 @@ def create_ui_web_app() -> Flask:
     for filter_name, template_filter in filters.filters:
         app.template_filter(filter_name)(template_filter)
 
-    index_startup_check(app)
+    if app.config["TESTING"]:
+        index_startup_check(app)
     return app
 
 
@@ -131,7 +132,7 @@ def index_startup_check(app):
         raise ex
 
     try:
-        document_set = index.SearchSession.search(  # type: ignore
+        document_set = index.SearchSession.current_session().search(  # type: ignore
             SimpleQuery(search_field="all", value="theory")
         )
         if document_set["results"]:

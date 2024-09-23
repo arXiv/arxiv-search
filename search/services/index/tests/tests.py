@@ -201,7 +201,7 @@ class TestSearch(TestCase):
             ),
         )
 
-        document_set = index.SearchSession.search(query, highlight=True)
+        document_set = index.SearchSession.current_session().search(query, highlight=True)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(int(document_set["metadata"]["total_results"]), 53)
         self.assertEqual(int(document_set["metadata"]["current_page"]), 1)
@@ -233,7 +233,7 @@ class TestSearch(TestCase):
         query = SimpleQuery(
             order="relevance", size=10, search_field="title", value="foo title"
         )
-        document_set = index.SearchSession.search(query, highlight=True)
+        document_set = index.SearchSession.current_session().search(query, highlight=True)
         # self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(document_set["metadata"]["total_results"], 53)
@@ -269,7 +269,7 @@ class TestSearch(TestCase):
             size=10,
         )
 
-        document_set = index.SearchSession.search(query, highlight=True)
+        document_set = index.SearchSession.current_session().search(query, highlight=True)
         # self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(document_set["metadata"]["total_results"], 53)
@@ -309,7 +309,7 @@ class TestSearch(TestCase):
             size=10,
         )
 
-        document_set = index.SearchSession.search(query, highlight=True)
+        document_set = index.SearchSession.current_session().search(query, highlight=True)
         # self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(document_set["metadata"]["total_results"], 53)
@@ -345,7 +345,7 @@ class TestSearch(TestCase):
             size=10,
         )
 
-        document_set = index.SearchSession.search(query, highlight=True)
+        document_set = index.SearchSession.current_session().search(query, highlight=True)
         # self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(document_set["metadata"]["total_results"], 53)
@@ -385,7 +385,7 @@ class TestSearch(TestCase):
             size=10,
         )
 
-        document_set = index.SearchSession.search(query, highlight=True)
+        document_set = index.SearchSession.current_session().search(query, highlight=True)
         # self.assertIsInstance(document_set, DocumentSet)
         self.assertEqual(document_set["metadata"]["start"], 0)
         self.assertEqual(document_set["metadata"]["total_results"], 53)

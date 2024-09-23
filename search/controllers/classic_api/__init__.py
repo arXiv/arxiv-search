@@ -193,7 +193,7 @@ def paper(
     try:
         document = index.SearchSession.current_session().get_document(
             paper_id
-        )  # type: ignore
+        )
     except index.DocumentNotFound as ex:
         logger.error("Document not found")
         raise NotFound("No such document") from ex
@@ -201,4 +201,4 @@ def paper(
         ClassicSearchResponseData(results=document),  # type: ignore
         HTTPStatus.OK,
         {},
-    )  # type: ignore
+    )

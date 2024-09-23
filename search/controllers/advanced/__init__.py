@@ -124,7 +124,7 @@ def search(request_params: MultiDict) -> Response:
                 # Execute the search. We'll use the results directly in
                 #  template rendering, so they get added directly to the
                 #  response content. asdict(
-                response_data.update(SearchSession.search(q))  # type: ignore
+                response_data.update(SearchSession.current_session().search(q))
             except index.IndexConnectionError as ex:
                 raise BadGateway(
                     "There was a problem connecting to the search index. This "
@@ -171,7 +171,9 @@ def search(request_params: MultiDict) -> Response:
     #  example, we can generate new form-friendly requests to update sort
     #  order and page size by embedding the form (hidden).
     response_data["form"] = form
-    return response_data, HTTPStatus.OK, {}
+    headers={}
+    headers["Surrogate-Control"]="max-age=600"
+    return response_data, HTTPStatus.OK, headers
 
 
 def _query_from_form(form: forms.AdvancedSearchForm) -> AdvancedQuery:

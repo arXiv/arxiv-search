@@ -41,7 +41,7 @@ class TestParameterPersistence(TestCase):
         self.assertIn("Set-Cookie", response.headers, "Should set a cookie")
         self.assertEqual(
             response.headers["Set-Cookie"],
-            'foo-cookie="{}"; Path=/',
+            'foo-cookie={}; Path=/',
             "Cookie should not contain request params",
         )
 
@@ -52,7 +52,7 @@ class TestParameterPersistence(TestCase):
         ui.PARAMS_TO_PERSIST = ["foo", "baz"]
         ui.PARAMS_COOKIE_NAME = "foo-cookie"
         self.client.set_cookie(
-            "", ui.PARAMS_COOKIE_NAME, json.dumps({"foo": "ack"})
+            ui.PARAMS_COOKIE_NAME, json.dumps({"foo": "ack"})
         )
         self.client.get("/")
         self.assertEqual(
@@ -68,7 +68,7 @@ class TestParameterPersistence(TestCase):
         ui.PARAMS_TO_PERSIST = ["foo", "baz"]
         ui.PARAMS_COOKIE_NAME = "foo-cookie"
         self.client.set_cookie(
-            "", ui.PARAMS_COOKIE_NAME, json.dumps({"foo": "ack"})
+            ui.PARAMS_COOKIE_NAME, json.dumps({"foo": "ack"})
         )
         self.client.get("/?foo=oof")
         self.assertEqual(
