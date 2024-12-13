@@ -12,6 +12,12 @@
 .content .arxiv-result .title {
   line-height: 1.25em;
 }
+.content .arxiv-result .comments {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  -ms-word-break: break-all;
+  word-break: break-word;
+}
 .content .arxiv-result .tags {
   margin-bottom: 0;
 }
@@ -122,49 +128,49 @@
     margin-bottom: 0;
   }
   .field.has-addons-tablet .control:first-child .button,
-.field.has-addons-tablet .control:first-child .input,
-.field.has-addons-tablet .control:first-child .select select {
+  .field.has-addons-tablet .control:first-child .input,
+  .field.has-addons-tablet .control:first-child .select select {
     border-bottom-left-radius: 3px;
     border-top-left-radius: 3px;
   }
   .field.has-addons-tablet .control:last-child .button,
-.field.has-addons-tablet .control:last-child .input,
-.field.has-addons-tablet .control:last-child .select select {
+  .field.has-addons-tablet .control:last-child .input,
+  .field.has-addons-tablet .control:last-child .select select {
     border-bottom-right-radius: 3px;
     border-top-right-radius: 3px;
   }
   .field.has-addons-tablet .control .button,
-.field.has-addons-tablet .control .input,
-.field.has-addons-tablet .control .select select {
+  .field.has-addons-tablet .control .input,
+  .field.has-addons-tablet .control .select select {
     border-radius: 0;
   }
   .field.has-addons-tablet .control .button:hover, .field.has-addons-tablet .control .button.is-hovered,
-.field.has-addons-tablet .control .input:hover,
-.field.has-addons-tablet .control .input.is-hovered,
-.field.has-addons-tablet .control .select select:hover,
-.field.has-addons-tablet .control .select select.is-hovered {
+  .field.has-addons-tablet .control .input:hover,
+  .field.has-addons-tablet .control .input.is-hovered,
+  .field.has-addons-tablet .control .select select:hover,
+  .field.has-addons-tablet .control .select select.is-hovered {
     z-index: 2;
   }
   .field.has-addons-tablet .control .button:focus, .field.has-addons-tablet .control .button.is-focused, .field.has-addons-tablet .control .button:active, .field.has-addons-tablet .control .button.is-active,
-.field.has-addons-tablet .control .input:focus,
-.field.has-addons-tablet .control .input.is-focused,
-.field.has-addons-tablet .control .input:active,
-.field.has-addons-tablet .control .input.is-active,
-.field.has-addons-tablet .control .select select:focus,
-.field.has-addons-tablet .control .select select.is-focused,
-.field.has-addons-tablet .control .select select:active,
-.field.has-addons-tablet .control .select select.is-active {
+  .field.has-addons-tablet .control .input:focus,
+  .field.has-addons-tablet .control .input.is-focused,
+  .field.has-addons-tablet .control .input:active,
+  .field.has-addons-tablet .control .input.is-active,
+  .field.has-addons-tablet .control .select select:focus,
+  .field.has-addons-tablet .control .select select.is-focused,
+  .field.has-addons-tablet .control .select select:active,
+  .field.has-addons-tablet .control .select select.is-active {
     z-index: 3;
   }
   .field.has-addons-tablet .control .button:focus:hover, .field.has-addons-tablet .control .button.is-focused:hover, .field.has-addons-tablet .control .button:active:hover, .field.has-addons-tablet .control .button.is-active:hover,
-.field.has-addons-tablet .control .input:focus:hover,
-.field.has-addons-tablet .control .input.is-focused:hover,
-.field.has-addons-tablet .control .input:active:hover,
-.field.has-addons-tablet .control .input.is-active:hover,
-.field.has-addons-tablet .control .select select:focus:hover,
-.field.has-addons-tablet .control .select select.is-focused:hover,
-.field.has-addons-tablet .control .select select:active:hover,
-.field.has-addons-tablet .control .select select.is-active:hover {
+  .field.has-addons-tablet .control .input:focus:hover,
+  .field.has-addons-tablet .control .input.is-focused:hover,
+  .field.has-addons-tablet .control .input:active:hover,
+  .field.has-addons-tablet .control .input.is-active:hover,
+  .field.has-addons-tablet .control .select select:focus:hover,
+  .field.has-addons-tablet .control .select select.is-focused:hover,
+  .field.has-addons-tablet .control .select select:active:hover,
+  .field.has-addons-tablet .control .select select.is-active:hover {
     z-index: 4;
   }
   .field.has-addons-tablet .control.is-expanded {
