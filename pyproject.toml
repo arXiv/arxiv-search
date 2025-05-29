@@ -4,9 +4,10 @@ version = "1.0.0"
 description = "Search for arxiv.org "
 authors = ["arxiv.org"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "3.10.9"
+python = "^3.10"
 boto3 = "*" 
 click = "*" 
 elasticsearch = "==6.3.0"
@@ -20,10 +21,12 @@ lxml = "*"
 markupsafe = "*" 
 python-dateutil = "*" 
 pytz = "*" 
+referencing = "*"
 requests = "*" 
 retry = "*"
 urllib3 = "*" 
-werkzeug = "*" 
+#werkzeug = "2.2.3"
+werkzeug = "2.3.6"
 wtforms = "==2.1"
 arxiv-base = {git = "https://github.com/arXiv/arxiv-base.git", rev = "1.0.1"}
 mypy-extensions = "^1.0.0"
