@@ -31,6 +31,15 @@ class AtomXMLSerializer(BaseSerializer):
     """Atom XML serializer for paper metadata."""
 
     @staticmethod
+    def _fix_id_url(url: str) -> str:
+        return (
+            parse.urlparse(url)
+            ._replace(scheme="http")
+            ._replace(netloc="arxiv.org")
+            .geturl()
+        )
+
+    @staticmethod
     def _fix_url(url: str) -> str:
         return (
             parse.urlparse(url)
@@ -48,7 +57,7 @@ class AtomXMLSerializer(BaseSerializer):
         """Select a subset of :class:`Document` properties for public API."""
         entry = fg.add_entry()
         entry.id(
-            self._fix_url(
+            self._fix_id_url(
                 url_for(
                     "abs",
                     paper_id=doc["paper_id"],
