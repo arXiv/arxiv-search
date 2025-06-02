@@ -25,7 +25,6 @@ ENV \
     PIP_DEFAULT_TIMEOUT=100 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_NO_CACHE_DIR=off \
-    POETRY_VERSION=1.2.2 \
     PYTHONFAULTHANDLER=1 \
     PYTHONHASHSEED=random \
     PYTHONUNBUFFERED=1 \
@@ -39,7 +38,7 @@ COPY mappings ./mappings
 COPY search ./search
 RUN echo $GIT_COMMIT > ./git-commit.txt
 
-RUN pip install "gunicorn==20.1.0" "poetry==$POETRY_VERSION"
+RUN pip install "gunicorn==20.1.0" "poetry"
 RUN poetry config virtualenvs.create false && \
     poetry install --no-interaction --no-ansi
 
@@ -50,3 +49,4 @@ ENV GUNICORN gunicorn --bind :8080 \
     --workers 1 --threads 8 --timeout 0 "search.factory:create_classic_api_web_app()"
 
 CMD exec $GUNICORN
+
