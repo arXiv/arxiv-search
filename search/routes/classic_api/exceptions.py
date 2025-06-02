@@ -56,7 +56,7 @@ def get_handlers() -> List[Tuple[type, Callable]]:
 
 def respond(
     error_msg: str,
-    link: str = "http://arxiv.org/api/errors",
+    link: str = "https://arxiv.org/api/errors",
     status: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR,
 ) -> Response:
     """Generate an Atom response."""
