@@ -126,6 +126,29 @@ def _query_doi(term: str, operator: str = "and") -> Q:
         return Q("wildcard", doi={"value": term.lower()})
     return Q("match", doi={"query": term, "operator": operator})
 
+def _query_submittedDate(term: str, operator: str = "and") -> Q:
+    ''' The API provides one date filter, `submittedDate`,
+        that allow you to select data within a given date
+        range of when the data was submitted to arXiv.
+        The expected format is `[YYYYMMDDTTTT+TO+YYYYMMDDTTTT]`
+        were the `TTTT` is provided in 24 hour time to the minute,
+        in GMT. We could construct the following query using `submittedDate`.
+        https://export.arxiv.org/api/query?search_query=au:del_maestro+AND+
+            submittedDate:[202301010600+TO+202401010600]>
+    '''
+    _range = None
+    try:
+        start_date_str, end_date_str = map(str.strip, term.split("TO"))
+        start_date = datetime.strptime(start_date_str,
+            "%Y%m%d%H%M").strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_date = datetime.strptime(end_date_str,
+            "%Y%m%d%H%M").strftime("%Y-%m-%dT%H:%M:%SZ")
+        _range = {"gte": start_date, "lte": end_date}
+    except Exception as ex:
+        print("EX:", ex)
+        raise ex
+    #return Q("range", submitted_date=_range) # this is more like last updated.
+    return Q("range", submitted_date_first=_range)
 
 def _query_announcement_date(term: str) -> Optional[Q]:
     """
@@ -519,5 +542,6 @@ SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = {
     "orcid": orcid_query,
     "author_id": author_id_query,
     "license": _license_query,
+    "submittedDate": _query_submittedDate,
     "all": _query_all_fields,
 }

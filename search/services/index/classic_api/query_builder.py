@@ -10,6 +10,7 @@ from search.services.index.prepare import (
 )
 
 FIELD_TERM_MAPPING: Dict[Field, Callable[[str], Q]] = {
+    Field.Abstract: SEARCH_FIELDS["abstract"],
     Field.Author: SEARCH_FIELDS["author"],
     Field.Comment: SEARCH_FIELDS["comments"],
     Field.Identifier: SEARCH_FIELDS["paper_id"],
@@ -17,6 +18,7 @@ FIELD_TERM_MAPPING: Dict[Field, Callable[[str], Q]] = {
     Field.ReportNumber: SEARCH_FIELDS["report_num"],
     # Expects to match on primary or secondary category.
     Field.SubjectCategory: query_any_subject_exact_raw,
+    Field.SubmittedDate : SEARCH_FIELDS["submittedDate"],
     Field.Title: SEARCH_FIELDS["title"],
     Field.All: SEARCH_FIELDS["all"],
 }

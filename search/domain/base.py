@@ -166,6 +166,7 @@ class Field(str, Enum):
     SubjectCategory = "cat"
     ReportNumber = "rn"
     Identifier = "id"
+    SubmittedDate = "submittedDate"
     All = "all"
 
 
