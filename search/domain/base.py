@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Optional, List, Dict, Union, Tuple
 from dataclasses import dataclass, field, asdict as _asdict
 
-from mypy_extensions import TypedDict
+from typing import TypedDict
 
 from search import consts
 
