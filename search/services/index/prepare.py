@@ -148,6 +148,8 @@ def _query_submittedDate(term: str, operator: str = "and") -> Q:
         print("EX:", ex)
         raise ex
     #return Q("range", submitted_date=_range) # this is more like last updated.
+    #return Q("range", submitted_date_latest=_range)
+    #return Q("range", submitted_date_all=_range)
     return Q("range", submitted_date_first=_range)
 
 def _query_announcement_date(term: str) -> Optional[Q]:
