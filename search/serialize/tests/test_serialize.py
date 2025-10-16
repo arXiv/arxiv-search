@@ -3,6 +3,7 @@
 import os
 import json
 from unittest import TestCase, mock
+import pytest
 
 import jsonschema
 
@@ -28,6 +29,7 @@ class TestSerializeJSONDocument(TestCase):
     @mock.patch(
         f"search.serialize.json.url_for", lambda *a, **k: "http://f/12"
     )
+    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
     @mock.patch(f"search.serialize.json.jsonify", mock_jsonify)
     def test_to_json(self):
         """Just your run-of-the-mill arXiv document generates valid JSON."""
@@ -59,6 +61,7 @@ class TestSerializeJSONDocumentSet(TestCase):
     @mock.patch(
         f"search.serialize.json.url_for", lambda *a, **k: "http://f/12"
     )
+    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
     @mock.patch(f"search.serialize.json.jsonify", mock_jsonify)
     def test_to_json(self):
         """Just your run-of-the-mill arXiv document generates valid JSON."""
