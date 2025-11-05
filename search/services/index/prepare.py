@@ -145,12 +145,8 @@ def _query_submittedDate(term: str, operator: str = "and") -> Q:
             "%Y%m%d%H%M").strftime("%Y-%m-%dT%H:%M:%SZ")
         _range = {"gte": start_date, "lte": end_date}
     except Exception as ex:
-        print("EX:", ex)
         raise ex
-    #return Q("range", submitted_date=_range) # this is more like last updated.
-    #return Q("range", submitted_date_latest=_range)
-    #return Q("range", submitted_date_all=_range)
-    return Q("range", submitted_date_first=_range)
+    return Q("range", submitted_date_first=_range) # submitted current
 
 def _query_announcement_date(term: str) -> Optional[Q]:
     """
@@ -225,6 +221,15 @@ def query_secondary_exact(classification: Classification) -> Q:
                 if getattr(classification, field, None) is not None
             ],
         ),
+    )
+
+
+def query_legacy_cat(term: str) -> Q:
+    #if has_wildcard(term):
+    return Q("wildcard", primary_classification__category__id=term) | Q(
+        "nested",
+        path="secondary_classification",
+        query=Q("wildcard", secondary_classification__category__id=term),
     )
 
 

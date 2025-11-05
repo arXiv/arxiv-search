@@ -162,6 +162,7 @@ class Field(str, Enum):
     Author = "au"
     Abstract = "abs"
     Comment = "co"
+    DOI = "doi"
     JournalReference = "jr"
     SubjectCategory = "cat"
     ReportNumber = "rn"

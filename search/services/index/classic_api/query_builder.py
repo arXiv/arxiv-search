@@ -7,17 +7,18 @@ from search.domain import Phrase, Term, Field, Operator
 from search.services.index.prepare import (
     SEARCH_FIELDS,
     query_any_subject_exact_raw,
+    query_legacy_cat,
 )
 
 FIELD_TERM_MAPPING: Dict[Field, Callable[[str], Q]] = {
     Field.Abstract: SEARCH_FIELDS["abstract"],
     Field.Author: SEARCH_FIELDS["author"],
     Field.Comment: SEARCH_FIELDS["comments"],
+    Field.DOI: SEARCH_FIELDS["doi"],
     Field.Identifier: SEARCH_FIELDS["paper_id"],
     Field.JournalReference: SEARCH_FIELDS["journal_ref"],
     Field.ReportNumber: SEARCH_FIELDS["report_num"],
-    # Expects to match on primary or secondary category.
-    Field.SubjectCategory: query_any_subject_exact_raw,
+    Field.SubjectCategory: query_legacy_cat,
     Field.SubmittedDate : SEARCH_FIELDS["submittedDate"],
     Field.Title: SEARCH_FIELDS["title"],
     Field.All: SEARCH_FIELDS["all"],
