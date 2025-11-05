@@ -356,7 +356,7 @@ def group_search(args: MultiDict, groups_or_archives: str) -> Response:
             # group on the form.
             fld = dict(forms.ClassificationForm.PHYSICS_ARCHIVES).get(archive)
             if fld is None:
-                logger.warn(f"Invalid archive shortcut: {fld}")
+                logger.warning(f"Invalid archive shortcut: {fld}")
                 continue
             args["classification-physics"] = True
             # If there is more than one physics archives, only the last one

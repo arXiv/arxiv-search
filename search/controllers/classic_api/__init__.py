@@ -19,6 +19,7 @@ from search.domain import (
     DocumentSet,
     ClassicAPIQuery,
     ClassicSearchResponseData,
+    adapt_query,
 )
 
 logger = logging.getLogger(__name__)
@@ -135,7 +136,24 @@ def query(
             link="https://arxiv.org/help/api/user-manual#sort",
         )
 
+
+    is_raw = params.get("raw") == '1'
+    original_search_query = f"{search_query}"
+    if not is_raw:
+        search_query = adapt_query(search_query)
+
+    #print("search/controllers/classic_api.__init__.query(), try classic_query = ClassicAPIQuery1")
+    #print(f"    - sort by: {sort_by}")
+    #print(f"    - sort dir: {sort_direction}")
+    #print(f"    - ids: {id_list}")
+    #print(f"    - max: {max_results}")
+    #print(f"    - start: {start}")
+    #print(f"    - raw: {is_raw}")
+    #print(f"    - original_search_query: {original_search_query}")
+    #print(f"    - search_query: {search_query}")
+
     try:
+
         classic_query = ClassicAPIQuery(
             order=SortOrder(by=sort_by, direction=sort_direction),
             search_query=search_query,

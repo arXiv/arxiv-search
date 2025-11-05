@@ -4,6 +4,7 @@ import os
 import json
 from http import HTTPStatus
 from unittest import TestCase, mock, skip
+import pytest
 
 import jsonschema
 
@@ -25,6 +26,7 @@ class TestAPISearchRequests(TestCase):
         with open(self.SCHEMA_PATH) as f:
             self.schema = json.load(f)
 
+    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
     @mock.patch(f"{factory.__name__}.api.api")
     def test_api_search(self, mock_controller):
         document = mocks.document()
@@ -50,6 +52,7 @@ class TestAPISearchRequests(TestCase):
         for field in get_required_fields():
             self.assertIn(field, data["results"][0])
 
+    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
     @mock.patch(f"{factory.__name__}.api.api")
     def test_api_search_limit_fields(self, mock_controller):
         document = mocks.document()
@@ -79,6 +82,7 @@ class TestAPISearchRequests(TestCase):
             set(data["results"][0].keys()), set(query.include_fields)
         )
 
+    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
     @mock.patch(f"{factory.__name__}.api.api")
     def test_paper_retrieval(self, mock_controller):
         """Test single-paper retrieval."""
