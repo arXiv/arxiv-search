@@ -4,7 +4,7 @@ from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 
 from dataclasses import dataclass, field
-from mypy_extensions import TypedDict
+from typing import TypedDict
 
 from search.utils import utc_now
 from search.domain.base import Classification, ClassificationList

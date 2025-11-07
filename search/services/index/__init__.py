@@ -197,10 +197,10 @@ class SearchSession():
             "verify_certs": verify,
         }
         self.conn_extra = extra
-        if not use_ssl:
-            warnings.warn(f"TLS is disabled, using port {port}")
-        if host == "localhost":
-            warnings.warn(f"Using ES at {host}:{port}; not OK for production")
+        #if not use_ssl:
+        #    warnings.warning(f"TLS is disabled, using port {port}")
+        #if host == "localhost":
+        #   warnings.warning(f"Using ES at {host}:{port}; not OK for production")
 
     def new_connection(self) -> Elasticsearch:
         """Create a new :class:`.Elasticsearch` connection."""

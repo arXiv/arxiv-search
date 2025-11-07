@@ -137,8 +137,14 @@ QUERY_PARSER = Lark(
 def parse_classic_query(query: str) -> Optional[Phrase]:
     """Parse the classic query."""
     try:
-        return QUERY_PARSER.parse(query)  # type:ignore
-    except Exception:
+        #print()
+        #print("search/domain/classic_api/query_parser.py")
+        #print(f"query: {query}")
+        result = QUERY_PARSER.parse(query)  # type:ignore
+        #print(f"query result: {result}")
+        return result
+    except Exception as ex:
+        #print(f"QUERY Exception: {ex}")
         raise BadRequest(f"Invalid query string: '{query}'")
     return
 

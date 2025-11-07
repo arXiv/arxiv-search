@@ -6,7 +6,7 @@ from collections import defaultdict
 from typing import Tuple, Dict, Any, Optional, List, Union
 
 import dateutil.parser
-from mypy_extensions import TypedDict
+from typing import TypedDict
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest, NotFound
 

@@ -28,6 +28,11 @@ TEST_PARSE_OK_CASES: List[Case] = [
         phrase=Term(Field.Author, ""),
     ),
     Case(
+        message="Search all fields.",
+        query='all:abc',
+        phrase=Term(Field.All, 'abc'),
+    ),
+    Case(
         message="Empty query in conjunct.",
         query='all:electron AND au:""',
         phrase=(
@@ -42,6 +47,11 @@ TEST_PARSE_OK_CASES: List[Case] = [
         phrase=Term(Field.Author, "copernicus"),
     ),
     Case(
+        message="Simple abstract query.",
+        query='abs:copernicus',
+        phrase=Term(Field.Abstract, "copernicus"),
+    ),
+    Case(
         message="Simple query with quotations.",
         query='ti:"dark matter"',
         phrase=Term(Field.Title, "dark matter"),
@@ -50,6 +60,11 @@ TEST_PARSE_OK_CASES: List[Case] = [
         message="Simple query with quotations and extra spacing.",
         query='ti:"  dark matter    "',
         phrase=Term(Field.Title, "dark matter"),
+    ),
+    Case(
+        message="Search date ranges.",
+        query='submittedDate:"202301010600 TO 202401010600"',
+        phrase=Term(Field.SubmittedDate, '202301010600 TO 202401010600'),
     ),
     Case(
         message="Simple conjunct query.",

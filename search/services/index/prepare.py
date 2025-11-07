@@ -126,6 +126,27 @@ def _query_doi(term: str, operator: str = "and") -> Q:
         return Q("wildcard", doi={"value": term.lower()})
     return Q("match", doi={"query": term, "operator": operator})
 
+def _query_submittedDate(term: str, operator: str = "and") -> Q:
+    ''' The API provides one date filter, `submittedDate`,
+        that allow you to select data within a given date
+        range of when the data was submitted to arXiv.
+        The expected format is `[YYYYMMDDTTTT+TO+YYYYMMDDTTTT]`
+        were the `TTTT` is provided in 24 hour time to the minute,
+        in GMT. We could construct the following query using `submittedDate`.
+        https://export.arxiv.org/api/query?search_query=au:del_maestro+AND+
+            submittedDate:[202301010600+TO+202401010600]>
+    '''
+    _range = None
+    try:
+        start_date_str, end_date_str = map(str.strip, term.split("TO"))
+        start_date = datetime.strptime(start_date_str,
+            "%Y%m%d%H%M").strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_date = datetime.strptime(end_date_str,
+            "%Y%m%d%H%M").strftime("%Y-%m-%dT%H:%M:%SZ")
+        _range = {"gte": start_date, "lte": end_date}
+    except Exception as ex:
+        raise ex
+    return Q("range", submitted_date_first=_range) # submitted current
 
 def _query_announcement_date(term: str) -> Optional[Q]:
     """
@@ -200,6 +221,15 @@ def query_secondary_exact(classification: Classification) -> Q:
                 if getattr(classification, field, None) is not None
             ],
         ),
+    )
+
+
+def query_legacy_cat(term: str) -> Q:
+    #if has_wildcard(term):
+    return Q("wildcard", primary_classification__category__id=term) | Q(
+        "nested",
+        path="secondary_classification",
+        query=Q("wildcard", secondary_classification__category__id=term),
     )
 
 
@@ -505,19 +535,20 @@ def limit_by_classification(
 
 
 SEARCH_FIELDS: Dict[str, Callable[[str], Q]] = {
-    "author": author_query,
-    "title": _query_title,
     "abstract": _query_abstract,
-    "comments": _query_comments,
-    "journal_ref": _query_journal_ref,
-    "report_num": _query_report_num,
     "acm_class": _query_acm_class,
-    "msc_class": _query_msc_class,
+    "all": _query_all_fields,
+    "author": author_query,
+    "author_id": author_id_query,
+    "comments": _query_comments,
     "cross_list_category": _query_secondary,
     "doi": _query_doi,
-    "paper_id": _query_paper_id,
-    "orcid": orcid_query,
-    "author_id": author_id_query,
+    "journal_ref": _query_journal_ref,
     "license": _license_query,
-    "all": _query_all_fields,
+    "msc_class": _query_msc_class,
+    "orcid": orcid_query,
+    "paper_id": _query_paper_id,
+    "report_num": _query_report_num,
+    "submittedDate": _query_submittedDate,
+    "title": _query_title,
 }

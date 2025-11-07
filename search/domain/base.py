@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Optional, List, Dict, Union, Tuple
 from dataclasses import dataclass, field, asdict as _asdict
 
-from mypy_extensions import TypedDict
+from typing import TypedDict
 
 from search import consts
 
@@ -162,10 +162,12 @@ class Field(str, Enum):
     Author = "au"
     Abstract = "abs"
     Comment = "co"
+    DOI = "doi"
     JournalReference = "jr"
     SubjectCategory = "cat"
     ReportNumber = "rn"
     Identifier = "id"
+    SubmittedDate = "submittedDate"
     All = "all"
 
 

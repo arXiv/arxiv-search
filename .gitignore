@@ -1,3 +1,8 @@
+tests/data/example_fail*
+tests/data/example_good*
+tests/data/example_err_res*
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
