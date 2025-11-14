@@ -266,8 +266,8 @@ class SortBy(str, Enum):
         """Convert to ElasticSearch DSL."""
         return {
             SortBy.relevance: "_score",
-            SortBy.last_updated_date: "updated_date",
-            SortBy.submitted_date: "submitted_date",
+            SortBy.last_updated_date: "submitted_date",
+            SortBy.submitted_date: "submitted_date_first",
         }[self]
 
 

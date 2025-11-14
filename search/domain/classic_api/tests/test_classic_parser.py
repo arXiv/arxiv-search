@@ -168,6 +168,18 @@ TEST_PARSE_OK_CASES: List[Case] = [
             ),
         ),
     ),
+    Case(
+        message="Categories with ORs",
+        query=(
+            "(cat:a OR cat:b)"
+        ),
+        phrase=(
+            Operator.OR,
+            Term(Field.SubjectCategory, "a"),
+            Term(Field.SubjectCategory, "b"),
+        ),
+    ),
+
 ]
 
 TEST_PARSE_ERROR_CASES: List[Case] = [
