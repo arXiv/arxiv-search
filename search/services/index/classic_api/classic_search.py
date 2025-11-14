@@ -57,6 +57,4 @@ def classic_search(search: Search, query: ClassicAPIQuery) -> Search:
         # If no id_list, only display current results.
         search = search.filter("term", is_current=True)
 
-    if not isinstance(query, SortOrder):
-        return search.query(dsl_query)
     return search.query(dsl_query).sort(*query.order.to_es())  # type: ignore

@@ -178,27 +178,27 @@ class TestClassicAPISearchRequests(TestCase):
         # Submitted date/Publication date
         sort_order = domain.SortOrder(by=domain.SortBy.submitted_date)
         self.assertEqual(
-            sort_order.to_es(), [{"submitted_date": {"order": "desc"}}]
+            sort_order.to_es(), [{"submitted_date_first": {"order": "desc"}}]
         )
         sort_order = domain.SortOrder(
             by=domain.SortBy.submitted_date,
             direction=domain.SortDirection.ascending,
         )
         self.assertEqual(
-            sort_order.to_es(), [{"submitted_date": {"order": "asc"}}]
+            sort_order.to_es(), [{"submitted_date_first": {"order": "asc"}}]
         )
 
         # Last update date/Update date
         sort_order = domain.SortOrder(by=domain.SortBy.last_updated_date)
         self.assertEqual(
-            sort_order.to_es(), [{"updated_date": {"order": "desc"}}]
+            sort_order.to_es(), [{"submitted_date": {"order": "desc"}}]
         )
         sort_order = domain.SortOrder(
             by=domain.SortBy.last_updated_date,
             direction=domain.SortDirection.ascending,
         )
         self.assertEqual(
-            sort_order.to_es(), [{"updated_date": {"order": "asc"}}]
+            sort_order.to_es(), [{"submitted_date": {"order": "asc"}}]
         )
 
     def test_invalid_arxiv_id(self):

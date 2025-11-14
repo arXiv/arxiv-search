@@ -578,3 +578,17 @@ curl -is /api/query\?id_list\=1212.1873 | grep link
 # Feedgen seems to be running rss instead of atom code.
 # Fix: revert 1.0.0 -> 0.9.0
 ```
+
+#### Dates
+```
+# This isn't sorting:
+curl -is http://localhost:8080/api/query\?search_query\=ti:pineapple\&sortBy\=submittedDate | gi '<publish
+
+# Looks ok now.
+
+# Published is the announced date of version 1
+curl -is http://localhost:8080/api/query\?search_query\=ti:pineapple\&sortBy\=submittedDate | gi '<published'
+
+# Last updated is the announced date of the current version
+curl -is http://localhost:8080/api/query\?search_query\=ti:pineapple\&sortBy\=lastUpdatedDate | gi '<updated'
+```
