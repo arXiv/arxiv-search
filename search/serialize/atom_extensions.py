@@ -227,6 +227,7 @@ class ArXivEntryExtension(BaseEntryExtension):
                 doi_link_element = etree.SubElement(entry, "link")
                 doi_link_element.set("rel", "related")
                 doi_link_element.set("href", f"https://doi.org/{doi}")
+                doi_link_element.set("title", "doi")
 
         return entry
 

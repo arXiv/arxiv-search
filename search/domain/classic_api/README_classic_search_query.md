@@ -537,3 +537,44 @@ cat META-INF/MANIFEST.MF | grep Implementation-Version
     Implementation-Version: 2.3.2 652650 - buschmi - 2008-05-01 13:30:57
 ```
 
+## Some more changes on 2025-11-12
+- https://groups.google.com/a/arxiv.org/g/api
+
+#### updated element is created for the most recent paper_version
+```
++-----------+---------+---------------------+---------------------+
+| paper_id  | version | created             | updated             |
++-----------+---------+---------------------+---------------------+
+| 1212.1873 |       1 | 2012-12-09 10:12:37 | 2012-12-11 01:01:49 |
+| 1212.1873 |       2 | 2012-12-13 16:03:09 | 2012-12-14 01:02:40 |
+| 1212.1873 |       3 | 2012-12-19 15:36:05 | 2012-12-20 01:02:52 |
+| 1212.1873 |       4 | 2013-01-03 21:33:39 | 2013-01-07 01:00:28 |
+| 1212.1873 |       5 | 2013-07-24 09:15:36 | 2013-07-25 00:04:29 |
+| 1212.1873 |       6 | 2014-01-29 08:13:51 | 2014-09-23 00:12:27 |
+
+# Wrong one:
+curl -si http://localhost:8080/api/query\?id_list\=1212.1873 | grep updated
+    <updated>2014-09-22T20:12:27Z</updated>
+Instead send current submitted date:
+    <updated>2014-01-29T03:13:51Z</updated>
+
+# Test new submission:
+| paper_id   | version | created             | updated             |
+| 2511.07430 |       1 | 2025-10-30 05:59:48 | 2025-11-12 01:00:22 |
+curl -si http://localhost:8080/api/query\?id_list\=2511.07430 | gi updated
+    <updated>2025-10-30T01:59:48Z</updated>
+```
+
+#### Link element attrs
+```
+# The previous version:
+curl -is /api/query\?id_list\=1212.1873 | grep link
+  <link href="http://arxiv.org/api/query?search_query%3D%26id_list%3D1212.1873%26start%3D0%26max_results%3D10" rel="self" type="application/atom+xml"/>
+    <link title="doi" href="http://dx.doi.org/10.4007/annals.2014.180.2.7" rel="related"/>
+    <link href="http://arxiv.org/abs/1212.1873v6" rel="alternate" type="text/html"/>
+    <link title="pdf" href="http://arxiv.org/pdf/1212.1873v6" rel="related" type="application/pdf"/>
+
+# The attribs: (title, rel, type) were being lost from the link element.
+# Feedgen seems to be running rss instead of atom code.
+# Fix: revert 1.0.0 -> 0.9.0
+```

@@ -73,9 +73,9 @@ class AtomXMLSerializer(BaseSerializer):
         )
         entry.updated(
             to_utc(
-                doc["updated_date"]
-                or doc["modified_date"]
-                or doc["submitted_date"]
+                #doc["updated_date"]
+                #doc["modified_date"]
+                doc["submitted_date"]
             )
         )
         entry.link(
