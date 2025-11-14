@@ -563,6 +563,18 @@ Instead send current submitted date:
 | 2511.07430 |       1 | 2025-10-30 05:59:48 | 2025-11-12 01:00:22 |
 curl -si http://localhost:8080/api/query\?id_list\=2511.07430 | gi updated
     <updated>2025-10-30T01:59:48Z</updated>
+```
 
+#### Link element attrs
+```
+# The previous version:
+curl -is /api/query\?id_list\=1212.1873 | grep link
+  <link href="http://arxiv.org/api/query?search_query%3D%26id_list%3D1212.1873%26start%3D0%26max_results%3D10" rel="self" type="application/atom+xml"/>
+    <link title="doi" href="http://dx.doi.org/10.4007/annals.2014.180.2.7" rel="related"/>
+    <link href="http://arxiv.org/abs/1212.1873v6" rel="alternate" type="text/html"/>
+    <link title="pdf" href="http://arxiv.org/pdf/1212.1873v6" rel="related" type="application/pdf"/>
 
+# The attribs: (title, rel, type) were being lost from the link element.
+# Feedgen seems to be running rss instead of atom code.
+# Fix: revert 1.0.0 -> 0.9.0
 ```
