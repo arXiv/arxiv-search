@@ -19,12 +19,16 @@ logger = logging.getLogger(__name__)
 blueprint = Blueprint("classic_api", __name__, url_prefix="/")
 
 
-@blueprint.route("/api/query", methods=["GET"])
+@blueprint.route("/api/query", methods=["GET", "POST"])
 # @scoped(required=scopes.READ_PUBLIC)
 def query() -> Response:
     """Provide the main query endpoint."""
     logger.debug("Got query: %s", request.args)
-    data, status_code, headers = classic_api.query(request.args)
+    if request.method == "POST":
+        args = request.form
+    else:
+        args = request.args
+    data, status_code, headers = classic_api.query(args)
     response_data = serialize.as_atom(  # type: ignore
         data.results, query=data.query
     )  # type: ignore
