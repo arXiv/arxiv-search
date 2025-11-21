@@ -587,8 +587,22 @@ curl -is http://localhost:8080/api/query\?search_query\=ti:pineapple\&sortBy\=su
 # Looks ok now.
 
 # Published is the announced date of version 1
-curl -is http://localhost:8080/api/query\?search_query\=ti:pineapple\&sortBy\=submittedDate | gi '<published'
+curl -is https://export.arxiv.org/api/query\?search_query\=ti:pineapple\&sortBy\=submittedDate | gi '<published'
 
 # Last updated is the announced date of the current version
-curl -is http://localhost:8080/api/query\?search_query\=ti:pineapple\&sortBy\=lastUpdatedDate | gi '<updated'
+curl -is https://export.arxiv.org/api/query\?search_query\=ti:pineapple\&sortBy\=lastUpdatedDate | gi '<updated'
+```
+
+#### (cat:XXX OR cat:YYY OR cat:ZZZ OR cat:WWW)
+```
+curl -is http://localhost:8080/api/query\?search_query\=cat:econ.EM+OR+econ.TH
+```
+
+```
+https://export.arxiv.org/api/query?id_list=2511.00104,2511.00147
+```
+
+#### Get/post
+```
+curl -X POST http://localhost:8080/api/query -d "search_query=ti:pineappl"
 ```
