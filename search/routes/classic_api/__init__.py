@@ -13,6 +13,7 @@ from search import serialize
 from search.controllers import classic_api
 from search.routes.consts import ATOM_XML
 from search.routes.classic_api import exceptions
+from urllib.parse import parse_qs
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +24,16 @@ blueprint = Blueprint("classic_api", __name__, url_prefix="/")
 # @scoped(required=scopes.READ_PUBLIC)
 def query() -> Response:
     """Provide the main query endpoint."""
-    logger.debug("Got query: %s", request.args)
     if request.method == "POST":
-        args = request.form
+        ct = request.headers.get("Content-Type", "")
+        if not ct:
+            raw = request.get_data(as_text=True)
+            args = {k: v[0] for k, v in parse_qs(raw).items()}
+        else:
+            args = request.form
     else:
         args = request.args
+        #logger.debug("Got query: %s", request.args)
     data, status_code, headers = classic_api.query(args)
     response_data = serialize.as_atom(  # type: ignore
         data.results, query=data.query
