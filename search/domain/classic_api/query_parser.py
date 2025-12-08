@@ -55,13 +55,16 @@ class QueryTransformer(Transformer):
         return Field(str(f))
 
     def search_string(self, tokens: List[Token]) -> str:
-        """Un-quote a search string and strips it of whitespace.
+        """Un-quote a search string and strips it of whitespace, then re-quote.
 
         This is the actual search string entered after the Field qualifier.
         """
         (s,) = tokens
         if s.startswith('"') and s.endswith('"'):
             s = s[1:-1]
+            s = s.strip()
+            if len(s) > 0:
+                s = f'"{s}"'
         return s.strip() or ""
 
     def term(self, tokens: List[Token]) -> Term:
@@ -152,11 +155,8 @@ def parse_classic_query(query: str) -> Optional[Phrase]:
 def phrase_to_query_string(phrase: Phrase, depth: int = 0) -> Optional[str]:
     """Convert a Phrase to a query string."""
     if isinstance(phrase, Term):
-        return (
-            f"{phrase.field}:{phrase.value}"
-            if re.search(r"\s", phrase.value) is None
-            else f'{phrase.field}:"{phrase.value}"'
-        )
+        result = f"{phrase.field}:{phrase.value}"
+        return result
     elif len(phrase) == 2:
         unary_op, exp = phrase[:2]
         value = f"{unary_op.value} {phrase_to_query_string(exp, depth+1)}"
