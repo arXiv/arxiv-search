@@ -155,6 +155,7 @@ def fix_author_underscores(tokens):
             if (
                 i-1 >= 0 and
                 tokens[i-1][0] == PREFIX and
+                tokens[i-1][1] == "au:" and
                 tokens[i][0] == TEXT
             ):
                 s = tokens[1][1]

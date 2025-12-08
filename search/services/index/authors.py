@@ -141,6 +141,8 @@ def part_query(term: str, path: str = "authors") -> Q:
 
 def string_query(term: str, path: str = "authors", operator: str = "AND") -> Q:
     """Build a query that handles query strings within a single author."""
+    if term.startswith('"') and term.endswith('"'):
+        term = term[1:-1]
     q = Q(
         "query_string",
         fields=[f"{path}.full_name"],
@@ -192,7 +194,7 @@ def author_query(term: str, operator: str = "and") -> Q:
         logger.debug(f"Contains literal: {term}")
 
         # Apply literal parts of the query separately.
-        return reduce(
+        res = reduce(
             iand if operator.upper() == "AND" else ior,
             [
                 (
@@ -203,6 +205,7 @@ def author_query(term: str, operator: str = "and") -> Q:
                 if part.strip()
             ],
         )
+        return res
 
     term = term.replace('"', "")  # Just ignore unbalanced quotes.
 

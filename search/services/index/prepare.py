@@ -121,6 +121,8 @@ def _query_msc_class(term: str, operator: str = "and") -> Q:
 
 
 def _query_doi(term: str, operator: str = "and") -> Q:
+    if term.startswith('"') and term.endswith('"'):
+        term = term[1:-1]
     value, wildcard = wildcard_escape(term)
     if wildcard:
         return Q("wildcard", doi={"value": term.lower()})
@@ -138,6 +140,8 @@ def _query_submittedDate(term: str, operator: str = "and") -> Q:
     '''
     _range = None
     try:
+        if term.startswith('"') and term.endswith('"'):
+             term = term[1:-1]
         start_date_str, end_date_str = map(str.strip, term.split("TO"))
         start_date = datetime.strptime(start_date_str,
             "%Y%m%d%H%M").strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -170,6 +174,8 @@ def _query_primary(term: str, operator: str = "and") -> Q:
     # This now uses the "primary_classification.combined" field, which is
     # isomorphic to the document-level "combined" field. So we get
     # straightforward hit highlighting and a more consistent behavior.
+    if term.startswith('"') and term.endswith('"'):
+        term = term[1:-1]
     return Q(
         "match",
         **{
@@ -226,6 +232,9 @@ def query_secondary_exact(classification: Classification) -> Q:
 
 def query_legacy_cat(term: str) -> Q:
     #if has_wildcard(term):
+
+    if term.startswith('"') and term.endswith('"'):
+        term = term[1:-1]
     return Q("wildcard", primary_classification__category__id=term) | Q(
         "nested",
         path="secondary_classification",

@@ -54,17 +54,17 @@ TEST_PARSE_OK_CASES: List[Case] = [
     Case(
         message="Simple query with quotations.",
         query='ti:"dark matter"',
-        phrase=Term(Field.Title, "dark matter"),
+        phrase=Term(Field.Title, '"dark matter"'),
     ),
     Case(
         message="Simple query with quotations and extra spacing.",
         query='ti:"  dark matter    "',
-        phrase=Term(Field.Title, "dark matter"),
+        phrase=Term(Field.Title, '"dark matter"'),
     ),
     Case(
         message="Search date ranges.",
         query='submittedDate:"202301010600 TO 202401010600"',
-        phrase=Term(Field.SubmittedDate, '202301010600 TO 202401010600'),
+        phrase=Term(Field.SubmittedDate, '"202301010600 TO 202401010600"'),
     ),
     Case(
         message="Simple conjunct query.",
@@ -81,7 +81,7 @@ TEST_PARSE_OK_CASES: List[Case] = [
         phrase=(
             Operator.AND,
             Term(Field.Author, "del_maestro"),
-            Term(Field.Title, "dark matter"),
+            Term(Field.Title, '"dark matter"'),
         ),
     ),
     Case(
@@ -90,7 +90,7 @@ TEST_PARSE_OK_CASES: List[Case] = [
         phrase=(
             Operator.AND,
             Term(Field.Author, "del_maestro"),
-            Term(Field.Title, "dark matter"),
+            Term(Field.Title, '"dark matter"'),
         ),
     ),
     Case(
@@ -214,7 +214,7 @@ TEST_SERIALIZE_CASES: List[Case] = [
     Case(
         message="Simple query with quotations.",
         query='ti:"dark matter"',
-        phrase=Term(Field.Title, "dark matter"),
+        phrase=Term(Field.Title, '"dark matter"'),
     ),
     Case(
         message="Simple conjunct query.",
