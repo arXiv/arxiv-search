@@ -34,7 +34,8 @@ def term_to_query(term: Term) -> Q:
     :module:`.api`
     """
 
-    return Q() if term.is_empty else FIELD_TERM_MAPPING[term.field](term.value)
+    res = Q() if term.is_empty else FIELD_TERM_MAPPING[term.field](term.value)
+    return res
 
 
 def query_builder(phrase: Phrase) -> Q:
