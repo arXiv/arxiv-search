@@ -24,10 +24,33 @@
   radio#cf-customfield_11400 {
     display: none;
   }
+  /* Render the spinout .ds-site-footer standalone / full-bleed. search extends the
+     legacy base, whose bare wrapping <footer> (in base/base.html, outside any
+     overridable block — so it can't be removed from here) is styled by
+     arxivstyle.css with a grey background (hsl(0,0%,95%)) + 1em 2em padding,
+     boxing our warm-wash footer inside a second grey band. display:contents drops
+     the wrapper's box entirely (cleaner than zeroing individual properties) so
+     .ds-site-footer renders in its place; it inherits flex-shrink:0 from the same
+     legacy `footer` rule, so the sticky footer still works. Search-specific
+     legacy-base integration; the shared chrome CSS stays byte-identical to the SSOT. */
+  body > footer {
+    display: contents;
+  }
   </style>
 {% endblock addl_head %}
 
 {% block header %}
+{#- Spinout announcement banner. arxiv-base renders this via its own
+    {% block announcement %} above the header; search extends an OLD base with no
+    such block, so the .ds-announcement markup is inlined here at the top of the
+    header override. Dismissal + CSS + smileybones asset are already in the
+    vendored chrome; asset path is search's own static, not base.static. -#}
+<div class="ds-announcement" id="announcement-banner" role="region" aria-label="Announcement" data-banner-name="spinout-nonprofit">
+  <img class="ds-announcement-glyph" src="{{ url_for('static', filename='images/icons/smileybones-small.svg') }}" alt="" aria-hidden="true">
+  <span class="ds-announcement-text">arXiv is now an independent nonprofit!</span>
+  <a class="ds-announcement-link" href="https://info.arxiv.org/about">Learn more</a>
+  <button type="button" class="ds-announcement-close" aria-label="Dismiss announcement">&times;</button>
+</div>
 <header class="ds-site-header">
   <a href="https://arxiv.org/" class="ds-site-header-logo" aria-label="archive home">
     <img src="{{ url_for('static', filename='images/arxiv-logo-primary-light.svg') }}" alt="archive">
