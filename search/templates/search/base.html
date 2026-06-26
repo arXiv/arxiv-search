@@ -1,17 +1,19 @@
 {%- extends "base/base.html" %}
 
-{#- ARXIVCE-4425 (search): VENDORED spinout chrome. arxiv-search pins arxiv-base
-    ~3 years behind, so it cannot inherit the new base/header.html + base/footer.html.
-    Until search catches up to a chrome-bearing arxiv-base, it overrides the header
-    and footer blocks here and serves the chrome assets from its OWN static dir.
-    Markup mirrors base/templates/base/{header,footer}.html (.ds-* design-system
-    chrome); cross-app links are absolute so they resolve regardless of search's
-    URL registry. Drop this override once search consumes a chrome-bearing base. -#}
+{#- ARXIVCE-4426 (search): spinout chrome. arxiv-search runs an arxiv-base that
+    predates the new base/header.html + base/footer.html and can't be upgraded on
+    short notice, so it overrides the header/footer blocks here. The chrome assets
+    are NOT vendored: CSS/JS/images load from the shared, versioned base-static
+    route (config.BASE_STATIC — per-env host, prod default / dev override), so the
+    bytes stay byte-identical to the arxiv-base SSOT with zero local copy. Markup
+    mirrors base/templates/base/{header,footer}.html (.ds-* design-system chrome);
+    cross-app links are absolute. Drop this override once search consumes a
+    chrome-bearing base. -#}
 
 {% block addl_head %}
   <script>document.documentElement.classList.add('js');</script>
-  <link rel="stylesheet" type="text/css" media="screen" href="{{ url_for('static', filename='css/arxiv-header-footer.css') }}?v=20260624c" />
-  <script defer src="{{ url_for('static', filename='js/arxiv-header.js') }}?v=20260624c"></script>
+  <link rel="stylesheet" type="text/css" media="screen" href="{{ config.BASE_STATIC }}/css/arxiv-header-footer.css?v=20260624c" />
+  <script defer src="{{ config.BASE_STATIC }}/js/arxiv-header.js?v=20260624c"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma-tooltip.min.css')}}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css')}}" />
   <script
@@ -46,14 +48,14 @@
     header override. Dismissal + CSS + smileybones asset are already in the
     vendored chrome; asset path is search's own static, not base.static. -#}
 <div class="ds-announcement" id="announcement-banner" role="region" aria-label="Announcement" data-banner-name="spinout-nonprofit">
-  <img class="ds-announcement-glyph" src="{{ url_for('static', filename='images/icons/smileybones-small.svg') }}" alt="" aria-hidden="true">
+  <img class="ds-announcement-glyph" src="{{ config.BASE_STATIC }}/images/icons/smileybones-small.svg" alt="" aria-hidden="true">
   <span class="ds-announcement-text">arXiv is now an independent nonprofit!</span>
   <a class="ds-announcement-link" href="https://info.arxiv.org/about">Learn more</a>
   <button type="button" class="ds-announcement-close" aria-label="Dismiss announcement">&times;</button>
 </div>
 <header class="ds-site-header">
   <a href="https://arxiv.org/" class="ds-site-header-logo" aria-label="archive home">
-    <img src="{{ url_for('static', filename='images/arxiv-logo-primary-light.svg') }}" alt="archive">
+    <img src="{{ config.BASE_STATIC }}/images/arxiv-logo-primary-light.svg" alt="archive">
   </a>
   <button type="button" id="ds-nav-toggle" class="ds-site-header-nav-toggle"
     aria-label="Open menu" aria-controls="ds-site-header-nav" aria-expanded="false">
@@ -122,8 +124,8 @@
     <div class="ds-site-footer-funders" aria-label="Major funders">
       <div class="ds-site-footer-funders-label">Major funding support from</div>
       <div class="ds-site-footer-funders-logos">
-        <img class="ds-funder-logo" src="{{ url_for('static', filename='images/funders/simons-foundation.png') }}" alt="Simons Foundation">
-        <img class="ds-funder-logo" src="{{ url_for('static', filename='images/funders/schmidt-sciences.png') }}" alt="Schmidt Sciences">
+        <img class="ds-funder-logo" src="{{ config.BASE_STATIC }}/images/funders/simons-foundation.png" alt="Simons Foundation">
+        <img class="ds-funder-logo" src="{{ config.BASE_STATIC }}/images/funders/schmidt-sciences.png" alt="Schmidt Sciences">
       </div>
     </div>
   </div>
