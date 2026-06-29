@@ -119,3 +119,6 @@ temp/
 to_index/
 
 .pytest_cache/
+
+# uv writes an empty stub here; search uses poetry
+uv.lock
