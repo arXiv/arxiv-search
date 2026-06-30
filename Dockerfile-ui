@@ -35,7 +35,7 @@ RUN echo $GIT_COMMIT > ./git-commit.txt
 
 RUN pip install "gunicorn==20.1.0" "poetry"
 RUN poetry config virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi
+    poetry install --no-interaction --no-ansi --without dev
 
 EXPOSE 8000
 
