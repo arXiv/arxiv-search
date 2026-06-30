@@ -45,6 +45,13 @@ $(function() {
               }
           });
 
+          // Update label for attributes to match new input IDs.
+          new_item.find("label[for]").each(function() {
+              var label_for = $(this).attr('for')
+                .replace('-' + (elem_num - 1) + '-', '-' + (elem_num) + '-');
+              $(this).attr('for', label_for);
+          });
+
           // Clear help text.
           new_item.find(".help").each(function() {
               $(this).empty();

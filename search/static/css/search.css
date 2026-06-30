@@ -188,4 +188,14 @@
   }
 }
 
+button.link-style {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0;
+}
+
 /*# sourceMappingURL=search.css.map */
