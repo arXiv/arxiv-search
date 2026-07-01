@@ -1,0 +1,35 @@
+{#- ARXIVCE-4426 (search): spinout chrome for error pages. arxiv-search runs an
+    arxiv-base that predates the chrome-bearing base/base.html, so the stock
+    base/exception.html (which every 4xx/5xx handler renders — see
+    arxiv.base.exceptions.handle_exception) comes up with the OLD header/footer,
+    missing the vendored .ds-* chrome that search/base.html now carries. This
+    local copy shadows arxiv-base's base/exception.html — Flask resolves the
+    app's search/templates ahead of the base blueprint's templates — and swaps
+    the extends target to search/base.html so 404/500/etc. get the same renovated
+    chrome as the rest of search. The body below is byte-identical to arxiv-base's
+    base/exception.html apart from that extends line. Drop this override once
+    search consumes a chrome-bearing base. -#}
+{% extends "search/base.html" %}
+
+{% import "base/error_macros.html" as error_macros %}
+
+{% block content %}
+<div class="has-text-centered">
+  <h1 class="title is-size-1">
+    {% block error_title %}{{ error.name }}{% endblock %}
+  </h1>
+  <div class="status-code columns is-gapless">
+    {% block error_illustration %}
+      {{ error_macros.render_error_code(error.code) }}
+    {% endblock %}
+  </div>
+  <p class="is-size-5">
+    {{ error.description|safe }}
+  </p>
+  <p class="is-size-5">
+    If the error persists, please contact arXiv support at
+    <a href="mailto:help@arxiv.org">help@arxiv.org</a>.
+  </p>
+</div>
+
+{% endblock content %}
