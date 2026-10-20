@@ -30,6 +30,9 @@ werkzeug = "2.3.6"
 wtforms = "==2.1"
 arxiv-base = {git = "https://github.com/arXiv/arxiv-base.git", rev = "1.0.1"}
 mypy-extensions = "^1.0.0"
+# The shared head/header/footer from the design system; poetry.lock pins the SHA, and an
+# update is a relock (poetry update arxiv-brand-templates).
+arxiv-brand-templates = {git = "https://github.com/arXiv/design-system.git", branch = "master", subdirectory = "templates"}
 
 [tool.poetry.group.dev.dependencies]
 pycodestyle = "*"
