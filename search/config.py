@@ -242,18 +242,6 @@ FLASKS3_USE_HTTPS = os.environ.get("FLASKS3_USE_HTTPS", 1)
 FLASKS3_FORCE_MIMETYPE = os.environ.get("FLASKS3_FORCE_MIMETYPE", 1)
 FLASKS3_ACTIVE = os.environ.get("FLASKS3_ACTIVE", 0)
 
-# --- Shared spinout chrome (ARXIVCE-4426) ------------------------------------
-# arxiv-search runs an arxiv-base that predates the spinout header/footer and
-# can't be upgraded on short notice, so it cannot consume the chrome via
-# url_for('base.static', …). Instead it loads the chrome CSS/JS/images from the
-# shared, versioned base-static route published once to the GCS "web static"
-# bucket — no vendored copy. The host root is per-environment (prod default; dev
-# overrides to https://static.dev.arxiv.org/static/base/1.0.1); the versioned
-# path is immutable, so a release bump changes only this string.
-BASE_STATIC = os.environ.get(
-    "BASE_STATIC", "https://static.arxiv.org/static/base/1.0.1"
-)
-
 # Settings for display of release information
 RELEASE_NOTES_URL = "https://github.com/arXiv/arxiv-search/releases"
 RELEASE_NOTES_TEXT = "Search v0.5.6 released 2020-02-24"
@@ -261,6 +249,10 @@ RELEASE_NOTES_TEXT = "Search v0.5.6 released 2020-02-24"
 
 EXTERNAL_URL_SCHEME = os.environ.get("EXTERNAL_URL_SCHEME", "https")
 BASE_SERVER = os.environ.get("BASE_SERVER", "arxiv.org")
+
+BRAND_STATIC_BASE = os.environ.get("BRAND_STATIC_BASE")
+"""Root URL of the design-system asset route (CSS, fonts, logos, chrome JS). Unset, the
+templates' default: the production route. A dev deployment or a local preview sets its own."""
 
 URLS = [
     ("pdf", "/pdf/<arxiv:paper_id>v<string:version>", BASE_SERVER),

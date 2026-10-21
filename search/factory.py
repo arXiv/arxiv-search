@@ -6,6 +6,8 @@ from flask import Flask
 from flask.logging import default_handler
 from flask_s3 import FlaskS3
 
+import arxiv_brand
+
 from arxiv.base import Base
 from arxiv.base.middleware import wrap, request_logs
 from search.routes import ui, api, classic_api
@@ -35,6 +37,11 @@ def create_ui_web_app() -> Flask:
     index.SearchSession.init_app(app)
 
     Base(app)
+
+    # The shared head/header/footer; links and assets follow this app's config. The
+    # member acknowledgement is filled in the browser from /institutional_banner.
+    arxiv_brand.init_app(app, member_institution='<span class="ack-member-inline" hidden>, <strong></strong></span>')
+
     app.register_blueprint(ui.blueprint)
 
     s3.init_app(app)

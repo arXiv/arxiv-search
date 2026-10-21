@@ -30,6 +30,26 @@ reference = "1.0.1"
 resolved_reference = "45c557e75bc6b645dded63811770b87c405bda3e"
 
 [[package]]
+name = "arxiv-brand-templates"
+version = "0.1.0"
+description = "arXiv brand head/header/footer as portable Jinja, installed from git."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = []
+develop = false
+
+[package.dependencies]
+jinja2 = ">=3"
+
+[package.source]
+type = "git"
+url = "https://github.com/arXiv/design-system.git"
+reference = "master"
+resolved_reference = "b82af76ecc4ac15abbfba9cdbef6c5dd0577f5d6"
+subdirectory = "templates"
+
+[[package]]
 name = "aspy-yaml"
 version = "1.3.0"
 description = "A few extensions to pyyaml."
@@ -1911,4 +1931,4 @@ locale = ["Babel (>=1.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "e709e6ce12566c35bea42488d6e66747435b10ec8be3411ad6b5743f32cb33c9"
+content-hash = "f398cc71af4eeb3108a9d27eebb670ba0daa5b9f008861f355e190648091a309"
