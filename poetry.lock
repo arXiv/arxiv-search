@@ -46,7 +46,7 @@ jinja2 = ">=3"
 type = "git"
 url = "https://github.com/arXiv/design-system.git"
 reference = "master"
-resolved_reference = "b82af76ecc4ac15abbfba9cdbef6c5dd0577f5d6"
+resolved_reference = "a9f7252c6b77b55a06cb5a14dc1c0aa6ad2daa56"
 subdirectory = "templates"
 
 [[package]]
