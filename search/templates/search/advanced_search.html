@@ -25,12 +25,12 @@
 <div class="columns is-desktop">
   <div class="column is-one-half-desktop">
     {% if form.errors %}
-    <div class="notification is-warning">
+    <div class="notification is-warning" role="alert">
       Whoops! Something went wrong. Please correct errors in the form below.
     </div>
     {% endif %}
     <div class="box">
-      <form method="GET" action="{{ url_for('ui.advanced_search') }}">
+      <form method="GET" action="{{ url_for('ui.advanced_search') }}" role="search">
         {{ form.advanced|safe }}
         {# Field-specific search term fieldset. #}
         <section data-toggle="fieldset" id="terms-fieldset">
@@ -324,6 +324,7 @@
 
 
 {% block title %}
+    <span role="status">
     {% if not show_form and results %}
         Showing {{ metadata.start + 1 }}&ndash;{{ metadata.end }} of {{ '{0:,}'.format(metadata.total_results) }} results
     {% elif show_form %}
@@ -331,6 +332,7 @@
     {% else %}
         Sorry, your query returned no results
     {% endif %}
+    </span>
 {% endblock title %}
 
 {% block within_content %}

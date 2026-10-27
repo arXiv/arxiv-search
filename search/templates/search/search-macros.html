@@ -43,8 +43,8 @@
     </a>
     {% endif %}
     {% if metadata.current_page < metadata.total_pages %}
-      <a href="{% if metadata.current_page + 1 <= metadata.max_pages %}{{ url_for_page(metadata.current_page + 1, metadata.size) }}{% endif %}"
-        class="pagination-next" {% if metadata.current_page + 1 > metadata.max_pages %}disabled="true"{% endif %}>Next
+      <a {% if metadata.current_page + 1 <= metadata.max_pages %}href="{{ url_for_page(metadata.current_page + 1, metadata.size) }}"{% else %}aria-disabled="true" tabindex="-1"{% endif %}
+        class="pagination-next">Next
       </a>
     {% else %}
     <a href=""
@@ -56,7 +56,8 @@
       <li>
         <a href="{{ url_for_page(1, metadata.size) }}"
           class="pagination-link {% if metadata.current_page == 1 %}is-current{% endif %}"
-          aria-label="Goto page 1">1
+          aria-label="Page 1"
+          {% if metadata.current_page == 1 %}aria-current="page"{% endif %}>1
         </a>
       </li>
 
@@ -66,7 +67,7 @@
           <a href="{{ url_for_page(p, metadata.size) }}"
             class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
             aria-label="Page {{ p }}"
-            aria-current="page">{{ p }}
+            {% if metadata.current_page == p %}aria-current="page"{% endif %}>{{ p }}
           </a>
         </li>
         {% endfor %}
@@ -77,7 +78,7 @@
             <a href="{{ url_for_page(p, metadata.size) }}"
               class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
               aria-label="Page {{ p }}"
-              aria-current="page">{{ p }}
+              {% if metadata.current_page == p %}aria-current="page"{% endif %}>{{ p }}
             </a>
           </li>
           {% endfor %}
@@ -89,7 +90,7 @@
             <a href="{{ url_for_page(p, metadata.size) }}"
               class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
               aria-label="Page {{ p }}"
-              aria-current="page">{{ p }}
+              {% if metadata.current_page == p %}aria-current="page"{% endif %}>{{ p }}
             </a>
           </li>
           {% endfor %}
@@ -101,7 +102,7 @@
             <a href="{{ url_for_page(p, metadata.size) }}"
               class="pagination-link {% if metadata.current_page == p %}is-current{% endif %}"
               aria-label="Page {{ p }}"
-              aria-current="page">{{ p }}
+              {% if metadata.current_page == p %}aria-current="page"{% endif %}>{{ p }}
             </a>
           </li>
           {% endif %}
@@ -137,10 +138,10 @@
         <span>&nbsp;{{ paper_format_links(result, display_paper_id) }}&nbsp;</span>
       </p>
       <div class="tags is-inline-block">
-        <span class="tag is-small {% if result.match.primary_classification %}search-hit{% else %}is-link{% endif %} tooltip is-tooltip-top" data-tooltip="{{ result.primary_classification|category_name }}">{{ result.primary_classification.category.id }}</span>
+        <span class="tag is-small {% if result.match.primary_classification %}search-hit{% else %}is-link{% endif %} tooltip is-tooltip-top" data-tooltip="{{ result.primary_classification|category_name }}" aria-label="{{ result.primary_classification|category_name }} ({{ result.primary_classification.category.id }})" role="text">{{ result.primary_classification.category.id }}</span>
         {% if result.secondary_classification %}
           {% for secondary in result.secondary_classification %}
-            <span class="tag is-small {% if secondary.category.id in result.match.secondary_classification %}search-hit{% else %}is-grey{% endif %} tooltip is-tooltip-top" data-tooltip="{{secondary|category_name}}">{{ secondary.category.id }}</span>
+            <span class="tag is-small {% if secondary.category.id in result.match.secondary_classification %}search-hit{% else %}is-grey{% endif %} tooltip is-tooltip-top" data-tooltip="{{secondary|category_name}}" aria-label="{{ secondary|category_name }} ({{ secondary.category.id }})" role="text">{{ secondary.category.id }}</span>
           {% endfor %}
         {% endif -%}
       </div>
@@ -175,11 +176,11 @@
       <span class="{% if result.match.abstract %}search-hit{% else %}has-text-black-bis has-text-weight-semibold{% endif %}">Abstract</span>:
       <span class="abstract-short has-text-grey-dark mathjax" id="{{result.id}}-abstract-short" style="display: inline;">
         {{ result.preview.abstract | safe }}
-        {%if result.truncated.abstract %}<a class="is-size-7" style="white-space: nowrap;" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'inline'; document.getElementById('{{result.id}}-abstract-short').style.display = 'none';">&#9661; More</a>{% endif %}
+        {%if result.truncated.abstract %}<button type="button" class="is-size-7 link-style" style="white-space: nowrap;" aria-expanded="false" aria-label="Show full abstract" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'inline'; document.getElementById('{{result.id}}-abstract-short').style.display = 'none';">&#9661; More</button>{% endif %}
       </span>
       <span class="abstract-full has-text-grey-dark mathjax" id="{{result.id}}-abstract-full" style="display: none;">
         {% if result.highlight.abstract %}{{ result.highlight.abstract | safe }}{% else %}{{ result.abstract }}{% endif %}
-        <a class="is-size-7" style="white-space: nowrap;" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'none'; document.getElementById('{{result.id}}-abstract-short').style.display = 'inline';">&#9651; Less</a>
+        <button type="button" class="is-size-7 link-style" style="white-space: nowrap;" aria-expanded="true" aria-label="Hide full abstract" onclick="document.getElementById('{{result.id}}-abstract-full').style.display = 'none'; document.getElementById('{{result.id}}-abstract-short').style.display = 'inline';">&#9651; Less</button>
       </span>
     </p>
     {% endif %}
